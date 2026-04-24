@@ -2,9 +2,9 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Pricing — free healthcare job posting for verified orgs',
+  title: 'Pricing — free healthcare job posting, $29/mo unlimited',
   description:
-    'Free forever for verified healthcare orgs (3 active posts). Plus $49/mo for 15 posts + featured placement. Pro $199/mo for unlimited + analytics. 10-25× cheaper than Indeed sponsored, LinkedIn Recruiter, or ZipRecruiter.',
+    '10 free job posts forever for verified healthcare orgs. $29/mo for unlimited. No feature gating, no per-post fees, no auction. 17× cheaper than Health eCareers, 100× cheaper than Indeed sponsored.',
   alternates: { canonical: 'https://freejobpost.co/pricing' },
 }
 
@@ -16,7 +16,8 @@ type Tier = {
   cta: string
   ctaHref: string
   highlight?: boolean
-  features: Array<{ text: string; included: boolean }>
+  bullets: string[]
+  footnote?: string
 }
 
 const TIERS: Tier[] = [
@@ -27,80 +28,61 @@ const TIERS: Tier[] = [
     tagline: 'Verified healthcare orgs',
     cta: 'Post a job →',
     ctaHref: '/post-job',
-    features: [
-      { text: '3 active job posts', included: true },
-      { text: '60-day post duration', included: true },
-      { text: 'Email verification required', included: true },
-      { text: 'Healthcare-org verification (auto or 1-day review)', included: true },
-      { text: 'Google for Jobs + Indeed free feed syndication', included: true },
-      { text: 'Candidate applications delivered to your inbox', included: true },
-      { text: 'Featured placement', included: false },
-      { text: 'Resume search', included: false },
+    bullets: [
+      '10 active job posts',
+      '90-day post duration',
+      'All features included — apply-tracking, CSV export, analytics',
+      '1 featured placement boost / month',
+      'Google for Jobs + Indeed feed syndication',
+      'Healthcare-org verification (auto or 1-day review)',
+      'Email-verified posting',
     ],
-  },
-  {
-    name: 'Plus',
-    price: '$49',
-    priceDetail: '/mo · or $490/yr',
-    tagline: 'Small practices & group clinics',
-    cta: 'Upgrade when ready',
-    ctaHref: '/post-job',
-    features: [
-      { text: '15 active job posts', included: true },
-      { text: '90-day post duration', included: true },
-      { text: '3 featured-placement boosts / month', included: true },
-      { text: 'Apply-tracking dashboard + CSV export', included: true },
-      { text: '5-minute feed refresh (vs 15 min)', included: true },
-      { text: 'Priority email support', included: true },
-      { text: 'Unlimited posts', included: false },
-      { text: 'Resume search', included: false },
-    ],
+    footnote: 'No credit card required. Cancel anytime — there\u2019s nothing to cancel.',
   },
   {
     name: 'Pro',
-    price: '$199',
-    priceDetail: '/mo · or $1,990/yr',
-    tagline: 'Mid-market orgs & staffing teams',
+    price: '$29',
+    priceDetail: '/mo · or $290/yr (save 2 months)',
+    tagline: 'Staffing teams + volume hirers',
     cta: 'Upgrade when ready',
     ctaHref: '/post-job',
     highlight: true,
-    features: [
-      { text: 'Unlimited active job posts', included: true },
-      { text: '90-day post duration', included: true },
-      { text: 'Unlimited featured placements', included: true },
-      { text: 'Full analytics + source attribution', included: true },
-      { text: 'Resume search (opted-in candidates)', included: true },
-      { text: 'Saved candidate searches + email alerts', included: true },
-      { text: 'Apply-tracking + CSV export', included: true },
-      { text: 'Priority support', included: true },
+    bullets: [
+      'Unlimited active posts',
+      'Unlimited featured placements',
+      'Resume search (opted-in candidates)',
+      'Saved searches + email alerts on new matches',
+      'Priority 5-min feed refresh (vs 15 min)',
+      'Priority email support',
+      'Everything in Free, no limits',
     ],
+    footnote: 'Flat pricing. No per-post fees, no auction, no feature paywalls.',
   },
   {
     name: 'Enterprise',
-    price: 'Custom',
-    priceDetail: 'from $999/mo',
-    tagline: 'Hospital systems & staffing agencies',
+    price: 'from $299',
+    priceDetail: '/mo · custom',
+    tagline: 'Hospital systems + agencies',
     cta: 'Talk to us',
     ctaHref: 'mailto:ally@avahealth.co?subject=Enterprise%20job%20board%20inquiry',
-    features: [
-      { text: 'Everything in Pro', included: true },
-      { text: 'ATS integration (Bullhorn, JobDiva, Avionte)', included: true },
-      { text: 'API access', included: true },
-      { text: 'White-label option', included: true },
-      { text: 'Dedicated account manager', included: true },
-      { text: '1-hour review SLA for new posts', included: true },
-      { text: 'Custom reporting + SSO', included: true },
-      { text: 'Annual contract', included: true },
+    bullets: [
+      'Everything in Pro',
+      'ATS integration (Bullhorn, JobDiva, Avionte)',
+      'API access + white-label option',
+      'Dedicated account manager',
+      '1-hour review SLA for new posts',
+      'Custom reporting + SSO',
+      'Annual contract',
     ],
   },
 ]
 
 const COMPARE_ROWS = [
-  { platform: 'freejobpost.co Pro', yearly: '$1,990', per10jobs: '$199/mo' },
-  { platform: 'Indeed sponsored (10 roles)', yearly: '$36,000+', per10jobs: '$3,000/mo' },
+  { platform: 'freejobpost.co Pro', yearly: '$290', per10jobs: '$29/mo', highlight: true },
+  { platform: 'Health eCareers ($499/post × 10)', yearly: '$4,990', per10jobs: '$499/mo' },
   { platform: 'LinkedIn Recruiter Corporate (1 seat + boosts)', yearly: '$14,000+', per10jobs: '$1,167/mo' },
+  { platform: 'Indeed sponsored (10 roles, typical CPC)', yearly: '$36,000+', per10jobs: '$3,000/mo' },
   { platform: 'ZipRecruiter (10 roles)', yearly: '$60,000+', per10jobs: '$5,000/mo' },
-  { platform: 'Health eCareers ($499/post × 10)', yearly: '$5,988', per10jobs: '$499/mo' },
 ]
 
 export default function PricingPage() {
@@ -139,31 +121,32 @@ export default function PricingPage() {
         <div className="max-w-6xl mx-auto px-6 py-16 md:py-24">
           <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
             <span className="w-2 h-2 bg-green-600" />
-            PRICING · HEALTHCARE HIRING REBUILT
+            FLAT PRICING · NO FEATURE PAYWALLS
           </div>
           <h1 className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tight mb-6">
-            The price of Indeed
+            10 free posts.
             <br />
-            just went to{' '}
-            <span className="text-green-700">$∞</span>.
+            Or <span className="text-green-700">$29/mo</span>.
+            <br />
+            That&apos;s it.
           </h1>
           <p className="text-xl md:text-2xl max-w-3xl leading-snug text-gray-800 mb-4">
-            On March 31, 2026, Indeed eliminated free organic visibility for
-            jobs fed without a paid ATS+Indeed Apply integration. Healthcare
-            orgs are replatforming. This is where.
+            Every feature is in every tier. You pay for volume, not for
+            apply-tracking, not for analytics, not for CSV export. The other
+            guys nickel-and-dime because they can. We&apos;re not them.
           </p>
           <p className="text-lg text-gray-600 max-w-2xl">
-            Free forever for verified healthcare orgs. Paid tiers for teams
-            posting at volume — still 10–25× below Indeed, LinkedIn, or
-            ZipRecruiter.
+            Healthcare orgs are leaving Indeed, LinkedIn, and ZipRecruiter
+            because the pricing broke. We built freejobpost.co to be the
+            obvious replacement — for real.
           </p>
         </div>
       </section>
 
-      {/* Tiers grid */}
+      {/* Tiers */}
       <section className="border-b-2 border-black">
         <div className="max-w-6xl mx-auto px-6 py-16">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-0 md:gap-0 md:divide-x-2 md:divide-black border-2 border-black">
+          <div className="grid md:grid-cols-3 gap-0 md:divide-x-2 md:divide-black border-2 border-black">
             {TIERS.map((tier) => (
               <div
                 key={tier.name}
@@ -174,12 +157,12 @@ export default function PricingPage() {
                     MOST POPULAR
                   </div>
                 )}
-                <h2 className="font-black text-2xl tracking-tight mb-1">{tier.name}</h2>
-                <p className="text-xs text-gray-600 mb-4">{tier.tagline}</p>
+                <h2 className="font-black text-3xl tracking-tight mb-1">{tier.name}</h2>
+                <p className="text-xs text-gray-600 mb-6">{tier.tagline}</p>
                 <div className="mb-6">
-                  <span className="text-5xl font-black tracking-tight">{tier.price}</span>
+                  <span className="text-6xl font-black tracking-tight">{tier.price}</span>
                   {tier.priceDetail && (
-                    <div className="text-sm text-gray-600 mt-1">{tier.priceDetail}</div>
+                    <div className="text-sm text-gray-600 mt-2">{tier.priceDetail}</div>
                   )}
                 </div>
                 <Link
@@ -193,51 +176,48 @@ export default function PricingPage() {
                   {tier.cta}
                 </Link>
                 <ul className="space-y-3 text-sm">
-                  {tier.features.map((f, i) => (
-                    <li
-                      key={i}
-                      className={`flex items-start gap-2 ${f.included ? '' : 'text-gray-400 line-through'}`}
-                    >
-                      <span
-                        className={`shrink-0 w-4 h-4 mt-0.5 flex items-center justify-center font-bold ${
-                          f.included ? 'text-green-700' : 'text-gray-400'
-                        }`}
-                      >
-                        {f.included ? '✓' : '×'}
+                  {tier.bullets.map((b, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="shrink-0 w-4 h-4 mt-0.5 flex items-center justify-center font-bold text-green-700">
+                        ✓
                       </span>
-                      <span>{f.text}</span>
+                      <span>{b}</span>
                     </li>
                   ))}
                 </ul>
+                {tier.footnote && (
+                  <p className="mt-6 text-xs text-gray-500 italic">{tier.footnote}</p>
+                )}
               </div>
             ))}
           </div>
 
           <p className="mt-6 text-sm text-gray-600 max-w-3xl">
-            Paid tier checkout is launching shortly — for now, post on the free
-            tier and we&apos;ll upgrade you manually when you need more slots.
-            Enterprise inquiries:{' '}
-            <a
-              href="mailto:ally@avahealth.co"
-              className="font-bold underline hover:text-green-700"
-            >
+            Pro checkout launching shortly. In the meantime post on Free —
+            the moment you need to upgrade, email{' '}
+            <a href="mailto:ally@avahealth.co" className="font-bold underline hover:text-green-700">
               ally@avahealth.co
             </a>
-            .
+            {' '}and we&apos;ll flip your tier manually.
           </p>
         </div>
       </section>
 
-      {/* Side-by-side vs competitors */}
+      {/* The math */}
       <section className="border-b-2 border-black bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">
             THE MATH
           </h2>
-          <p className="text-3xl md:text-5xl font-black leading-tight tracking-tight mb-10 max-w-4xl">
-            What 10 roles costs per year,
+          <p className="text-3xl md:text-5xl font-black leading-tight tracking-tight mb-6 max-w-4xl">
+            What 10 open roles costs
             <br />
-            on each platform.
+            per year, on each platform.
+          </p>
+          <p className="text-lg text-gray-700 mb-10 max-w-2xl">
+            The numbers below are what your 50-person clinic actually pays
+            today if you stay on the incumbents. And why calls with us are
+            getting shorter.
           </p>
           <div className="overflow-x-auto border-2 border-black bg-white">
             <table className="w-full text-left">
@@ -253,10 +233,10 @@ export default function PricingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {COMPARE_ROWS.map((row, i) => (
+                {COMPARE_ROWS.map((row) => (
                   <tr
                     key={row.platform}
-                    className={i === 0 ? 'bg-green-50 font-bold' : ''}
+                    className={row.highlight ? 'bg-green-50 font-bold' : ''}
                   >
                     <td className="p-4">{row.platform}</td>
                     <td className="p-4 text-right font-mono">{row.per10jobs}</td>
@@ -266,8 +246,8 @@ export default function PricingPage() {
               </tbody>
             </table>
           </div>
-          <p className="mt-4 text-xs text-gray-500">
-            Sources: Indeed pricing guide (2026), LinkedIn Recruiter pricing, ZipRecruiter cost data, Health eCareers publisher rate card. Mid-market healthcare org with ~10 concurrent open roles.
+          <p className="mt-4 text-xs text-gray-500 max-w-3xl">
+            Sources: Indeed pricing guide (2026), LinkedIn Recruiter pricing, ZipRecruiter public rate card, Health eCareers publisher pricing. 10 open roles assumed concurrent across a 12-month hiring cycle.
           </p>
         </div>
       </section>
@@ -281,28 +261,32 @@ export default function PricingPage() {
           </p>
           <div className="space-y-10">
             <Faq
-              q="Why is there a free tier at all?"
-              a="Because healthcare orgs with 1–10 staff can't absorb $3K/mo Indeed sponsored budgets, and we think they deserve to hire. Free covers the small-clinic use case so the supply side stays broad. Paid tiers (Plus, Pro) pay the bills."
+              q="Why is free... actually free?"
+              a="Because our marginal cost per employer is a few cents per month. The big platforms price for maximizing revenue per seat; we price for sustainable growth. 10 free active posts covers 95% of healthcare orgs that have ever opened an Indeed account. The gate isn't pricing — it's healthcare verification."
             />
             <Faq
-              q="Why a 3-post limit on free? Isn't that too tight?"
-              a="Active posts, not lifetime. A clinic filling 2 roles uses 2 slots briefly — once filled, mark them closed and the slots reopen. A 10-person practice typically has 0–3 roles open at any time. If you consistently have more than 3 open, you're a Plus tier customer."
+              q="What's the catch on $29 Pro?"
+              a="No catch. Same features as free, just uncapped posts + featured placements + resume search. At $29/mo we make ~$22 net after Stripe fees and ops. That's plenty for a calm, profitable business. If we wanted to price-gouge we'd be LinkedIn."
+            />
+            <Faq
+              q="Why no Plus tier in the middle?"
+              a="Feature gating is what we're trying to kill. If the free tier gets CSV export, analytics, and apply-tracking, there's nothing to put in a $49 Plus tier that isn't 'pay us for nothing.' Free → Pro is the real choice: do you need more than 10 active posts, or not?"
+            />
+            <Faq
+              q="Will you raise prices once you have users?"
+              a="Grandfathered pricing for every account. If you sign up at $29/mo, you stay at $29/mo forever — same way Hover.com did with their flat domain pricing. This is a commitment, not a promotional tactic."
             />
             <Faq
               q="What's the 'verified healthcare org' gate?"
-              a="We check whether your email domain or company matches a real healthcare org in the NPPES registry, a hospital system, or a known practice. Most verify automatically in seconds. Those that don't go to a queue our team reviews within a day. The gate is what keeps the candidate experience clean — no fake listings, no affiliate-marketing spam."
+              a="We check if your email domain or company matches a real healthcare organization — NPPES registry, known hospital systems, or domain heuristics (words like 'health', 'clinic', 'medical'). Most clinics verify in seconds. Anything ambiguous goes to a queue our team reviews within a day. It's what keeps the candidate experience spam-free."
             />
             <Faq
-              q="What about Indeed's change specifically?"
-              a="On March 31, 2026, Indeed pulled free organic visibility from XML/API feeds that don't use a paid ATS+Indeed Apply combination. Healthcare was called out as a field where sponsored will be required to fill roles. Translation: the free lane you were using is closed. We're building the replacement."
+              q="What about Indeed's March 2026 change?"
+              a="Indeed eliminated free organic visibility on March 31, 2026 for jobs fed without a paid ATS+Indeed Apply integration. Healthcare was called out as a field where sponsored budgets will be mandatory. A lot of small practices had been leaning on that free lane; it's gone. We're building the replacement."
             />
             <Faq
-              q="Will you syndicate to Indeed anyway?"
-              a="Yes — our feed is Indeed-compatible and we submit to their free organic program. Whether Indeed chooses to index it is increasingly up to them. Our Google for Jobs distribution, SEO strategy, and ZipRecruiter feed don't depend on Indeed cooperating."
-            />
-            <Faq
-              q="Can I post without being a healthcare org?"
-              a="The platform is healthcare-only for now. Non-healthcare posts are rejected during the verification review. When we expand to other verticals (tech, admin, etc.), we'll announce it."
+              q="Does this syndicate to Indeed anyway?"
+              a="Yes. Our XML feed is Indeed-compatible. Whether Indeed indexes it is Indeed's call under their new policy, but Google for Jobs, ZipRecruiter partner feed, LinkedIn Limited Listings, and direct SEO from our own /jobs pages don't depend on Indeed cooperating."
             />
           </div>
         </div>
@@ -312,9 +296,11 @@ export default function PricingPage() {
       <section className="bg-black text-white">
         <div className="max-w-6xl mx-auto px-6 py-24 text-center">
           <p className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tight mb-8">
-            Post your first role.
-            <br />
-            <span className="text-green-500">Free.</span>
+            10 jobs, free, right now.
+          </p>
+          <p className="text-lg text-gray-400 max-w-xl mx-auto mb-10">
+            No credit card. No sales call. Email verify, post, live in Google
+            for Jobs within 24 hours.
           </p>
           <Link
             href="/post-job"
@@ -322,9 +308,6 @@ export default function PricingPage() {
           >
             Post a job →
           </Link>
-          <p className="mt-6 text-sm text-gray-400">
-            90 seconds. Email-verified. Live in your SEO + Google for Jobs the moment you confirm.
-          </p>
         </div>
       </section>
     </main>
