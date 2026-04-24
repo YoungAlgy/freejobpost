@@ -74,10 +74,6 @@ export default function RootLayout({
                 Post a job
               </Link>
               <span className="text-gray-300">|</span>
-              <Link href="/pricing" className="hover:text-gray-900">
-                Pricing
-              </Link>
-              <span className="text-gray-300">|</span>
               <Link href="https://freeresumepost.co" className="hover:text-gray-900">
                 Candidates
               </Link>
