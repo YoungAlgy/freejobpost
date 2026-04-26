@@ -90,13 +90,15 @@ export async function GET(): Promise<Response> {
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   const jobs = (data ?? []) as unknown as FeedJob[]
 
-  // Resolve company names per employer in one batched query
+  // Resolve company names per employer in one batched query.
+  // Reads from public_employers_directory (anon-safe view) — the underlying
+  // public_employers table is internal-only because it carries contact PII.
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }
   const employerNameMap = new Map<string, string>()
   if (employerIds.length > 0) {
     const { data: emps } = await supabase
-      .from('public_employers')
+      .from('public_employers_directory')
       .select('id, company_name')
       .in('id', employerIds)
     for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
