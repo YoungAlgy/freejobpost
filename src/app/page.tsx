@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { supabase } from '@/lib/supabase'
+import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 
 export const metadata: Metadata = {
   title: 'Free Job Post — Healthcare jobs without the Indeed tax',
@@ -7,18 +9,32 @@ export const metadata: Metadata = {
     'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Beta launching April 2026.',
 }
 
-// Dummy previews for the "open roles" section — replaced with live data once
-// the 424 seeded Ava jobs are exposed via the public_jobs view in Phase 1.
-const PREVIEW_JOBS = [
-  { title: 'Family Medicine Physician', facility: 'Lee Health', city: 'Fort Myers, FL', salary: '$270K+' },
-  { title: 'ICU Registered Nurse', facility: 'Ochsner Health', city: 'New Orleans, LA', salary: '$95K–$125K' },
-  { title: 'Licensed Clinical Social Worker', facility: 'HCA Florida', city: 'Tampa, FL', salary: '$72K–$88K' },
-  { title: 'Hospitalist (Nocturnist)', facility: 'Tulane Medical Center', city: 'New Orleans, LA', salary: '$340K+' },
-  { title: 'Physician Assistant — Urgent Care', facility: 'Banner Health', city: 'Phoenix, AZ', salary: '$120K–$145K' },
-  { title: 'Registered Nurse — Labor & Delivery', facility: 'Sarasota Memorial', city: 'Sarasota, FL', salary: '$88K–$112K' },
-]
+// ISR: page rebuilds every 5 minutes so live job count + recent posts stay fresh
+export const revalidate = 300
 
-export default function Home() {
+type RecentJob = Pick<PublicJob, 'id' | 'slug' | 'title' | 'city' | 'state' | 'salary_min' | 'salary_max'>
+
+export default async function Home() {
+  // Fetch live count + 6 most-recent active jobs in parallel
+  const [countRes, recentRes] = await Promise.all([
+    supabase
+      .from('public_jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', new Date().toISOString()),
+    supabase
+      .from('public_jobs')
+      .select('id, slug, title, city, state, salary_min, salary_max')
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(6),
+  ])
+  const liveCount = countRes.count ?? 0
+  const recentJobs = (recentRes.data ?? []) as RecentJob[]
+
   return (
     <main className="min-h-screen bg-white text-black">
       {/* Nav */}
@@ -43,8 +59,12 @@ export default function Home() {
       <section className="border-b-2 border-black">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-32">
           <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-8">
-            <span className="w-2 h-2 bg-green-600" />
-            FREE HEALTHCARE JOB BOARD
+            <span className="w-2 h-2 bg-green-600 animate-pulse" />
+            {liveCount > 0 ? (
+              <>{liveCount.toLocaleString()} ACTIVE HEALTHCARE JOBS</>
+            ) : (
+              <>FREE HEALTHCARE JOB BOARD</>
+            )}
           </div>
           <h1 className="text-[64px] md:text-[104px] font-black leading-[0.92] tracking-tight mb-8">
             Free healthcare
@@ -150,19 +170,39 @@ export default function Home() {
               View all →
             </Link>
           </div>
-          <div className="divide-y-2 divide-black border-y-2 border-black">
-            {PREVIEW_JOBS.map((job) => (
-              <div
-                key={job.title + job.facility}
-                className="grid grid-cols-12 gap-4 py-5 hover:bg-green-50 transition-colors cursor-pointer"
-              >
-                <div className="col-span-12 md:col-span-5 font-bold">{job.title}</div>
-                <div className="col-span-6 md:col-span-3 text-gray-700">{job.facility}</div>
-                <div className="col-span-6 md:col-span-2 text-gray-700 text-sm">{job.city}</div>
-                <div className="col-span-12 md:col-span-2 font-bold text-right">{job.salary}</div>
-              </div>
-            ))}
-          </div>
+          {recentJobs.length === 0 ? (
+            <div className="border-2 border-black border-dashed py-16 text-center">
+              <p className="text-2xl font-black mb-2">No jobs posted yet.</p>
+              <p className="text-gray-700">
+                Be the first.{' '}
+                <Link href="/post-job" className="underline font-bold hover:text-green-700">
+                  Post a job in 60 seconds &rarr;
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y-2 divide-black border-y-2 border-black">
+              {recentJobs.map((job) => {
+                const salary = formatSalary(job.salary_min, job.salary_max)
+                const loc = locationLabel({ city: job.city, state: job.state })
+                return (
+                  <Link
+                    key={job.id}
+                    href={`/jobs/${job.slug}`}
+                    className="grid grid-cols-12 gap-4 py-5 hover:bg-green-50 transition-colors group"
+                  >
+                    <div className="col-span-12 md:col-span-7 font-bold group-hover:text-green-700 truncate">
+                      {job.title}
+                    </div>
+                    <div className="col-span-6 md:col-span-3 text-gray-700 text-sm">{loc || '—'}</div>
+                    <div className="col-span-6 md:col-span-2 font-bold text-right">
+                      {salary || ''}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
       </section>
 
