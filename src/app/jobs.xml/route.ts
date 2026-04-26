@@ -80,14 +80,28 @@ function iso822(d: Date): string {
 export async function GET(): Promise<Response> {
   const { data } = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at')
+    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
     .limit(5000)
 
-  const jobs = (data ?? []) as unknown as (PublicJob & { updated_at: string })[]
+  type FeedJob = PublicJob & { updated_at: string; employer_id: string }
+  const jobs = (data ?? []) as unknown as FeedJob[]
+
+  // Resolve company names per employer in one batched query
+  const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
+  type EmpRow = { id: string; company_name: string }
+  const employerNameMap = new Map<string, string>()
+  if (employerIds.length > 0) {
+    const { data: emps } = await supabase
+      .from('public_employers')
+      .select('id, company_name')
+      .in('id', employerIds)
+    for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
+  }
+
   const now = iso822(new Date())
 
   const jobsXml = jobs
@@ -99,13 +113,14 @@ export async function GET(): Promise<Response> {
       const validThrough = job.expires_at
         ? iso822(new Date(job.expires_at))
         : iso822(new Date(Date.now() + 60 * 86400_000))
+      const employerName = employerNameMap.get(job.employer_id) || 'Ava Health Partners'
       return `  <job>
     <title>${cdata(title)}</title>
     <date>${cdata(posted)}</date>
     <expirationdate>${cdata(validThrough)}</expirationdate>
     <referencenumber>${cdata(job.slug)}</referencenumber>
     <url>${cdata(`https://freejobpost.co/jobs/${job.slug}`)}</url>
-    <company>${cdata('Ava Health Partners')}</company>
+    <company>${cdata(employerName)}</company>
     <sourcename>${cdata('freejobpost.co')}</sourcename>
     <city>${cdata(job.city ?? '')}</city>
     <state>${cdata(job.state ?? '')}</state>
