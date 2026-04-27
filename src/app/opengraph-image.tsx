@@ -21,7 +21,10 @@ export default async function OG() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: 28, fontWeight: 900 }}>
-          freejobpost<span style={{ color: '#15803d' }}>.co</span>
+          <span style={{ display: 'flex' }}>
+            <span>freejobpost</span>
+            <span style={{ color: '#15803d' }}>.co</span>
+          </span>
           <span
             style={{
               fontSize: 13,
@@ -49,8 +52,8 @@ export default async function OG() {
               gap: 8,
             }}
           >
-            <span style={{ width: 10, height: 10, background: '#15803d', display: 'inline-block' }} />
-            Free healthcare job board
+            <span style={{ width: 10, height: 10, background: '#15803d', display: 'flex' }} />
+            <span>Free healthcare job board</span>
           </div>
           <div
             style={{
