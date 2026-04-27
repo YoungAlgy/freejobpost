@@ -60,9 +60,12 @@ export default async function OG() {
               letterSpacing: -2,
               color: '#000',
               marginBottom: 28,
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            Free healthcare<br />job posts.
+            <span>Free healthcare</span>
+            <span>job posts.</span>
           </div>
           <div
             style={{
