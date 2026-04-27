@@ -80,13 +80,13 @@ export default function RootLayout({
                   '@type': 'Organization',
                   '@id': 'https://avahealth.co#organization',
                   legalName: 'Ava Health Partners LLC',
-                  name: 'Ava Health Partners',
-                  alternateName: ['Ava Health', 'Ava Health Partners LLC'],
+                  name: 'Ava Health',
+                  alternateName: ['Ava Health Partners', 'Ava Health Partners LLC'],
                   url: 'https://avahealth.co',
                   logo: 'https://avahealth.co/logo.png',
                   description: 'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates freejobpost.co — a free healthcare job board with no posting fees and no auction pricing.',
-                  telephone: '+1-727-777-2545',
-                  email: 'hello@avahealth.co',
+                  telephone: '+1-904-343-9449',
+                  email: 'info@avahealth.co',
                   sameAs: [
                     'https://avahealth.co',
                     'https://www.avahealth.co',
@@ -94,6 +94,7 @@ export default function RootLayout({
                     'https://app.avahealth.co',
                     'https://freejobpost.co',
                     'https://www.freeresumepost.co',
+                    'https://www.linkedin.com/company/ava-health1/',
                   ],
                   address: {
                     '@type': 'PostalAddress',
@@ -107,8 +108,8 @@ export default function RootLayout({
                     {
                       '@type': 'ContactPoint',
                       contactType: 'customer service',
-                      telephone: '+1-727-777-2545',
-                      email: 'hello@avahealth.co',
+                      telephone: '+1-904-343-9449',
+                      email: 'info@avahealth.co',
                       areaServed: 'US',
                       availableLanguage: 'English',
                     },
@@ -175,7 +176,7 @@ export default function RootLayout({
               </Link>
               . A free-to-use job board for healthcare employers.
               <br />
-              1314 7th Street South, St. Petersburg, FL 33701 · (727) 777-2545
+              1314 7th Street South, St. Petersburg, FL 33701 · (904) 343-9449 · info@avahealth.co
             </p>
           </div>
         </footer>
