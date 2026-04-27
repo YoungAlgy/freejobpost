@@ -12,6 +12,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/post-job`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/employer`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
   ]
 
   const { data } = await supabase
