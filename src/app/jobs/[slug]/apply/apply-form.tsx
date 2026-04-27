@@ -75,7 +75,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
             Browse more jobs →
           </Link>
           <a
-            href="https://freeresumepost.co/upload"
+            href="https://www.freeresumepost.co/upload"
             className="inline-flex items-center justify-center border-2 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-colors"
           >
             Upload your resume
@@ -143,7 +143,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
         <p className="text-xs text-gray-500 mt-1">
           Or{' '}
           <a
-            href="https://freeresumepost.co/upload"
+            href="https://www.freeresumepost.co/upload"
             className="underline hover:text-green-700"
             target="_blank"
             rel="noopener noreferrer"

@@ -26,7 +26,7 @@ export default function PricingPage() {
             <Link href="/jobs" className="hover:text-green-700">
               Browse jobs
             </Link>
-            <a href="https://freeresumepost.co" className="hover:text-green-700">
+            <a href="https://www.freeresumepost.co" className="hover:text-green-700">
               For candidates
             </a>
             <Link

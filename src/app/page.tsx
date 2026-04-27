@@ -47,7 +47,7 @@ export default async function Home() {
           <div className="hidden md:flex items-center gap-8 text-sm font-medium">
             <Link href="/jobs" className="hover:text-green-700">Browse jobs</Link>
             <Link href="/how-it-works" className="hover:text-green-700">How it works</Link>
-            <a href="https://freeresumepost.co" className="hover:text-green-700">For candidates</a>
+            <a href="https://www.freeresumepost.co" className="hover:text-green-700">For candidates</a>
             <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors">
               Post a job →
             </Link>
@@ -93,7 +93,7 @@ export default async function Home() {
           </div>
           <p className="mt-8 text-sm text-gray-600">
             Hiring candidates? Send them to{' '}
-            <a href="https://freeresumepost.co" className="font-bold underline hover:text-green-700">
+            <a href="https://www.freeresumepost.co" className="font-bold underline hover:text-green-700">
               freeresumepost.co →
             </a>
           </p>

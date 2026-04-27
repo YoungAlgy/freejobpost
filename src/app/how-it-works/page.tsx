@@ -89,7 +89,7 @@ export default function HowItWorksPage() {
             <div className="shrink-0 w-8 h-8 bg-green-700 text-white text-sm font-black flex items-center justify-center">3</div>
             <div>
               <div className="font-black text-lg mb-1">Want a profile that auto-matches?</div>
-              <div className="text-gray-700">Upload your resume at <a href="https://freeresumepost.co/upload" className="underline hover:text-green-700">freeresumepost.co</a> — we&apos;ll email you when a 70%+ match opens that fits your specialty + state.</div>
+              <div className="text-gray-700">Upload your resume at <a href="https://www.freeresumepost.co/upload" className="underline hover:text-green-700">freeresumepost.co</a> — we&apos;ll email you when a 70%+ match opens that fits your specialty + state.</div>
             </div>
           </li>
         </ol>

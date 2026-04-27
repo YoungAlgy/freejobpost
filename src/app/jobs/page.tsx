@@ -95,7 +95,7 @@ export default async function JobsIndexPage() {
               <Link href="/jobs" className="hover:text-green-700 border-b-2 border-black">
                 Browse jobs
               </Link>
-              <a href="https://freeresumepost.co" className="hover:text-green-700">
+              <a href="https://www.freeresumepost.co" className="hover:text-green-700">
                 For candidates
               </a>
               <Link

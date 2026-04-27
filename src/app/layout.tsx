@@ -87,7 +87,7 @@ export default function RootLayout({
                   sameAs: [
                     'https://avahealth.co',
                     'https://providers.avahealth.co',
-                    'https://freeresumepost.co',
+                    'https://www.freeresumepost.co',
                   ],
                   contactPoint: {
                     '@type': 'ContactPoint',
@@ -128,7 +128,7 @@ export default function RootLayout({
                 Post a job
               </Link>
               <span className="text-gray-300">|</span>
-              <Link href="https://freeresumepost.co" className="hover:text-gray-900">
+              <Link href="https://www.freeresumepost.co" className="hover:text-gray-900">
                 Candidates
               </Link>
               <span className="text-gray-300">|</span>
