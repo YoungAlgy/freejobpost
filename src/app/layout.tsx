@@ -169,7 +169,13 @@ export default function RootLayout({
               </Link>
             </div>
             <p className="text-xs text-gray-400 text-center md:text-right max-w-md">
-              Operated by Ava Health Partners LLC. A free-to-use job board for healthcare employers.
+              Operated by{' '}
+              <Link href="https://avahealth.co" className="underline hover:text-gray-900">
+                Ava Health Partners LLC
+              </Link>
+              . A free-to-use job board for healthcare employers.
+              <br />
+              1314 7th Street South, St. Petersburg, FL 33701 · (727) 777-2545
             </p>
           </div>
         </footer>
