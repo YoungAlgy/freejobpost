@@ -26,6 +26,7 @@ import {
   type PublicJob,
   locationLabel,
 } from '@/lib/public-jobs'
+import { jobUrlWithUtm } from '@/lib/feed-builders'
 
 export const revalidate = 900
 export const dynamic = 'force-static'
@@ -134,7 +135,7 @@ export async function GET(): Promise<Response> {
     <company>${cdata(employerName)}</company>
     <title>${cdata(title)}</title>
     <description>${cdata(descriptionHtml(job))}</description>
-    <applyUrl>${cdata(`https://freejobpost.co/jobs/${job.slug}`)}</applyUrl>
+    <applyUrl>${cdata(jobUrlWithUtm(job.slug, 'linkedin'))}</applyUrl>
     <expirationDate>${cdata(validThrough)}</expirationDate>
     <jobtype>${cdata(linkedinJobType(job.employment_type))}</jobtype>
     <industryCodes>${cdata('14')}</industryCodes>

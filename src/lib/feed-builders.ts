@@ -22,6 +22,14 @@ export function cdata(s: string | null | undefined): string {
   return `<![CDATA[${v}]]>`
 }
 
+// Per-network attribution. Aggregators rewrite the URL when they crawl,
+// but enough networks pass through query params that this still gives us
+// trackable referrer signal in Vercel Analytics + downstream tooling.
+// Canonical on /jobs/[slug] strips UTMs, so SEO isn't fragmented.
+export function jobUrlWithUtm(slug: string, target: SyndicationTargetId | 'rss'): string {
+  return `https://freejobpost.co/jobs/${slug}?utm_source=${target}&utm_medium=feed&utm_campaign=syndication`
+}
+
 export function rfc822(d: Date): string {
   return d.toUTCString()
 }
@@ -101,7 +109,12 @@ export async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string,
 
 // Inner <job> element shared by Indeed / ZipRecruiter / Glassdoor / Adzuna /
 // Jooble / Talent.com. Same spec, single implementation.
-export function indeedFormatJobElement(job: FeedJob, employerName: string, sourceName: string): string {
+export function indeedFormatJobElement(
+  job: FeedJob,
+  employerName: string,
+  sourceName: string,
+  target: SyndicationTargetId,
+): string {
   const loc = locationLabel(job)
   const sal = formatSalary(job.salary_min, job.salary_max)
   const title = job.title || job.role || 'Healthcare Role'
@@ -114,7 +127,7 @@ export function indeedFormatJobElement(job: FeedJob, employerName: string, sourc
     <date>${cdata(posted)}</date>
     <expirationdate>${cdata(validThrough)}</expirationdate>
     <referencenumber>${cdata(job.slug)}</referencenumber>
-    <url>${cdata(`https://freejobpost.co/jobs/${job.slug}`)}</url>
+    <url>${cdata(jobUrlWithUtm(job.slug, target))}</url>
     <company>${cdata(employerName)}</company>
     <sourcename>${cdata(sourceName)}</sourcename>
     <city>${cdata(job.city ?? '')}</city>
@@ -160,7 +173,7 @@ export async function buildIndeedFormatFeed(
   const jobsXml = jobs
     .map((job) => {
       const name = employerNames.get(job.employer_id) || 'Ava Health Partners'
-      return indeedFormatJobElement(job, name, 'freejobpost.co')
+      return indeedFormatJobElement(job, name, 'freejobpost.co', target)
     })
     .join('\n')
   const xml = wrapIndeedFormat(jobsXml, jobs.length, networkLabel)

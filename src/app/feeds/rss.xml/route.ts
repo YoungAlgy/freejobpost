@@ -12,6 +12,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
+import { jobUrlWithUtm } from '@/lib/feed-builders'
 
 export const revalidate = 900
 export const dynamic = 'force-static'
@@ -61,7 +62,10 @@ export async function GET(): Promise<Response> {
 
   const items = jobs
     .map((j) => {
-      const url = `https://freejobpost.co/jobs/${j.slug}`
+      // guid stays canonical (no UTMs) so RSS readers dedupe properly.
+      // link gets UTM-tagged so click-throughs are attributable to RSS.
+      const guidUrl = `https://freejobpost.co/jobs/${j.slug}`
+      const linkUrl = jobUrlWithUtm(j.slug, 'rss')
       const loc = locationLabel(j)
       const sal = formatSalary(j.salary_min, j.salary_max)
       const pub = j.created_at ? new Date(j.created_at).toUTCString() : now
@@ -71,8 +75,8 @@ export async function GET(): Promise<Response> {
       const summary = (j.description ?? '').slice(0, 600).replace(/\s+/g, ' ').trim()
       return `    <item>
       <title>${escapeXml(titleParts.join(' — '))}</title>
-      <link>${escapeXml(url)}</link>
-      <guid isPermaLink="true">${escapeXml(url)}</guid>
+      <link>${escapeXml(linkUrl)}</link>
+      <guid isPermaLink="true">${escapeXml(guidUrl)}</guid>
       <pubDate>${pub}</pubDate>
       <category>${escapeXml(j.specialty ?? j.role ?? 'Healthcare')}</category>
       <description>${cdata(summary)}</description>
