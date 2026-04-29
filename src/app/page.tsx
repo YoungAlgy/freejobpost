@@ -206,6 +206,44 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Browse by state + specialty — hub discovery for crawlers + users */}
+      <section className="border-b-2 border-black bg-gray-50">
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="grid md:grid-cols-2 gap-12">
+            <div>
+              <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">BROWSE BY STATE</h2>
+              <p className="text-2xl font-black leading-tight mb-4">
+                Every major US healthcare market.
+              </p>
+              <p className="text-gray-700 mb-6">
+                Florida, Texas, California, New York, and 30+ more states — each with major-metro and top-employer breakouts.
+              </p>
+              <Link
+                href="/state"
+                className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+              >
+                See all states →
+              </Link>
+            </div>
+            <div>
+              <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">BROWSE BY SPECIALTY</h2>
+              <p className="text-2xl font-black leading-tight mb-4">
+                18 healthcare specialties.
+              </p>
+              <p className="text-gray-700 mb-6">
+                Cardiology, hospital medicine, EM, ortho, NP, PA, RN, CRNA, pharmacist — filtered to active openings only.
+              </p>
+              <Link
+                href="/specialty"
+                className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+              >
+                See all specialties →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-6 py-20">
