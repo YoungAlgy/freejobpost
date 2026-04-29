@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -22,6 +23,7 @@ export type PostJobInput = {
   salary_max: number | null
   experience_required: string
   apply_url: string
+  syndication_targets: SyndicationTargetId[]
 }
 
 export type PostJobResult =
@@ -88,6 +90,26 @@ export async function submitPostJob(_prev: PostJobResult | null, input: PostJobI
 
   if (!result.success) {
     return { success: false, error: result.error || 'Submission rejected.' }
+  }
+
+  // Set syndication targets on the freshly-created (pending_verify) job.
+  // Filter to known IDs server-side as defense-in-depth — RPC also filters.
+  // Empty array is allowed (= recruiter wants no syndication).
+  const cleanTargets = (input.syndication_targets ?? []).filter((t) =>
+    (ALL_TARGET_IDS as readonly string[]).includes(t)
+  ) as SyndicationTargetId[]
+  // Default-on if recruiter didn't explicitly set anything (e.g. older form caches)
+  const targetsToWrite = input.syndication_targets === undefined ? ALL_TARGET_IDS : cleanTargets
+  if (result.job_id) {
+    const { error: targetErr } = await sb.rpc('set_pending_job_syndication_targets', {
+      p_job_id: result.job_id,
+      p_targets: targetsToWrite,
+    })
+    if (targetErr) {
+      // Non-fatal — job is still created with the column default (all on).
+      // Just log; we don't want a syndication-targets failure to nuke the verify flow.
+      console.error('set_pending_job_syndication_targets failed:', targetErr.message)
+    }
   }
 
   // Fire-and-block on the verify email — the user should see the same

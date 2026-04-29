@@ -78,6 +78,9 @@ function iso822(d: Date): string {
 }
 
 export async function GET(): Promise<Response> {
+  // /jobs.xml is the legacy "everything" feed (every active job, regardless
+  // of per-network opt-in). The per-network feeds live at /feeds/<network>.xml
+  // and respect the recruiter's syndication_targets choices.
   const { data } = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')

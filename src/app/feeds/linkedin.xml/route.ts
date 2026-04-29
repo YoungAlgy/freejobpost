@@ -79,14 +79,31 @@ function iso8601Date(d: Date): string {
 }
 
 export async function GET(): Promise<Response> {
-  const { data } = await supabase
+  // Defensive: if syndication_targets column isn't live yet (migration
+  // not applied), fall back to unfiltered active-jobs query so the feed
+  // never returns empty just because the schema is mid-migration.
+  const filtered = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
+    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
+    .contains('syndication_targets', ['linkedin'])
     .order('created_at', { ascending: false })
     .limit(5000)
+
+  let data: unknown[] | null = filtered.data
+  if (filtered.error) {
+    const fallback = await supabase
+      .from('public_jobs')
+      .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(5000)
+    data = fallback.data
+  }
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   const jobs = (data ?? []) as unknown as FeedJob[]

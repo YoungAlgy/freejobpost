@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
+import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 
 // US state list for the state dropdown. Mirrors the 2-letter format enforced by
 // submit_public_job_rpc.
@@ -31,6 +32,7 @@ const INITIAL: PostJobInput = {
   salary_max: null,
   experience_required: '',
   apply_url: '',
+  syndication_targets: DEFAULT_TARGET_IDS,
 }
 
 export default function PostJobForm() {
@@ -42,6 +44,14 @@ export default function PostJobForm() {
 
   const update = <K extends keyof PostJobInput>(key: K, v: PostJobInput[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))
+
+  const toggleTarget = (id: SyndicationTargetId) =>
+    setValues((prev) => ({
+      ...prev,
+      syndication_targets: prev.syndication_targets.includes(id)
+        ? prev.syndication_targets.filter((t) => t !== id)
+        : [...prev.syndication_targets, id],
+    }))
 
   const canAdvanceStep1 = values.title.trim().length >= 3 && values.role.trim().length > 0
   const canAdvanceStep2 =
@@ -357,9 +367,67 @@ export default function PostJobForm() {
               className={fieldStyle}
             />
           </Field>
+          {/* Distribution targets — checkboxes per network */}
+          <div className="border-2 border-black p-4 mt-2">
+            <div className="flex items-baseline justify-between mb-3 gap-3">
+              <div>
+                <p className="text-xs font-bold tracking-wider uppercase">Where should we syndicate this job?</p>
+                <p className="text-xs text-gray-500 mt-0.5">All on by default — uncheck anywhere you don&apos;t want it pushed.</p>
+              </div>
+              <div className="flex gap-3 text-xs font-bold whitespace-nowrap">
+                <button
+                  type="button"
+                  onClick={() => update('syndication_targets', SYNDICATION_TARGETS.map((t) => t.id))}
+                  className="underline hover:text-green-700"
+                >
+                  All on
+                </button>
+                <button
+                  type="button"
+                  onClick={() => update('syndication_targets', [])}
+                  className="underline hover:text-red-600"
+                >
+                  All off
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {SYNDICATION_TARGETS.map((t) => {
+                const on = values.syndication_targets.includes(t.id)
+                return (
+                  <label
+                    key={t.id}
+                    className={`flex items-start gap-2.5 p-2.5 border cursor-pointer transition-colors ${
+                      on ? 'border-black bg-green-50' : 'border-gray-300 hover:border-black'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      onChange={() => toggleTarget(t.id)}
+                      className="mt-0.5 w-4 h-4 accent-green-700"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-sm font-bold">{t.label}</span>
+                        <span className="text-[10px] text-gray-500 font-mono">{t.reach}</span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-snug mt-0.5">{t.blurb}</p>
+                    </div>
+                  </label>
+                )
+              })}
+            </div>
+            {values.syndication_targets.length === 0 && (
+              <p className="text-xs text-amber-700 font-bold mt-3">
+                ⚠ No networks selected — this job will only be visible on freejobpost.co directly.
+              </p>
+            )}
+          </div>
+
           <p className="text-xs text-gray-500">
-            By submitting, you agree your job posting can appear on freejobpost.co.
-            We&apos;ll never sell your contact info.
+            By submitting, you agree your job posting can appear on freejobpost.co
+            and any networks you selected above. We&apos;ll never sell your contact info.
           </p>
         </>
       )}

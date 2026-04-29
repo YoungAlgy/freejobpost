@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://freejobpost.co'),
   alternates: {
     canonical: '/',
+    types: {
+      'application/rss+xml': [
+        { url: '/feeds/rss.xml', title: 'freejobpost.co — Healthcare jobs (RSS)' },
+      ],
+    },
   },
   openGraph: {
     siteName: 'Free Job Post',

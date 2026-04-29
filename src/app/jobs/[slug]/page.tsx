@@ -21,9 +21,24 @@ export const revalidate = 600
 // hitting Supabase.
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,120}$/
 
-async function getJob(slug: string): Promise<PublicJob | null> {
+type JobWithTargets = PublicJob & { syndication_targets?: string[] | null }
+
+async function getJob(slug: string): Promise<JobWithTargets | null> {
   if (!SLUG_RE.test(slug)) return null
-  const { data } = await supabase
+  // Defensive: if the syndication_targets column doesn't exist yet (pre-migration),
+  // fall back to the original select so the page still renders.
+  const withTargets = await supabase
+    .from('public_jobs')
+    .select(JOB_DETAIL_FIELDS + ', syndication_targets')
+    .eq('slug', slug)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle()
+  if (!withTargets.error) {
+    return (withTargets.data as JobWithTargets | null) ?? null
+  }
+  const fallback = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS)
     .eq('slug', slug)
@@ -31,7 +46,7 @@ async function getJob(slug: string): Promise<PublicJob | null> {
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
     .maybeSingle()
-  return (data as PublicJob | null) ?? null
+  return (fallback.data as JobWithTargets | null) ?? null
 }
 
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
@@ -178,12 +193,19 @@ export default async function JobDetailPage({ params }: Props) {
     ],
   }
 
+  // Only emit JobPosting JSON-LD if the recruiter opted into Google for Jobs
+  // syndication. Breadcrumb is always safe to emit (it's about the page, not
+  // the listing).
+  const optedIntoGoogle = !job.syndication_targets || job.syndication_targets.includes('google')
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
-      />
+      {optedIntoGoogle && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+        />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
