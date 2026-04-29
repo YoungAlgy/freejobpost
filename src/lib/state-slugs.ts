@@ -230,6 +230,42 @@ export const STATE_HUBS: StateHub[] = [
     majorMetros: ['Indianapolis', 'Fort Wayne', 'Evansville', 'South Bend', 'Carmel', 'Fishers', 'Bloomington'],
     topEmployers: ['IU Health (Indiana University Health)', 'Community Health Network', 'Ascension St. Vincent', 'Franciscan Health', 'Parkview Health', 'Deaconess Health System', 'Eskenazi Health'],
   },
+  {
+    slug: 'nevada',
+    abbr: 'NV',
+    name: 'Nevada',
+    metaDescription: 'Free Nevada healthcare jobs — Las Vegas, Henderson, Reno. Physician, NP, PA, RN, CRNA roles from Renown, Sunrise Health, Valley Health System, UHS, more.',
+    shortDescription: 'Nevada healthcare openings across Las Vegas, Henderson, Reno, and Carson City.',
+    majorMetros: ['Las Vegas', 'Henderson', 'Reno', 'North Las Vegas', 'Sparks', 'Carson City'],
+    topEmployers: ['Renown Health', 'Sunrise Health System', 'Valley Health System', 'Saint Mary\'s (Reno)', 'Northern Nevada Medical Center', 'UMC Southern Nevada', 'Carson Tahoe Health'],
+  },
+  {
+    slug: 'utah',
+    abbr: 'UT',
+    name: 'Utah',
+    metaDescription: 'Free Utah healthcare jobs — Salt Lake City, Provo, Ogden. Physician, NP, PA, RN, CRNA roles from Intermountain, U of Utah Health, MountainStar, Steward, more.',
+    shortDescription: 'Utah healthcare openings across the Wasatch Front, St. George, and the Utah valleys.',
+    majorMetros: ['Salt Lake City', 'Provo', 'Ogden', 'West Valley City', 'St. George', 'Sandy', 'Orem'],
+    topEmployers: ['Intermountain Health', 'University of Utah Health', 'MountainStar Healthcare', 'Steward Health Care', 'Primary Children\'s Hospital', 'Revere Health', 'Ogden Regional Medical Center'],
+  },
+  {
+    slug: 'alabama',
+    abbr: 'AL',
+    name: 'Alabama',
+    metaDescription: 'Free Alabama healthcare jobs — Birmingham, Huntsville, Mobile, Montgomery. Physician, NP, PA, RN, CRNA roles from UAB, Huntsville Hospital, Infirmary Health, more.',
+    shortDescription: 'Alabama healthcare openings across Birmingham, Huntsville, Mobile, and Montgomery.',
+    majorMetros: ['Birmingham', 'Huntsville', 'Montgomery', 'Mobile', 'Tuscaloosa', 'Hoover', 'Auburn'],
+    topEmployers: ['UAB Medicine (University of Alabama at Birmingham)', 'Huntsville Hospital Health System', 'Infirmary Health', 'Children\'s of Alabama', 'Brookwood Baptist Health', 'East Alabama Medical Center', 'DCH Health System'],
+  },
+  {
+    slug: 'arkansas',
+    abbr: 'AR',
+    name: 'Arkansas',
+    metaDescription: 'Free Arkansas healthcare jobs — Little Rock, Fayetteville, Fort Smith. Physician, NP, PA, RN, CRNA roles from UAMS, Baptist Health Arkansas, CHI St. Vincent, more.',
+    shortDescription: 'Arkansas healthcare openings across Little Rock, Fayetteville, Fort Smith, and the Delta.',
+    majorMetros: ['Little Rock', 'Fayetteville', 'Fort Smith', 'Springdale', 'Jonesboro', 'Rogers', 'Conway'],
+    topEmployers: ['UAMS (University of Arkansas for Medical Sciences)', 'Baptist Health Arkansas', 'CHI St. Vincent', 'Mercy Northwest Arkansas', 'Washington Regional Medical Center', 'Arkansas Children\'s Hospital', 'Saline Memorial Hospital'],
+  },
 ]
 
 export function getStateHub(slug: string): StateHub | undefined {
