@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { supabase } from '@/lib/supabase'
+import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 
 export const revalidate = 3600
 
@@ -9,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${base}/`, changeFrequency: 'daily', priority: 1.0 },
     { url: `${base}/jobs`, changeFrequency: 'hourly', priority: 0.9 },
+    { url: `${base}/specialty`, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/post-job`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/employer`, changeFrequency: 'monthly', priority: 0.5 },
@@ -16,6 +18,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
   ]
+
+  // Specialty hub pages — one per common healthcare specialty so each
+  // ranks for "[specialty] jobs" queries
+  const specialtyRoutes: MetadataRoute.Sitemap = SPECIALTY_HUBS.map((s) => ({
+    url: `${base}/specialty/${s.slug}`,
+    changeFrequency: 'daily' as const,
+    priority: 0.8,
+  }))
 
   const { data } = await supabase
     .from('public_jobs')
@@ -33,5 +43,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [...staticRoutes, ...jobRoutes]
+  return [...staticRoutes, ...specialtyRoutes, ...jobRoutes]
 }

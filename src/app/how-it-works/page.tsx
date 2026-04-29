@@ -132,6 +132,38 @@ export default function HowItWorksPage() {
           your job posts to competing sites. Read our <Link href="/privacy" className="underline hover:text-green-700">privacy policy</Link> for the specifics.
         </p>
 
+        <h2 className="text-2xl font-black tracking-tight mb-3">FAQ</h2>
+        <div className="space-y-6 mb-12">
+          <div>
+            <h3 className="font-black mb-1">Is it really free to post a job?</h3>
+            <p className="text-gray-700">Yes. No fees, no credit card, no trial period that quietly converts. We don&apos;t charge employers because the upstream Ava Health recruiting business already monetizes its candidate database — the job board feeds that database.</p>
+          </div>
+          <div>
+            <h3 className="font-black mb-1">How long does a posted job stay live?</h3>
+            <p className="text-gray-700">60 days by default. You can repost the same role anytime; we don&apos;t cap the number of postings per employer.</p>
+          </div>
+          <div>
+            <h3 className="font-black mb-1">Will my job appear on Indeed and Google for Jobs?</h3>
+            <p className="text-gray-700">Yes. Every posted job lands in our public XML feed at /jobs.xml, which Indeed&apos;s organic crawler picks up automatically. We also emit JobPosting structured data on every job page so Google for Jobs indexes it within hours.</p>
+          </div>
+          <div>
+            <h3 className="font-black mb-1">Do you sell my company name or contact info?</h3>
+            <p className="text-gray-700">No. We don&apos;t resell employer data, we don&apos;t cold-pitch your existing staff, and we don&apos;t hand your applicants to competing recruiters. See our privacy policy for the specifics.</p>
+          </div>
+          <div>
+            <h3 className="font-black mb-1">Who can post a job here?</h3>
+            <p className="text-gray-700">US-based healthcare employers — hospitals, private groups, FQHCs, urgent cares, telehealth providers, locum agencies, and pharmacies. We don&apos;t accept third-party staffing-agency reposts or expired roles.</p>
+          </div>
+          <div>
+            <h3 className="font-black mb-1">What roles can I post?</h3>
+            <p className="text-gray-700">All clinical and clinical-adjacent healthcare roles: physicians, NPs, PAs, RNs, CRNAs, therapists (PT, OT, SLP, AuD), pharmacists, and allied health. We don&apos;t accept non-clinical roles (admin, accounting, marketing) at this time.</p>
+          </div>
+          <div>
+            <h3 className="font-black mb-1">How fast does my job get listed?</h3>
+            <p className="text-gray-700">Instant. Submit the form and it&apos;s live within seconds. The XML feed updates in real-time; Google for Jobs and Indeed typically index new postings within 4-24 hours.</p>
+          </div>
+        </div>
+
         <div className="border-2 border-black bg-black text-white p-8 text-center">
           <p className="text-2xl font-black mb-3">Ready?</p>
           <Link href="/post-job" className="inline-block bg-green-700 text-white font-bold px-6 py-3 hover:bg-green-600">
@@ -139,6 +171,75 @@ export default function HowItWorksPage() {
           </Link>
         </div>
       </article>
+
+      {/* FAQPage schema — eligible for FAQ rich results in SERP */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: [
+              {
+                '@type': 'Question',
+                name: 'Is it really free to post a job?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "Yes. No fees, no credit card, no trial period that quietly converts. We don't charge employers because the upstream Ava Health recruiting business already monetizes its candidate database — the job board feeds that database.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'How long does a posted job stay live?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "60 days by default. You can repost the same role anytime; we don't cap the number of postings per employer.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'Will my job appear on Indeed and Google for Jobs?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "Yes. Every posted job lands in our public XML feed at /jobs.xml, which Indeed's organic crawler picks up automatically. We also emit JobPosting structured data on every job page so Google for Jobs indexes it within hours.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'Do you sell my company name or contact info?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "No. We don't resell employer data, we don't cold-pitch your existing staff, and we don't hand your applicants to competing recruiters.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'Who can post a job here?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "US-based healthcare employers — hospitals, private groups, FQHCs, urgent cares, telehealth providers, locum agencies, and pharmacies.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'What roles can I post?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "All clinical and clinical-adjacent healthcare roles: physicians, NPs, PAs, RNs, CRNAs, therapists (PT, OT, SLP, AuD), pharmacists, and allied health.",
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'How fast does my job get listed?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: "Instant. Submit the form and it's live within seconds. Google for Jobs and Indeed typically index new postings within 4-24 hours.",
+                },
+              },
+            ],
+          }),
+        }}
+      />
     </main>
   )
 }
