@@ -311,6 +311,33 @@ export const STATE_HUBS: StateHub[] = [
     majorMetros: ['New Orleans', 'Baton Rouge', 'Shreveport', 'Lafayette', 'Lake Charles', 'Kenner', 'Bossier City'],
     topEmployers: ['Ochsner Health', 'LCMC Health', 'Franciscan Missionaries of Our Lady Health System (FMOL)', 'Tulane Medical Center', 'LSU Health New Orleans', 'Willis-Knighton Health System', 'Our Lady of the Lake Regional Medical Center'],
   },
+  {
+    slug: 'kansas',
+    abbr: 'KS',
+    name: 'Kansas',
+    metaDescription: 'Free Kansas healthcare jobs — Kansas City KS, Wichita, Topeka. Physician, NP, PA, RN, CRNA roles from KU Health, Ascension Via Christi, Stormont Vail, more.',
+    shortDescription: 'Kansas healthcare openings across the KC metro (KS side), Wichita, Topeka, and the Flint Hills.',
+    majorMetros: ['Wichita', 'Overland Park', 'Kansas City', 'Topeka', 'Olathe', 'Lawrence', 'Manhattan'],
+    topEmployers: ['University of Kansas Health System', 'Ascension Via Christi', 'Stormont Vail Health', 'Children\'s Mercy Kansas City (KS side)', 'AdventHealth Shawnee Mission', 'Wesley Healthcare', 'Olathe Health'],
+  },
+  {
+    slug: 'nebraska',
+    abbr: 'NE',
+    name: 'Nebraska',
+    metaDescription: 'Free Nebraska healthcare jobs — Omaha, Lincoln, Bellevue. Physician, NP, PA, RN, CRNA roles from Nebraska Medicine, CHI Health, Children\'s Nebraska, more.',
+    shortDescription: 'Nebraska healthcare openings across Omaha, Lincoln, and the Tri-Cities.',
+    majorMetros: ['Omaha', 'Lincoln', 'Bellevue', 'Grand Island', 'Kearney', 'Fremont', 'Hastings'],
+    topEmployers: ['Nebraska Medicine', 'CHI Health', 'Children\'s Nebraska', 'Bryan Health', 'Methodist Health System', 'Madonna Rehabilitation Hospitals', 'Boys Town National Research Hospital'],
+  },
+  {
+    slug: 'new-mexico',
+    abbr: 'NM',
+    name: 'New Mexico',
+    metaDescription: 'Free New Mexico healthcare jobs — Albuquerque, Santa Fe, Las Cruces. Physician, NP, PA, RN, CRNA roles from Presbyterian, UNM, Christus St. Vincent, more.',
+    shortDescription: 'New Mexico healthcare openings across Albuquerque, Santa Fe, Las Cruces, and the Four Corners.',
+    majorMetros: ['Albuquerque', 'Santa Fe', 'Las Cruces', 'Rio Rancho', 'Roswell', 'Farmington', 'Las Vegas'],
+    topEmployers: ['Presbyterian Healthcare Services', 'University of New Mexico Hospital', 'Christus St. Vincent Regional Medical Center', 'Lovelace Health System', 'Eastern New Mexico Medical Center', 'San Juan Regional Medical Center'],
+  },
 ]
 
 export function getStateHub(slug: string): StateHub | undefined {
