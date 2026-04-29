@@ -15,8 +15,9 @@ export const revalidate = 300
 type RecentJob = Pick<PublicJob, 'id' | 'slug' | 'title' | 'city' | 'state' | 'salary_min' | 'salary_max'>
 
 export default async function Home() {
-  // Fetch live count + 6 most-recent active jobs in parallel
-  const [countRes, recentRes] = await Promise.all([
+  // Fetch live count + 6 most-recent active jobs + new-this-week count in parallel
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString()
+  const [countRes, recentRes, newThisWeekRes] = await Promise.all([
     supabase
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
@@ -31,9 +32,17 @@ export default async function Home() {
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(6),
+    supabase
+      .from('public_jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .gte('created_at', sevenDaysAgo),
   ])
   const liveCount = countRes.count ?? 0
   const recentJobs = (recentRes.data ?? []) as RecentJob[]
+  const newThisWeek = newThisWeekRes.count ?? 0
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -58,12 +67,19 @@ export default async function Home() {
       {/* Hero */}
       <section className="border-b-2 border-black">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-32">
-          <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-8">
-            <span className="w-2 h-2 bg-green-600 animate-pulse" />
-            {liveCount > 0 ? (
-              <>{liveCount.toLocaleString()} ACTIVE HEALTHCARE JOBS</>
-            ) : (
-              <>FREE HEALTHCARE JOB BOARD</>
+          <div className="inline-flex flex-wrap items-center gap-2 mb-8">
+            <span className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider">
+              <span className="w-2 h-2 bg-green-600 animate-pulse" />
+              {liveCount > 0 ? (
+                <>{liveCount.toLocaleString()} ACTIVE HEALTHCARE JOBS</>
+              ) : (
+                <>FREE HEALTHCARE JOB BOARD</>
+              )}
+            </span>
+            {newThisWeek > 0 && (
+              <span className="inline-flex items-center gap-1 bg-green-700 text-white px-3 py-1 text-xs font-bold tracking-wider">
+                +{newThisWeek.toLocaleString()} NEW THIS WEEK
+              </span>
             )}
           </div>
           <h1 className="text-[64px] md:text-[104px] font-black leading-[0.92] tracking-tight mb-8">
