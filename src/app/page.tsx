@@ -206,6 +206,46 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="border-b-2 border-black">
+        <div className="max-w-3xl mx-auto px-6 py-20">
+          <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">FAQ</h2>
+          <p className="text-4xl md:text-5xl font-black leading-tight mb-12 tracking-tight">
+            Common questions, fast answers.
+          </p>
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-xl font-black mb-2">Is freejobpost.co really free?</h3>
+              <p className="text-gray-700 leading-relaxed">Yes. No paywall, no per-applicant fee, no &ldquo;sponsored&rdquo; auction. We make money downstream when a placement converts on the matching engine — the job-posting side stays free forever.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-black mb-2">How long does a job stay live?</h3>
+              <p className="text-gray-700 leading-relaxed">60 days by default. You can repost any expired job in one click. Filled roles can be marked &quot;closed&quot; manually.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-black mb-2">Where else does my job get distributed?</h3>
+              <p className="text-gray-700 leading-relaxed">When you check the syndication boxes during posting, your job is pushed to Indeed, ZipRecruiter, Glassdoor, LinkedIn, Adzuna, Jooble, Talent.com, Google for Jobs, and the freejobpost.co RSS feed — without any extra steps.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-black mb-2">Who&apos;s applying — real people or bots?</h3>
+              <p className="text-gray-700 leading-relaxed">Real candidates. Resume uploads come from <a href="https://www.freeresumepost.co" className="underline font-bold hover:text-green-700">freeresumepost.co</a> — verified emails, parsed resumes, real credentials. We don&apos;t scrape profiles or auto-apply.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-black mb-2">Do you charge for &quot;unlocking&quot; an applicant?</h3>
+              <p className="text-gray-700 leading-relaxed">No. When a candidate applies, you get their full contact info immediately. No paywall, no &quot;contact unlock&quot; fees, no upgrade prompts.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-black mb-2">What healthcare roles can I post?</h3>
+              <p className="text-gray-700 leading-relaxed">Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing — non-healthcare roles are out of scope.</p>
+            </div>
+            <div>
+              <h3 className="text-xl font-black mb-2">How do candidates find my job?</h3>
+              <p className="text-gray-700 leading-relaxed">Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, LinkedIn, etc.). Most jobs get applicants from all three.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Big CTA */}
       <section className="border-b-2 border-black bg-black text-white">
         <div className="max-w-6xl mx-auto px-6 py-24 text-center">
@@ -225,6 +265,26 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      {/* FAQPage JSON-LD — eligible for FAQ rich results in SERP */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: [
+              { '@type': 'Question', name: 'Is freejobpost.co really free?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. No paywall, no per-applicant fee, no "sponsored" auction. We make money downstream when a placement converts on the matching engine — the job-posting side stays free forever.' } },
+              { '@type': 'Question', name: 'How long does a job stay live?', acceptedAnswer: { '@type': 'Answer', text: '60 days by default. You can repost any expired job in one click. Filled roles can be marked "closed" manually.' } },
+              { '@type': 'Question', name: 'Where else does my job get distributed?', acceptedAnswer: { '@type': 'Answer', text: 'When you check the syndication boxes during posting, your job is pushed to Indeed, ZipRecruiter, Glassdoor, LinkedIn, Adzuna, Jooble, Talent.com, Google for Jobs, and the freejobpost.co RSS feed.' } },
+              { '@type': 'Question', name: "Who's applying — real people or bots?", acceptedAnswer: { '@type': 'Answer', text: "Real candidates. Resume uploads come from freeresumepost.co — verified emails, parsed resumes, real credentials. We don't scrape profiles or auto-apply." } },
+              { '@type': 'Question', name: 'Do you charge for unlocking an applicant?', acceptedAnswer: { '@type': 'Answer', text: 'No. When a candidate applies, you get their full contact info immediately. No paywall, no "contact unlock" fees, no upgrade prompts.' } },
+              { '@type': 'Question', name: 'What healthcare roles can I post?', acceptedAnswer: { '@type': 'Answer', text: 'Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing.' } },
+              { '@type': 'Question', name: 'How do candidates find my job?', acceptedAnswer: { '@type': 'Answer', text: 'Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, LinkedIn, etc.). Most jobs get applicants from all three.' } },
+            ],
+          }),
+        }}
+      />
     </main>
   )
 }
