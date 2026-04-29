@@ -1,6 +1,6 @@
-// /specialty/[slug] — SEO hub page listing jobs filtered by specialty.
-// One page per common specialty (cardiology, ortho, hospitalist, RN,
-// CRNA, etc.) so each ranks individually for "[specialty] jobs" queries.
+// /state/[slug] — SEO hub page listing jobs filtered by state. One page
+// per top US state for healthcare-job density (FL, TX, CA, NY, IL, PA,
+// OH, GA, NC, MA, MI). Mirrors the /specialty/[slug] pattern.
 
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -14,66 +14,71 @@ import {
   remoteLabel,
   locationLabel,
 } from '@/lib/public-jobs'
-import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
-import { STATE_HUBS } from '@/lib/state-slugs'
+import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
+import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 
 export const revalidate = 600
 
 export async function generateStaticParams() {
-  return SPECIALTY_HUBS.map((s) => ({ slug: s.slug }))
+  return STATE_HUBS.map((s) => ({ slug: s.slug }))
 }
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
 ): Promise<Metadata> {
   const { slug } = await params
-  const hub = getSpecialtyHub(slug)
+  const hub = getStateHub(slug)
   if (!hub) return {}
+  const title = `${hub.name} healthcare jobs`
   return {
-    title: hub.title,
+    title,
     description: hub.metaDescription,
-    alternates: { canonical: `https://freejobpost.co/specialty/${hub.slug}` },
+    alternates: { canonical: `https://freejobpost.co/state/${hub.slug}` },
     openGraph: {
-      title: `${hub.title} | freejobpost.co`,
+      title: `${title} | freejobpost.co`,
       description: hub.metaDescription,
-      url: `https://freejobpost.co/specialty/${hub.slug}`,
+      url: `https://freejobpost.co/state/${hub.slug}`,
       type: 'website',
     },
   }
 }
 
-async function fetchJobsForHub(matchPatterns: string[]): Promise<PublicJob[]> {
-  // PostgREST `or=` for matching specialty/title/role across all patterns.
-  const orParts: string[] = []
-  for (const p of matchPatterns) {
-    const enc = encodeURIComponent(`*${p}*`)
-    orParts.push(`specialty.ilike.${enc}`, `title.ilike.${enc}`, `role.ilike.${enc}`)
-  }
+async function fetchJobsForState(abbr: string): Promise<PublicJob[]> {
   const { data } = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
+    .eq('state', abbr)
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
-    .or(orParts.join(','))
     .order('created_at', { ascending: false })
     .limit(300)
   return (data ?? []) as PublicJob[]
 }
 
-export default async function SpecialtyHubPage(
+export default async function StateHubPage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params
-  const hub = getSpecialtyHub(slug)
+  const hub = getStateHub(slug)
   if (!hub) notFound()
 
-  const jobs = await fetchJobsForHub(hub.matchPatterns)
+  const jobs = await fetchJobsForState(hub.abbr)
 
-  // States represented in the result set — used for the "by state" linkbar
-  const states = Array.from(
-    new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
+  // Cities represented in the result set
+  const cities = Array.from(
+    new Set(jobs.map((j) => j.city?.trim()).filter((c): c is string => !!c))
   ).sort()
+
+  // Specialty distribution — used to surface "in-demand specialties in [state]"
+  const specialtyCounts = new Map<string, number>()
+  for (const j of jobs) {
+    const s = j.specialty?.trim()
+    if (s) specialtyCounts.set(s, (specialtyCounts.get(s) ?? 0) + 1)
+  }
+  const topSpecialties = Array.from(specialtyCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
 
   // Top-10 jobs JSON-LD for Google for Jobs discovery
   const topJobsJsonLd = jobs.slice(0, 10).map((job) => ({
@@ -105,8 +110,8 @@ export default async function SpecialtyHubPage(
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://freejobpost.co' },
-      { '@type': 'ListItem', position: 2, name: 'Jobs', item: 'https://freejobpost.co/jobs' },
-      { '@type': 'ListItem', position: 3, name: hub.title, item: `https://freejobpost.co/specialty/${hub.slug}` },
+      { '@type': 'ListItem', position: 2, name: 'States', item: 'https://freejobpost.co/state' },
+      { '@type': 'ListItem', position: 3, name: hub.name, item: `https://freejobpost.co/state/${hub.slug}` },
     ],
   }
 
@@ -141,38 +146,68 @@ export default async function SpecialtyHubPage(
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
             <Link href="/" className="hover:text-green-700">Home</Link>
             {' / '}
-            <Link href="/jobs" className="hover:text-green-700">Jobs</Link>
+            <Link href="/state" className="hover:text-green-700">States</Link>
             {' / '}
-            <span className="text-black font-medium">{hub.title}</span>
+            <span className="text-black font-medium">{hub.name}</span>
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-            {hub.title} <span className="text-green-700">— {jobs.length}</span>
+            {hub.name} healthcare jobs <span className="text-green-700">— {jobs.length}</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-            {hub.shortDescription} Every posting here is from a verified US healthcare employer — no third-party staffing reposts, no recruiter spam. Free to browse, free to apply.
+            {hub.shortDescription} Every posting on freejobpost.co is from a verified US healthcare employer — no third-party staffing reposts, no recruiter spam. Free to browse, free to apply.
           </p>
 
-          {/* By-state linkbar for internal linking density */}
-          {states.length > 0 && (
-            <div className="mb-10 flex flex-wrap gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-gray-500 self-center mr-2">By state:</span>
-              {states.map((s) => (
+          {/* Major metros — local relevance signal */}
+          <div className="mb-8">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Major {hub.name} metros</h2>
+            <div className="flex flex-wrap gap-2">
+              {hub.majorMetros.map((m) => (
+                <span key={m} className="text-sm border border-black/30 px-2 py-1">{m}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Top employers — entity-rich content */}
+          <div className="mb-10">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{hub.name} healthcare systems we work with</h2>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {hub.topEmployers.join(', ')}.
+            </p>
+          </div>
+
+          {/* By-city linkbar (only if multiple cities) */}
+          {cities.length > 1 && (
+            <div className="mb-8 flex flex-wrap gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-500 self-center mr-2">By city:</span>
+              {cities.map((c) => (
                 <Link
-                  key={s}
-                  href={`/jobs?state=${encodeURIComponent(s)}`}
+                  key={c}
+                  href={`/jobs?state=${encodeURIComponent(hub.abbr)}&city=${encodeURIComponent(c)}`}
                   className="text-xs border border-black px-2 py-1 hover:bg-black hover:text-white"
                 >
-                  {s} ({jobs.filter((j) => j.state === s).length})
+                  {c} ({jobs.filter((j) => j.city === c).length})
                 </Link>
               ))}
             </div>
           )}
 
+          {/* In-demand specialties in state */}
+          {topSpecialties.length > 0 && (
+            <div className="mb-10">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">In-demand specialties in {hub.name}</h2>
+              <div className="flex flex-wrap gap-2">
+                {topSpecialties.map(([s, n]) => (
+                  <span key={s} className="text-xs bg-gray-100 px-2 py-1">{s} ({n})</span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {jobs.length === 0 ? (
             <div className="border-2 border-black p-8 text-center">
-              <p className="text-lg font-bold mb-2">No active {hub.title.toLowerCase()} right now.</p>
-              <p className="text-gray-700 mb-4">Check back tomorrow — we typically see new postings every business day.</p>
+              <p className="text-lg font-bold mb-2">No active {hub.name} healthcare jobs right now.</p>
+              <p className="text-gray-700 mb-4">Check back tomorrow — we typically see new {hub.name} postings every business day.</p>
               <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
             </div>
           ) : (
@@ -201,30 +236,30 @@ export default async function SpecialtyHubPage(
             </ul>
           )}
 
-          {/* Other specialties — internal linking */}
-          <h2 className="text-2xl font-black tracking-tight mt-16 mb-4">Browse other specialties</h2>
+          {/* Other states — internal linking */}
+          <h2 className="text-2xl font-black tracking-tight mt-16 mb-4">Healthcare jobs in other states</h2>
           <div className="flex flex-wrap gap-2 mb-8">
-            {SPECIALTY_HUBS.filter((s) => s.slug !== hub.slug).map((s) => (
+            {STATE_HUBS.filter((s) => s.slug !== hub.slug).map((s) => (
               <Link
                 key={s.slug}
-                href={`/specialty/${s.slug}`}
+                href={`/state/${s.slug}`}
                 className="text-sm border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white font-medium"
               >
-                {s.title.replace(/ Jobs$/, '')}
+                {s.name}
               </Link>
             ))}
           </div>
 
-          {/* By state — cross-link the state hubs */}
-          <h2 className="text-2xl font-black tracking-tight mt-12 mb-4">{hub.title.replace(/ Jobs$/, '')} by state</h2>
+          {/* Specialties cross-link */}
+          <h2 className="text-2xl font-black tracking-tight mt-12 mb-4">Browse by specialty</h2>
           <div className="flex flex-wrap gap-2">
-            {STATE_HUBS.map((s) => (
+            {SPECIALTY_HUBS.map((s) => (
               <Link
                 key={s.slug}
-                href={`/state/${s.slug}`}
+                href={`/specialty/${s.slug}`}
                 className="text-sm border border-black/40 px-3 py-1.5 hover:bg-black hover:text-white"
               >
-                {s.name}
+                {s.title.replace(/ Jobs$/, '')}
               </Link>
             ))}
           </div>
