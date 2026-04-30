@@ -100,6 +100,7 @@ export default function RootLayout({
                     'https://freejobpost.co',
                     'https://www.freeresumepost.co',
                     'https://www.linkedin.com/company/ava-health1/',
+                    'https://www.linkedin.com/company/freejobpost/',
                   ],
                   address: {
                     '@type': 'PostalAddress',
@@ -165,6 +166,15 @@ export default function RootLayout({
               <Link href="https://www.freeresumepost.co" className="hover:text-gray-900">
                 Candidates
               </Link>
+              <span className="text-gray-300">|</span>
+              <a
+                href="https://www.linkedin.com/company/freejobpost/"
+                rel="me noopener"
+                target="_blank"
+                className="hover:text-gray-900"
+              >
+                LinkedIn
+              </a>
               <span className="text-gray-300">|</span>
               <Link href="/terms" className="hover:text-gray-900">
                 Terms
