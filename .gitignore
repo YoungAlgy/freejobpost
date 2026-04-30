@@ -37,3 +37,4 @@ next-env.d.ts
 
 .vercel
 .env*.local
+scripts/freejobpost-logo-*.png
