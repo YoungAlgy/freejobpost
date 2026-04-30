@@ -15,19 +15,20 @@ export const metadata: Metadata = {
 // registry. Keep these in sync when adding a new network: the registry is
 // the engineering source of truth, this map is the operational playbook.
 //
-// Last verified 2026-04-29: Adzuna's /partners.html and talent.com/syndicate
-// pages are dead; Indeed retired the public XML feed onboarding (their
-// crawler now auto-picks up JSON-LD on individual job pages). Updated paths
-// reflect current intake channels.
+// Last verified 2026-04-30 (after sending 4 emails 2026-04-29 and auditing
+// the inbox 24h later — 3/4 bounced, only Adzuna delivered cleanly).
+// Industry-wide trend: most networks have migrated from email intake to
+// gated portals or sales-driven calls. Email addresses listed are the ones
+// that confirmed-delivered in our outreach; bounced addresses are noted.
 const SUBMIT_TO: Record<string, string> = {
   indeed: 'No submission needed — Indeed retired the public XML feed onboarding. Their crawler auto-picks up the JobPosting JSON-LD we emit on each /jobs/[slug] page. For sponsored / explicit ingestion, contact your Indeed account rep.',
-  ziprecruiter: 'Email partners@ziprecruiter.com with the feed URL (ZipRecruiter Open Network publisher partner intake).',
+  ziprecruiter: 'Email support@ziprecruiter.com with the feed URL (general support inbox routes to publisher partnerships team). NOTE: their direct partners@ziprecruiter.com address bounces (550 5.1.1) and the publisher signup at ziprecruiter.com/publishers is wrapped in Cloudflare bot detection — sales call may be needed if email gets ignored.',
   glassdoor: 'Glassdoor is Indeed-owned — same pipeline as Indeed (passive auto-crawl). For explicit listings, ask your Indeed account rep.',
-  linkedin: 'Job Wrapping is gated. Requires (1) a LinkedIn Company Page for freejobpost.co and (2) a LinkedIn Talent Solutions rep to whitelist the feed URL. Contact your rep when ready.',
-  google: 'No submission needed — Google crawls each /jobs/[slug] page directly and reads the JobPosting JSON-LD we emit. Submit /sitemap.xml to Google Search Console for crawl discovery.',
-  adzuna: 'Email content@adzuna.com with the feed URL (cc support@adzuna.com if no reply in 5 days). Adzuna retired their public partners.html submission form; their content team handles intake informally.',
-  jooble: 'Email partners@jooble.com with the feed URL — Jooble lists most submissions within 24-48h.',
-  talent: 'Sign up for a Talent.com Publisher account at talent.com/publishers, then add the feed URL in the publisher portal. Public partners.html / syndicate landing pages no longer exist.',
+  linkedin: 'Job Wrapping is gated. Requires (1) a LinkedIn Company Page for freejobpost.co (✓ created at linkedin.com/company/freejobpost) and (2) a LinkedIn Talent Solutions rep to whitelist the feed URL. Contact your rep when ready.',
+  google: 'No submission needed — Google crawls each /jobs/[slug] page directly and reads the JobPosting JSON-LD we emit. Submit /sitemap.xml to Google Search Console for crawl discovery (✓ done 2026-04-29). Bing Webmaster Tools imports from GSC automatically (✓ done 2026-04-29).',
+  adzuna: 'Email content@adzuna.com with the feed URL (cc support@adzuna.com). This delivered 2026-04-29 and Matt Woodbridge (Product Manager) replied within 24h asking for relationship + sourcing details. Adzuna retired their public partners.html submission form; content team handles intake informally.',
+  jooble: 'Email support@jooble.com with the feed URL (their support inbox forwards to partnerships team). NOTE: their direct partners@jooble.com bounces (550 5.1.1). Fallback if no reply: book a call at uk.jooble.org/partner/for-publishers (Calendly-style "Book a call" CTA).',
+  talent: 'No public email channel — both partner@talent.com and partners@talent.com bounce. The publisher portal at talent.com/publishers is invite-only (no public signup form). Path forward: LinkedIn outreach to a Talent.com employee (Sales / Partnerships) OR skip — Talent.com is the lowest-volume of the four major aggregators.',
   rss: 'No submission needed — Apple News, Feedly, Inoreader, Reddit RSS bots, and most niche aggregators auto-discover via the <link rel="alternate"> tag and direct URL.',
 }
 
