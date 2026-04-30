@@ -1,145 +1,56 @@
 # Syndication submission status
 
-**Generated:** 2026-04-29 (this session)
-**Source of truth playbook:** `src/app/feeds/page.tsx:17-27`
+**Last updated:** 2026-04-30 (after audit of yesterday's bounces)
 
 ## Current state per network
 
-| Network | Status | Action |
+| Network | Status | What's actually happening |
 |---|---|---|
-| Indeed | ✅ Passive (auto-crawl via JSON-LD) | No submission needed — Indeed retired the public "add XML feed" flow; their crawler picks up `JobPosting` JSON-LD on `/jobs/[slug]` automatically. |
-| Glassdoor | ✅ Passive (Indeed-owned, same pipeline) | No submission needed. |
-| Google for Jobs | ✅ Passive (JSON-LD on `/jobs/[slug]`) | No submission needed beyond submitting `sitemap.xml` to Google Search Console. |
-| RSS | ✅ Passive (auto-discover) | No submission needed. |
-| Adzuna | 📧 Email draft below | Their `/partners.html` is dead and `/hire/partners/` is for distribution partners (sites *displaying* Adzuna jobs). Email content team to add freejobpost.co's feed. |
-| Jooble | 📧 Email draft below | Per playbook: `partners@jooble.com`. |
-| ZipRecruiter | 📧 Email draft below | Per playbook: `partners@ziprecruiter.com`. |
-| Talent.com | 🔒 Account required | `talent.com/publishers` requires publisher login first → out of scope this session (no new account creation). Algy can sign up for Talent.com Publisher account, then add `https://freejobpost.co/feeds/talent.xml` in their portal. |
-| LinkedIn | 🔒 Gated | Job Wrapping requires LinkedIn Talent Solutions rep + a freejobpost.co LinkedIn Company Page. Out of scope this session. Algy contacts his LinkedIn Recruiter rep when ready. |
+| **Indeed** | ✅ Passive auto-crawl | Indeed retired public XML feed onboarding. Their crawler picks up `JobPosting` JSON-LD on `/jobs/[slug]` automatically. |
+| **Glassdoor** | ✅ Passive (Indeed-owned, same pipeline) | No submission needed. |
+| **Google for Jobs** | ✅ Passive | JSON-LD on `/jobs/[slug]` + sitemap submitted to GSC (verified 2026-04-29). |
+| **Bing / Yahoo / DuckDuckGo** | ✅ Indexed | Bing WMT verified via GSC import (2026-04-29). 503 URLs already crawled. |
+| **RSS** | ✅ Passive auto-discover | `<link rel="alternate">` + robots.txt declaration. |
+| **Adzuna** | 🟢 **In active conversation** | Sent 2026-04-29 to `content@adzuna.com` cc `support@adzuna.com`. Matt Woodbridge (Product Manager) replied 2026-04-30 with qualification questions. Algy sent qualification answer 2026-04-30 5:05 PM ET. **Awaiting Matt's review of the feed.** |
+| **Jooble** | ❌ Email bounced — needs new channel | `partners@jooble.com` returned 550 5.1.1 (address doesn't exist). **Action: book a call** at https://uk.jooble.org/partner/for-publishers (Calendly-style "Book a call" CTA on their for-publishers page). Algy picks a slot. |
+| **ZipRecruiter** | ❌ Email bounced — needs new channel | `partners@ziprecruiter.com` returned 550 5.1.1. **Action: signup** at https://www.ziprecruiter.com/publishers — requires Publisher account creation, then add the feed URL via their dashboard. |
+| **Talent.com** | ❌ Email bounced — needs new channel | `partner@talent.com` returned "address not found." **Action: signup** at https://www.talent.com/publishers — requires Publisher account creation (we knew this yesterday but tried email first). |
+| **LinkedIn** | 🔒 Gated | Job Wrapping requires Talent Solutions rep + freejobpost.co Company Page (✅ created 2026-04-29 at linkedin.com/company/freejobpost id 113224630). Algy contacts his LinkedIn Recruiter rep when ready. |
 
-## Email drafts (Algy to send)
+## Why 3 of 4 emails bounced
 
-All three email drafts use the same body with the network name swapped. Copy the relevant block, paste into your mail client, send from your domain (e.g. `alex@avahealth.co`).
+Yesterday's email drafts used the addresses documented in `feeds/page.tsx:17-27` — but those addresses are stale across the industry. Each of those programs has migrated from informal email intake to either:
+- Self-serve signup forms (ZipRecruiter, Talent.com)
+- Scheduled sales calls (Jooble)
 
----
+This is consistent with the broader industry pattern of partner programs gating intake to filter low-quality inbound. **The `feeds/page.tsx` SUBMIT_TO map needs another correction pass.**
 
-### Adzuna (`content@adzuna.com` — primary; cc `support@adzuna.com` if no reply in 5 business days)
+## Adzuna conversation status
 
-**Subject:** Healthcare jobs feed for Adzuna ingestion — freejobpost.co
+**Sent 2026-04-29 11:04 PM ET** → Matt Woodbridge replied 2026-04-30 12:22 PM ET with:
 
-```
-Hi Adzuna content team,
+> Could you please confirm as a first step what the relationship is between your job board and the company https://www.avahealth.co/ and where/how do you source the jobs listed on your board?
 
-I run freejobpost.co, a free healthcare-only US job board (~430 active
-listings, growing weekly). I'd like to add our XML feed to Adzuna's index so
-our jobs surface in your healthcare-vertical results.
+**Sent qualification answer 2026-04-30 5:05 PM ET** confirming:
+1. freejobpost.co is operated by Ava Health Partners LLC (parent), based in St. Petersburg, FL
+2. Two-track sourcing: direct employer signup (primary) + Ava's own placements ("Seeded Roles")
+3. No scraping; every listing has direct employer relationship + JobPosting JSON-LD landing page; 15-min TTL on removed listings
+4. ~425 active US healthcare roles
+5. Feed URL: https://freejobpost.co/feeds/adzuna.xml
 
-Feed details:
-  Format: Indeed v2 XML
-  URL:    https://freejobpost.co/feeds/adzuna.xml
-  Refresh: 15 minutes (ISR cycle)
-  Coverage: 50 US states, all major healthcare specialties (MD, NP, PA, RN,
-  CRNA, allied health). Each listing links back to a structured /jobs/[slug]
-  page with JobPosting JSON-LD for additional metadata.
+**Expected response:** approval (24-72h) OR one more clarifying question.
 
-We're a free job board (no fee to post, no fee to apply). Listings drop from
-the feed within 15 minutes when removed or expired. Each listing includes
-salary disclosure where the employer chose to share it.
+## What Algy needs to do (when ready)
 
-Happy to provide a custom feed format if Adzuna has a preferred schema.
+| Task | Time | Where |
+|---|---|---|
+| **Watch Adzuna inbox** | passive | alex@avahealth.co inbox, thread "Re: Healthcare jobs feed for Adzuna ingestion" |
+| **Book Jooble call** | 5 min | https://uk.jooble.org/partner/for-publishers → "Book a call" |
+| **Sign up Talent.com Publisher** | 5-10 min | https://www.talent.com/publishers (create account) |
+| **Sign up ZipRecruiter Publisher** | 5-10 min | https://www.ziprecruiter.com/publishers |
+| **LinkedIn Job Wrapping** | when rep contact available | Email LinkedIn Talent Solutions rep with feed URL |
+| **Update feeds/page.tsx playbook** | 5 min code | Replace the SUBMIT_TO map in `src/app/feeds/page.tsx:17-27` with this doc's current paths. (Doc-only change; partner-facing internal page.) |
 
-Partner-facing docs: https://freejobpost.co/feeds
+## Memory correction
 
-Thanks,
-[Algy]
-freejobpost.co
-```
-
----
-
-### Jooble (`partners@jooble.com`)
-
-**Subject:** Healthcare jobs feed for Jooble — freejobpost.co
-
-```
-Hi Jooble partners team,
-
-I'd like to add freejobpost.co's healthcare jobs feed to Jooble. Per the
-playbook on https://www.jooble.org/info/about-us, this is the standard intake
-path for new content providers.
-
-Feed details:
-  Format: Jooble XML
-  URL:    https://freejobpost.co/feeds/jooble.xml
-  Refresh: 15 minutes
-  Coverage: 50 US states, healthcare specialties (MD, NP, PA, RN, CRNA, allied
-  health). Free site (no fee to post, no fee to apply).
-
-Each listing links back to a structured /jobs/[slug] page on freejobpost.co
-with JobPosting JSON-LD. Expired or removed jobs drop from the feed within
-15 minutes.
-
-Partner-facing docs: https://freejobpost.co/feeds
-
-Thanks,
-[Algy]
-freejobpost.co
-```
-
----
-
-### ZipRecruiter (`partners@ziprecruiter.com`)
-
-**Subject:** Healthcare jobs feed for ZipRecruiter Open Network — freejobpost.co
-
-```
-Hi ZipRecruiter partner team,
-
-I run freejobpost.co, a free US healthcare-only job board, and I'd like to
-participate in the ZipRecruiter Open Network. Per your partner intake docs,
-this is the right inbox to share our feed URL.
-
-Feed details:
-  Format: Indeed v2 XML (the same format ZipRecruiter accepts)
-  URL:    https://freejobpost.co/feeds/ziprecruiter.xml
-  Refresh: 15 minutes (ISR cycle)
-  Coverage: 50 US states, healthcare specialties (MD, NP, PA, RN, CRNA, allied
-  health). Free job board — no fee to post, no fee to apply.
-
-Each listing links back to a structured /jobs/[slug] landing page with
-JobPosting JSON-LD. Listings drop from the feed within 15 minutes when
-removed/expired.
-
-Partner-facing docs: https://freejobpost.co/feeds
-
-Thanks,
-[Algy]
-freejobpost.co
-```
-
----
-
-## What changed since the playbook was written
-
-The `/feeds` page playbook (in `feeds/page.tsx:17-27`) has two stale links:
-
-1. **`adzuna.com/partners.html`** — 404. Adzuna restructured: `/hire/partners/`
-   is now the publisher-distribution program (sites *displaying* Adzuna jobs).
-   Content provider intake is informal — content team email.
-2. **`employers.indeed.com → Free Posting → Add XML feed`** — Indeed retired
-   the public XML feed onboarding. Their crawler auto-picks up JSON-LD on job
-   pages instead.
-
-Recommend: when this session is closed out, update `feeds/page.tsx:17-27`
-to reflect the current intake paths (Adzuna → email content team, Indeed →
-passive auto-crawl). Not done in this session because the changes are minor
-copy edits and `feeds/page.tsx` is partner-facing internal doc.
-
-## Verification after Algy sends emails
-
-When confirmed (typically 24-48h for Adzuna/Jooble, 5-10 days for ZipRecruiter):
-
-1. Search the network for `freejobpost.co` or a known job title from our feed
-2. Confirm the click-through lands on `https://freejobpost.co/jobs/<slug>` with
-   correct UTM/referrer tracking (`?utm_source=adzuna` etc.)
-3. Spot-check the listing's salary, location, and apply link match the source
+Yesterday's session memory said "4 partner emails SENT (Adzuna/Jooble/ZipRecruiter/Talent)" — true that the messages were *sent from* alex@avahealth.co, but only 1 actually delivered. The bounce notifications arrived within seconds but went unnoticed until the 2026-04-30 inbox audit. session_20260429_freeapps_daytime.md has been updated to reflect this.
