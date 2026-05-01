@@ -7,7 +7,24 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default function EmployerLoginPage() {
+// Error messages surfaced when the user lands here from a failed
+// /employer/verify/[token] redirect. Keep them generic — don't leak whether
+// a token previously existed. Just tell the user what to do next.
+const ERROR_MESSAGES: Record<string, string> = {
+  bad_token:
+    'Your sign-in link is invalid or has expired. Enter your email below and we’ll send a fresh one.',
+  missing_token:
+    'Sign-in link was missing. Enter your email and we’ll send you a new one.',
+}
+
+type Props = {
+  searchParams: Promise<{ error?: string }>
+}
+
+export default async function EmployerLoginPage({ searchParams }: Props) {
+  const { error } = await searchParams
+  const errorMessage = error ? ERROR_MESSAGES[error] : null
+
   return (
     <main className="min-h-screen bg-white text-black">
       <nav className="border-b-2 border-black">
@@ -37,6 +54,12 @@ export default function EmployerLoginPage() {
           Enter the email you used to post. We&apos;ll send you a sign-in link —
           click it and you&apos;re in. No password.
         </p>
+
+        {errorMessage && (
+          <div className="border-2 border-amber-600 bg-amber-50 p-3 text-amber-900 text-sm font-medium mb-6">
+            {errorMessage}
+          </div>
+        )}
 
         <LoginForm />
 

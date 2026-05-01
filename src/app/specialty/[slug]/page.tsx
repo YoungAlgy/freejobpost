@@ -150,7 +150,7 @@ export default async function SpecialtyHubPage(
             {hub.title} <span className="text-green-700">— {jobs.length}</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-            {hub.shortDescription} Every posting here is from a verified US healthcare employer — no third-party staffing reposts, no recruiter spam. Free to browse, free to apply.
+            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers — every listing has a real apply link.
           </p>
 
           {/* By-state linkbar for internal linking density */}
@@ -172,11 +172,27 @@ export default async function SpecialtyHubPage(
           {jobs.length === 0 ? (
             <div className="border-2 border-black p-8 text-center">
               <p className="text-lg font-bold mb-2">No active {hub.title.toLowerCase()} right now.</p>
-              <p className="text-gray-700 mb-4">Check back tomorrow — we typically see new postings every business day.</p>
-              <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
+              <p className="text-gray-700 mb-4">This specialty&apos;s inventory is still ramping up on freejobpost.co. Browse the full national board in the meantime, or upload your resume so we can match you the moment a {hub.title.toLowerCase().replace(/ jobs$/, '')} role opens.</p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
+                <a href="https://www.freeresumepost.co" className="inline-block border-2 border-black font-bold px-6 py-2 hover:bg-black hover:text-white">Get matched →</a>
+              </div>
             </div>
           ) : (
-            <ul className="border-t-2 border-black">
+            <>
+              {jobs.length < 3 && (
+                <div className="border-l-4 border-yellow-500 bg-yellow-50 p-4 mb-6">
+                  <p className="text-sm text-gray-800">
+                    <span className="font-bold">Limited {hub.title.toLowerCase().replace(/ jobs$/, '')} inventory right now.</span>{' '}
+                    Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}.{' '}
+                    <Link href="/jobs" className="underline font-medium hover:text-green-700">See all healthcare jobs</Link>{' '}
+                    or{' '}
+                    <a href="https://www.freeresumepost.co" className="underline font-medium hover:text-green-700">upload your resume</a>{' '}
+                    to be matched as new roles open.
+                  </p>
+                </div>
+              )}
+              <ul className="border-t-2 border-black">
               {jobs.map((j) => (
                 <li key={j.id} className="border-b border-black/10 py-5">
                   <Link href={`/jobs/${j.slug}`} className="group block">
@@ -198,7 +214,8 @@ export default async function SpecialtyHubPage(
                   </Link>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </>
           )}
 
           {/* Other specialties — internal linking */}

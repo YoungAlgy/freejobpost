@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { buildOrganizationGraph } from '@/lib/organization-schema'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -74,79 +75,23 @@ export default function RootLayout({
         />
         {/* Organization + WebSite schema applies to every page so Google
             understands the brand entity and surfaces the sitelinks search box.
-            Per-page JSON-LD (e.g. JobPosting on /jobs/[slug]) supplements this. */}
+            Per-page JSON-LD (e.g. JobPosting on /jobs/[slug]) supplements this.
+            Schema source: src/lib/organization-schema.ts (mirrored to freeresumepost). */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@graph': [
-                {
-                  '@type': 'Organization',
-                  '@id': 'https://avahealth.co#organization',
-                  legalName: 'Ava Health Partners LLC',
-                  name: 'Ava Health',
-                  alternateName: ['Ava Health Partners', 'Ava Health Partners LLC'],
-                  url: 'https://avahealth.co',
-                  logo: 'https://avahealth.co/logo.png',
-                  description: 'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates freejobpost.co — a free healthcare job board with no posting fees and no auction pricing.',
-                  telephone: '+1-904-343-9449',
-                  email: 'info@avahealth.co',
-                  sameAs: [
-                    'https://avahealth.co',
-                    'https://www.avahealth.co',
-                    'https://providers.avahealth.co',
-                    'https://app.avahealth.co',
-                    'https://freejobpost.co',
-                    'https://www.freeresumepost.co',
-                    'https://www.linkedin.com/company/ava-health1/',
-                    'https://www.linkedin.com/company/freejobpost/',
-                  ],
-                  address: {
-                    '@type': 'PostalAddress',
-                    streetAddress: '1314 7th Street South',
-                    addressLocality: 'St. Petersburg',
-                    addressRegion: 'FL',
-                    postalCode: '33701',
-                    addressCountry: 'US',
-                  },
-                  contactPoint: [
-                    {
-                      '@type': 'ContactPoint',
-                      contactType: 'customer service',
-                      telephone: '+1-904-343-9449',
-                      email: 'info@avahealth.co',
-                      areaServed: 'US',
-                      availableLanguage: 'English',
-                    },
-                  ],
-                  openingHoursSpecification: [
-                    {
-                      '@type': 'OpeningHoursSpecification',
-                      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-                      opens: '09:00',
-                      closes: '17:00',
-                    },
-                  ],
-                  areaServed: { '@type': 'Country', name: 'United States' },
-                  industry: 'Staffing and Recruiting',
-                  naics: '561311',
-                },
-                {
-                  '@type': 'WebSite',
-                  '@id': 'https://freejobpost.co#website',
-                  url: 'https://freejobpost.co',
-                  name: 'Free Job Post',
-                  description: 'Free healthcare job board. Post jobs free. Apply free. No auction fees.',
-                  publisher: { '@id': 'https://avahealth.co#organization' },
-                  potentialAction: {
-                    '@type': 'SearchAction',
-                    target: 'https://freejobpost.co/jobs?q={search_term_string}',
-                    'query-input': 'required name=search_term_string',
-                  },
-                },
-              ],
-            }),
+            __html: JSON.stringify(
+              buildOrganizationGraph({
+                websiteUrl: 'https://freejobpost.co',
+                websiteName: 'Free Job Post',
+                websiteDescription:
+                  'Free healthcare job board. Post jobs free. Apply free. No auction fees.',
+                organizationDescription:
+                  'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates freejobpost.co — a free healthcare job board with no posting fees and no auction pricing.',
+                searchActionTarget: 'https://freejobpost.co/jobs?q={search_term_string}',
+                additionalSameAs: ['https://www.linkedin.com/company/freejobpost/'],
+              })
+            ),
           }}
         />
       </head>

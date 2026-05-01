@@ -18,7 +18,7 @@ export const STATE_HUBS: StateHub[] = [
     slug: 'florida',
     abbr: 'FL',
     name: 'Florida',
-    metaDescription: 'Free Florida healthcare jobs from verified employers — Tampa, Miami, Jacksonville, Orlando, Naples. Physician, NP, PA, RN, CRNA, and allied roles.',
+    metaDescription: 'Free Florida healthcare jobs — Tampa, Miami, Jacksonville, Orlando, Naples. Physician, NP, PA, RN, CRNA, and allied roles, no recruiter spam.',
     shortDescription: "Florida healthcare openings spanning the state's top systems — Tampa Bay, Miami-Dade, Jacksonville, Orlando, and Southwest Florida (Naples / Fort Myers).",
     majorMetros: ['Tampa', 'Miami', 'Jacksonville', 'Orlando', 'Naples', 'Fort Myers', 'Tallahassee'],
     topEmployers: ['Tampa General', 'AdventHealth', 'NCH Healthcare System', 'Lee Health', 'Mayo Clinic Florida', 'Baptist Health South Florida', 'Memorial Healthcare System', 'University of Miami Health'],

@@ -155,7 +155,7 @@ export default async function StateHubPage(
             {hub.name} healthcare jobs <span className="text-green-700">— {jobs.length}</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-            {hub.shortDescription} Every posting on freejobpost.co is from a verified US healthcare employer — no third-party staffing reposts, no recruiter spam. Free to browse, free to apply.
+            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers — every listing has a real apply link.
           </p>
 
           {/* Major metros — local relevance signal */}
@@ -168,13 +168,17 @@ export default async function StateHubPage(
             </div>
           </div>
 
-          {/* Top employers — entity-rich content */}
-          <div className="mb-10">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{hub.name} healthcare systems we work with</h2>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {hub.topEmployers.join(', ')}.
-            </p>
-          </div>
+          {/* Top employers — only render when there's enough on-page inventory
+             to make the line credible. With <3 jobs in this state, listing
+             named systems would over-claim coverage we don't actually have. */}
+          {jobs.length >= 3 && (
+            <div className="mb-10">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Major {hub.name} healthcare systems</h2>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {hub.topEmployers.join(', ')}. Some listings come from these systems directly; others are placed by our recruiter book.
+              </p>
+            </div>
+          )}
 
           {/* By-city linkbar (only if multiple cities) */}
           {cities.length > 1 && (
@@ -207,11 +211,24 @@ export default async function StateHubPage(
           {jobs.length === 0 ? (
             <div className="border-2 border-black p-8 text-center">
               <p className="text-lg font-bold mb-2">No active {hub.name} healthcare jobs right now.</p>
-              <p className="text-gray-700 mb-4">Check back tomorrow — we typically see new {hub.name} postings every business day.</p>
-              <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
+              <p className="text-gray-700 mb-4">{hub.name} inventory is still ramping up on freejobpost.co. Browse our active national board in the meantime, or set up a candidate match alert.</p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
+                <a href="https://www.freeresumepost.co" className="inline-block border-2 border-black font-bold px-6 py-2 hover:bg-black hover:text-white">Get matched →</a>
+              </div>
             </div>
           ) : (
-            <ul className="border-t-2 border-black">
+            <>
+              {jobs.length < 3 && (
+                <div className="border-l-4 border-yellow-500 bg-yellow-50 p-4 mb-6">
+                  <p className="text-sm text-gray-800">
+                    <span className="font-bold">Limited inventory in {hub.name} right now.</span>{' '}
+                    Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}. Most of our open positions are concentrated in higher-density states —{' '}
+                    <Link href="/jobs" className="underline font-medium hover:text-green-700">see all healthcare jobs</Link>.
+                  </p>
+                </div>
+              )}
+              <ul className="border-t-2 border-black">
               {jobs.map((j) => (
                 <li key={j.id} className="border-b border-black/10 py-5">
                   <Link href={`/jobs/${j.slug}`} className="group block">
@@ -233,7 +250,8 @@ export default async function StateHubPage(
                   </Link>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </>
           )}
 
           {/* Other states — internal linking */}

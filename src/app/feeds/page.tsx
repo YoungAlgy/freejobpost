@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SYNDICATION_TARGETS } from '@/lib/syndication-targets'
+import { PARTNER_CONTACTS } from '@/lib/partner-contacts'
 
 export const metadata: Metadata = {
   title: 'Job feeds for distribution partners',
@@ -9,27 +10,6 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://freejobpost.co/feeds' },
   // Internal/partner-facing — not a candidate landing page.
   robots: { index: false, follow: false },
-}
-
-// Submission instructions per network — paired with the SYNDICATION_TARGETS
-// registry. Keep these in sync when adding a new network: the registry is
-// the engineering source of truth, this map is the operational playbook.
-//
-// Last verified 2026-04-30 (after sending 4 emails 2026-04-29 and auditing
-// the inbox 24h later — 3/4 bounced, only Adzuna delivered cleanly).
-// Industry-wide trend: most networks have migrated from email intake to
-// gated portals or sales-driven calls. Email addresses listed are the ones
-// that confirmed-delivered in our outreach; bounced addresses are noted.
-const SUBMIT_TO: Record<string, string> = {
-  indeed: 'No submission needed — Indeed retired the public XML feed onboarding. Their crawler auto-picks up the JobPosting JSON-LD we emit on each /jobs/[slug] page. For sponsored / explicit ingestion, contact your Indeed account rep.',
-  ziprecruiter: 'Email support@ziprecruiter.com with the feed URL (general support inbox routes to publisher partnerships team). NOTE: their direct partners@ziprecruiter.com address bounces (550 5.1.1) and the publisher signup at ziprecruiter.com/publishers is wrapped in Cloudflare bot detection — sales call may be needed if email gets ignored.',
-  glassdoor: 'Glassdoor is Indeed-owned — same pipeline as Indeed (passive auto-crawl). For explicit listings, ask your Indeed account rep.',
-  linkedin: 'Job Wrapping is gated. Requires (1) a LinkedIn Company Page for freejobpost.co (✓ created at linkedin.com/company/freejobpost) and (2) a LinkedIn Talent Solutions rep to whitelist the feed URL. Contact your rep when ready.',
-  google: 'No submission needed — Google crawls each /jobs/[slug] page directly and reads the JobPosting JSON-LD we emit. Submit /sitemap.xml to Google Search Console for crawl discovery (✓ done 2026-04-29). Bing Webmaster Tools imports from GSC automatically (✓ done 2026-04-29).',
-  adzuna: 'Email content@adzuna.com with the feed URL (cc support@adzuna.com). This delivered 2026-04-29 and Matt Woodbridge (Product Manager) replied within 24h asking for relationship + sourcing details. Adzuna retired their public partners.html submission form; content team handles intake informally.',
-  jooble: 'Email support@jooble.com with the feed URL (their support inbox forwards to partnerships team). NOTE: their direct partners@jooble.com bounces (550 5.1.1). Fallback if no reply: book a call at uk.jooble.org/partner/for-publishers (Calendly-style "Book a call" CTA).',
-  talent: 'No public email channel — both partner@talent.com and partners@talent.com bounce. The publisher portal at talent.com/publishers is invite-only (no public signup form). Path forward: LinkedIn outreach to a Talent.com employee (Sales / Partnerships) OR skip — Talent.com is the lowest-volume of the four major aggregators.',
-  rss: 'No submission needed — Apple News, Feedly, Inoreader, Reddit RSS bots, and most niche aggregators auto-discover via the <link rel="alternate"> tag and direct URL.',
 }
 
 export default function FeedsPage() {
@@ -72,7 +52,17 @@ export default function FeedsPage() {
               <p className="text-sm text-gray-700 mb-2">{t.blurb} <span className="text-gray-500">· {t.reach}</span></p>
               <a href={t.feedUrl} className="text-sm font-mono text-green-700 underline break-all">{t.feedUrl}</a>
               <p className="text-sm text-gray-700 mt-3">
-                <span className="font-bold">Submit to:</span> {SUBMIT_TO[t.id] ?? 'Contact partner team for onboarding instructions.'}
+                <span className="font-bold">Submit to:</span>{' '}
+                {PARTNER_CONTACTS[t.id]?.instructions ??
+                  'Contact partner team for onboarding instructions.'}
+              </p>
+              {PARTNER_CONTACTS[t.id]?.note && (
+                <p className="text-xs text-gray-500 mt-2 italic">
+                  Note: {PARTNER_CONTACTS[t.id]!.note}
+                </p>
+              )}
+              <p className="text-[10px] font-mono text-gray-400 mt-2">
+                Channel verified {PARTNER_CONTACTS[t.id]?.lastVerifiedAt ?? '—'}
               </p>
             </div>
           ))}
@@ -86,7 +76,10 @@ export default function FeedsPage() {
             <p className="text-sm text-gray-700 mb-2">For Google, Bing, DuckDuckGo, and any general-purpose web crawler.</p>
             <a href="https://freejobpost.co/sitemap.xml" className="text-sm font-mono text-green-700 underline break-all">https://freejobpost.co/sitemap.xml</a>
             <p className="text-sm text-gray-700 mt-3">
-              <span className="font-bold">Submit to:</span> Google Search Console → Sitemaps → Add /sitemap.xml. Bing Webmaster Tools accepts the same URL.
+              <span className="font-bold">Submit to:</span> {PARTNER_CONTACTS.sitemap.instructions}
+            </p>
+            <p className="text-[10px] font-mono text-gray-400 mt-2">
+              Channel verified {PARTNER_CONTACTS.sitemap.lastVerifiedAt}
             </p>
           </div>
         </div>

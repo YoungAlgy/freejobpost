@@ -21,7 +21,10 @@ export const revalidate = 600
 // hitting Supabase.
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,120}$/
 
-type JobWithTargets = PublicJob & { syndication_targets?: string[] | null }
+type JobWithTargets = PublicJob & {
+  syndication_targets?: string[] | null
+  employer_id?: string | null
+}
 
 async function getJob(slug: string): Promise<JobWithTargets | null> {
   if (!SLUG_RE.test(slug)) return null
@@ -29,7 +32,7 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
   // fall back to the original select so the page still renders.
   const withTargets = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', syndication_targets')
+    .select(JOB_DETAIL_FIELDS + ', employer_id, syndication_targets')
     .eq('slug', slug)
     .eq('status', 'active')
     .is('deleted_at', null)
@@ -40,13 +43,34 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
   }
   const fallback = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS)
+    .select(JOB_DETAIL_FIELDS + ', employer_id')
     .eq('slug', slug)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
     .maybeSingle()
   return (fallback.data as JobWithTargets | null) ?? null
+}
+
+// Lookup the hiring employer's display name. When the job has no employer_id
+// (or the row is missing), fall back to the staffing-firm parent — those are
+// the seeded roles placed by Ava Health Partners while we onboard direct
+// employer postings.
+async function resolveEmployer(employerId: string | null | undefined): Promise<{
+  name: string
+  isSeeded: boolean
+}> {
+  const SEEDED_NAME = 'Ava Health Partners'
+  if (!employerId) return { name: SEEDED_NAME, isSeeded: true }
+  const { data } = await supabase
+    .from('public_employers_directory')
+    .select('company_name')
+    .eq('id', employerId)
+    .maybeSingle()
+  const name = (data as { company_name: string } | null)?.company_name?.trim() || SEEDED_NAME
+  // Match "Ava Health Partners", "Ava Health Partners LLC", "Ava Health Partners — Seeded Roles", etc.
+  const isSeeded = /^ava health partners\b/i.test(name)
+  return { name, isSeeded }
 }
 
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
@@ -124,7 +148,10 @@ export default async function JobDetailPage({ params }: Props) {
   const job = await getJob(slug)
   if (!job) notFound()
 
-  const related = await getRelated(job)
+  const [related, employer] = await Promise.all([
+    getRelated(job),
+    resolveEmployer(job.employer_id),
+  ])
   const loc = locationLabel(job)
   const sal = formatSalary(job.salary_min, job.salary_max)
   const emp = employmentLabel(job.employment_type)
@@ -146,8 +173,8 @@ export default async function JobDetailPage({ params }: Props) {
     },
     hiringOrganization: {
       '@type': 'Organization',
-      name: 'Ava Health Partners',
-      sameAs: 'https://avahealth.co',
+      name: employer.name,
+      sameAs: employer.isSeeded ? 'https://avahealth.co' : undefined,
     },
     jobLocation: {
       '@type': 'Place',
@@ -328,7 +355,7 @@ export default async function JobDetailPage({ params }: Props) {
           </div>
 
           {/* Meta */}
-          <div className="text-xs text-gray-500 mb-10 flex flex-wrap gap-x-6 gap-y-1">
+          <div className="text-xs text-gray-500 mb-6 flex flex-wrap gap-x-6 gap-y-1">
             <span>
               Posted{' '}
               <time dateTime={datePosted}>
@@ -351,7 +378,38 @@ export default async function JobDetailPage({ params }: Props) {
                 })}
               </time>
             </span>
+            <span>
+              Employer: <span className="text-black font-medium">{employer.name}</span>
+            </span>
           </div>
+
+          {/* Seeded-role disclosure — honest signal that this is one of the
+             roles placed by the staffing firm operating the site, while we
+             onboard direct employer postings. Stays until cold-start ends. */}
+          {employer.isSeeded && (
+            <aside
+              className="mb-10 border-2 border-dashed border-gray-400 p-4 text-xs leading-relaxed text-gray-700"
+              aria-label="Sourcing disclosure"
+            >
+              <p className="font-bold tracking-wider text-gray-500 mb-1">
+                ABOUT THIS LISTING
+              </p>
+              <p>
+                This role is placed by{' '}
+                <a
+                  href="https://avahealth.co"
+                  className="underline hover:text-green-700"
+                  rel="noopener"
+                >
+                  Ava Health Partners LLC
+                </a>
+                , the healthcare staffing firm that operates freejobpost.co. We
+                seed real placements from our recruiter book while we onboard
+                direct employer postings — every listing has a real apply link
+                and goes off the board within 15 minutes of being filled.
+              </p>
+            </aside>
+          )}
 
           {/* Related */}
           {related.length > 0 && (

@@ -16,7 +16,7 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
   {
     slug: 'cardiology',
     title: 'Cardiology Jobs',
-    metaDescription: 'Free cardiology jobs from verified employers — interventional, EP, structural, general. Browse open roles, apply directly, no account required.',
+    metaDescription: 'Free cardiology jobs — interventional, EP, structural, general. Browse open roles, apply directly, no account required, no recruiter spam.',
     shortDescription: 'Cardiology openings across general, interventional, EP, and structural-heart subspecialties. All postings come straight from the hiring employer.',
     matchPatterns: ['cardio', 'cardiov', 'interventional cardio', 'electrophys', 'structural heart'],
   },
@@ -65,14 +65,14 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
   {
     slug: 'radiology',
     title: 'Radiology Jobs',
-    metaDescription: 'Free radiology jobs — diagnostic, interventional, breast, neuro, MSK. Teleradiology + onsite. Apply directly to verified employers.',
+    metaDescription: 'Free radiology jobs — diagnostic, interventional, breast, neuro, MSK. Teleradiology + onsite. Apply directly to the hiring practice, no recruiter spam.',
     shortDescription: 'Radiology roles including diagnostic, interventional, breast imaging, neuro, MSK, and teleradiology.',
     matchPatterns: ['radiology'],
   },
   {
     slug: 'psychiatry',
     title: 'Psychiatry Jobs',
-    metaDescription: 'Free psychiatry jobs — outpatient, inpatient, telepsychiatry, addiction, child/adolescent. Browse open roles from verified employers.',
+    metaDescription: 'Free psychiatry jobs — outpatient, inpatient, telepsychiatry, addiction, child/adolescent. Browse open roles, apply directly, no recruiter spam.',
     shortDescription: 'Psychiatry roles spanning outpatient, inpatient, telepsychiatry, addiction medicine, and child + adolescent.',
     matchPatterns: ['psychiatry', 'psychiatric', 'psych'],
   },
@@ -86,7 +86,7 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
   {
     slug: 'gastroenterology',
     title: 'Gastroenterology Jobs',
-    metaDescription: 'Free gastroenterology jobs — outpatient, hospital-based, advanced endoscopy, hepatology. Open roles from verified US employers.',
+    metaDescription: 'Free gastroenterology jobs — outpatient, hospital-based, advanced endoscopy, hepatology. Browse open roles, apply directly, no recruiter spam.',
     shortDescription: 'Gastroenterology roles including outpatient, hospital-based, advanced endoscopy (ERCP, EUS), and hepatology.',
     matchPatterns: ['gastroenterology', 'gastro', 'hepatology'],
   },
@@ -107,7 +107,7 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
   {
     slug: 'crna',
     title: 'CRNA Jobs',
-    metaDescription: 'Free CRNA jobs — hospital, ASC, autonomous practice. Permanent + locum. Apply directly to verified US healthcare employers.',
+    metaDescription: 'Free CRNA jobs — hospital, ASC, autonomous practice. Permanent + locum. Apply directly to the hiring practice, no recruiter spam.',
     shortDescription: 'Certified Registered Nurse Anesthetist roles in hospital, ASC, and autonomous-practice settings.',
     matchPatterns: ['crna', 'nurse anesthet', 'certified registered nurse anesthet'],
   },
@@ -135,7 +135,7 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
   {
     slug: 'pharmacist',
     title: 'Pharmacist Jobs',
-    metaDescription: 'Free pharmacist jobs — hospital, retail, specialty, ambulatory. Browse open pharmacist + PharmD roles from verified US employers.',
+    metaDescription: 'Free pharmacist jobs — hospital, retail, specialty, ambulatory. Browse open pharmacist + PharmD roles, apply directly, no recruiter spam.',
     shortDescription: 'Pharmacist + PharmD roles in hospital, retail, specialty, and ambulatory care.',
     matchPatterns: ['pharmacist', 'pharmd'],
   },
