@@ -28,12 +28,23 @@
 
 BEGIN;
 
+-- Trigger functions: REVOKE from anon AND PUBLIC. These run as the table
+-- owner via the trigger system, so EXECUTE grants don't need to exist for
+-- normal operation. INSTEAD OF triggers on therapists_view continue to fire
+-- when authenticated users INSERT/UPDATE/DELETE on the view itself.
 REVOKE EXECUTE ON FUNCTION public.therapists_view_delete_fn() FROM anon, PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.therapists_view_insert_fn() FROM anon, PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.therapists_view_update_fn() FROM anon, PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.trg_autoassign_candidate() FROM anon, PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.update_facility_last_activity() FROM anon, PUBLIC;
+
+-- start_user_trial: REVOKE then explicit GRANT to authenticated. The
+-- avahealth-crm StartTrial page calls this via supabase.rpc(), which runs
+-- as authenticated. REVOKE FROM PUBLIC alone would strip authenticated's
+-- inherited grant and break that page; the explicit re-grant keeps it
+-- working while still excluding anon.
 REVOKE EXECUTE ON FUNCTION public.start_user_trial() FROM anon, PUBLIC;
+GRANT EXECUTE ON FUNCTION public.start_user_trial() TO authenticated;
 
 COMMIT;
 
