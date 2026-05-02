@@ -2,22 +2,39 @@
 // Deploy a Supabase Edge Function via the Management API.
 //
 // Usage:
-//   SUPABASE_PAT=... node scripts/deploy_edge_function.mjs <slug> <path-to-index.ts> [--no-verify-jwt]
+//   SUPABASE_PAT=... node scripts/deploy_edge_function.mjs <slug> <path-to-index.ts> [options]
 //
-// Example:
-//   SUPABASE_PAT=... node scripts/deploy_edge_function.mjs apply-notify ../avahealth-crm/supabase/functions/apply-notify/index.ts --no-verify-jwt
+// Options:
+//   --no-verify-jwt     deploy without JWT verification (public endpoint)
+//   --include <path>    extra file to bundle (relative path inside the
+//                       deployed function root). Repeatable. Useful for
+//                       shared modules: `--include _shared/ses.ts`
+//                       The path can be absolute or relative to the
+//                       entrypoint's directory.
+//
+// Example (single file):
+//   SUPABASE_PAT=... node scripts/deploy_edge_function.mjs apply-notify \
+//     ../avahealth-crm/supabase/functions/apply-notify/index.ts --no-verify-jwt
+//
+// Example (multi-file bundle, sharing a helper):
+//   SUPABASE_PAT=... node scripts/deploy_edge_function.mjs apply-notify \
+//     ../avahealth-crm/supabase/functions/apply-notify/index.ts \
+//     --include ../avahealth-crm/supabase/functions/_shared/ses.ts \
+//     --no-verify-jwt
+//
+// The entrypoint can then `import { sendSesEmail } from '../_shared/ses.ts'`.
+// Bundle layout server-side mirrors the relative path you specify in --include.
 //
 // What this does:
-//   - Reads the function source from the given file path
-//   - POSTs multipart form data to the deploy endpoint
+//   - Reads the entrypoint source from <path-to-index.ts>
+//   - Optionally reads any --include files
+//   - POSTs multipart form data to the deploy endpoint with all files
 //   - Confirms the deploy by re-fetching the function metadata
 //
 // Notes:
 //   - PROJECT_REF is hardcoded to the freejobpost/freeresumepost shared project
 //   - --no-verify-jwt is required for public-facing functions like
 //     apply-notify, post-job-verify, post-job-send-verify, employer-login-send
-//   - Supabase Edge Runtime expects the source as a file upload (not inline
-//     body) because functions get bundled into an eszip on the server side.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -29,22 +46,62 @@ if (!PAT) {
   process.exit(1)
 }
 
-const slug = process.argv[2]
-const sourcePath = process.argv[3]
-const noVerifyJwt = process.argv.includes('--no-verify-jwt')
+// Parse argv with simple flag handling.
+const argv = process.argv.slice(2)
+const positional = []
+const includes = []
+let noVerifyJwt = false
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === '--no-verify-jwt') {
+    noVerifyJwt = true
+  } else if (argv[i] === '--include') {
+    if (!argv[i + 1]) {
+      console.error('--include requires a path argument')
+      process.exit(1)
+    }
+    includes.push(argv[++i])
+  } else {
+    positional.push(argv[i])
+  }
+}
+
+const slug = positional[0]
+const sourcePath = positional[1]
 if (!slug || !sourcePath) {
-  console.error('Usage: node scripts/deploy_edge_function.mjs <slug> <path-to-index.ts> [--no-verify-jwt]')
+  console.error(
+    'Usage: node scripts/deploy_edge_function.mjs <slug> <path-to-index.ts> ' +
+    '[--no-verify-jwt] [--include <path>]...'
+  )
   process.exit(1)
 }
 
-const absSource = path.resolve(sourcePath)
-if (!fs.existsSync(absSource)) {
-  console.error(`Source file not found: ${absSource}`)
+// Resolve the entrypoint and its directory (used as base for --include).
+const absEntrypoint = path.resolve(sourcePath)
+if (!fs.existsSync(absEntrypoint)) {
+  console.error(`Source file not found: ${absEntrypoint}`)
   process.exit(1)
 }
-const sourceContent = fs.readFileSync(absSource, 'utf8')
+const entrypointDir = path.dirname(absEntrypoint)
+const entrypointSource = fs.readFileSync(absEntrypoint, 'utf8')
 
-// Build multipart form data manually (Node 24+ has native FormData + Blob)
+// Resolve --include files. The relative path the user specifies is BOTH the
+// filesystem path (resolved against entrypointDir) AND the path used in the
+// deployed bundle (so imports like '../_shared/ses.ts' from index.ts resolve).
+const includedFiles = includes.map((rel) => {
+  const abs = path.resolve(entrypointDir, rel)
+  if (!fs.existsSync(abs)) {
+    console.error(`--include file not found: ${abs}`)
+    process.exit(1)
+  }
+  // Normalize forward slashes for the deployed bundle path.
+  const bundlePath = rel.replace(/\\/g, '/')
+  return { abs, bundlePath, content: fs.readFileSync(abs, 'utf8') }
+})
+
+// Build multipart form data manually (Node 24+ has native FormData + Blob).
+// The Supabase Management API accepts a `metadata` JSON part plus one or
+// more `file` parts. The filename in each file's Content-Disposition becomes
+// the path inside the deployed bundle.
 const form = new FormData()
 form.set(
   'metadata',
@@ -54,10 +111,22 @@ form.set(
     entrypoint_path: 'index.ts',
   })
 )
-form.set('file', new Blob([sourceContent], { type: 'application/typescript' }), 'index.ts')
+form.set('file', new Blob([entrypointSource], { type: 'application/typescript' }), 'index.ts')
+for (const inc of includedFiles) {
+  form.append(
+    'file',
+    new Blob([inc.content], { type: 'application/typescript' }),
+    inc.bundlePath
+  )
+}
 
 const deployUrl = `https://api.supabase.com/v1/projects/${PROJECT_REF}/functions/deploy?slug=${encodeURIComponent(slug)}`
 console.log(`POST ${deployUrl}`)
+console.log(`  entrypoint: index.ts (${entrypointSource.length} bytes)`)
+for (const inc of includedFiles) {
+  console.log(`  +include:   ${inc.bundlePath} (${inc.content.length} bytes)`)
+}
+
 const res = await fetch(deployUrl, {
   method: 'POST',
   headers: { Authorization: `Bearer ${PAT}` },
