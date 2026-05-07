@@ -18,11 +18,14 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              // challenges.cloudflare.com hosts the Turnstile bot-challenge widget script
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https:",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+              // challenges.cloudflare.com is also used for the siteverify XHR + the iframe
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://challenges.cloudflare.com",
+              "frame-src https://challenges.cloudflare.com",
               "frame-ancestors 'none'",
             ].join('; '),
           },

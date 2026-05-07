@@ -1,7 +1,9 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { headers } from 'next/headers'
 import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
+import { verifyTurnstileToken } from '@/lib/turnstile'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -32,7 +34,20 @@ export type PostJobResult =
 
 // Server action — receives the form data, submits via RPC, triggers verify email.
 // Exposed via a useActionState client hook in /post-job/page.tsx.
-export async function submitPostJob(_prev: PostJobResult | null, input: PostJobInput): Promise<PostJobResult> {
+export async function submitPostJob(
+  _prev: PostJobResult | null,
+  input: PostJobInput,
+  turnstileToken?: string
+): Promise<PostJobResult> {
+  // Cloudflare Turnstile bot check — fail-open when not configured (see
+  // src/lib/turnstile.ts), strict otherwise.
+  const hdrs = await headers()
+  const remoteIp = hdrs.get('x-forwarded-for')?.split(',')[0].trim() || hdrs.get('x-real-ip') || null
+  const turnstile = await verifyTurnstileToken(turnstileToken, remoteIp)
+  if (!turnstile.ok) {
+    return { success: false, error: turnstile.reason }
+  }
+
   // Basic sanitation + normalization; the RPC enforces the hard bounds
   const normalized: PostJobInput = {
     ...input,

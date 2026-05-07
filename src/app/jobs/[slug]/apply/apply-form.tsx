@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { submitApplication, type ApplyInput, type ApplyResult } from './actions'
+import TurnstileWidget from '@/components/TurnstileWidget'
 
 type Props = {
   jobId: string
@@ -22,6 +23,8 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
   })
   const [result, setResult] = useState<ApplyResult | null>(null)
   const [pending, startTransition] = useTransition()
+  // Cloudflare Turnstile token — see TurnstileWidget.tsx. null until challenge passes.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   function canSubmit(): boolean {
     return (
@@ -35,7 +38,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
     e.preventDefault()
     if (!canSubmit()) return
     startTransition(async () => {
-      const r = await submitApplication(null, values)
+      const r = await submitApplication(null, values, turnstileToken ?? '')
       setResult(r)
       if (r.success) {
         window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -165,6 +168,13 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
         />
         <p className="text-xs text-gray-500 mt-1">{values.cover_note.length} / 2,000</p>
       </Field>
+
+      <TurnstileWidget
+        onSuccess={setTurnstileToken}
+        onError={() => setTurnstileToken(null)}
+        onExpired={() => setTurnstileToken(null)}
+        action="apply-to-job"
+      />
 
       {result && !result.success && (
         <div className="border-2 border-red-600 bg-red-50 p-4 text-red-800 font-medium">

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
 import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
+import TurnstileWidget from '@/components/TurnstileWidget'
 
 // US state list for the state dropdown. Mirrors the 2-letter format enforced by
 // submit_public_job_rpc.
@@ -42,6 +43,13 @@ export default function PostJobForm() {
   const [stepError, setStepError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
+  // Cloudflare Turnstile token. Empty string when Turnstile isn't configured
+  // (dev / preview environments) — the widget fires onSuccess('') in that
+  // case and the server action's verifier no-ops on empty token without a
+  // configured TURNSTILE_SECRET_KEY. So forms keep working in dev even
+  // before real Turnstile keys are provisioned.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+
   const update = <K extends keyof PostJobInput>(key: K, v: PostJobInput[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))
 
@@ -62,7 +70,7 @@ export default function PostJobForm() {
   const onSubmit = () => {
     setStepError(null)
     startTransition(async () => {
-      const r = await submitPostJob(null, values)
+      const r = await submitPostJob(null, values, turnstileToken ?? '')
       setResult(r)
     })
   }
@@ -429,6 +437,17 @@ export default function PostJobForm() {
             By submitting, you agree your job posting can appear on freejobpost.co
             and any networks you selected above. We&apos;ll never sell your contact info.
           </p>
+
+          {/* Cloudflare Turnstile bot challenge — only renders if a sitekey is
+             configured. Fires onSuccess(token) when the user passes (or
+             instantly with empty token if Turnstile isn't provisioned). */}
+          <TurnstileWidget
+            onSuccess={setTurnstileToken}
+            onError={() => setTurnstileToken(null)}
+            onExpired={() => setTurnstileToken(null)}
+            action="post-job"
+            className="mt-4"
+          />
         </>
       )}
 

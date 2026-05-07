@@ -2,16 +2,19 @@
 
 import { useState, useTransition } from 'react'
 import { requestLoginLink } from './actions'
+import TurnstileWidget from '@/components/TurnstileWidget'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [result, setResult] = useState<{ success: boolean; error?: string } | null>(null)
   const [pending, startTransition] = useTransition()
+  // Cloudflare Turnstile token — see TurnstileWidget.tsx. null until challenge passes.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     startTransition(async () => {
-      const r = await requestLoginLink(null, { email })
+      const r = await requestLoginLink(null, { email }, turnstileToken ?? '')
       setResult(r)
     })
   }
@@ -49,6 +52,13 @@ export default function LoginForm() {
           className="w-full px-4 py-3 bg-white border-2 border-black text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
         />
       </label>
+
+      <TurnstileWidget
+        onSuccess={setTurnstileToken}
+        onError={() => setTurnstileToken(null)}
+        onExpired={() => setTurnstileToken(null)}
+        action="employer-login"
+      />
 
       {result && !result.success && (
         <div className="border-2 border-red-600 bg-red-50 p-3 text-red-800 text-sm font-medium">
