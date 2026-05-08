@@ -67,7 +67,7 @@ export default function PricingPage() {
               '10 active job posts at any given time.',
               '60-day post duration (longer than Indeed organic).',
               'Every feature: apply-tracking dashboard, per-job view and apply counts, no paywall anywhere.',
-              'Auto-syndication to Google for Jobs + Indeed organic feed + ZipRecruiter + Adzuna + Jooble — one XML feed, every active aggregator.',
+              'XML feed syndication to Google for Jobs, Indeed organic, ZipRecruiter, Adzuna, and Jooble — active partnerships come online as the network grows.',
               'Your own permanent URL: freejobpost.co/jobs/<your-role-slug>.',
             ]}
           />
