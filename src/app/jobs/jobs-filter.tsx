@@ -112,6 +112,15 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
 
   const activeFilterCount = [role, state, remote, empType].filter(Boolean).length + (verifiedOnly ? 1 : 0)
 
+  // Cap visible results to avoid rendering hundreds of DOM nodes at once.
+  // When unfiltered, 50 cards is plenty above the fold; a "Show more" row
+  // lets users page through without a full virtual list.
+  const PAGE_SIZE = 50
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  // Reset display window when filters change so page 1 is always fresh
+  useEffect(() => { setVisibleCount(PAGE_SIZE) }, [debouncedQ, role, state, remote, empType, verifiedOnly])
+  const displayed = filtered.slice(0, visibleCount)
+
   return (
     <>
       {/* Filter bar */}
@@ -226,13 +235,14 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
         <p className="text-sm font-bold">
           {filtered.length} {filtered.length === 1 ? 'role' : 'roles'}
           {filtered.length !== jobs.length && ` of ${jobs.length}`}
+          {displayed.length < filtered.length && ` · showing ${displayed.length}`}
         </p>
       </div>
 
       {/* Results list */}
       {filtered.length > 0 ? (
         <ul className="divide-y-2 divide-black border-y-2 border-black">
-          {filtered.map((job) => {
+          {displayed.map((job) => {
             const loc = locationLabel(job)
             const sal = formatSalary(job.salary_min, job.salary_max)
             const rem = remoteLabel(job.remote_hybrid)
@@ -289,6 +299,26 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
           })}
         </ul>
       ) : (
+        <></>
+      )}
+
+      {/* Load more — only shown when there are more results beyond the display cap */}
+      {displayed.length < filtered.length && (
+        <div className="text-center mt-6">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="border-2 border-black px-6 py-3 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+          >
+            Show {Math.min(PAGE_SIZE, filtered.length - displayed.length)} more
+            <span className="text-gray-500 font-normal ml-2">
+              ({filtered.length - displayed.length} remaining)
+            </span>
+          </button>
+        </div>
+      )}
+
+      {filtered.length === 0 && (
         <div className="py-12 text-center border-2 border-black bg-gray-50">
           <p className="font-bold mb-2">No matches.</p>
           <p className="text-gray-600 text-sm">Try widening your filters.</p>
