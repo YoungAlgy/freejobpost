@@ -106,7 +106,10 @@ export default async function VerifyTokenPage({ params }: Props) {
               It may have expired (48-hour window) or been tampered with.
               You can post the job again — it takes 90 seconds.
             </p>
-            <p className="text-xs text-gray-500 font-mono mb-6">{result.error}</p>
+            {/* Show a sanitized error hint (not raw server output) */}
+            {result.error && !/http|supabase|function/i.test(result.error) && (
+              <p className="text-xs text-gray-500 font-mono mb-6">{result.error}</p>
+            )}
             <Link
               href="/post-job"
               className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"

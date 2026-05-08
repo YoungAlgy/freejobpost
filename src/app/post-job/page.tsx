@@ -73,7 +73,7 @@ export default async function PostJobPage() {
             </div>
           </div>
           <div className="border-l-2 border-black pl-4">
-            <div className="text-[10px] font-bold tracking-wider uppercase text-gray-600 mb-1">Candidate network</div>
+            <div className="text-[10px] font-bold tracking-wider uppercase text-gray-600 mb-1">Provider network</div>
             <div className="text-2xl font-black tabular-nums">850K+</div>
           </div>
           <div className="border-l-2 border-black pl-4">
