@@ -49,7 +49,9 @@ export default async function JobsIndexPage() {
       // staffing firm that seeds inventory during cold-start. Without this
       // filter, the "VERIFIED ONLY" pill and green checkmarks appear on seeded
       // jobs, implying a trust signal that doesn't apply (S7 honesty standard).
-      .neq('verified_via', 'seeded'),
+      // company_name guard is defence-in-depth in case verified_via gets reset.
+      .neq('verified_via', 'seeded')
+      .not('company_name', 'ilike', 'Ava Health%'),
   ])
 
   const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]
