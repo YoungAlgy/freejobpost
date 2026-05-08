@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
 import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
@@ -57,6 +57,25 @@ export default function PostJobForm() {
   // Incrementing key forces TurnstileWidget to remount after a failed submit
   // so the user gets a fresh challenge (Turnstile tokens are single-use).
   const [turnstileKey, setTurnstileKey] = useState(0)
+
+  // Prefill company details when the employer navigates here from /employer.
+  // The dashboard passes ?co=<company_name>&cn=<contact_name> as URL params.
+  // We only fill fields that are still empty (user may have already typed
+  // something). Email is intentionally NOT prefilled — the employer confirms
+  // their address each time to avoid accidental wrong-account posts.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const co = params.get('co') ?? ''
+    const cn = params.get('cn') ?? ''
+    if (co || cn) {
+      setValues((prev) => ({
+        ...prev,
+        company_name: prev.company_name || co,
+        contact_name: prev.contact_name || cn,
+      }))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally empty: run once on mount only
 
   const update = <K extends keyof PostJobInput>(key: K, v: PostJobInput[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))

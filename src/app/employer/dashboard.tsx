@@ -97,7 +97,7 @@ export default function Dashboard({
             </Link>
           )}
           <Link
-            href="/post-job"
+            href={`/post-job?co=${encodeURIComponent(employer.company_name)}&cn=${encodeURIComponent(employer.contact_name ?? '')}`}
             className="inline-flex items-center bg-black text-white px-5 py-2.5 font-bold hover:bg-green-700 transition-colors"
           >
             Post a new role →
@@ -209,11 +209,18 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
         <div className="col-span-6 md:col-span-3 text-gray-700 text-sm self-center">
           {loc || '—'}
         </div>
-        <div className="col-span-6 md:col-span-2 self-center text-sm">
-          <span className="font-bold">{job.apply_count}</span>
-          <span className="text-gray-500 ml-1">
-            {job.apply_count === 1 ? 'apply' : 'applies'}
-          </span>
+        <div className="col-span-6 md:col-span-2 self-center text-sm space-y-0.5">
+          <div>
+            <span className="font-bold">{job.apply_count}</span>
+            <span className="text-gray-500 ml-1">
+              {job.apply_count === 1 ? 'apply' : 'applies'}
+            </span>
+          </div>
+          {job.status === 'active' && (
+            <div className="text-xs text-gray-400">
+              expires {new Date(job.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </div>
+          )}
         </div>
         <div className="col-span-12 md:col-span-2 self-center flex items-center justify-end gap-2 text-sm">
           {sal && <span className="font-bold hidden md:inline">{sal}</span>}
