@@ -66,8 +66,21 @@ export default async function JobsIndexPage() {
   // a job board, not a hiring organization) would fail Google's Rich Results
   // validation and misattribute real-employer roles.
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://freejobpost.co' },
+      { '@type': 'ListItem', position: 2, name: 'Jobs', item: 'https://freejobpost.co/jobs' },
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <main className="min-h-screen bg-white text-black">
         {/* Nav */}
         <nav className="border-b-2 border-black">
