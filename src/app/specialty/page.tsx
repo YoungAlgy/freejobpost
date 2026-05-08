@@ -44,7 +44,7 @@ export default function SpecialtyIndexPage() {
           Healthcare jobs <span className="text-green-700">by specialty</span>
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-          Pick a specialty to see every active opening for that role on freejobpost.co. Each hub aggregates physician + APP + nursing + allied-health postings from verified US employers.
+          Pick a specialty to see every active opening for that role on freejobpost.co. Each hub aggregates physician + APP + nursing + allied-health postings in one place.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
