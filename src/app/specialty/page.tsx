@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 
+import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs by specialty',
   description: 'Healthcare jobs organized by specialty — cardiology, ortho, hospitalist, EM, anesth, derm, GI, peds, OBGYN, CRNA, NP, PA, RN, pharmacist. Free to browse, free to apply.',
@@ -64,7 +65,7 @@ export default function SpecialtyIndexPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [

@@ -18,6 +18,7 @@ import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 
+import { safeJsonLd } from '@/lib/safe-jsonld'
 export const revalidate = 600
 
 export async function generateStaticParams() {
@@ -138,13 +139,13 @@ export default async function StateHubPage(
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       {topJobsJsonLd.map((j, i) => (
         <script
           key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(j) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(j) }}
         />
       ))}
 

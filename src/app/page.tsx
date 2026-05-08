@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 
+import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Free Job Post — Healthcare jobs without the Indeed tax',
   description:
@@ -335,7 +336,7 @@ export default async function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
             mainEntity: [

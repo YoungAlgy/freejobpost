@@ -11,6 +11,7 @@ import {
 } from '@/lib/public-jobs'
 import JobsFilter from './jobs-filter'
 
+import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs — free to browse, free to apply',
   description:
@@ -76,7 +77,7 @@ export default async function JobsIndexPage() {
         <script
           key={i}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jld) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jld) }}
         />
       ))}
       <main className="min-h-screen bg-white text-black">

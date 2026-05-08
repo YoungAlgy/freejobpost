@@ -13,6 +13,7 @@ import {
 } from '@/lib/public-jobs'
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 
+import { safeJsonLd } from '@/lib/safe-jsonld'
 type Props = { params: Promise<{ slug: string }> }
 
 export const revalidate = 600
@@ -233,12 +234,12 @@ export default async function JobDetailPage({ params }: Props) {
       {optedIntoGoogle && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jobPostingJsonLd) }}
         />
       )}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <main className="min-h-screen bg-white text-black">
         {/* Nav */}

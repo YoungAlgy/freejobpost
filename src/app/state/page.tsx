@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { STATE_HUBS } from '@/lib/state-slugs'
 
+import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs by state',
   description: 'Healthcare jobs organized by state — Florida, Texas, California, New York, Illinois, Pennsylvania, Ohio, Georgia, North Carolina, Massachusetts, Michigan. Free to browse, free to apply.',
@@ -64,7 +65,7 @@ export default function StateIndexPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [

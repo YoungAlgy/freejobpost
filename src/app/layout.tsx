@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { buildOrganizationGraph } from '@/lib/organization-schema'
 
+import { safeJsonLd } from '@/lib/safe-jsonld'
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -82,7 +83,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(
+            __html: safeJsonLd(
               buildOrganizationGraph({
                 websiteUrl: 'https://freejobpost.co',
                 websiteName: 'Free Job Post',
