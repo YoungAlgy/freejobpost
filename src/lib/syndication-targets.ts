@@ -68,10 +68,10 @@ export const SYNDICATION_TARGETS: SyndicationTarget[] = [
   {
     id: 'linkedin',
     label: 'LinkedIn Jobs',
-    blurb: 'Limited Listings via Job Wrapping XML.',
+    blurb: 'Feed ready — awaiting LinkedIn Job Wrapping partnership. Contact your LinkedIn Talent Solutions rep to activate ingestion of this feed.',
     feedUrl: 'https://freejobpost.co/feeds/linkedin.xml',
     spec: 'LinkedIn Job Wrapping XML',
-    defaultOn: true,
+    defaultOn: false,  // gated_portal as of 2026-04-30; re-enable when Talent Solutions rep whitelists the feed
     reach: '~190M monthly visits',
   },
   {
