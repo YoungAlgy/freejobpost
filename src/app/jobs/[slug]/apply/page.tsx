@@ -17,8 +17,17 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
+  // Fetch the job title for a readable title tag (best-effort, empty fallback).
+  const { data } = await supabase
+    .from('public_jobs')
+    .select('title')
+    .eq('slug', slug)
+    .eq('status', 'active')
+    .maybeSingle()
+  const title = data?.title ?? slug
   return {
-    title: `Apply — ${slug}`,
+    title: `Apply: ${title}`,
+    description: `Submit your application for ${title}. No account required — takes under 60 seconds.`,
     robots: { index: false, follow: true },
     alternates: { canonical: `https://freejobpost.co/jobs/${slug}` },
   }
@@ -43,7 +52,17 @@ export default async function ApplyPage({ params }: Props) {
   if (!job) notFound()
 
   if (job.apply_url) {
-    redirect(job.apply_url)
+    // Security: only redirect to safe https:// URLs. Reject javascript:,
+    // data:, relative, and http:// URLs — those should never appear in the
+    // DB but a compromised row or injection attempt could put them there.
+    let safe = false
+    try {
+      const parsed = new URL(job.apply_url)
+      safe = parsed.protocol === 'https:'
+    } catch {
+      safe = false
+    }
+    if (safe) redirect(job.apply_url)
   }
 
   const loc = locationLabel(job)

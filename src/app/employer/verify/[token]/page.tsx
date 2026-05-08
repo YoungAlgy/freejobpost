@@ -41,7 +41,7 @@ export default async function VerifyTokenPage({ params }: Props) {
   store.set(COOKIE_NAME, raw, {
     httpOnly: true,
     secure: true,
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/employer',
     maxAge: 30 * 24 * 3600,
   })

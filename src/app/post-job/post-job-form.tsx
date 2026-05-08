@@ -54,6 +54,9 @@ export default function PostJobForm() {
   // configured TURNSTILE_SECRET_KEY. So forms keep working in dev even
   // before real Turnstile keys are provisioned.
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  // Incrementing key forces TurnstileWidget to remount after a failed submit
+  // so the user gets a fresh challenge (Turnstile tokens are single-use).
+  const [turnstileKey, setTurnstileKey] = useState(0)
 
   const update = <K extends keyof PostJobInput>(key: K, v: PostJobInput[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))
@@ -90,6 +93,12 @@ export default function PostJobForm() {
     startTransition(async () => {
       const r = await submitPostJob(null, values, turnstileToken ?? '')
       setResult(r)
+      if (!r.success) {
+        // Token is single-use. Clear it and remount the widget so the user
+        // solves a fresh challenge before retrying.
+        setTurnstileToken(null)
+        setTurnstileKey((k) => k + 1)
+      }
     })
   }
 
@@ -480,6 +489,7 @@ export default function PostJobForm() {
              configured. Fires onSuccess(token) when the user passes (or
              instantly with empty token if Turnstile isn't provisioned). */}
           <TurnstileWidget
+            key={turnstileKey}
             onSuccess={setTurnstileToken}
             onError={() => setTurnstileToken(null)}
             onExpired={() => setTurnstileToken(null)}
