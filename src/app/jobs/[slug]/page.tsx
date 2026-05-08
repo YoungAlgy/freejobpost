@@ -58,23 +58,49 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
 // job has no employer_id (or the row is missing), fall back to the staffing-
 // firm parent — those are the seeded roles placed by Ava Health Partners
 // while we onboard direct employer postings.
+//
+// We also try to fetch slug + verified_via so the employer name can link to
+// /employers/[slug] when available. The slug column is added via migration
+// 2026-05-08_employer_slug.sql; before it runs, the query errors and we fall
+// back gracefully (same pattern used for syndication_targets in getJob).
 async function resolveEmployer(employerId: string | null | undefined): Promise<{
   name: string
   isSeeded: boolean
   verifiedAt: string | null
+  slug: string | null
 }> {
   const SEEDED_NAME = 'Ava Health Partners'
-  if (!employerId) return { name: SEEDED_NAME, isSeeded: true, verifiedAt: null }
-  const { data } = await supabase
+  if (!employerId) return { name: SEEDED_NAME, isSeeded: true, verifiedAt: null, slug: null }
+
+  type EmployerFull = { company_name: string; verified_at: string | null; verified_via: string | null; slug: string | null }
+  type EmployerBase = { company_name: string; verified_at: string | null }
+
+  // Try with slug column (post-migration); fall back if column doesn't exist yet.
+  const withSlug = await supabase
     .from('public_employers_directory')
-    .select('company_name, verified_at')
+    .select('company_name, verified_at, verified_via, slug')
     .eq('id', employerId)
     .maybeSingle()
-  const row = data as { company_name: string; verified_at: string | null } | null
+
+  let row: EmployerFull | EmployerBase | null
+  if (!withSlug.error) {
+    row = (withSlug.data as EmployerFull | null)
+  } else {
+    const fallback = await supabase
+      .from('public_employers_directory')
+      .select('company_name, verified_at')
+      .eq('id', employerId)
+      .maybeSingle()
+    row = (fallback.data as EmployerBase | null)
+  }
+
   const name = row?.company_name?.trim() || SEEDED_NAME
   // Match "Ava Health Partners", "Ava Health Partners LLC", "Ava Health Partners — Seeded Roles", etc.
   const isSeeded = /^ava health partners\b/i.test(name)
-  return { name, isSeeded, verifiedAt: row?.verified_at ?? null }
+  const full = row as EmployerFull | null
+  // Provide a slug link only for real verified non-seeded employers
+  const slug = (!isSeeded && full?.slug && full?.verified_via !== 'seeded') ? full.slug : null
+  return { name, isSeeded, verifiedAt: row?.verified_at ?? null, slug }
 }
 
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
@@ -384,7 +410,16 @@ export default async function JobDetailPage({ params }: Props) {
             </span>
             <span>
               Employer:{' '}
-              <span className="text-black font-medium">{employer.name}</span>
+              {employer.slug ? (
+                <Link
+                  href={`/employers/${employer.slug}`}
+                  className="text-black font-medium underline underline-offset-2 hover:text-green-700"
+                >
+                  {employer.name}
+                </Link>
+              ) : (
+                <span className="text-black font-medium">{employer.name}</span>
+              )}
               {employer.verifiedAt && (
                 <>
                   {' '}
