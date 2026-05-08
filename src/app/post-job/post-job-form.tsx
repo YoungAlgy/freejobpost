@@ -201,7 +201,7 @@ export default function PostJobForm() {
       </div>
 
       {result && !result.success && (
-        <div className="border-2 border-red-600 bg-red-50 p-4 text-red-800 font-medium">
+        <div role="alert" className="border-2 border-red-600 bg-red-50 p-4 text-red-800 font-medium">
           {result.error}
         </div>
       )}

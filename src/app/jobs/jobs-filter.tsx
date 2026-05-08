@@ -108,9 +108,14 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
       {/* Filter bar */}
       <div className="border-2 border-black bg-gray-50 p-4 md:p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <label className="sr-only" htmlFor="jobs-search">
+            Search jobs by title, role, or city
+          </label>
           <input
+            id="jobs-search"
             type="search"
             placeholder="Search title, role, city…"
+            aria-label="Search jobs"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             className="md:col-span-2 px-4 py-3 bg-white border-2 border-black text-sm font-medium placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600"

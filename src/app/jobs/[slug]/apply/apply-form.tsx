@@ -25,6 +25,9 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
   const [pending, startTransition] = useTransition()
   // Cloudflare Turnstile token — see TurnstileWidget.tsx. null until challenge passes.
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  // Incrementing key forces TurnstileWidget to remount after a failed submit
+  // so the user gets a fresh challenge (Turnstile tokens are single-use).
+  const [turnstileKey, setTurnstileKey] = useState(0)
 
   function canSubmit(): boolean {
     return (
@@ -42,13 +45,17 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
       setResult(r)
       if (r.success) {
         window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        // Token is single-use — reset so retry requires a fresh challenge.
+        setTurnstileToken(null)
+        setTurnstileKey((k) => k + 1)
       }
     })
   }
 
   if (result?.success) {
     return (
-      <div className="border-2 border-black p-8 bg-green-50">
+      <div role="status" aria-live="polite" className="border-2 border-black p-8 bg-green-50">
         <div className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-xs font-bold tracking-wider mb-4">
           <span className="w-2 h-2 bg-green-600" />
           APPLIED
@@ -170,6 +177,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
       </Field>
 
       <TurnstileWidget
+        key={turnstileKey}
         onSuccess={setTurnstileToken}
         onError={() => setTurnstileToken(null)}
         onExpired={() => setTurnstileToken(null)}
@@ -177,7 +185,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
       />
 
       {result && !result.success && (
-        <div className="border-2 border-red-600 bg-red-50 p-4 text-red-800 font-medium">
+        <div role="alert" className="border-2 border-red-600 bg-red-50 p-4 text-red-800 font-medium">
           {result.error}
         </div>
       )}

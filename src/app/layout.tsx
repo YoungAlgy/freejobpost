@@ -99,7 +99,16 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {children}
+        {/* Skip-nav: keyboard users can jump past the nav directly to the main content */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-black focus:text-white focus:text-sm focus:font-bold focus:rounded"
+        >
+          Skip to main content
+        </a>
+        <div id="main-content">
+          {children}
+        </div>
         <footer className="max-w-6xl mx-auto px-4 py-8 mt-12 border-t border-gray-200">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
