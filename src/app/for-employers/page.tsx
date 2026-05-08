@@ -60,7 +60,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Who applies — real people or scraped profiles?',
-    a: 'Real candidates. Applicants come from freeresumepost.co where they uploaded their own resume. We verify email addresses and parse real credentials. We do not scrape profiles or auto-submit applications on anyone\'s behalf.',
+    a: "Real candidates. Candidates apply directly from the job page — name, email, phone, optional cover note, optional resume URL. Some candidates also come through the freeresumepost.co matching engine, which notifies them when a 70%+ fit opens in their specialty and state. We do not scrape profiles or auto-submit applications on anyone's behalf.",
   },
   {
     q: 'Do I have to create an account or set a password?',
