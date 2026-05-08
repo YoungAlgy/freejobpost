@@ -15,6 +15,8 @@ type Props = {
   jobs: PublicJob[]
   roles: string[]
   states: string[]
+  /** Employer IDs whose verified_at is non-null. Empty array when none. */
+  verifiedEmployerIds: string[]
 }
 
 type RemoteFilter = '' | 'remote' | 'hybrid' | 'onsite'
@@ -30,9 +32,10 @@ const VALID_EMP_TYPE: ReadonlySet<string> = new Set([
   'internship',
 ])
 
-export default function JobsFilter({ jobs, roles, states }: Props) {
+export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const verifiedSet = useMemo(() => new Set(verifiedEmployerIds), [verifiedEmployerIds])
 
   // Initial state pulled from URL — supports deep links like /jobs?q=Physician
   // or /jobs?role=RN&state=FL. Whitelist values that come from the URL so a
@@ -54,6 +57,9 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
     const v = searchParams.get('type') ?? ''
     return VALID_EMP_TYPE.has(v) ? v : ''
   })
+  const [verifiedOnly, setVerifiedOnly] = useState<boolean>(
+    () => searchParams.get('verified') === '1'
+  )
 
   // Push current filter state back to the URL (replace, no reload). Skip the
   // very first render since we just READ from the URL. After that, every
@@ -71,9 +77,10 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
     if (state) params.set('state', state)
     if (remote) params.set('remote', remote)
     if (empType) params.set('type', empType)
+    if (verifiedOnly) params.set('verified', '1')
     const qs = params.toString()
     router.replace(qs ? `/jobs?${qs}` : '/jobs', { scroll: false })
-  }, [q, role, state, remote, empType, router])
+  }, [q, role, state, remote, empType, verifiedOnly, router])
 
   const filtered = useMemo(() => {
     const qLower = q.trim().toLowerCase()
@@ -82,6 +89,7 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
       if (state && j.state !== state) return false
       if (remote && j.remote_hybrid !== remote) return false
       if (empType && j.employment_type !== empType) return false
+      if (verifiedOnly && (!j.employer_id || !verifiedSet.has(j.employer_id))) return false
       if (qLower) {
         const hay = [j.title, j.role, j.city, j.state, j.specialty]
           .filter(Boolean)
@@ -91,9 +99,9 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
       }
       return true
     })
-  }, [jobs, q, role, state, remote, empType])
+  }, [jobs, q, role, state, remote, empType, verifiedOnly, verifiedSet])
 
-  const activeFilterCount = [role, state, remote, empType].filter(Boolean).length
+  const activeFilterCount = [role, state, remote, empType].filter(Boolean).length + (verifiedOnly ? 1 : 0)
 
   return (
     <>
@@ -160,6 +168,22 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
               {r === '' ? 'ANY' : r.toUpperCase()}
             </button>
           ))}
+          {verifiedSet.size > 0 && (
+            <button
+              type="button"
+              onClick={() => setVerifiedOnly((v) => !v)}
+              className={`px-3 py-1 border-2 transition-colors flex items-center gap-1.5 ${
+                verifiedOnly
+                  ? 'bg-green-700 text-white border-green-700'
+                  : 'bg-white border-black hover:bg-green-50'
+              }`}
+              aria-pressed={verifiedOnly}
+              title={`Show only the ${verifiedSet.size} verified employer${verifiedSet.size === 1 ? '' : 's'}`}
+            >
+              <span aria-hidden="true">✓</span>
+              VERIFIED ONLY ({verifiedSet.size})
+            </button>
+          )}
           {activeFilterCount > 0 && (
             <button
               type="button"
@@ -168,6 +192,7 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
                 setState('')
                 setRemote('')
                 setEmpType('')
+                setVerifiedOnly(false)
                 setQ('')
               }}
               className="ml-auto underline hover:text-green-700"
@@ -195,6 +220,7 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
             const sal = formatSalary(job.salary_min, job.salary_max)
             const rem = remoteLabel(job.remote_hybrid)
             const emp = employmentLabel(job.employment_type)
+            const isVerified = !!job.employer_id && verifiedSet.has(job.employer_id)
             return (
               <li key={job.id}>
                 <Link
@@ -202,7 +228,28 @@ export default function JobsFilter({ jobs, roles, states }: Props) {
                   className="grid grid-cols-12 gap-4 py-5 hover:bg-green-50 transition-colors"
                 >
                   <div className="col-span-12 md:col-span-5">
-                    <div className="font-bold">{job.title || job.role}</div>
+                    <div className="font-bold flex items-center gap-1.5">
+                      {isVerified && (
+                        <svg
+                          viewBox="0 0 16 16"
+                          width="14"
+                          height="14"
+                          aria-label="Verified employer"
+                          className="text-green-700 shrink-0"
+                        >
+                          <circle cx="8" cy="8" r="7" fill="currentColor" />
+                          <path
+                            d="M4.5 8.2 L7 10.5 L11.5 5.8"
+                            fill="none"
+                            stroke="white"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                      <span className="truncate">{job.title || job.role}</span>
+                    </div>
                     <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
                       {emp && <span>{emp}</span>}
                       {rem && rem !== 'Onsite' && (

@@ -29,16 +29,27 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 export default async function JobsIndexPage() {
-  const { data } = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false })
-    .limit(500)
+  // Fetch jobs and the verified-employer ID set in parallel — we'll surface
+  // the verified pool as a filter pill in JobsFilter.
+  const [jobsRes, verifiedRes] = await Promise.all([
+    supabase
+      .from('public_jobs')
+      .select(JOB_LIST_FIELDS)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(500),
+    supabase
+      .from('public_employers_directory')
+      .select('id')
+      .not('verified_at', 'is', null),
+  ])
 
-  const jobs: PublicJob[] = (data ?? []) as PublicJob[]
+  const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]
+  const verifiedEmployerIds: string[] = (
+    (verifiedRes.data ?? []) as Array<{ id: string }>
+  ).map((row) => row.id)
 
   // Unique filter values derived from the result set
   const roles = Array.from(
@@ -133,7 +144,12 @@ export default async function JobsIndexPage() {
            useSearchParams to initialize from URL params (deep-linkable). */}
         <section className="max-w-6xl mx-auto px-6 py-10">
           <Suspense fallback={<div className="h-32" aria-hidden="true" />}>
-            <JobsFilter jobs={jobs} roles={roles} states={states} />
+            <JobsFilter
+              jobs={jobs}
+              roles={roles}
+              states={states}
+              verifiedEmployerIds={verifiedEmployerIds}
+            />
           </Suspense>
         </section>
 

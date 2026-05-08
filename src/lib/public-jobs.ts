@@ -17,13 +17,14 @@ export type PublicJob = {
   source: string | null
   created_at: string
   expires_at: string
+  employer_id: string | null
 }
 
 export const JOB_LIST_FIELDS =
-  'id, slug, title, role, specialty, city, state, remote_hybrid, employment_type, salary_min, salary_max, created_at' as const
+  'id, slug, title, role, specialty, city, state, remote_hybrid, employment_type, salary_min, salary_max, created_at, employer_id' as const
 
 export const JOB_DETAIL_FIELDS =
-  'id, slug, title, description, role, specialty, vertical, city, state, remote_hybrid, employment_type, salary_min, salary_max, experience_required, apply_url, source, created_at, expires_at' as const
+  'id, slug, title, description, role, specialty, vertical, city, state, remote_hybrid, employment_type, salary_min, salary_max, experience_required, apply_url, source, created_at, expires_at, employer_id' as const
 
 export function formatSalary(min: number | null, max: number | null): string | null {
   if (!min && !max) return null
