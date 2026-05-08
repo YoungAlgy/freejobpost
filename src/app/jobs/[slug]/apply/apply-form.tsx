@@ -170,10 +170,11 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
           onChange={(e) => setValues({ ...values, cover_note: e.target.value })}
           rows={5}
           maxLength={2000}
+          aria-describedby="cover-note-count"
           placeholder="A few sentences about your experience, availability, or what caught your eye about the role."
           className={`${fieldStyle} font-mono text-sm`}
         />
-        <p className="text-xs text-gray-500 mt-1">{values.cover_note.length} / 2,000</p>
+        <p id="cover-note-count" aria-live="polite" className="text-xs text-gray-500 mt-1">{values.cover_note.length} / 2,000</p>
       </Field>
 
       <TurnstileWidget

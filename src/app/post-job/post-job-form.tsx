@@ -178,7 +178,7 @@ export default function PostJobForm() {
           <div
             key={s}
             className={`flex items-center gap-2 ${
-              s === step ? 'text-black' : s < step ? 'text-green-700' : 'text-gray-400'
+              s === step ? 'text-black' : s < step ? 'text-green-700' : 'text-gray-600'
             }`}
           >
             <span
@@ -187,7 +187,7 @@ export default function PostJobForm() {
                   ? 'border-black bg-black text-white'
                   : s < step
                   ? 'border-green-700 bg-green-700 text-white'
-                  : 'border-gray-300'
+                  : 'border-gray-400'
               }`}
             >
               {s}
@@ -499,7 +499,7 @@ export default function PostJobForm() {
         </>
       )}
 
-      {stepError && <p className="text-sm font-bold text-red-600">{stepError}</p>}
+      {stepError && <p role="alert" className="text-sm font-bold text-red-600">{stepError}</p>}
 
       {/* Nav buttons */}
       <div className="flex items-center justify-between pt-4 border-t-2 border-black">

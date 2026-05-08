@@ -141,7 +141,7 @@ export default function RootLayout({
                 Privacy
               </Link>
             </div>
-            <p className="text-xs text-gray-400 text-center md:text-right max-w-md">
+            <p className="text-xs text-gray-500 text-center md:text-right max-w-md">
               Operated by{' '}
               <Link href="https://avahealth.co" className="underline hover:text-gray-900">
                 Ava Health Partners LLC

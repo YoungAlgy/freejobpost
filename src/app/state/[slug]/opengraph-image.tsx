@@ -5,6 +5,7 @@
 import { ImageResponse } from 'next/og'
 import { getStateHub } from '@/lib/state-slugs'
 
+export const runtime = 'edge'
 export const alt = 'Healthcare jobs by state'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'

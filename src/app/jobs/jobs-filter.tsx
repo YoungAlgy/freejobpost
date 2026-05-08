@@ -130,6 +130,7 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
             className="md:col-span-2 px-4 py-3 bg-white border-2 border-black text-sm font-medium placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600"
           />
           <select
+            aria-label="Filter by role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="px-4 py-3 bg-white border-2 border-black text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-600"
@@ -142,6 +143,7 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
             ))}
           </select>
           <select
+            aria-label="Filter by state"
             value={state}
             onChange={(e) => setState(e.target.value)}
             className="px-4 py-3 bg-white border-2 border-black text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-600"
@@ -154,6 +156,7 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
             ))}
           </select>
           <select
+            aria-label="Filter by employment type"
             value={empType}
             onChange={(e) => setEmpType(e.target.value)}
             className="px-4 py-3 bg-white border-2 border-black text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-600"
