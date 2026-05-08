@@ -299,7 +299,7 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">Where else does my job get distributed?</h3>
-              <p className="text-gray-700 leading-relaxed">When you check the syndication boxes during posting, your job is pushed to Indeed, ZipRecruiter, Glassdoor, Adzuna, Jooble, Google for Jobs, and the freejobpost.co RSS feed — without any extra steps.</p>
+              <p className="text-gray-700 leading-relaxed">When you check the syndication boxes during posting, your listing goes into our public XML feeds for Indeed, ZipRecruiter, Glassdoor, Adzuna, Jooble, and RSS — plus gets JobPosting JSON-LD for Google for Jobs. Active network partners ingest within a few hours; others discover us via crawl as partnerships come online.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">Who&apos;s applying — real people or bots?</h3>
@@ -351,7 +351,7 @@ export default async function Home() {
             mainEntity: [
               { '@type': 'Question', name: 'Is freejobpost.co really free?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. No paywall, no per-applicant fee, no "sponsored" auction. We make money downstream when a placement converts on the matching engine — the job-posting side stays free forever.' } },
               { '@type': 'Question', name: 'How long does a job stay live?', acceptedAnswer: { '@type': 'Answer', text: '60 days by default. You can repost any expired job in one click. Filled roles can be marked "closed" manually.' } },
-              { '@type': 'Question', name: 'Where else does my job get distributed?', acceptedAnswer: { '@type': 'Answer', text: 'When you check the syndication boxes during posting, your job is pushed to Indeed, ZipRecruiter, Glassdoor, Adzuna, Jooble, Google for Jobs, and the freejobpost.co RSS feed.' } },
+              { '@type': 'Question', name: 'Where else does my job get distributed?', acceptedAnswer: { '@type': 'Answer', text: 'When you check the syndication boxes during posting, your listing goes into our public XML feeds for Indeed, ZipRecruiter, Glassdoor, Adzuna, Jooble, and RSS — plus gets JobPosting JSON-LD for Google for Jobs. Active network partners ingest within a few hours; others discover us via crawl as partnerships come online.' } },
               { '@type': 'Question', name: "Who's applying — real people or bots?", acceptedAnswer: { '@type': 'Answer', text: "Real candidates. Resume uploads come from freeresumepost.co — verified emails, parsed resumes, real credentials. We don't scrape profiles or auto-apply." } },
               { '@type': 'Question', name: 'Do you charge for unlocking an applicant?', acceptedAnswer: { '@type': 'Answer', text: 'No. When a candidate applies, you get their full contact info immediately. No paywall, no "contact unlock" fees, no upgrade prompts.' } },
               { '@type': 'Question', name: 'What healthcare roles can I post?', acceptedAnswer: { '@type': 'Answer', text: 'Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing.' } },
