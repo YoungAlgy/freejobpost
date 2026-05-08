@@ -43,7 +43,13 @@ export default async function JobsIndexPage() {
     supabase
       .from('public_employers_directory')
       .select('id')
-      .not('verified_at', 'is', null),
+      .not('verified_at', 'is', null)
+      // Exclude seeded Ava inventory — "verified" filter should only surface
+      // real third-party employers who confirmed via domain email, not the
+      // staffing firm that seeds inventory during cold-start. Without this
+      // filter, the "VERIFIED ONLY" pill and green checkmarks appear on seeded
+      // jobs, implying a trust signal that doesn't apply (S7 honesty standard).
+      .neq('verified_via', 'seeded'),
   ])
 
   const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]
