@@ -117,8 +117,14 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
   // lets users page through without a full virtual list.
   const PAGE_SIZE = 50
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  // Reset display window when filters change so page 1 is always fresh
-  useEffect(() => { setVisibleCount(PAGE_SIZE) }, [debouncedQ, role, state, remote, empType, verifiedOnly])
+  // Reset display window when filters change. React 19 flags setState-in-effect;
+  // the recommended pattern is to compare against a tracked key during render.
+  const filterKey = `${debouncedQ}|${role}|${state}|${remote}|${empType}|${verifiedOnly}`
+  const [activeFilterKey, setActiveFilterKey] = useState(filterKey)
+  if (filterKey !== activeFilterKey) {
+    setActiveFilterKey(filterKey)
+    setVisibleCount(PAGE_SIZE)
+  }
   const displayed = filtered.slice(0, visibleCount)
 
   return (
