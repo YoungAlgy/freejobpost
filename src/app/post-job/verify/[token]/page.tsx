@@ -86,10 +86,16 @@ export default async function VerifyTokenPage({ params }: Props) {
                 View your job →
               </Link>
               <Link
-                href="/post-job"
+                href="/employer/login"
                 className="inline-flex items-center border-2 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-colors"
               >
-                Post another
+                Employer dashboard →
+              </Link>
+              <Link
+                href="/post-job"
+                className="inline-flex items-center text-sm underline underline-offset-2 hover:text-green-700 self-center"
+              >
+                Post another job
               </Link>
             </div>
           </div>
