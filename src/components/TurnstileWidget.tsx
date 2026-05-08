@@ -44,45 +44,45 @@ declare global {
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
 
 /**
- * Resolves when window.turnstile is fully ready to render. Handles both the
- * "script already loaded" case and the fresh-load case. The script's `load`
- * event fires before turnstile's internal init completes, so we use
- * window.turnstile.ready() — Cloudflare's documented "actually ready" hook.
+ * Resolves when window.turnstile is ready to render. We CANNOT call
+ * window.turnstile.ready() here because Cloudflare explicitly forbids it
+ * when the api.js script tag has async/defer (it throws TurnstileError:
+ * "Remove async/defer from the Turnstile api.js script tag before using
+ * turnstile.ready()"). Since we want async loading, we instead poll until
+ * window.turnstile.render is callable — which is what ready() would wait
+ * for under the hood.
  */
 function whenTurnstileReady(): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve()
   return new Promise((resolve, reject) => {
-    const onReady = () => {
-      if (window.turnstile && typeof window.turnstile.ready === 'function') {
-        window.turnstile.ready(() => resolve())
-      } else {
-        // Defensive fallback — if ready() is missing, just resolve and let
-        // the render() call fail loudly.
+    const start = Date.now()
+    const tryResolve = () => {
+      if (window.turnstile && typeof window.turnstile.render === 'function') {
         resolve()
+        return true
       }
+      return false
     }
-    if (window.turnstile) {
-      onReady()
-      return
+    if (tryResolve()) return
+    const poll = () => {
+      if (tryResolve()) return
+      if (Date.now() - start > 8000) {
+        reject(new Error('Turnstile script load timed out'))
+        return
+      }
+      setTimeout(poll, 100)
     }
     const existing = document.querySelector(`script[src="${SCRIPT_SRC}"]`)
     if (existing) {
-      existing.addEventListener('load', onReady, { once: true })
+      existing.addEventListener('load', poll, { once: true })
       existing.addEventListener('error', () => reject(new Error('Turnstile script failed to load')), { once: true })
-      // The script may already be loaded but we can't tell; retry briefly.
-      const start = Date.now()
-      const tick = () => {
-        if (window.turnstile) onReady()
-        else if (Date.now() - start < 5000) setTimeout(tick, 100)
-      }
-      tick()
+      poll()
       return
     }
     const s = document.createElement('script')
     s.src = SCRIPT_SRC
     s.async = true
-    s.defer = true
-    s.onload = onReady
+    s.onload = poll
     s.onerror = () => reject(new Error('Turnstile script failed to load'))
     document.head.appendChild(s)
   })
