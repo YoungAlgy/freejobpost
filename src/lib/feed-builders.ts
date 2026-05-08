@@ -66,7 +66,7 @@ export function descriptionHtml(job: PublicJob): string {
 // not applied), fall back to returning every active job. This keeps every
 // feed route serving content even if Algy hasn't pasted the SQL yet — the
 // recruiter-opt-in story kicks in only after the column is live.
-export async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
+async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
   const filtered = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')
@@ -94,7 +94,7 @@ export async function fetchJobsForTarget(target: SyndicationTargetId): Promise<F
 }
 
 // Resolve company names for a batch of employer ids in one query.
-export async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string, string>> {
+async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string, string>> {
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   const map = new Map<string, string>()
   if (employerIds.length === 0) return map
@@ -109,7 +109,7 @@ export async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string,
 
 // Inner <job> element shared by Indeed / ZipRecruiter / Glassdoor / Adzuna /
 // Jooble / Talent.com. Same spec, single implementation.
-export function indeedFormatJobElement(
+function indeedFormatJobElement(
   job: FeedJob,
   employerName: string,
   sourceName: string,
@@ -150,7 +150,7 @@ export function indeedFormatJobElement(
 }
 
 // Wraps the inner job elements in the standard <source> envelope.
-export function wrapIndeedFormat(jobsXml: string, jobCount: number, networkLabel: string): string {
+function wrapIndeedFormat(jobsXml: string, jobCount: number, networkLabel: string): string {
   const now = rfc822(new Date())
   return `<?xml version="1.0" encoding="utf-8"?>
 <source>

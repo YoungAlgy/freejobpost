@@ -52,7 +52,7 @@ export default function StateIndexPage() {
             <Link
               key={s.slug}
               href={`/state/${s.slug}`}
-              className="block border-2 border-black p-4 hover:bg-black hover:text-white transition-colors"
+              className="group block border-2 border-black p-4 hover:bg-black hover:text-white transition-colors"
             >
               <h2 className="font-black text-lg tracking-tight mb-1">{s.name} <span className="text-xs font-medium text-gray-500 group-hover:text-white">{s.abbr}</span></h2>
               <p className="text-sm">{s.shortDescription}</p>

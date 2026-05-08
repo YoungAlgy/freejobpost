@@ -126,7 +126,3 @@ export const ALL_TARGET_IDS: SyndicationTargetId[] = SYNDICATION_TARGETS.map((t)
 export const DEFAULT_TARGET_IDS: SyndicationTargetId[] = SYNDICATION_TARGETS
   .filter((t) => t.defaultOn)
   .map((t) => t.id)
-
-export function isKnownTarget(id: string): id is SyndicationTargetId {
-  return ALL_TARGET_IDS.includes(id as SyndicationTargetId)
-}
