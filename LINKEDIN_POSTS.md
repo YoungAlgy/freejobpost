@@ -1,5 +1,12 @@
 # freejobpost.co — LinkedIn Page Post Pipeline
 
+## S7 NOTE (updated 2026-05-08)
+Posts 1 and 2 below had an inaccuracy: LinkedIn Job Wrapping is gated (requires
+a Talent Solutions rep; not yet live) and Talent.com has no working intake channel.
+Those two were removed from the distribution lists. If Posts 1–3 were already
+scheduled/sent before this correction, the copy is out there — don't recall or
+apologize publicly, just make sure future posts don't repeat the claim.
+
 ## Cadence
 2 posts/week for 2 weeks (5 posts total). Schedule each one for the suggested date below.
 LinkedIn pages posting 2x/week grow ~5x faster than dormant pages.
@@ -16,7 +23,7 @@ A small Florida hospital posts an ICU RN role to Indeed. To actually be seen, th
 
 That's the tax we built freejobpost.co to remove.
 
-Post the same role at freejobpost.co — free. Listings syndicate to Indeed, ZipRecruiter, Glassdoor, LinkedIn, Adzuna, Jooble, Talent.com, Google for Jobs, RSS, with per-network opt-in checkboxes if you want to control distribution.
+Post the same role at freejobpost.co — free. Listings syndicate to Google for Jobs, Indeed, Glassdoor, ZipRecruiter, Adzuna, Jooble, and RSS — with per-network opt-in checkboxes if you want to control distribution.
 
 The job is the same. The visibility is the same. The cost is $0.
 
@@ -31,19 +38,20 @@ The job is the same. The visibility is the same. The cost is $0.
 ```
 Where one freejobpost.co listing actually shows up:
 
-→ Indeed (~250M monthly visits)
-→ ZipRecruiter (~30M)
-→ Glassdoor (~50M)
-→ LinkedIn Jobs (~190M)
-→ Google for Jobs
-→ Adzuna (~25M)
-→ Jooble (~15M)
-→ Talent.com (~30M)
+→ Google for Jobs (structured data on every listing page)
+→ Indeed (~250M monthly visits, auto-crawl via JSON-LD)
+→ Glassdoor (~50M, same pipeline as Indeed)
+→ ZipRecruiter (~30M, XML feed)
+→ Adzuna (~25M, XML feed — in active partnership conversation)
+→ Jooble (~15M, XML feed)
 → RSS feeds (Apple News, Feedly, niche aggregators)
 
-One post. Nine networks. Per-network opt-in checkboxes, so you can flip Indeed off if you've already paid for sponsored placement there, or flip LinkedIn off until your Talent Solutions program is set up.
+One post. Seven networks. Per-network opt-in checkboxes, so you can flip
+individual aggregators off if you've already paid for sponsored placement
+there. LinkedIn Job Wrapping coming once our Talent Solutions partnership
+is set — will add it to the list when it's live.
 
-It's still free. We just got tired of watching small clinics get priced out of distribution.
+Free. Full stop.
 
 freejobpost.co
 
@@ -103,7 +111,7 @@ Ava Health Partners runs a healthcare staffing CRM. We talk to recruiters every 
 
 A small hospital in Tampa pays $1,500-3,000/month on Indeed sponsored slots just so their RN openings clear the noise. That money would pay 75% of a sign-on bonus. Or build a referral program. Or hire a part-time recruiter assistant.
 
-We built freejobpost.co so that money stays in the staffing budget, not Indeed's revenue line. We syndicate the listing to 9 networks for free, and let the recruiter control which networks get it.
+We built freejobpost.co so that money stays in the staffing budget, not Indeed's revenue line. We syndicate the listing to Google for Jobs, Indeed, Glassdoor, ZipRecruiter, Adzuna, Jooble, and RSS for free — and let the recruiter control which networks get it.
 
 If you hire healthcare talent in the US — give us 60 seconds: freejobpost.co.
 
