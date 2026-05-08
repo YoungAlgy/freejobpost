@@ -8,7 +8,15 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Free Job Post — Healthcare jobs without the Indeed tax',
   description:
-    'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Beta launching April 2026.',
+    'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Free Job Post is where growing employers hire.',
+  alternates: { canonical: 'https://freejobpost.co' },
+  openGraph: {
+    title: 'Free Job Post — Healthcare jobs without the Indeed tax',
+    description:
+      'Post jobs free. Apply free. No auction fees, no paywall, no recruiter spam.',
+    url: 'https://freejobpost.co',
+    type: 'website',
+  },
 }
 
 // ISR: page rebuilds every 5 minutes so live job count + recent posts stay fresh

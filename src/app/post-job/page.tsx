@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   description:
     'Post a healthcare job for free on freejobpost.co. No credit card, no auction fees, no paywall. Verify your email once and your job goes live instantly.',
   alternates: { canonical: 'https://freejobpost.co/post-job' },
+  openGraph: {
+    title: 'Post a healthcare job — free',
+    description:
+      'Post healthcare jobs for free. No auction fees, no paywall, no credit card.',
+    url: 'https://freejobpost.co/post-job',
+    type: 'website',
+  },
 }
 
 // ISR — keeps the live count fresh without re-rendering on every request
