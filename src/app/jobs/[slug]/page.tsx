@@ -11,6 +11,7 @@ import {
   locationLabel,
   mapToSchemaEmploymentType,
 } from '@/lib/public-jobs'
+import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -52,25 +53,27 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
   return (fallback.data as JobWithTargets | null) ?? null
 }
 
-// Lookup the hiring employer's display name. When the job has no employer_id
-// (or the row is missing), fall back to the staffing-firm parent — those are
-// the seeded roles placed by Ava Health Partners while we onboard direct
-// employer postings.
+// Lookup the hiring employer's display name + verification status. When the
+// job has no employer_id (or the row is missing), fall back to the staffing-
+// firm parent — those are the seeded roles placed by Ava Health Partners
+// while we onboard direct employer postings.
 async function resolveEmployer(employerId: string | null | undefined): Promise<{
   name: string
   isSeeded: boolean
+  verifiedAt: string | null
 }> {
   const SEEDED_NAME = 'Ava Health Partners'
-  if (!employerId) return { name: SEEDED_NAME, isSeeded: true }
+  if (!employerId) return { name: SEEDED_NAME, isSeeded: true, verifiedAt: null }
   const { data } = await supabase
     .from('public_employers_directory')
-    .select('company_name')
+    .select('company_name, verified_at')
     .eq('id', employerId)
     .maybeSingle()
-  const name = (data as { company_name: string } | null)?.company_name?.trim() || SEEDED_NAME
+  const row = data as { company_name: string; verified_at: string | null } | null
+  const name = row?.company_name?.trim() || SEEDED_NAME
   // Match "Ava Health Partners", "Ava Health Partners LLC", "Ava Health Partners — Seeded Roles", etc.
   const isSeeded = /^ava health partners\b/i.test(name)
-  return { name, isSeeded }
+  return { name, isSeeded, verifiedAt: row?.verified_at ?? null }
 }
 
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
@@ -379,7 +382,14 @@ export default async function JobDetailPage({ params }: Props) {
               </time>
             </span>
             <span>
-              Employer: <span className="text-black font-medium">{employer.name}</span>
+              Employer:{' '}
+              <span className="text-black font-medium">{employer.name}</span>
+              {employer.verifiedAt && (
+                <>
+                  {' '}
+                  <VerifiedEmployerBadge />
+                </>
+              )}
             </span>
           </div>
 

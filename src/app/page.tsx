@@ -15,9 +15,10 @@ export const revalidate = 300
 type RecentJob = Pick<PublicJob, 'id' | 'slug' | 'title' | 'city' | 'state' | 'salary_min' | 'salary_max'>
 
 export default async function Home() {
-  // Fetch live count + 6 most-recent active jobs + new-this-week count in parallel
+  // Fetch live count + 6 most-recent active jobs + new-this-week count +
+  // verified-employer count in parallel
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString()
-  const [countRes, recentRes, newThisWeekRes] = await Promise.all([
+  const [countRes, recentRes, newThisWeekRes, verifiedEmpRes] = await Promise.all([
     supabase
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
@@ -39,10 +40,15 @@ export default async function Home() {
       .is('deleted_at', null)
       .gt('expires_at', new Date().toISOString())
       .gte('created_at', sevenDaysAgo),
+    supabase
+      .from('public_employers_directory')
+      .select('id', { count: 'exact', head: true })
+      .not('verified_at', 'is', null),
   ])
   const liveCount = countRes.count ?? 0
   const recentJobs = (recentRes.data ?? []) as RecentJob[]
   const newThisWeek = newThisWeekRes.count ?? 0
+  const verifiedEmployerCount = verifiedEmpRes.count ?? 0
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -79,6 +85,11 @@ export default async function Home() {
             {newThisWeek > 0 && (
               <span className="inline-flex items-center gap-1 bg-green-700 text-white px-3 py-1 text-xs font-bold tracking-wider">
                 +{newThisWeek.toLocaleString()} NEW THIS WEEK
+              </span>
+            )}
+            {verifiedEmployerCount > 0 && (
+              <span className="inline-flex items-center gap-1 border-2 border-green-700 text-green-700 px-3 py-1 text-xs font-bold tracking-wider">
+                {verifiedEmployerCount.toLocaleString()} VERIFIED EMPLOYER{verifiedEmployerCount === 1 ? '' : 'S'}
               </span>
             )}
           </div>
