@@ -120,6 +120,10 @@ export default function RootLayout({
                 Post a job
               </Link>
               <span className="text-gray-300">|</span>
+              <Link href="/for-employers" className="hover:text-gray-900">
+                For employers
+              </Link>
+              <span className="text-gray-300">|</span>
               <Link href="/pricing" className="hover:text-gray-900">
                 Pricing
               </Link>
