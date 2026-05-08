@@ -148,8 +148,9 @@ export default async function Home() {
             <div className="font-black text-6xl mb-4">01</div>
             <h2 className="text-xl font-black mb-3 uppercase tracking-tight">Free, forever</h2>
             <p className="text-gray-700 leading-relaxed">
-              Post as many jobs as you want. No trial expiring. No per-applicant charges.
-              No &ldquo;unlock this resume&rdquo; fees. If we ever charge, it&apos;s for optional boosts.
+              10 active posts free, forever — no trial expiring, no per-applicant charges,
+              no &ldquo;unlock this resume&rdquo; fees. Archived roles don&apos;t count.
+              If we ever charge, it&apos;s for optional boosts only.
             </p>
           </div>
           <div className="px-0 md:px-10 pb-10 md:pb-0 border-b-2 md:border-b-0 border-black">
