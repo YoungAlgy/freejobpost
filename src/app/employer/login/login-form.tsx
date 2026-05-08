@@ -10,18 +10,24 @@ export default function LoginForm() {
   const [pending, startTransition] = useTransition()
   // Cloudflare Turnstile token — see TurnstileWidget.tsx. null until challenge passes.
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  // Incrementing key forces TurnstileWidget to remount after a failed submit.
+  const [turnstileKey, setTurnstileKey] = useState(0)
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     startTransition(async () => {
       const r = await requestLoginLink(null, { email }, turnstileToken ?? '')
       setResult(r)
+      if (!r.success) {
+        setTurnstileToken(null)
+        setTurnstileKey((k) => k + 1)
+      }
     })
   }
 
   if (result?.success) {
     return (
-      <div className="border-2 border-black p-6 bg-green-50">
+      <div role="status" aria-live="polite" className="border-2 border-black p-6 bg-green-50">
         <p className="font-black text-lg mb-2">Check your email.</p>
         <p className="text-sm text-gray-800">
           If <strong>{email}</strong> has posts on freejobpost.co, you&apos;ll
@@ -54,6 +60,7 @@ export default function LoginForm() {
       </label>
 
       <TurnstileWidget
+        key={turnstileKey}
         onSuccess={setTurnstileToken}
         onError={() => setTurnstileToken(null)}
         onExpired={() => setTurnstileToken(null)}
@@ -61,7 +68,7 @@ export default function LoginForm() {
       />
 
       {result && !result.success && (
-        <div className="border-2 border-red-600 bg-red-50 p-3 text-red-800 text-sm font-medium">
+        <div role="alert" className="border-2 border-red-600 bg-red-50 p-3 text-red-800 text-sm font-medium">
           {result.error}
         </div>
       )}
