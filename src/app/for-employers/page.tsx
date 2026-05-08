@@ -376,7 +376,7 @@ export default function ForEmployersPage() {
             </a>
           </div>
           <p className="mt-8 text-sm text-gray-400">
-            Operated by Ava Health Partners LLC · St. Petersburg, FL ·{' '}
+            Operated by Ava Health Partners LLC · Tampa, FL ·{' '}
             <Link href="/privacy" className="underline hover:text-white">
               Privacy policy
             </Link>

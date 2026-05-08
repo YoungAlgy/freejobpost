@@ -160,7 +160,7 @@ export default function RootLayout({
               </Link>
               . A free-to-use job board for healthcare employers.
               <br />
-              1314 7th Street South, St. Petersburg, FL 33701 · (904) 343-9449 · info@avahealth.co
+              4532 W Kennedy Blvd, Suite 125, Tampa, FL 33609 · (813) 531-8049 · info@avahealth.co
             </p>
           </div>
         </footer>
