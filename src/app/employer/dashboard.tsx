@@ -226,7 +226,7 @@ function StatusBadge({ status }: { status: string }) {
     active: 'text-green-700',
     pending_review: 'text-amber-600',
     filled: 'text-gray-500',
-    expired: 'text-gray-400',
+    expired: 'text-gray-500',
     spam: 'text-red-600',
   }
   const label: Record<string, string> = {

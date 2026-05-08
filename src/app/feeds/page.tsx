@@ -73,8 +73,8 @@ export default function FeedsPage() {
                   </div>
                   <span className="text-[10px] font-mono bg-black text-white px-2 py-1 tracking-wider">{t.spec}</span>
                 </div>
-                <p className={`text-sm mb-2 ${isDead ? 'text-gray-500' : 'text-gray-700'}`}>{t.blurb} <span className="text-gray-400">· {t.reach}</span></p>
-                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-400' : 'text-green-700'}`}>{t.feedUrl}</a>
+                <p className={`text-sm mb-2 ${isDead ? 'text-gray-500' : 'text-gray-700'}`}>{t.blurb} <span className="text-gray-500">· {t.reach}</span></p>
+                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-500' : 'text-green-700'}`}>{t.feedUrl}</a>
                 <p className="text-sm text-gray-700 mt-3">
                   <span className="font-bold">Submit to:</span>{' '}
                   {contact?.instructions ?? 'Contact partner team for onboarding instructions.'}
@@ -89,7 +89,7 @@ export default function FeedsPage() {
                     Bounced: {contact.bouncedAddresses.join(', ')}
                   </p>
                 )}
-                <p className="text-[10px] font-mono text-gray-400 mt-2">
+                <p className="text-[10px] font-mono text-gray-500 mt-2">
                   Channel verified {contact?.lastVerifiedAt ?? '—'}
                 </p>
               </div>
@@ -107,7 +107,7 @@ export default function FeedsPage() {
             <p className="text-sm text-gray-700 mt-3">
               <span className="font-bold">Submit to:</span> {PARTNER_CONTACTS.sitemap.instructions}
             </p>
-            <p className="text-[10px] font-mono text-gray-400 mt-2">
+            <p className="text-[10px] font-mono text-gray-500 mt-2">
               Channel verified {PARTNER_CONTACTS.sitemap.lastVerifiedAt}
             </p>
           </div>
