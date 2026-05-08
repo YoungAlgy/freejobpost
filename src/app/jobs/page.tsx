@@ -16,7 +16,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs — free to browse, free to apply',
   description:
-    'Browse hundreds of healthcare jobs from verified employers. Physicians, nurses, therapists, locum, per-diem. No account required to browse. Apply directly.',
+    'Browse hundreds of healthcare jobs — physicians, nurses, therapists, locum, per-diem roles. Free to browse, free to apply. No account required.',
   alternates: { canonical: 'https://freejobpost.co/jobs' },
   openGraph: {
     title: 'Healthcare jobs — freejobpost.co',
@@ -129,7 +129,7 @@ export default async function JobsIndexPage() {
               <span className="text-green-700">Free to apply.</span>
             </h1>
             <p className="text-lg md:text-xl max-w-2xl text-gray-700">
-              Browse open roles from verified employers. No account required.
+              Browse open roles. No account required.
               Apply directly — no middleman.
             </p>
           </div>
