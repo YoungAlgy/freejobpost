@@ -62,9 +62,9 @@ RN slot in Florida runs $1,500–3,000/month just to be seen.
 
 Free Job Post is what it says. Free. No credit card, no auction-bid
 pricing, no paywall to see applicants. Every post syndicates to Indeed,
-ZipRecruiter, Glassdoor, LinkedIn Jobs, Adzuna, Jooble, Talent.com,
-Google for Jobs, and RSS, with per-network opt-in checkboxes so you
-can flip Indeed off if you've already paid for a sponsored slot there.
+ZipRecruiter, Glassdoor, Adzuna, Jooble, Google for Jobs, and RSS,
+with per-network opt-in checkboxes so you can flip Indeed off if
+you've already paid for a sponsored slot there.
 
 If you have open roles, posting takes about 60 seconds:
 freejobpost.co/post-job
@@ -112,8 +112,8 @@ telling us Indeed sponsored bids had gotten unsustainable.
 What it gives your team:
 
 1. Free posting (no credit card, no auction). Each role syndicates to
-   Indeed, ZipRecruiter, Glassdoor, LinkedIn Jobs, Adzuna, Jooble,
-   Talent.com, Google for Jobs, and RSS.
+   Indeed, ZipRecruiter, Glassdoor, Adzuna, Jooble, Google for Jobs,
+   and RSS.
 
 2. Per-network opt-in checkboxes — if you've already got a paid Indeed
    campaign for a particular requisition, you can exclude it from the
@@ -169,9 +169,9 @@ Three things that may matter for your team:
 - Healthcare-only audience. No retail, hospitality, or generalist
   noise. Listings are filtered to clinical, allied health, and
   hospital-ops roles.
-- Free distribution to Indeed, ZipRecruiter, Glassdoor, LinkedIn Jobs,
-  Adzuna, Jooble, Talent.com, Google for Jobs, and RSS, with per-
-  network controls.
+- Free distribution to Indeed, ZipRecruiter, Glassdoor, Adzuna,
+  Jooble, Google for Jobs, and RSS, with per-network controls.
+  (LinkedIn Job Wrapping in progress — Talent Solutions gated.)
 - Operated by a working healthcare staffing firm (Ava Health Partners).
   We talk to physicians, RNs, NPs, PAs, and therapists every day; the
   posting form is designed around what they actually look for.

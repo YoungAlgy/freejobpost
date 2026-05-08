@@ -13,7 +13,7 @@
 // experience is meaningfully better when every CA / NY / WA / CO listing
 // shows a number.
 //
-// References (verified 2026-04-30):
+// References (verified 2026-05-08):
 //   CA SB 1162  — effective 2023-01-01 (≥15-employee employers)
 //   CO Equal Pay for Equal Work Act — effective 2021-01-01 (all employers)
 //   NY S9427-A — effective 2023-09-17 (≥4-employee employers)
@@ -22,6 +22,7 @@
 //   IL HB 3129 — effective 2025-01-01 (≥15-employee employers)
 //   MD HB 649  — effective 2024-10-01 (all employers)
 //   MN H 4444  — effective 2025-01-01 (≥30-employee employers)
+//   NJ A4151   — effective 2025-06-01 (≥10-employee employers)
 //   VT H 704   — effective 2025-07-01 (≥5-employee employers)
 //   DC SB B25-194 — effective 2024-06-30 (all employers)
 //
@@ -30,7 +31,7 @@
 // headcount at submission time, and over-enforcement is far cheaper than
 // under-enforcement (which is a legal exposure).
 
-export type PayTransparencyState = 'CA' | 'CO' | 'NY' | 'WA' | 'HI' | 'IL' | 'MD' | 'MN' | 'VT' | 'DC'
+export type PayTransparencyState = 'CA' | 'CO' | 'NY' | 'WA' | 'HI' | 'IL' | 'MD' | 'MN' | 'NJ' | 'VT' | 'DC'
 
 const PAY_TRANSPARENCY_STATES: ReadonlySet<PayTransparencyState> = new Set([
   'CA',
@@ -41,6 +42,7 @@ const PAY_TRANSPARENCY_STATES: ReadonlySet<PayTransparencyState> = new Set([
   'IL',
   'MD',
   'MN',
+  'NJ',
   'VT',
   'DC',
 ])
@@ -55,6 +57,7 @@ const STATE_CITATION: Record<PayTransparencyState, string> = {
   IL: 'IL HB 3129',
   MD: 'MD HB 649',
   MN: 'MN H 4444',
+  NJ: 'NJ A4151',
   VT: 'VT H 704',
   DC: 'DC B25-194',
 }

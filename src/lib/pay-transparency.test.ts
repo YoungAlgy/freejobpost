@@ -7,7 +7,7 @@ import {
 
 // These tests lock in the law list. Each state included here has been
 // verified to have an active pay-transparency law on the books as of
-// 2026-04-30. If a state is removed from the source list (e.g. a law is
+// 2026-05-08. If a state is removed from the source list (e.g. a law is
 // repealed), update the corresponding test rather than silently dropping
 // it — the deletion alone can introduce a compliance regression that
 // nobody notices until an enforcement letter arrives.
@@ -22,6 +22,7 @@ describe('requiresSalaryDisclosure', () => {
     ['IL', true, 'IL HB 3129'],
     ['MD', true, 'MD HB 649'],
     ['MN', true, 'MN H 4444'],
+    ['NJ', true, 'NJ A4151'],
     ['VT', true, 'VT H 704'],
     ['DC', true, 'DC B25-194'],
   ] as const)('%s requires disclosure with citation %s', (state, expected, citation) => {
@@ -87,8 +88,8 @@ describe('validatePayTransparency', () => {
     expect(err).toContain('higher than')
   })
 
-  it('passes valid ranges in all 10 covered jurisdictions', () => {
-    const states = ['CA', 'CO', 'NY', 'WA', 'HI', 'IL', 'MD', 'MN', 'VT', 'DC']
+  it('passes valid ranges in all 11 covered jurisdictions', () => {
+    const states = ['CA', 'CO', 'NY', 'WA', 'HI', 'IL', 'MD', 'MN', 'NJ', 'VT', 'DC']
     for (const s of states) {
       expect(validatePayTransparency(s, 80000, 120000)).toBe(null)
     }

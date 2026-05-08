@@ -148,7 +148,7 @@ If you post healthcare roles in the US — freejobpost.co/employer
 *(Pay-transparency compliance angle — differentiating, addresses real recruiter pain point.)*
 
 ```
-Quick note for anyone posting healthcare jobs in CA, CO, NY, WA, NJ, IL, or MD:
+Quick note for anyone posting healthcare jobs in CA, CO, NY, NJ, WA, IL, MD, MN, HI, VT, or DC:
 
 You're legally required to include a salary range on job postings. The fines start at $500–$10,000 per violation depending on the state.
 
