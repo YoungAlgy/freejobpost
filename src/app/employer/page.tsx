@@ -45,9 +45,29 @@ type Employer = {
   status: string
 }
 
+export type Application = {
+  application_id: string
+  job_id: string
+  job_title: string
+  job_slug: string
+  job_city: string | null
+  job_state: string | null
+  first_name: string
+  last_name: string
+  email: string
+  phone: string | null
+  credential: string | null
+  specialty: string | null
+  cover_note: string | null
+  status: string
+  applied_at: string
+  employer_notified_at: string | null
+}
+
 async function loadSession(): Promise<{
   employer: Employer
   jobs: Job[]
+  applications: Application[]
   /** Slug for the employer's public /employers/[slug] page. null pre-migration
    * or if the employer is seeded/unverified. */
   publicSlug: string | null
@@ -74,26 +94,35 @@ async function loadSession(): Promise<{
   const r = data as { success: boolean; employer?: Employer; jobs?: Job[] }
   if (!r.success || !r.employer) return null
 
-  // Try to fetch the public employer slug so the dashboard can show a
-  // "View your public page" link. The slug column is added in migration
-  // 2026-05-08_employer_slug.sql — before it runs, this query returns null
-  // and no link is shown. Errors are ignored gracefully.
-  let publicSlug: string | null = null
-  try {
-    const slugRes = await sb
+  // Fetch applications + public slug in parallel — both are additive and
+  // fail-safe: errors produce graceful fallbacks, not a broken dashboard.
+  const [appsResult, slugResult] = await Promise.allSettled([
+    sb.rpc('get_employer_applications_rpc', {
+      p_employer_id: employer_id,
+      p_nonce: nonce,
+    }),
+    sb
       .from('public_employers_directory')
       .select('slug, verified_via')
       .eq('id', employer_id)
-      .maybeSingle()
-    const row = slugRes.data as { slug: string | null; verified_via: string | null } | null
+      .maybeSingle(),
+  ])
+
+  const applications: Application[] =
+    appsResult.status === 'fulfilled' && appsResult.value.data
+      ? ((appsResult.value.data as { success: boolean; applications?: Application[] })
+          .applications ?? [])
+      : []
+
+  let publicSlug: string | null = null
+  if (slugResult.status === 'fulfilled') {
+    const row = slugResult.value.data as { slug: string | null; verified_via: string | null } | null
     if (row?.slug && row.verified_via !== 'seeded') {
       publicSlug = row.slug
     }
-  } catch {
-    // pre-migration or network error — silent fallback
   }
 
-  return { employer: r.employer, jobs: r.jobs ?? [], publicSlug }
+  return { employer: r.employer, jobs: r.jobs ?? [], applications, publicSlug }
 }
 
 export default async function EmployerDashboardPage() {
@@ -123,7 +152,12 @@ export default async function EmployerDashboardPage() {
         </div>
       </nav>
 
-      <Dashboard employer={session.employer} jobs={session.jobs} publicSlug={session.publicSlug} />
+      <Dashboard
+        employer={session.employer}
+        jobs={session.jobs}
+        applications={session.applications}
+        publicSlug={session.publicSlug}
+      />
     </main>
   )
 }
