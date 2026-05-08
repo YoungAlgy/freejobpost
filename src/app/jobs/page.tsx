@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import {
@@ -128,9 +129,12 @@ export default async function JobsIndexPage() {
           </div>
         </section>
 
-        {/* Filter + list */}
+        {/* Filter + list — wrapped in Suspense because JobsFilter uses
+           useSearchParams to initialize from URL params (deep-linkable). */}
         <section className="max-w-6xl mx-auto px-6 py-10">
-          <JobsFilter jobs={jobs} roles={roles} states={states} />
+          <Suspense fallback={<div className="h-32" aria-hidden="true" />}>
+            <JobsFilter jobs={jobs} roles={roles} states={states} />
+          </Suspense>
         </section>
 
         {/* Empty-state safeguard */}

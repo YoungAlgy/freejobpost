@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   type PublicJob,
   formatSalary,
@@ -16,12 +17,63 @@ type Props = {
   states: string[]
 }
 
+type RemoteFilter = '' | 'remote' | 'hybrid' | 'onsite'
+
+const VALID_REMOTE: ReadonlySet<RemoteFilter> = new Set(['', 'remote', 'hybrid', 'onsite'])
+const VALID_EMP_TYPE: ReadonlySet<string> = new Set([
+  '',
+  'full_time',
+  'part_time',
+  'contract',
+  'locum',
+  'per_diem',
+  'internship',
+])
+
 export default function JobsFilter({ jobs, roles, states }: Props) {
-  const [q, setQ] = useState('')
-  const [role, setRole] = useState<string>('')
-  const [state, setState] = useState<string>('')
-  const [remote, setRemote] = useState<'' | 'remote' | 'hybrid' | 'onsite'>('')
-  const [empType, setEmpType] = useState<string>('')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Initial state pulled from URL — supports deep links like /jobs?q=Physician
+  // or /jobs?role=RN&state=FL. Whitelist values that come from the URL so a
+  // hostile link can't seed the state with garbage that breaks the UI.
+  const [q, setQ] = useState(() => searchParams.get('q') ?? '')
+  const [role, setRole] = useState<string>(() => {
+    const v = searchParams.get('role') ?? ''
+    return v && roles.includes(v) ? v : ''
+  })
+  const [state, setState] = useState<string>(() => {
+    const v = searchParams.get('state') ?? ''
+    return v && states.includes(v) ? v : ''
+  })
+  const [remote, setRemote] = useState<RemoteFilter>(() => {
+    const v = (searchParams.get('remote') ?? '') as RemoteFilter
+    return VALID_REMOTE.has(v) ? v : ''
+  })
+  const [empType, setEmpType] = useState<string>(() => {
+    const v = searchParams.get('type') ?? ''
+    return VALID_EMP_TYPE.has(v) ? v : ''
+  })
+
+  // Push current filter state back to the URL (replace, no reload). Skip the
+  // very first render since we just READ from the URL. After that, every
+  // filter change updates ?q&role&state&remote&type so reload / share /
+  // back-button all work as expected.
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    const params = new URLSearchParams()
+    if (q.trim()) params.set('q', q.trim())
+    if (role) params.set('role', role)
+    if (state) params.set('state', state)
+    if (remote) params.set('remote', remote)
+    if (empType) params.set('type', empType)
+    const qs = params.toString()
+    router.replace(qs ? `/jobs?${qs}` : '/jobs', { scroll: false })
+  }, [q, role, state, remote, empType, router])
 
   const filtered = useMemo(() => {
     const qLower = q.trim().toLowerCase()
