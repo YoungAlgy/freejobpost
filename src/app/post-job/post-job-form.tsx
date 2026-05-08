@@ -4,6 +4,11 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
 import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
+import {
+  requiresSalaryDisclosure,
+  payTransparencyCitation,
+  validatePayTransparency,
+} from '@/lib/pay-transparency'
 import TurnstileWidget from '@/components/TurnstileWidget'
 
 // US state list for the state dropdown. Mirrors the 2-letter format enforced by
@@ -61,10 +66,23 @@ export default function PostJobForm() {
         : [...prev.syndication_targets, id],
     }))
 
+  // Pay-transparency rule — when the posting is in CA/CO/NY/WA/etc. (and not
+  // remote), salary_min + salary_max must both be set. Civil penalties up to
+  // $10K/violation make this a hard gate, not a soft warning. Remote postings
+  // are exempt because the law of the candidate's state controls, not the
+  // employer's — and we don't know the candidate yet.
+  const isRemote = values.remote_hybrid === 'remote'
+  const salaryRequired = !isRemote && requiresSalaryDisclosure(values.state)
+  const salaryCitation = salaryRequired ? payTransparencyCitation(values.state) : null
+  const salaryValidationError = isRemote
+    ? null
+    : validatePayTransparency(values.state, values.salary_min, values.salary_max)
+
   const canAdvanceStep1 = values.title.trim().length >= 3 && values.role.trim().length > 0
   const canAdvanceStep2 =
     values.description.trim().length >= 30 &&
-    (values.remote_hybrid === 'remote' || values.state.length === 2)
+    (values.remote_hybrid === 'remote' || values.state.length === 2) &&
+    salaryValidationError === null
   const canSubmit = values.company_name.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact_email)
 
   const onSubmit = () => {
@@ -134,7 +152,9 @@ export default function PostJobForm() {
             setStepError(
               values.description.trim().length < 30
                 ? 'Description should be at least 30 characters.'
-                : 'Pick a state (or mark the role as remote).'
+                : salaryValidationError
+                  ? salaryValidationError
+                  : 'Pick a state (or mark the role as remote).'
             )
         } else if (step === 3) {
           if (canSubmit) onSubmit()
@@ -284,25 +304,43 @@ export default function PostJobForm() {
               </select>
             </Field>
           </div>
+          {salaryRequired && (
+            <div className="border-l-4 border-blue-600 bg-blue-50 p-3 text-sm">
+              <span className="font-bold">{values.state} requires a posted salary range</span>
+              {salaryCitation ? <> ({salaryCitation})</> : null}.
+              <span className="text-gray-700">
+                {' '}Both fields below are required. Civil penalties apply per violation, so
+                we can&apos;t accept the posting without a real range.
+              </span>
+            </div>
+          )}
           <div className="grid md:grid-cols-2 gap-4">
-            <Field label="Salary min (USD/yr)">
+            <Field
+              label={`Salary min (USD/yr)${salaryRequired ? ' *' : ''}`}
+              hint={salaryRequired ? 'Required' : undefined}
+            >
               <input
                 type="number"
                 min={0}
                 max={10000000}
                 step={1000}
+                required={salaryRequired}
                 value={values.salary_min ?? ''}
                 onChange={(e) => update('salary_min', e.target.value ? parseInt(e.target.value, 10) : null)}
                 placeholder="180000"
                 className={fieldStyle}
               />
             </Field>
-            <Field label="Salary max (USD/yr)">
+            <Field
+              label={`Salary max (USD/yr)${salaryRequired ? ' *' : ''}`}
+              hint={salaryRequired ? 'Required' : undefined}
+            >
               <input
                 type="number"
                 min={0}
                 max={10000000}
                 step={1000}
+                required={salaryRequired}
                 value={values.salary_max ?? ''}
                 onChange={(e) => update('salary_max', e.target.value ? parseInt(e.target.value, 10) : null)}
                 placeholder="240000"

@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 import { verifyTurnstileToken } from '@/lib/turnstile'
+import { validatePayTransparency } from '@/lib/pay-transparency'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -63,6 +64,21 @@ export async function submitPostJob(
     state: (input.state ?? '').trim().toUpperCase(),
     experience_required: (input.experience_required ?? '').trim(),
     apply_url: (input.apply_url ?? '').trim(),
+  }
+
+  // Pay-transparency check — reject postings in CA/CO/NY/WA/etc. that don't
+  // include a salary range. Mirrors the client-side gate so a forged FormData
+  // submit can't bypass it. Remote postings are exempt (candidate's state
+  // controls; we don't know it yet at post-time).
+  if (normalized.remote_hybrid !== 'remote') {
+    const payErr = validatePayTransparency(
+      normalized.state,
+      normalized.salary_min,
+      normalized.salary_max
+    )
+    if (payErr) {
+      return { success: false, error: payErr }
+    }
   }
 
   // Anon client — the RPC is SECURITY DEFINER with explicit validation
