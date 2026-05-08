@@ -131,7 +131,7 @@ export default async function PostJobPage() {
                 <li>· $0 — no fees, ever</li>
                 <li>· Same indexing, no demotion</li>
                 <li>· Candidate emails go to you only</li>
-                <li>· Post unlimited roles for free</li>
+                <li>· 10 active posts free — no auction, no upgrade</li>
               </ul>
             </div>
           </div>
