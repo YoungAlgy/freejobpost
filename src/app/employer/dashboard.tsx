@@ -39,9 +39,12 @@ const FREE_QUOTA = 10
 export default function Dashboard({
   employer,
   jobs,
+  publicSlug = null,
 }: {
   employer: Employer
   jobs: Job[]
+  /** Slug for the public /employers/[slug] page — null until migration runs */
+  publicSlug?: string | null
 }) {
   const active = jobs.filter(
     (j) =>
@@ -82,7 +85,17 @@ export default function Dashboard({
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {publicSlug && (
+            <Link
+              href={`/employers/${publicSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center border-2 border-black px-5 py-2.5 font-bold hover:bg-black hover:text-white transition-colors text-sm"
+            >
+              View public page ↗
+            </Link>
+          )}
           <Link
             href="/post-job"
             className="inline-flex items-center bg-black text-white px-5 py-2.5 font-bold hover:bg-green-700 transition-colors"

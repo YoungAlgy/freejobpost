@@ -45,7 +45,13 @@ type Employer = {
   status: string
 }
 
-async function loadSession(): Promise<{ employer: Employer; jobs: Job[] } | null> {
+async function loadSession(): Promise<{
+  employer: Employer
+  jobs: Job[]
+  /** Slug for the employer's public /employers/[slug] page. null pre-migration
+   * or if the employer is seeded/unverified. */
+  publicSlug: string | null
+} | null> {
   const store = await cookies()
   const token = store.get(COOKIE_NAME)?.value
   if (!token) return null
@@ -67,7 +73,27 @@ async function loadSession(): Promise<{ employer: Employer; jobs: Job[] } | null
   if (error) return null
   const r = data as { success: boolean; employer?: Employer; jobs?: Job[] }
   if (!r.success || !r.employer) return null
-  return { employer: r.employer, jobs: r.jobs ?? [] }
+
+  // Try to fetch the public employer slug so the dashboard can show a
+  // "View your public page" link. The slug column is added in migration
+  // 2026-05-08_employer_slug.sql — before it runs, this query returns null
+  // and no link is shown. Errors are ignored gracefully.
+  let publicSlug: string | null = null
+  try {
+    const slugRes = await sb
+      .from('public_employers_directory')
+      .select('slug, verified_via')
+      .eq('id', employer_id)
+      .maybeSingle()
+    const row = slugRes.data as { slug: string | null; verified_via: string | null } | null
+    if (row?.slug && row.verified_via !== 'seeded') {
+      publicSlug = row.slug
+    }
+  } catch {
+    // pre-migration or network error — silent fallback
+  }
+
+  return { employer: r.employer, jobs: r.jobs ?? [], publicSlug }
 }
 
 export default async function EmployerDashboardPage() {
@@ -97,7 +123,7 @@ export default async function EmployerDashboardPage() {
         </div>
       </nav>
 
-      <Dashboard employer={session.employer} jobs={session.jobs} />
+      <Dashboard employer={session.employer} jobs={session.jobs} publicSlug={session.publicSlug} />
     </main>
   )
 }
