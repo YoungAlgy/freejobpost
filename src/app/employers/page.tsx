@@ -180,14 +180,20 @@ export default async function EmployersPage() {
           )}
 
           {/* Always-on CTA */}
-          <div className="mt-16 border-t-2 border-black pt-10">
+          <div className="mt-16 border-t-2 border-black pt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
-              Are you a healthcare employer?{' '}
+              Healthcare employer?{' '}
               <Link href="/post-job" className="font-bold underline hover:text-green-700">
                 Post your open roles free
               </Link>{' '}
-              — no credit card, no auction pricing, no paywall to see applicants.
+              — no credit card, no auction, no paywall to see applicants.
             </p>
+            <Link
+              href="/for-employers"
+              className="text-sm font-bold underline underline-offset-2 hover:text-green-700 shrink-0"
+            >
+              How it works →
+            </Link>
           </div>
         </div>
       </main>
