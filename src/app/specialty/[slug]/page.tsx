@@ -138,7 +138,7 @@ export default async function SpecialtyHubPage(
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
             <Link href="/" className="hover:text-green-700">Home</Link>
             {' / '}
-            <Link href="/jobs" className="hover:text-green-700">Jobs</Link>
+            <Link href="/specialty" className="hover:text-green-700">Specialties</Link>
             {' / '}
             <span className="text-black font-medium">{hub.title}</span>
           </nav>
