@@ -236,12 +236,12 @@ export default function ForEmployersPage() {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              { name: 'Google for Jobs', status: 'Active', note: 'JobPosting JSON-LD on each listing page' },
-              { name: 'Indeed', status: 'Active', note: 'XML feed + organic crawl' },
-              { name: 'Glassdoor', status: 'Active', note: 'Indeed-owned; same pipeline' },
-              { name: 'Adzuna', status: 'Feed live', note: 'Partnership active — US + intl coverage' },
-              { name: 'ZipRecruiter', status: 'Feed live', note: 'Open Network feed' },
-              { name: 'Jooble', status: 'Feed live', note: 'Global job aggregator' },
+              { name: 'Google for Jobs', status: 'Active', note: 'JobPosting JSON-LD on every listing page — auto-indexed by Google' },
+              { name: 'Indeed', status: 'Active', note: 'Organic crawl of JobPosting JSON-LD — no sponsored required' },
+              { name: 'Glassdoor', status: 'Active', note: 'Indeed-owned; same auto-crawl pipeline' },
+              { name: 'Adzuna', status: 'Feed live', note: 'Feed submitted — partnership in review' },
+              { name: 'ZipRecruiter', status: 'Feed live', note: 'Feed submitted — pending Open Network acceptance' },
+              { name: 'Jooble', status: 'Feed live', note: 'Feed submitted — pending acceptance' },
             ].map((ch) => (
               <div key={ch.name} className="border-2 border-black bg-white p-4">
                 <div className="flex items-center justify-between mb-1">
