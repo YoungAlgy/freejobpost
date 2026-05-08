@@ -63,7 +63,7 @@ export default function PricingPage() {
           That&apos;s the whole thing.
         </p>
         <p className="text-sm text-gray-500 mb-16">
-          Last updated: April 2026
+          Last updated: May 2026
         </p>
 
         {/* FAQ-style sections */}
@@ -74,7 +74,7 @@ export default function PricingPage() {
               '10 active job posts at any given time.',
               '60-day post duration (longer than Indeed organic).',
               'Every feature: apply-tracking dashboard, per-job view and apply counts, no paywall anywhere.',
-              'XML feed syndication to Google for Jobs, Indeed organic, ZipRecruiter, Adzuna, and Jooble — active partnerships come online as the network grows.',
+              'JobPosting JSON-LD on every listing page for Google for Jobs and Indeed organic (direct crawl, no submission needed), plus XML feeds for ZipRecruiter, Adzuna, and Jooble — active partnerships come online as the network grows.',
               'Your own permanent URL: freejobpost.co/jobs/<your-role-slug>.',
             ]}
           />
