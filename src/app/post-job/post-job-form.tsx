@@ -427,7 +427,7 @@ export default function PostJobForm() {
             <div className="flex items-baseline justify-between mb-3 gap-3">
               <div>
                 <p className="text-xs font-bold tracking-wider uppercase">Where should we syndicate this job?</p>
-                <p className="text-xs text-gray-500 mt-0.5">All on by default — uncheck anywhere you don&apos;t want it pushed.</p>
+                <p className="text-xs text-gray-500 mt-0.5">Active channels on by default — uncheck anywhere you don&apos;t want it pushed.</p>
               </div>
               <div className="flex gap-3 text-xs font-bold whitespace-nowrap">
                 <button

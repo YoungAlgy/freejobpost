@@ -104,10 +104,10 @@ export const SYNDICATION_TARGETS: SyndicationTarget[] = [
   {
     id: 'talent',
     label: 'Talent.com',
-    blurb: 'Formerly Neuvoo; aggregator with strong allied-health reach.',
+    blurb: 'Formerly Neuvoo; aggregator with strong allied-health reach. Partner channel currently inactive — feed ready for when the channel opens.',
     feedUrl: 'https://freejobpost.co/feeds/talent.xml',
     spec: 'Talent.com XML',
-    defaultOn: true,
+    defaultOn: false,  // channel_dead as of 2026-04-30; re-enable when partner contact established
     reach: '~30M monthly visits',
   },
   {
