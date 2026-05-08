@@ -59,7 +59,7 @@ export default async function PostJobPage() {
           Post a healthcare job.
         </h1>
         <p className="text-lg text-gray-700 mb-8 max-w-2xl">
-          Takes 90 seconds. We&apos;ll email you a one-click link to verify your address.
+          Takes 60 seconds. We&apos;ll email you a one-click link to verify your address.
           Your job goes live the moment you click it. No account, no auction.
         </p>
 

@@ -98,37 +98,19 @@ export default async function SpecialtyHubPage(
     new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
   ).sort()
 
-  // Top-10 jobs JSON-LD for Google for Jobs discovery
-  const topJobsJsonLd = jobs.slice(0, 10).map((job) => ({
-    '@context': 'https://schema.org',
-    '@type': 'JobPosting',
-    title: job.title,
-    description: job.description?.slice(0, 500),
-    datePosted: job.created_at?.split('T')[0],
-    validThrough: job.expires_at,
-    hiringOrganization: {
-      '@type': 'Organization',
-      name: 'Ava Health Partners',
-      sameAs: 'https://avahealth.co',
-    },
-    jobLocation: {
-      '@type': 'Place',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: job.city || undefined,
-        addressRegion: job.state || undefined,
-        addressCountry: 'US',
-      },
-    },
-    url: `https://freejobpost.co/jobs/${job.slug}`,
-  }))
+  // NOTE: JobPosting JSON-LD is intentionally NOT emitted here.
+  // Each individual /jobs/[slug] page already emits accurate per-job JSON-LD
+  // with the correct hiringOrganization pulled from the DB. Emitting JobPosting
+  // JSON-LD on hub/listing pages with a hardcoded org would misattribute
+  // real-employer jobs to Ava Health Partners and can trigger Google for Jobs
+  // rejection for schema inaccuracy.
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://freejobpost.co' },
-      { '@type': 'ListItem', position: 2, name: 'Jobs', item: 'https://freejobpost.co/jobs' },
+      { '@type': 'ListItem', position: 2, name: 'Specialties', item: 'https://freejobpost.co/specialty' },
       { '@type': 'ListItem', position: 3, name: hub.title, item: `https://freejobpost.co/specialty/${hub.slug}` },
     ],
   }
@@ -139,14 +121,6 @@ export default async function SpecialtyHubPage(
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
-      {topJobsJsonLd.map((j, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(j) }}
-        />
-      ))}
-
       <main className="min-h-screen bg-white text-black">
         <nav className="border-b-2 border-black">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

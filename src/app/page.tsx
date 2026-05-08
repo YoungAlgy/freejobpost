@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
+import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
@@ -256,7 +257,7 @@ export default async function Home() {
             <div>
               <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">BROWSE BY SPECIALTY</h2>
               <p className="text-2xl font-black leading-tight mb-4">
-                18 healthcare specialties.
+                {SPECIALTY_HUBS.length} healthcare specialties.
               </p>
               <p className="text-gray-700 mb-6">
                 Cardiology, hospital medicine, EM, ortho, NP, PA, RN, CRNA, pharmacist — filtered to active openings only.

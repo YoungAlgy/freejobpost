@@ -78,7 +78,7 @@ export const SYNDICATION_TARGETS: SyndicationTarget[] = [
     id: 'google',
     label: 'Google for Jobs',
     blurb: 'JobPosting JSON-LD on each /jobs/[slug] page.',
-    feedUrl: 'https://freejobpost.co/jobs/[slug]',
+    feedUrl: 'https://freejobpost.co/jobs',
     spec: 'schema.org JobPosting JSON-LD',
     defaultOn: true,
     reach: 'Google search results',
