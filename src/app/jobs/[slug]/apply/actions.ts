@@ -41,6 +41,17 @@ export async function submitApplication(
   const firstName = (input.first_name ?? '').trim()
   const lastName = (input.last_name ?? '').trim()
 
+  // Server-side validation (mirrors client required fields; guards RPC + email send)
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { success: false, error: 'Please enter a valid email address.' }
+  }
+  if (!firstName) {
+    return { success: false, error: 'First name is required.' }
+  }
+  if (!lastName) {
+    return { success: false, error: 'Last name is required.' }
+  }
+
   const { data, error } = await sb.rpc('apply_to_job_rpc', {
     p_job_id: input.job_id,
     p_first_name: firstName,
