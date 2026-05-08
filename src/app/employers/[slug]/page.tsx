@@ -265,11 +265,11 @@ export default async function EmployerPage({ params }: Props) {
                         )}
                       </div>
                       {/* Employment type */}
-                      <div className="col-span-4 md:col-span-2 text-gray-500 text-sm self-center">
+                      <div className="col-span-6 md:col-span-2 text-gray-500 text-sm self-center">
                         {emp || ''}
                       </div>
-                      {/* Salary */}
-                      <div className="col-span-2 md:col-span-1 font-bold text-right text-sm self-center text-green-700">
+                      {/* Salary — full width on mobile (matches /jobs list pattern) */}
+                      <div className="col-span-12 md:col-span-1 font-bold text-right text-sm self-center text-green-700">
                         {sal || ''}
                       </div>
                     </Link>
