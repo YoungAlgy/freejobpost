@@ -50,7 +50,7 @@ export default function PricingPage() {
         </h1>
         <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-4 max-w-2xl">
           freejobpost.co is a healthcare hiring utility, not a SaaS. Verified
-          healthcare orgs get 10 active job posts, 90 days each, with every
+          healthcare orgs get 10 active job posts, 60 days each, with every
           feature unlocked. If you need more, we figure it out together.
           That&apos;s the whole thing.
         </p>
@@ -64,7 +64,7 @@ export default function PricingPage() {
             q="What do I get for free?"
             a={[
               '10 active job posts at any given time.',
-              '90-day post duration (longer than Indeed organic).',
+              '60-day post duration (longer than Indeed organic).',
               'Every feature: apply-tracking dashboard, CSV export, analytics, 1 featured boost per month.',
               'Auto-syndication to Google for Jobs + Indeed free feed + ZipRecruiter partner feed + LinkedIn Limited Listings — one XML feed, every aggregator.',
               'Your own permanent URL: freejobpost.co/jobs/<your-role-slug>.',
@@ -74,7 +74,7 @@ export default function PricingPage() {
           <Section
             q="What does 'active' mean?"
             a={[
-              'A post is active from the moment you verify your email until one of three things happens: it expires after 90 days, you archive it as filled, or you delete it.',
+              'A post is active from the moment you verify your email until one of three things happens: it expires after 60 days, you archive it as filled, or you delete it.',
               'Archiving a filled role is a one-click action from your employer dashboard — it frees a slot instantly so you can post the next one.',
               'Most healthcare orgs cycle through way fewer than 10 at a time, so the cap rarely matters in practice.',
             ]}

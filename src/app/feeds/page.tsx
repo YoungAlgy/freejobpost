@@ -43,29 +43,58 @@ export default function FeedsPage() {
         </p>
 
         <div className="space-y-5">
-          {SYNDICATION_TARGETS.map((t) => (
-            <div key={t.id} className="border-2 border-black p-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-                <h2 className="text-xl font-black">{t.label}</h2>
-                <span className="text-[10px] font-mono bg-black text-white px-2 py-1 tracking-wider">{t.spec}</span>
-              </div>
-              <p className="text-sm text-gray-700 mb-2">{t.blurb} <span className="text-gray-500">· {t.reach}</span></p>
-              <a href={t.feedUrl} className="text-sm font-mono text-green-700 underline break-all">{t.feedUrl}</a>
-              <p className="text-sm text-gray-700 mt-3">
-                <span className="font-bold">Submit to:</span>{' '}
-                {PARTNER_CONTACTS[t.id]?.instructions ??
-                  'Contact partner team for onboarding instructions.'}
-              </p>
-              {PARTNER_CONTACTS[t.id]?.note && (
-                <p className="text-xs text-gray-500 mt-2 italic">
-                  Note: {PARTNER_CONTACTS[t.id]!.note}
+          {SYNDICATION_TARGETS.map((t) => {
+            const contact = PARTNER_CONTACTS[t.id]
+            const status = contact?.status ?? 'auto_crawl'
+            const isDead = status === 'channel_dead'
+            const statusBadge: Record<string, string> = {
+              auto_crawl: 'bg-gray-100 text-gray-600',
+              email_active: 'bg-green-100 text-green-800',
+              gated_portal: 'bg-yellow-100 text-yellow-800',
+              channel_dead: 'bg-red-100 text-red-700',
+            }
+            const statusLabel: Record<string, string> = {
+              auto_crawl: 'auto-crawl',
+              email_active: 'email active',
+              gated_portal: 'gated portal',
+              channel_dead: 'no working channel',
+            }
+            return (
+              <div
+                key={t.id}
+                className={`border-2 p-5 ${isDead ? 'border-red-300 bg-red-50/40' : 'border-black'}`}
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <h2 className={`text-xl font-black ${isDead ? 'text-gray-500' : ''}`}>{t.label}</h2>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded tracking-wider ${statusBadge[status]}`}>
+                      {statusLabel[status]}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono bg-black text-white px-2 py-1 tracking-wider">{t.spec}</span>
+                </div>
+                <p className={`text-sm mb-2 ${isDead ? 'text-gray-500' : 'text-gray-700'}`}>{t.blurb} <span className="text-gray-400">· {t.reach}</span></p>
+                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-400' : 'text-green-700'}`}>{t.feedUrl}</a>
+                <p className="text-sm text-gray-700 mt-3">
+                  <span className="font-bold">Submit to:</span>{' '}
+                  {contact?.instructions ?? 'Contact partner team for onboarding instructions.'}
                 </p>
-              )}
-              <p className="text-[10px] font-mono text-gray-400 mt-2">
-                Channel verified {PARTNER_CONTACTS[t.id]?.lastVerifiedAt ?? '—'}
-              </p>
-            </div>
-          ))}
+                {contact?.note && (
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    Note: {contact.note}
+                  </p>
+                )}
+                {contact?.bouncedAddresses && contact.bouncedAddresses.length > 0 && (
+                  <p className="text-[10px] font-mono text-red-500 mt-1.5">
+                    Bounced: {contact.bouncedAddresses.join(', ')}
+                  </p>
+                )}
+                <p className="text-[10px] font-mono text-gray-400 mt-2">
+                  Channel verified {contact?.lastVerifiedAt ?? '—'}
+                </p>
+              </div>
+            )
+          })}
 
           {/* Sitemap is special — not a per-job-feed but the crawl-discovery signal */}
           <div className="border-2 border-black p-5">

@@ -78,6 +78,22 @@ export default function PrivacyPage() {
             cookies. No cross-site trackers.
           </p>
 
+          <h2 className="text-xl font-black mt-8 mb-2">Bot protection (Cloudflare Turnstile)</h2>
+          <p>
+            We use{' '}
+            <a href="https://www.cloudflare.com/products/turnstile/" className="underline hover:text-green-700" rel="noopener noreferrer">
+              Cloudflare Turnstile
+            </a>{' '}
+            on form submissions (post a job, apply for a job, employer login) to detect bots and
+            prevent spam. Turnstile may use browser signals (cookies, local storage, browser
+            characteristics) to assess whether a form submission is human. No data collected by
+            Turnstile is used for advertising. See{' '}
+            <a href="https://www.cloudflare.com/privacypolicy/" className="underline hover:text-green-700" rel="noopener noreferrer">
+              Cloudflare&apos;s Privacy Policy
+            </a>{' '}
+            for details.
+          </p>
+
           <h2 className="text-xl font-black mt-8 mb-2">Email + suppression</h2>
           <p>
             Transactional emails (post verification, applicant notifications) are sent via Resend.
