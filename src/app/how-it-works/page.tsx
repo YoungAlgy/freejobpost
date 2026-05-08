@@ -7,6 +7,13 @@ export const metadata: Metadata = {
   description: 'How freejobpost.co works — free healthcare job posts, no auction, no paywall, no recruiter spam. The 60-second post flow + everything that happens after.',
   alternates: { canonical: 'https://freejobpost.co/how-it-works' },
   robots: { index: true, follow: true },
+  openGraph: {
+    title: 'How freejobpost.co works',
+    description:
+      'Free healthcare job posts, no auction, no paywall. Post in 60 seconds.',
+    url: 'https://freejobpost.co/how-it-works',
+    type: 'website',
+  },
 }
 
 export default function HowItWorksPage() {

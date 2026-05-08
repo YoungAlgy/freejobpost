@@ -7,6 +7,13 @@ export const metadata: Metadata = {
   description:
     'Healthcare orgs get 10 free job posts, forever. This page explains how that works, what happens if you need more slots, and why we built freejobpost.co as a utility rather than a SaaS.',
   alternates: { canonical: 'https://freejobpost.co/pricing' },
+  openGraph: {
+    title: 'How posting works — freejobpost.co',
+    description:
+      '10 free healthcare job posts, forever. No auction, no credit card.',
+    url: 'https://freejobpost.co/pricing',
+    type: 'website',
+  },
 }
 
 export default function PricingPage() {
