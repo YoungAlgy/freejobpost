@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'How it works',
-  description: 'How freejobpost.co works — free healthcare job posts, no auction, no paywall, no recruiter spam. The 90-second post flow + everything that happens after.',
+  description: 'How freejobpost.co works — free healthcare job posts, no auction, no paywall, no recruiter spam. The 60-second post flow + everything that happens after.',
   alternates: { canonical: 'https://freejobpost.co/how-it-works' },
   robots: { index: true, follow: true },
 }
@@ -43,7 +43,7 @@ export default function HowItWorksPage() {
           <li className="flex gap-4">
             <div className="shrink-0 w-8 h-8 bg-black text-white text-sm font-black flex items-center justify-center">1</div>
             <div>
-              <div className="font-black text-lg mb-1">Fill the 90-second form</div>
+              <div className="font-black text-lg mb-1">Fill the 60-second form</div>
               <div className="text-gray-700">Title, role, location, comp, description. No account, no credit card.</div>
             </div>
           </li>
