@@ -181,7 +181,7 @@ export default async function StateHubPage(
               {cities.map((c) => (
                 <Link
                   key={c}
-                  href={`/jobs?state=${encodeURIComponent(hub.abbr)}&city=${encodeURIComponent(c)}`}
+                  href={`/jobs?state=${encodeURIComponent(hub.abbr)}&q=${encodeURIComponent(c)}`}
                   className="text-xs border border-black px-2 py-1 hover:bg-black hover:text-white"
                 >
                   {c} ({jobs.filter((j) => j.city === c).length})
