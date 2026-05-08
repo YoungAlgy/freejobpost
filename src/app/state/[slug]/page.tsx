@@ -16,11 +16,23 @@ import {
 } from '@/lib/public-jobs'
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
+import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 
 export const revalidate = 600
 
 export async function generateStaticParams() {
   return STATE_HUBS.map((s) => ({ slug: s.slug }))
+}
+
+async function fetchJobCountForState(abbr: string): Promise<number> {
+  const { count } = await supabase
+    .from('public_jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .eq('state', abbr)
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+  return count ?? 0
 }
 
 export async function generateMetadata(
@@ -30,13 +42,20 @@ export async function generateMetadata(
   const hub = getStateHub(slug)
   if (!hub) return {}
   const title = `${hub.name} healthcare jobs`
+  const count = await fetchJobCountForState(hub.abbr)
+  const description = composeHubMetaDescription({
+    count,
+    staticDescription: hub.metaDescription,
+    label: hub.name,
+    kind: 'state',
+  })
   return {
     title,
-    description: hub.metaDescription,
+    description,
     alternates: { canonical: `https://freejobpost.co/state/${hub.slug}` },
     openGraph: {
       title: `${title} | freejobpost.co`,
-      description: hub.metaDescription,
+      description,
       url: `https://freejobpost.co/state/${hub.slug}`,
       type: 'website',
     },

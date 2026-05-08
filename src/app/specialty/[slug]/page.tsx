@@ -16,11 +16,32 @@ import {
 } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
+import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 
 export const revalidate = 600
 
 export async function generateStaticParams() {
   return SPECIALTY_HUBS.map((s) => ({ slug: s.slug }))
+}
+
+function buildHubOrFilter(matchPatterns: string[]): string {
+  const orParts: string[] = []
+  for (const p of matchPatterns) {
+    const enc = encodeURIComponent(`*${p}*`)
+    orParts.push(`specialty.ilike.${enc}`, `title.ilike.${enc}`, `role.ilike.${enc}`)
+  }
+  return orParts.join(',')
+}
+
+async function fetchJobCountForSpecialty(matchPatterns: string[]): Promise<number> {
+  const { count } = await supabase
+    .from('public_jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .or(buildHubOrFilter(matchPatterns))
+  return count ?? 0
 }
 
 export async function generateMetadata(
@@ -29,13 +50,20 @@ export async function generateMetadata(
   const { slug } = await params
   const hub = getSpecialtyHub(slug)
   if (!hub) return {}
+  const count = await fetchJobCountForSpecialty(hub.matchPatterns)
+  const description = composeHubMetaDescription({
+    count,
+    staticDescription: hub.metaDescription,
+    label: hub.title,
+    kind: 'specialty',
+  })
   return {
     title: hub.title,
-    description: hub.metaDescription,
+    description,
     alternates: { canonical: `https://freejobpost.co/specialty/${hub.slug}` },
     openGraph: {
       title: `${hub.title} | freejobpost.co`,
-      description: hub.metaDescription,
+      description,
       url: `https://freejobpost.co/specialty/${hub.slug}`,
       type: 'website',
     },
@@ -43,19 +71,13 @@ export async function generateMetadata(
 }
 
 async function fetchJobsForHub(matchPatterns: string[]): Promise<PublicJob[]> {
-  // PostgREST `or=` for matching specialty/title/role across all patterns.
-  const orParts: string[] = []
-  for (const p of matchPatterns) {
-    const enc = encodeURIComponent(`*${p}*`)
-    orParts.push(`specialty.ilike.${enc}`, `title.ilike.${enc}`, `role.ilike.${enc}`)
-  }
   const { data } = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
-    .or(orParts.join(','))
+    .or(buildHubOrFilter(matchPatterns))
     .order('created_at', { ascending: false })
     .limit(300)
   return (data ?? []) as PublicJob[]
