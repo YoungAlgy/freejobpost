@@ -124,8 +124,9 @@ export default function HowItWorksPage() {
           </div>
         </div>
         <p className="text-xs text-gray-600 mb-12">
-          Posts are syndicated to Google for Jobs + Indeed&apos;s organic feed via{' '}
-          <a href="/jobs.xml" className="underline hover:text-green-700">our public XML feed</a>.
+          Every listing gets JobPosting JSON-LD for Google for Jobs, plus our{' '}
+          <a href="/jobs.xml" className="underline hover:text-green-700">public XML/RSS feed</a>{' '}
+          for ZipRecruiter, Adzuna, Jooble, and other aggregators.
         </p>
 
         <h2 className="text-2xl font-black tracking-tight mb-3">Why is this free?</h2>
@@ -152,7 +153,7 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">Will my job appear on Indeed and Google for Jobs?</h3>
-            <p className="text-gray-700">Yes. Every posted job lands in our public XML feed at /jobs.xml, which Indeed&apos;s organic crawler picks up automatically. We also emit JobPosting structured data on every job page so Google for Jobs indexes it within hours.</p>
+            <p className="text-gray-700">Yes. Every job page includes JobPosting structured data that Google for Jobs indexes within hours. Indeed discovers listings through its own organic crawler — no separate submission needed. We also publish a public XML/RSS feed at /jobs.xml used by ZipRecruiter, Adzuna, Jooble, and other aggregators.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">Do you sell my company name or contact info?</h3>
@@ -168,7 +169,7 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">How fast does my job get listed?</h3>
-            <p className="text-gray-700">Instant. Submit the form and it&apos;s live within seconds. The XML feed updates in real-time; Google for Jobs and Indeed typically index new postings within 4-24 hours.</p>
+            <p className="text-gray-700">Instant. Submit the form and it&apos;s live within seconds. Google for Jobs typically indexes new postings within a few hours. Aggregator feeds (ZipRecruiter, Adzuna, Jooble) pick up new listings within a few hours of posting.</p>
           </div>
         </div>
 
@@ -224,7 +225,7 @@ export default function HowItWorksPage() {
                 name: 'Will my job appear on Indeed and Google for Jobs?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: "Yes. Every posted job lands in our public XML feed at /jobs.xml, which Indeed's organic crawler picks up automatically. We also emit JobPosting structured data on every job page so Google for Jobs indexes it within hours.",
+                  text: "Yes. Every job page includes JobPosting structured data that Google for Jobs indexes within hours. Indeed discovers listings through its own organic crawler. We also publish a public XML/RSS feed at /jobs.xml used by ZipRecruiter, Adzuna, Jooble, and other aggregators.",
                 },
               },
               {
@@ -256,7 +257,7 @@ export default function HowItWorksPage() {
                 name: 'How fast does my job get listed?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: "Instant. Submit the form and it's live within seconds. Google for Jobs and Indeed typically index new postings within 4-24 hours.",
+                  text: "Instant. Submit the form and it's live within seconds. Google for Jobs typically indexes new postings within a few hours. Aggregator feeds pick up new listings within a few hours of posting.",
                 },
               },
             ],
