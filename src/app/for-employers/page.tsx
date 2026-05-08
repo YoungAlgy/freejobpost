@@ -48,11 +48,11 @@ const COST_ROWS = [
 const FAQ_ITEMS = [
   {
     q: 'Is it really free — no hidden upgrade tier?',
-    a: 'Yes. Post as many jobs as you want, see every applicant\'s full contact info immediately, repost expired roles for free. If we ever add an optional "boost" feature it will be clearly labeled as an add-on, not a paywall.',
+    a: 'Yes. 10 active posts free, forever — see every applicant\'s full contact info immediately, repost expired roles at no cost. If you need more than 10 simultaneous active slots, email hello@avahealth.co and we\'ll uncap your account. If we ever add an optional "boost" feature it will be clearly labeled, never a paywall to see who applied.',
   },
   {
     q: 'How long does a job stay live?',
-    a: '60 days by default. You can repost the same role at any time — we don\'t cap the number of postings per employer account. Filled roles can be marked "closed" to come off the board instantly.',
+    a: '60 days by default. You can repost the same role at any time — expired roles don\'t count toward your 10-active-post limit. Filled roles can be marked "closed" to come off the board and free up a slot instantly.',
   },
   {
     q: 'Where does my listing appear besides freejobpost.co?',
