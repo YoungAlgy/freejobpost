@@ -106,7 +106,7 @@ export default async function PostJobPage() {
               <div className="shrink-0 w-7 h-7 bg-black text-white text-xs font-black flex items-center justify-center">2</div>
               <div>
                 <div className="font-bold">Your job goes live instantly</div>
-                <div className="text-sm text-gray-700 mt-0.5">No review queue, no editorial gating. The link clicks → the post is live on /jobs and syndicated to Indeed via our XML feed.</div>
+                <div className="text-sm text-gray-700 mt-0.5">No review queue, no editorial gating. The link clicks → the post is live on /jobs, indexed by Google for Jobs via structured data, and pushed to aggregator feeds within a few hours.</div>
               </div>
             </li>
             <li className="flex gap-4">

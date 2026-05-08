@@ -56,7 +56,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Where does my listing appear besides freejobpost.co?',
-    a: 'Your job is published to our XML feeds for Indeed, ZipRecruiter, Glassdoor, Adzuna, Jooble, and RSS. Every listing also gets JobPosting JSON-LD for Google for Jobs. Active network partners ingest within a few hours; others discover us via crawl as partnerships come online.',
+    a: 'Every listing gets JobPosting JSON-LD for Google for Jobs (crawled directly by Google), plus our XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings through crawl — no separate submission needed. Active feed partners ingest within a few hours of posting.',
   },
   {
     q: 'Who applies — real people or scraped profiles?',
