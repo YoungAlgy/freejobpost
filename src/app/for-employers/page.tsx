@@ -384,6 +384,21 @@ export default function ForEmployersPage() {
         </div>
       </section>
 
+      {/* BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: safeJsonLd({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://freejobpost.co' },
+              { '@type': 'ListItem', position: 2, name: 'For employers', item: 'https://freejobpost.co/for-employers' },
+            ],
+          }),
+        }}
+      />
+
       {/* FAQPage JSON-LD */}
       <script
         type="application/ld+json"
