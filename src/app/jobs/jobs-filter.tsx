@@ -182,6 +182,7 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
             <option value="contract">Contract</option>
             <option value="locum">Locum</option>
             <option value="per_diem">Per diem</option>
+            <option value="internship">Internship</option>
           </select>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-bold tracking-wider">
