@@ -106,7 +106,9 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
       }
       return true
     })
-  }, [jobs, q, role, state, remote, empType, verifiedOnly, verifiedSet])
+    // Depend on debouncedQ (the 300ms-trailing copy) — depending on `q`
+    // here would re-filter on every keystroke and defeat the debounce.
+  }, [jobs, debouncedQ, role, state, remote, empType, verifiedOnly, verifiedSet])
 
   const activeFilterCount = [role, state, remote, empType].filter(Boolean).length + (verifiedOnly ? 1 : 0)
 

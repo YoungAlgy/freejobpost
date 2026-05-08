@@ -18,7 +18,15 @@ type RecentJob = Pick<PublicJob, 'id' | 'slug' | 'title' | 'city' | 'state' | 's
 
 export default async function Home() {
   // Fetch live count + 6 most-recent active jobs + new-this-week count +
-  // verified-employer count in parallel
+  // verified-employer count in parallel.
+  //
+  // Date.now() in a Server Component looks "impure" to React 19's strict
+  // rule but is intentional here: this page revalidates every 5 minutes
+  // (see `revalidate = 300` above) so the "7 days ago" cutoff stays fresh
+  // — it's not memoizable. Calling Date.now() inside the request scope of
+  // an async Server Component is the documented way to get a real
+  // wall-clock timestamp for ISR-sensitive queries.
+  // eslint-disable-next-line react-hooks/purity
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString()
   const [countRes, recentRes, newThisWeekRes, verifiedEmpRes] = await Promise.all([
     supabase
