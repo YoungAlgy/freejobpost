@@ -124,8 +124,8 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-black mt-8 mb-2">Operator</h2>
           <p>
             <strong>Ava Health Partners LLC</strong><br />
-            3608 S Belcher Dr<br />
-            Tampa, FL 33629<br />
+            1314 7th Street South<br />
+            St. Petersburg, FL 33701<br />
             <a href="mailto:hello@avahealth.co" className="underline hover:text-green-700">hello@avahealth.co</a>
           </p>
 
