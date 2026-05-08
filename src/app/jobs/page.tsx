@@ -59,39 +59,15 @@ export default async function JobsIndexPage() {
     new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
   ).sort()
 
-  // JSON-LD for the top 10 jobs on the index (Google Jobs discovery)
-  const topJobsJsonLd = jobs.slice(0, 10).map((job) => ({
-    '@context': 'https://schema.org',
-    '@type': 'JobPosting',
-    title: job.title || job.role,
-    datePosted: job.created_at?.split('T')[0],
-    description: (job.title || job.role || 'Healthcare role') + '. Apply at freejobpost.co.',
-    hiringOrganization: {
-      '@type': 'Organization',
-      name: 'freejobpost.co',
-      sameAs: 'https://freejobpost.co',
-    },
-    jobLocation: {
-      '@type': 'Place',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: job.city || undefined,
-        addressRegion: job.state || undefined,
-        addressCountry: 'US',
-      },
-    },
-    url: `https://freejobpost.co/jobs/${job.slug}`,
-  }))
+  // NOTE: JobPosting JSON-LD is intentionally NOT emitted here.
+  // Each individual /jobs/[slug] page emits accurate per-job JSON-LD with
+  // the correct hiringOrganization pulled from the DB. Emitting JobPosting
+  // JSON-LD on this listing page with a hardcoded org ('freejobpost.co' is
+  // a job board, not a hiring organization) would fail Google's Rich Results
+  // validation and misattribute real-employer roles.
 
   return (
     <>
-      {topJobsJsonLd.map((jld, i) => (
-        <script
-          key={i}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(jld) }}
-        />
-      ))}
       <main className="min-h-screen bg-white text-black">
         {/* Nav */}
         <nav className="border-b-2 border-black">
