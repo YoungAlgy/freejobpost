@@ -315,7 +315,7 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">How do candidates find my job?</h3>
-              <p className="text-gray-700 leading-relaxed">Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, ZipRecruiter, etc.). Most jobs get applicants from all three.</p>
+              <p className="text-gray-700 leading-relaxed">Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, ZipRecruiter, etc.) — so your listing gets search visibility, direct candidate notification, and aggregator reach without any extra steps.</p>
             </div>
           </div>
         </div>
@@ -355,7 +355,7 @@ export default async function Home() {
               { '@type': 'Question', name: "Who's applying — real people or bots?", acceptedAnswer: { '@type': 'Answer', text: "Real candidates. Resume uploads come from freeresumepost.co — verified emails, parsed resumes, real credentials. We don't scrape profiles or auto-apply." } },
               { '@type': 'Question', name: 'Do you charge for unlocking an applicant?', acceptedAnswer: { '@type': 'Answer', text: 'No. When a candidate applies, you get their full contact info immediately. No paywall, no "contact unlock" fees, no upgrade prompts.' } },
               { '@type': 'Question', name: 'What healthcare roles can I post?', acceptedAnswer: { '@type': 'Answer', text: 'Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing.' } },
-              { '@type': 'Question', name: 'How do candidates find my job?', acceptedAnswer: { '@type': 'Answer', text: 'Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, ZipRecruiter, etc.). Most jobs get applicants from all three.' } },
+              { '@type': 'Question', name: 'How do candidates find my job?', acceptedAnswer: { '@type': 'Answer', text: 'Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, ZipRecruiter, etc.) — so your listing gets search visibility, direct candidate notification, and aggregator reach without any extra steps.' } },
             ],
           }),
         }}
