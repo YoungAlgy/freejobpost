@@ -41,6 +41,13 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
   // or /jobs?role=RN&state=FL. Whitelist values that come from the URL so a
   // hostile link can't seed the state with garbage that breaks the UI.
   const [q, setQ] = useState(() => searchParams.get('q') ?? '')
+  // debouncedQ trails q by 300 ms so typing doesn't thrash the filter
+  // on every keystroke. At 500 jobs this is imperceptible; at 5K it matters.
+  const [debouncedQ, setDebouncedQ] = useState(q)
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQ(q), 300)
+    return () => clearTimeout(id)
+  }, [q])
   const [role, setRole] = useState<string>(() => {
     const v = searchParams.get('role') ?? ''
     return v && roles.includes(v) ? v : ''
@@ -72,7 +79,7 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
       return
     }
     const params = new URLSearchParams()
-    if (q.trim()) params.set('q', q.trim())
+    if (debouncedQ.trim()) params.set('q', debouncedQ.trim())
     if (role) params.set('role', role)
     if (state) params.set('state', state)
     if (remote) params.set('remote', remote)
@@ -80,10 +87,10 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
     if (verifiedOnly) params.set('verified', '1')
     const qs = params.toString()
     router.replace(qs ? `/jobs?${qs}` : '/jobs', { scroll: false })
-  }, [q, role, state, remote, empType, verifiedOnly, router])
+  }, [debouncedQ, role, state, remote, empType, verifiedOnly, router])
 
   const filtered = useMemo(() => {
-    const qLower = q.trim().toLowerCase()
+    const qLower = debouncedQ.trim().toLowerCase()
     return jobs.filter((j) => {
       if (role && j.role !== role) return false
       if (state && j.state !== state) return false
