@@ -161,7 +161,11 @@ export default function PostJobForm() {
             onClick={() => {
               setResult(null)
               setStep(1)
-              setValues(INITIAL)
+              // Re-apply URL prefill for company fields (same session, same URL).
+              const params = new URLSearchParams(window.location.search)
+              const co = params.get('co') ?? ''
+              const cn = params.get('cn') ?? ''
+              setValues({ ...INITIAL, company_name: co, contact_name: cn })
             }}
             className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
           >
