@@ -1,6 +1,6 @@
 # Syndication submission status
 
-**Last updated:** 2026-04-30 (after audit of yesterday's bounces)
+**Last updated:** 2026-05-08 (8 days elapsed since Adzuna qualification answer sent; no reply yet)
 
 ## Current state per network
 
@@ -11,7 +11,7 @@
 | **Google for Jobs** | ✅ Passive | JSON-LD on `/jobs/[slug]` + sitemap submitted to GSC (verified 2026-04-29). |
 | **Bing / Yahoo / DuckDuckGo** | ✅ Indexed | Bing WMT verified via GSC import (2026-04-29). 503 URLs already crawled. |
 | **RSS** | ✅ Passive auto-discover | `<link rel="alternate">` + robots.txt declaration. |
-| **Adzuna** | 🟢 **In active conversation** | Sent 2026-04-29 to `content@adzuna.com` cc `support@adzuna.com`. Matt Woodbridge (Product Manager) replied 2026-04-30 with qualification questions. Algy sent qualification answer 2026-04-30 5:05 PM ET. **Awaiting Matt's review of the feed.** |
+| **Adzuna** | 🟡 **No reply in 8 days** | Sent 2026-04-29 to `content@adzuna.com` cc `support@adzuna.com`. Matt Woodbridge (Product Manager) replied 2026-04-30 with qualification questions. Algy sent qualification answer 2026-04-30 5:05 PM ET. **No reply as of 2026-05-08 — follow up if still nothing by 2026-05-12.** |
 | **Jooble** | 🟡 Retry email delivered to `support@jooble.com` 2026-04-30 | Original `partners@jooble.com` bounced 2026-04-29 (550 5.1.1). Retry to general support inbox 2026-04-30 6:03 PM ET landed (no bounce in 25+ seconds). Awaiting reply. Fallback: book a call at https://uk.jooble.org/partner/for-publishers if no response in 1 week. |
 | **ZipRecruiter** | 🟡 Retry email delivered to `support@ziprecruiter.com` 2026-04-30 | Original `partners@ziprecruiter.com` bounced 2026-04-29. Retry to general support inbox 2026-04-30 6:04 PM ET landed (no bounce in 25+ seconds). Awaiting reply. Fallback: ziprecruiter.com/publishers — requires Cloudflare-protected publisher signup that can't be driven via Chrome MCP. |
 | **Talent.com** | ❌ Email channel fully dead | Both `partner@talent.com` and `partners@talent.com` bounced. **No public email intake.** Action: signup at https://www.talent.com/publishers (no public sign-up form — invite-only) OR reach a Talent.com employee via LinkedIn / sales contact. Or skip — Talent.com is the lowest-volume of the four (~30M visits, smaller US footprint). |
@@ -39,6 +39,8 @@ This is consistent with the broader industry pattern of partner programs gating 
 5. Feed URL: https://freejobpost.co/feeds/adzuna.xml
 
 **Expected response:** approval (24-72h) OR one more clarifying question.
+**As of 2026-05-08 (8 days later):** No reply received. This is outside the normal reply window.
+If still no reply by 2026-05-12, send a brief follow-up: "Following up on the qualification details I sent on Apr 30 — happy to answer any additional questions or share the feed directly for review."
 
 ## What Algy needs to do (when ready)
 
