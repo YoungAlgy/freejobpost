@@ -132,6 +132,10 @@ export default function RootLayout({
                 Pricing
               </Link>
               <span className="text-gray-300">|</span>
+              <Link href="/changelog" className="hover:text-gray-900">
+                Changelog
+              </Link>
+              <span className="text-gray-300">|</span>
               <Link href="https://www.freeresumepost.co" className="hover:text-gray-900">
                 Candidates
               </Link>
