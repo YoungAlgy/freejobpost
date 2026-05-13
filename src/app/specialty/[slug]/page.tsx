@@ -19,6 +19,19 @@ import { STATE_HUBS } from '@/lib/state-slugs'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
+
+// Slugs that exist on BOTH freejobpost and freeresumepost specialty hubs.
+// When the current hub is in this set, the cross-link points to the matching
+// specialty hub on the sister site instead of the homepage. Bidirectional
+// authority transfer + better-matched candidate flow.
+const BRIDGED_SPECIALTY_SLUGS = new Set([
+  'registered-nurse',
+  'crna',
+  'nurse-practitioner',
+  'pharmacist',
+  'physician-assistant',
+])
+
 export const revalidate = 600
 
 export async function generateStaticParams() {
@@ -98,6 +111,12 @@ export default async function SpecialtyHubPage(
     new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
   ).sort()
 
+  // Deep-link to the sister freeresumepost specialty hub when the slug bridges
+  // both sites. Otherwise fall back to the freeresumepost homepage.
+  const resumeHubUrl = BRIDGED_SPECIALTY_SLUGS.has(hub.slug)
+    ? `https://www.freeresumepost.co/specialty/${hub.slug}`
+    : 'https://www.freeresumepost.co'
+
   // NOTE: JobPosting JSON-LD is intentionally NOT emitted here.
   // Each individual /jobs/[slug] page already emits accurate per-job JSON-LD
   // with the correct hiringOrganization pulled from the DB. Emitting JobPosting
@@ -172,7 +191,7 @@ export default async function SpecialtyHubPage(
               <p className="text-gray-700 mb-4">This specialty&apos;s inventory is still ramping up on freejobpost.co. Browse the full national board in the meantime, or upload your resume so we can match you the moment a {hub.title.toLowerCase().replace(/ jobs$/, '')} role opens.</p>
               <div className="flex flex-wrap gap-3 justify-center">
                 <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
-                <a href="https://www.freeresumepost.co" className="inline-block border-2 border-black font-bold px-6 py-2 hover:bg-black hover:text-white">Get matched →</a>
+                <a href={resumeHubUrl} className="inline-block border-2 border-black font-bold px-6 py-2 hover:bg-black hover:text-white">Get matched →</a>
               </div>
             </div>
           ) : (
@@ -184,7 +203,7 @@ export default async function SpecialtyHubPage(
                     Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}.{' '}
                     <Link href="/jobs" className="underline font-medium hover:text-green-700">See all healthcare jobs</Link>{' '}
                     or{' '}
-                    <a href="https://www.freeresumepost.co" className="underline font-medium hover:text-green-700">upload your resume</a>{' '}
+                    <a href={resumeHubUrl} className="underline font-medium hover:text-green-700">upload your resume</a>{' '}
                     to be matched as new roles open.
                   </p>
                 </div>
