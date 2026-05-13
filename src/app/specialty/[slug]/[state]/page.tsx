@@ -18,9 +18,9 @@ import {
   remoteLabel,
   locationLabel,
 } from '@/lib/public-jobs'
-import { getSpecialtyHub, SPECIALTY_HUBS } from '@/lib/specialty-slugs'
-import { getStateHub, STATE_HUBS } from '@/lib/state-slugs'
-import { computeViableCells } from '@/lib/specialty-state-matrix'
+import { getSpecialtyHub } from '@/lib/specialty-slugs'
+import { getStateHub } from '@/lib/state-slugs'
+import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
 import {
   aggregateSalariesByGroup,
   aggregateSalariesOverall,
@@ -43,18 +43,10 @@ function buildHubOrFilter(matchPatterns: readonly string[]): string {
 }
 
 export async function generateStaticParams(): Promise<Params[]> {
-  // One DB call, JS-side cell computation. ~425 active rows × 18 specialty
-  // hubs is trivial to crunch in memory; doing it in SQL would require
-  // serializing 18+ ILIKE pattern arrays.
-  const { data } = await supabase
-    .from('public_jobs')
-    .select('state, specialty, role, title')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .limit(2000)
-
-  const cells = computeViableCells(data ?? [])
+  // Per-cell SQL count via the shared helper. Keeps generateStaticParams,
+  // the runtime fetchCellJobs query, and the sitemap matrix entries all
+  // in lockstep — no more JS-substring overcounts producing 404 cells.
+  const cells = await computeViableCellsViaSql(supabase)
   return cells.map((c) => ({ slug: c.specialty.slug, state: c.state.slug }))
 }
 
@@ -106,6 +98,11 @@ export default async function SpecialtyStateMatrixPage(
   if (!specialty || !stateHub) notFound()
 
   const jobs = await fetchCellJobs(specialty.matchPatterns, stateHub.abbr)
+  // Hard 404 only when the cell is truly empty — guards against direct hits
+  // on URLs that were never in generateStaticParams. Cells that DID build
+  // but dropped below the threshold between deploys still render (with a
+  // sparse-inventory message handled inline below), which is better UX
+  // than 404'ing a previously-indexed URL.
   if (jobs.length === 0) notFound()
 
   // Salary aggregates within this cell. Grouped by role/specialty (sub-cell
@@ -146,23 +143,11 @@ export default async function SpecialtyStateMatrixPage(
     ],
   }
 
-  // Cross-link to other (specialty, state) cells: same specialty, different
-  // states first (more directly substitutable), then same state, different
-  // specialties. Build at render time from the live cell list.
-  const { data: peerData } = await supabase
-    .from('public_jobs')
-    .select('state, specialty, role, title')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .limit(2000)
-  const allCells = computeViableCells(peerData ?? [])
-  const sameSpecialtyOtherStates = allCells.filter(
-    (c) => c.specialty.slug === specialty.slug && c.state.slug !== stateHub.slug,
-  )
-  const sameStateOtherSpecialties = allCells.filter(
-    (c) => c.state.slug === stateHub.slug && c.specialty.slug !== specialty.slug,
-  )
+  // Peer-cell cross-links DEFERRED to a follow-up commit. The fully-correct
+  // version requires the SQL-counted helper (50 + 18 = 68 narrow queries per
+  // matrix page) — measured under Next's 60s build worker timeout for some
+  // cells, so v1 ships without them. Back-links to /specialty and /state
+  // parent hubs still cover the internal-linking baseline.
 
   return (
     <>
@@ -281,46 +266,6 @@ export default async function SpecialtyStateMatrixPage(
             ))}
           </ul>
 
-          {/* Cross-links — same specialty in other states (peer cells) */}
-          {sameSpecialtyOtherStates.length > 0 && (
-            <section className="mt-16">
-              <h2 className="text-2xl font-black tracking-tight mb-4">
-                {cleanSpecialtyTitle} jobs in other states
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {sameSpecialtyOtherStates.map((c) => (
-                  <Link
-                    key={`${c.specialty.slug}|${c.state.slug}`}
-                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
-                    className="text-sm border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white font-medium"
-                  >
-                    {c.state.name} ({c.count})
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Cross-links — other specialties in this state */}
-          {sameStateOtherSpecialties.length > 0 && (
-            <section className="mt-12">
-              <h2 className="text-2xl font-black tracking-tight mb-4">
-                Other specialties hiring in {stateHub.name}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {sameStateOtherSpecialties.map((c) => (
-                  <Link
-                    key={`${c.specialty.slug}|${c.state.slug}`}
-                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
-                    className="text-sm border border-black/40 px-3 py-1.5 hover:bg-black hover:text-white"
-                  >
-                    {c.specialty.title.replace(/ Jobs$/, '')} ({c.count})
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
           {/* Back-links to the parent hubs */}
           <section className="mt-12 border-t-2 border-black pt-8 flex flex-wrap gap-4">
             <Link
@@ -343,8 +288,3 @@ export default async function SpecialtyStateMatrixPage(
   )
 }
 
-// Silence unused-import lint when STATE_HUBS / SPECIALTY_HUBS are only used
-// transitively via the matrix helper. Keeping them imported preserves the
-// reader's mental model of what data this page depends on.
-void STATE_HUBS
-void SPECIALTY_HUBS

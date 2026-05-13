@@ -10,6 +10,7 @@
 // aggregate is meaningful AND a job list has enough variety to be
 // useful in its own right.
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { STATE_HUBS, type StateHub } from './state-slugs'
 
@@ -78,3 +79,86 @@ export function computeViableCells(jobs: JobRow[]): MatrixCell[] {
 }
 
 export { MIN_JOBS_PER_CELL }
+
+/**
+ * The SQL-counted version of computeViableCells. Issues one count query
+ * per (specialty, state) pair (~900 total) using the SAME `.or()` filter
+ * the runtime page uses, so the build-time list matches what's actually
+ * renderable. Returns the cells in deterministic order.
+ *
+ * Used by both `generateStaticParams` on /specialty/[slug]/[state] and
+ * by `sitemap.ts` so the sitemap, the prerendered routes, and the
+ * runtime renderable URLs all stay in lockstep.
+ */
+export async function computeViableCellsViaSql(
+  supabase: SupabaseClient,
+): Promise<{ specialty: SpecialtyHub; state: StateHub; count: number }[]> {
+  // Single big SQL pull, JS-side per-column matching. This is structurally
+  // equivalent to the SQL `or=(specialty.ilike.*p*, ...)` approach but
+  // collapses 900 round-trips into one. ~425 active rows fit easily in one
+  // response.
+  //
+  // The earlier (broken) JS version concatenated specialty + role + title
+  // into a single haystack with " | " — that LET a pattern straddle field
+  // boundaries (e.g. "rn " could match the literal " | " separator
+  // adjacent to a non-RN role). This version checks each field separately,
+  // which is exactly what SQL ILIKE does, so cell counts match the runtime
+  // `fetchCellJobs` query.
+  const { data } = await supabase
+    .from('public_jobs')
+    .select('state, specialty, role, title')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .limit(5000)
+  const jobs = (data ?? []) as Array<{
+    state: string | null
+    specialty: string | null
+    role: string | null
+    title: string | null
+  }>
+
+  const byAbbr = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.abbr, s]))
+  const counts = new Map<string, { specialty: SpecialtyHub; state: StateHub; count: number }>()
+
+  function fieldMatches(value: string | null, patterns: readonly string[]): boolean {
+    if (!value) return false
+    const lower = value.toLowerCase()
+    for (const p of patterns) {
+      if (lower.includes(p.toLowerCase())) return true
+    }
+    return false
+  }
+
+  for (const job of jobs) {
+    if (!job.state) continue
+    const stateHub = byAbbr.get(job.state)
+    if (!stateHub) continue
+    for (const specialty of SPECIALTY_HUBS) {
+      if (
+        !fieldMatches(job.specialty, specialty.matchPatterns) &&
+        !fieldMatches(job.role, specialty.matchPatterns) &&
+        !fieldMatches(job.title, specialty.matchPatterns)
+      ) {
+        continue
+      }
+      const key = `${specialty.slug}|${stateHub.slug}`
+      const existing = counts.get(key)
+      if (existing) {
+        existing.count += 1
+      } else {
+        counts.set(key, { specialty, state: stateHub, count: 1 })
+      }
+    }
+  }
+
+  return Array.from(counts.values())
+    .filter((c) => c.count >= MIN_JOBS_PER_CELL)
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count
+      if (a.specialty.slug !== b.specialty.slug) {
+        return a.specialty.slug.localeCompare(b.specialty.slug)
+      }
+      return a.state.slug.localeCompare(b.state.slug)
+    })
+}
