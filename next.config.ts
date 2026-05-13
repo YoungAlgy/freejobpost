@@ -2,6 +2,18 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
+  async redirects() {
+    return [
+      {
+        // 2026-05-13: /specialty/rn renamed to /specialty/registered-nurse.
+        // Permanent 301 transfers any accrued authority on the old URL and
+        // matches the slug used by the sister site (freeresumepost.co).
+        source: '/specialty/rn',
+        destination: '/specialty/registered-nurse',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
