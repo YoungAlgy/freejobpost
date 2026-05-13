@@ -17,6 +17,11 @@ import {
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
+import {
+  aggregateSalariesByGroup,
+  aggregateSalariesOverall,
+  fmtUsdCompact,
+} from '@/lib/salary-aggregates'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const revalidate = 600
@@ -99,6 +104,21 @@ export default async function StateHubPage(
   const topSpecialties = Array.from(specialtyCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 12)
+
+  // Salary aggregates — computed from the same `jobs` array we already
+  // have in hand. No extra Supabase query. Targets AI Overview citability
+  // for "[specialty] salary [state]" queries. Plain HTML output (no
+  // Occupation / EstimatedSalary schema — see feedback_seo_dead_schemas).
+  const salaryByBucket = aggregateSalariesByGroup(
+    jobs,
+    (j) => {
+      const s = j.specialty?.trim() || j.role?.trim()
+      return s || null
+    },
+  )
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8)
+  const salaryOverall = aggregateSalariesOverall(jobs)
 
   // NOTE: JobPosting JSON-LD is intentionally NOT emitted here.
   // Each individual /jobs/[slug] page already emits accurate per-job JSON-LD
@@ -257,6 +277,51 @@ export default async function StateHubPage(
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Computed salary panel — aggregated from active job inventory with
+              published salary ranges. Plain HTML for AI Overview citability;
+              no Occupation/EstimatedSalary schema (deprecated Sept 2025). */}
+          {salaryOverall && (
+            <section className="mb-10 max-w-3xl">
+              <h2 className="text-2xl font-black tracking-tight mb-2">
+                Typical {hub.name} healthcare salaries
+              </h2>
+              <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                Based on {salaryOverall.count} active {hub.name} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Overall: {fmtUsdCompact(salaryOverall.low)}–{fmtUsdCompact(salaryOverall.high)} (avg {fmtUsdCompact(salaryOverall.avg)} per year).
+              </p>
+              {salaryByBucket.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-2 border-black">
+                    <thead className="bg-gray-100 text-left">
+                      <tr>
+                        <th scope="col" className="px-3 py-2 font-bold">Specialty / Role</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Roles</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Range</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Avg</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/10">
+                      {salaryByBucket.map((row) => (
+                        <tr key={row.label}>
+                          <td className="px-3 py-2">{row.label}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{row.count}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">
+                            {fmtUsdCompact(row.low)}&ndash;{fmtUsdCompact(row.high)}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums font-medium">
+                            {fmtUsdCompact(row.avg)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                Salary ranges are pulled from real published listings on freejobpost.co. Some roles publish a range, others don&apos;t; the table reflects only roles with both a floor and ceiling.
+              </p>
+            </section>
           )}
 
           {jobs.length === 0 ? (

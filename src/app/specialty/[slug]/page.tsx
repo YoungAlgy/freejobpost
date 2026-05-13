@@ -17,6 +17,11 @@ import {
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
+import {
+  aggregateSalariesByGroup,
+  aggregateSalariesOverall,
+  fmtUsdCompact,
+} from '@/lib/salary-aggregates'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
@@ -111,6 +116,17 @@ export default async function SpecialtyHubPage(
     new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
   ).sort()
 
+  // Salary aggregates broken down by state — answers "[specialty] salary
+  // by state" queries. Plain HTML for AI Overview citability; no
+  // Occupation/EstimatedSalary schema (deprecated Sept 2025).
+  const salaryByState = aggregateSalariesByGroup(
+    jobs,
+    (j) => j.state?.trim() || null,
+  )
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10)
+  const salaryOverall = aggregateSalariesOverall(jobs)
+
   // Deep-link to the sister freeresumepost specialty hub when the slug bridges
   // both sites. Otherwise fall back to the freeresumepost homepage.
   const resumeHubUrl = BRIDGED_SPECIALTY_SLUGS.has(hub.slug)
@@ -183,6 +199,51 @@ export default async function SpecialtyHubPage(
                 </Link>
               ))}
             </div>
+          )}
+
+          {/* Computed salary panel — aggregated from active job inventory with
+              published salary ranges, broken down by state. Plain HTML for
+              AI Overview citability; no Occupation/EstimatedSalary schema. */}
+          {salaryOverall && (
+            <section className="mb-10 max-w-3xl">
+              <h2 className="text-2xl font-black tracking-tight mb-2">
+                {hub.title.replace(/ Jobs$/, '')} salaries by state
+              </h2>
+              <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                Based on {salaryOverall.count} active {hub.title.toLowerCase().replace(/ jobs$/, '')} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Overall: {fmtUsdCompact(salaryOverall.low)}&ndash;{fmtUsdCompact(salaryOverall.high)} (avg {fmtUsdCompact(salaryOverall.avg)} per year).
+              </p>
+              {salaryByState.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-2 border-black">
+                    <thead className="bg-gray-100 text-left">
+                      <tr>
+                        <th scope="col" className="px-3 py-2 font-bold">State</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Roles</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Range</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Avg</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/10">
+                      {salaryByState.map((row) => (
+                        <tr key={row.label}>
+                          <td className="px-3 py-2">{row.label}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{row.count}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">
+                            {fmtUsdCompact(row.low)}&ndash;{fmtUsdCompact(row.high)}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums font-medium">
+                            {fmtUsdCompact(row.avg)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                Salary ranges are pulled from real published listings on freejobpost.co. Some roles publish a range, others don&apos;t; the table reflects only roles with both a floor and ceiling.
+              </p>
+            </section>
           )}
 
           {jobs.length === 0 ? (
