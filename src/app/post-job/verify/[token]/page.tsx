@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { notifyIndexNowForJob } from '@/lib/indexnow'
 
 export const metadata: Metadata = {
   title: 'Verifying your job post…',
@@ -44,6 +45,14 @@ export default async function VerifyTokenPage({ params }: Props) {
   const { token } = await params
   const decoded = decodeURIComponent(token ?? '')
   const result = decoded ? await consumeToken(decoded) : { success: false as const, error: 'Missing token' }
+
+  // Notify IndexNow so participating engines (Bing, Yandex, Naver, Seznam,
+  // Yep) crawl the new listing immediately. Skip on re-verify of an
+  // already-live job — the URL was already announced on first verify.
+  // Fire-and-forget; we don't block the verify page render on it.
+  if (result.success && !result.was_already_verified) {
+    void notifyIndexNowForJob(result.job_slug)
+  }
 
   return (
     <main className="min-h-screen bg-white text-black">
