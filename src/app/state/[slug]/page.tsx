@@ -277,6 +277,84 @@ export default async function StateHubPage(
             </div>
           )}
 
+          {/* Visible FAQ section — Layer 2.3.
+              4 Q&A per state, each answer anchored on state-unique data
+              (board name + URL, top employers, top specialties, active
+              job count). Plain HTML, no FAQPage JSON-LD (the rich result
+              was restricted to gov/health authoritative sites Aug 2023
+              and sunsets May 2026 — see feedback_seo_dead_schemas.md).
+              Renders only when the underlying state data is present, so
+              hubs missing some fields (very few) skip individual Qs. */}
+          <section className="mb-10 max-w-3xl">
+            <h2 className="text-2xl font-black tracking-tight mb-4">
+              {hub.name} healthcare hiring — frequently asked
+            </h2>
+            <div className="space-y-5">
+              {hub.nursingBoardName && hub.nursingBoardUrl && (
+                <div>
+                  <h3 className="font-bold text-base mb-1">
+                    Where can I verify my {hub.name} RN license requirements?
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    The{' '}
+                    <a
+                      href={hub.nursingBoardUrl}
+                      className="underline hover:text-green-700"
+                      target="_blank"
+                      rel="noopener nofollow"
+                    >
+                      {hub.nursingBoardName}
+                    </a>{' '}
+                    is the authoritative source for current fees, timelines, CE
+                    requirements, and endorsement paperwork. Third-party rewrites
+                    tend to go stale — the board's own site is the only place to
+                    confirm what&apos;s current.
+                  </p>
+                </div>
+              )}
+              {hub.topEmployers.length > 0 && (
+                <div>
+                  <h3 className="font-bold text-base mb-1">
+                    Which {hub.name} healthcare systems hire on freejobpost.co?
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    Major {hub.name} employers in our inventory include{' '}
+                    {hub.topEmployers.slice(0, 5).join(', ')}. Some listings come
+                    from these systems directly; others are placed by Ava Health
+                    Partners&apos; recruiter book. Every posting has a real apply
+                    link — no Indeed-sponsored middleman.
+                  </p>
+                </div>
+              )}
+              {topSpecialties.length > 0 && (
+                <div>
+                  <h3 className="font-bold text-base mb-1">
+                    Which specialties have the most {hub.name} openings right now?
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    Top in-demand specialties on freejobpost.co for {hub.name}:{' '}
+                    {topSpecialties
+                      .slice(0, 5)
+                      .map(([s, n]) => `${s} (${n})`)
+                      .join(', ')}
+                    . The mix shifts as listings come and go — the live job list
+                    above reflects what&apos;s open right now.
+                  </p>
+                </div>
+              )}
+              <div>
+                <h3 className="font-bold text-base mb-1">
+                  Is freejobpost.co really free to apply to {hub.name} healthcare jobs?
+                </h3>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  Yes. {jobs.length === 0
+                    ? `No active ${hub.name} roles on the board today, but when listings open they're free to browse and apply directly — apply links go to the hiring employer's site or the partner ATS.`
+                    : `${jobs.length} ${hub.name} role${jobs.length === 1 ? '' : 's'} ${jobs.length === 1 ? 'is' : 'are'} open right now, all free to browse and apply directly. Apply links go to the hiring employer's site or the partner ATS — no "unlock applicants" fee, no paid-sponsor tier, no LinkedIn Premium gate.`}
+                </p>
+              </div>
+            </div>
+          </section>
+
           {/* Computed salary panel — aggregated from active job inventory with
               published salary ranges. Plain HTML for AI Overview citability;
               no Occupation/EstimatedSalary schema (deprecated Sept 2025). */}
