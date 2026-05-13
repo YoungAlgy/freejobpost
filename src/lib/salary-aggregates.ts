@@ -18,12 +18,42 @@ export type SalaryAggregate = {
   label: string
   /** Number of jobs in this group with both salary_min and salary_max */
   count: number
-  /** Min salary_min across the group (the floor of the range) */
+  /** 10th-percentile salary_min — the bottom of the "typical" range. Uses
+   *  percentile (not raw min) to ignore data-entry outliers like a
+   *  $12K/year listing that's really a $12/hr role misposted as annual. */
   low: number
-  /** Max salary_max across the group (the ceiling of the range) */
+  /** 90th-percentile salary_max — the top of the "typical" range, robust
+   *  to a single $1M outlier listing. */
   high: number
-  /** Average of (salary_min + salary_max) / 2 — the midpoint distribution */
+  /** Median of midpoints. Median (not mean) survives a few extreme rows. */
   avg: number
+}
+
+/** A reasonable annual-salary band for US healthcare roles. We drop rows
+ *  with either field outside this band before aggregating — these are
+ *  almost always hourly/weekly listings misposted as annual, or pure
+ *  data-entry errors. Healthcare is wide ($30K phlebotomist → $700K
+ *  ortho surgeon), but $20K and $1M are defensible outer bounds. */
+const REASONABLE_MIN = 20_000
+const REASONABLE_MAX = 1_000_000
+
+function isReasonableRange(min: number, max: number): boolean {
+  if (min < REASONABLE_MIN || max < REASONABLE_MIN) return false
+  if (min > REASONABLE_MAX || max > REASONABLE_MAX) return false
+  if (max < min) return false // garbage row
+  return true
+}
+
+/** Returns the value at the given percentile (0..1) of a sorted-asc array. */
+function percentile(sortedAsc: number[], p: number): number {
+  if (sortedAsc.length === 0) return 0
+  if (sortedAsc.length === 1) return sortedAsc[0]
+  const idx = (sortedAsc.length - 1) * p
+  const lo = Math.floor(idx)
+  const hi = Math.ceil(idx)
+  if (lo === hi) return sortedAsc[lo]
+  // Linear interpolation between the two flanking values
+  return sortedAsc[lo] + (sortedAsc[hi] - sortedAsc[lo]) * (idx - lo)
 }
 
 /**
@@ -45,6 +75,7 @@ export function aggregateSalariesByGroup(
   const buckets = new Map<string, { mins: number[]; maxes: number[]; midpoints: number[] }>()
   for (const j of jobs) {
     if (j.salary_min == null || j.salary_max == null) continue
+    if (!isReasonableRange(j.salary_min, j.salary_max)) continue
     const group = getGroup(j)
     if (!group) continue
     if (!buckets.has(group)) {
@@ -59,12 +90,15 @@ export function aggregateSalariesByGroup(
   const out: SalaryAggregate[] = []
   for (const [label, b] of buckets.entries()) {
     if (b.mins.length < minPerGroup) continue
+    const sortedMins = [...b.mins].sort((a, c) => a - c)
+    const sortedMaxes = [...b.maxes].sort((a, c) => a - c)
+    const sortedMids = [...b.midpoints].sort((a, c) => a - c)
     out.push({
       label,
       count: b.mins.length,
-      low: Math.min(...b.mins),
-      high: Math.max(...b.maxes),
-      avg: Math.round(b.midpoints.reduce((a, c) => a + c, 0) / b.midpoints.length),
+      low: Math.round(percentile(sortedMins, 0.1)),
+      high: Math.round(percentile(sortedMaxes, 0.9)),
+      avg: Math.round(percentile(sortedMids, 0.5)),
     })
   }
   return out
@@ -80,17 +114,21 @@ export function aggregateSalariesOverall(jobs: PublicJob[]): SalaryAggregate | n
   const midpoints: number[] = []
   for (const j of jobs) {
     if (j.salary_min == null || j.salary_max == null) continue
+    if (!isReasonableRange(j.salary_min, j.salary_max)) continue
     mins.push(j.salary_min)
     maxes.push(j.salary_max)
     midpoints.push((j.salary_min + j.salary_max) / 2)
   }
   if (mins.length < 3) return null // Don't surface aggregates from <3 data points
+  const sortedMins = [...mins].sort((a, c) => a - c)
+  const sortedMaxes = [...maxes].sort((a, c) => a - c)
+  const sortedMids = [...midpoints].sort((a, c) => a - c)
   return {
     label: 'overall',
     count: mins.length,
-    low: Math.min(...mins),
-    high: Math.max(...maxes),
-    avg: Math.round(midpoints.reduce((a, c) => a + c, 0) / midpoints.length),
+    low: Math.round(percentile(sortedMins, 0.1)),
+    high: Math.round(percentile(sortedMaxes, 0.9)),
+    avg: Math.round(percentile(sortedMids, 0.5)),
   }
 }
 

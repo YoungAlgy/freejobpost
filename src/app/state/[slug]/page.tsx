@@ -288,7 +288,7 @@ export default async function StateHubPage(
                 Typical {hub.name} healthcare salaries
               </h2>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                Based on {salaryOverall.count} active {hub.name} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Overall: {fmtUsdCompact(salaryOverall.low)}–{fmtUsdCompact(salaryOverall.high)} (avg {fmtUsdCompact(salaryOverall.avg)} per year).
+                Based on {salaryOverall.count} active {hub.name} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}–{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
               </p>
               {salaryByBucket.length > 0 && (
                 <div className="overflow-x-auto">
@@ -297,8 +297,8 @@ export default async function StateHubPage(
                       <tr>
                         <th scope="col" className="px-3 py-2 font-bold">Specialty / Role</th>
                         <th scope="col" className="px-3 py-2 font-bold text-right">Roles</th>
-                        <th scope="col" className="px-3 py-2 font-bold text-right">Range</th>
-                        <th scope="col" className="px-3 py-2 font-bold text-right">Avg</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Typical pay</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Median</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-black/10">
