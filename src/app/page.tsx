@@ -79,16 +79,16 @@ export default async function Home() {
     <main className="min-h-screen bg-white text-black">
       {/* Nav */}
       <nav className="border-b-2 border-black">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-xl tracking-tight">freejobpost<span className="text-green-700">.co</span></span>
-            <span className="text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">BETA</span>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 min-w-0">
+            <span className="font-black text-lg sm:text-xl tracking-tight">freejobpost<span className="text-green-700">.co</span></span>
+            <span className="text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5 shrink-0">BETA</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hover:text-green-700">Browse jobs</Link>
-            <Link href="/how-it-works" className="hover:text-green-700">How it works</Link>
-            <a href="https://www.freeresumepost.co" className="hover:text-green-700">For candidates</a>
-            <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors">
+          <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
+            <Link href="/jobs" className="hover:text-green-700 whitespace-nowrap">Browse</Link>
+            <Link href="/how-it-works" className="hidden md:inline hover:text-green-700">How it works</Link>
+            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">For candidates</a>
+            <Link href="/post-job" className="bg-black text-white px-3 md:px-4 py-2 font-bold hover:bg-green-700 transition-colors text-xs md:text-sm whitespace-nowrap">
               Post a job →
             </Link>
           </div>

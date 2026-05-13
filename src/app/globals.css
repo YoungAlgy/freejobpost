@@ -47,3 +47,15 @@ body {
 .job-content li {
   margin-bottom: 0.25rem;
 }
+
+/* Prevent iOS Safari's auto-zoom on focus.
+   iOS zooms into any input whose computed font-size is below 16px.
+   Force every form control to at least 16px on small viewports so
+   forms feel native on iPhones. Desktop styling is unaffected. */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

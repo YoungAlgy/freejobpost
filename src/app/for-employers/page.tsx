@@ -98,7 +98,7 @@ export default function ForEmployersPage() {
               BETA
             </span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium">
+          <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
             <Link href="/jobs" className="hover:text-green-700">Browse jobs</Link>
             <Link href="/how-it-works" className="hover:text-green-700">How it works</Link>
             <Link
