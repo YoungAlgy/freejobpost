@@ -24,7 +24,7 @@ export const ORG_PROFILE = {
   url: 'https://avahealth.co',
   logo: 'https://avahealth.co/logo.png',
   telephone: '+1-813-531-8049',
-  email: 'info@avahealth.co',
+  email: 'alex@avahealth.co',
   address: {
     '@type': 'PostalAddress',
     streetAddress: '4532 W Kennedy Blvd Suite 125',
@@ -38,7 +38,7 @@ export const ORG_PROFILE = {
       '@type': 'ContactPoint',
       contactType: 'customer service',
       telephone: '+1-813-531-8049',
-      email: 'info@avahealth.co',
+      email: 'alex@avahealth.co',
       areaServed: 'US',
       availableLanguage: 'English',
     },
