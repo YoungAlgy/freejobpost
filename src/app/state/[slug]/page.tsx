@@ -112,7 +112,11 @@ export default async function StateHubPage(
   const salaryByBucket = aggregateSalariesByGroup(
     jobs,
     (j) => {
-      const s = j.specialty?.trim() || j.role?.trim()
+      let s = j.specialty?.trim() || j.role?.trim() || ''
+      // Some seeded job rows bled the salary into the specialty field
+      // (e.g. "Interventional Pain Physician – $550K"). Strip any
+      // trailing dash + dollar-amount so the table label reads cleanly.
+      s = s.replace(/\s*[–\-]\s*\$[\d.,KMkm\s/-]+$/, '').trim()
       return s || null
     },
   )
