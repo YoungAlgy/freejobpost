@@ -1,0 +1,350 @@
+// /specialty/[slug]/[state] — specialty × state matrix page. The intersection
+// of two existing hubs ("Cardiology jobs in Florida"). Targets long-tail
+// "[specialty] jobs [state]" queries that beat both parent hubs in intent
+// specificity.
+//
+// Only cells with ≥5 active matching jobs are generated; thin combinations
+// 404 by design. As supply diversifies more states will light up.
+
+import Link from 'next/link'
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import {
+  JOB_LIST_FIELDS,
+  type PublicJob,
+  formatSalary,
+  employmentLabel,
+  remoteLabel,
+  locationLabel,
+} from '@/lib/public-jobs'
+import { getSpecialtyHub, SPECIALTY_HUBS } from '@/lib/specialty-slugs'
+import { getStateHub, STATE_HUBS } from '@/lib/state-slugs'
+import { computeViableCells } from '@/lib/specialty-state-matrix'
+import {
+  aggregateSalariesByGroup,
+  aggregateSalariesOverall,
+  fmtUsdCompact,
+} from '@/lib/salary-aggregates'
+import { stripSalarySuffix } from '@/lib/clean-labels'
+import { safeJsonLd } from '@/lib/safe-jsonld'
+
+export const revalidate = 600
+
+type Params = { slug: string; state: string }
+
+function buildHubOrFilter(matchPatterns: readonly string[]): string {
+  const orParts: string[] = []
+  for (const p of matchPatterns) {
+    const enc = encodeURIComponent(`*${p}*`)
+    orParts.push(`specialty.ilike.${enc}`, `title.ilike.${enc}`, `role.ilike.${enc}`)
+  }
+  return orParts.join(',')
+}
+
+export async function generateStaticParams(): Promise<Params[]> {
+  // One DB call, JS-side cell computation. ~425 active rows × 18 specialty
+  // hubs is trivial to crunch in memory; doing it in SQL would require
+  // serializing 18+ ILIKE pattern arrays.
+  const { data } = await supabase
+    .from('public_jobs')
+    .select('state, specialty, role, title')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .limit(2000)
+
+  const cells = computeViableCells(data ?? [])
+  return cells.map((c) => ({ slug: c.specialty.slug, state: c.state.slug }))
+}
+
+async function fetchCellJobs(matchPatterns: readonly string[], stateAbbr: string): Promise<PublicJob[]> {
+  const { data } = await supabase
+    .from('public_jobs')
+    .select(JOB_LIST_FIELDS)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .eq('state', stateAbbr)
+    .or(buildHubOrFilter(matchPatterns))
+    .order('created_at', { ascending: false })
+    .limit(200)
+  return (data ?? []) as PublicJob[]
+}
+
+export async function generateMetadata(
+  { params }: { params: Promise<Params> },
+): Promise<Metadata> {
+  const { slug, state } = await params
+  const specialty = getSpecialtyHub(slug)
+  const stateHub = getStateHub(state)
+  if (!specialty || !stateHub) return {}
+  const cleanTitle = specialty.title.replace(/ Jobs$/, '')
+  const title = `${cleanTitle} jobs in ${stateHub.name}`
+  const description = `Free ${cleanTitle.toLowerCase()} job listings in ${stateHub.name} — salary ranges, apply directly, no recruiter spam. Real openings on freejobpost.co.`
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `https://freejobpost.co/specialty/${specialty.slug}/${stateHub.slug}`,
+    },
+    openGraph: {
+      title: `${title} | freejobpost.co`,
+      description,
+      url: `https://freejobpost.co/specialty/${specialty.slug}/${stateHub.slug}`,
+      type: 'website',
+    },
+  }
+}
+
+export default async function SpecialtyStateMatrixPage(
+  { params }: { params: Promise<Params> },
+) {
+  const { slug, state } = await params
+  const specialty = getSpecialtyHub(slug)
+  const stateHub = getStateHub(state)
+  if (!specialty || !stateHub) notFound()
+
+  const jobs = await fetchCellJobs(specialty.matchPatterns, stateHub.abbr)
+  if (jobs.length === 0) notFound()
+
+  // Salary aggregates within this cell. Grouped by role/specialty (sub-cell
+  // breakdown) since state is already fixed.
+  const salaryOverall = aggregateSalariesOverall(jobs)
+  const salaryByBucket = aggregateSalariesByGroup(
+    jobs,
+    (j) => stripSalarySuffix(j.specialty || j.role) || null,
+  )
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
+
+  // Cities + specialty-role mix for context blocks
+  const cities = Array.from(
+    new Set(jobs.map((j) => j.city?.trim()).filter((c): c is string => !!c))
+  ).sort()
+
+  const cleanSpecialtyTitle = specialty.title.replace(/ Jobs$/, '')
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://freejobpost.co' },
+      { '@type': 'ListItem', position: 2, name: 'Specialties', item: 'https://freejobpost.co/specialty' },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: specialty.title,
+        item: `https://freejobpost.co/specialty/${specialty.slug}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 4,
+        name: stateHub.name,
+        item: `https://freejobpost.co/specialty/${specialty.slug}/${stateHub.slug}`,
+      },
+    ],
+  }
+
+  // Cross-link to other (specialty, state) cells: same specialty, different
+  // states first (more directly substitutable), then same state, different
+  // specialties. Build at render time from the live cell list.
+  const { data: peerData } = await supabase
+    .from('public_jobs')
+    .select('state, specialty, role, title')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .limit(2000)
+  const allCells = computeViableCells(peerData ?? [])
+  const sameSpecialtyOtherStates = allCells.filter(
+    (c) => c.specialty.slug === specialty.slug && c.state.slug !== stateHub.slug,
+  )
+  const sameStateOtherSpecialties = allCells.filter(
+    (c) => c.state.slug === stateHub.slug && c.specialty.slug !== specialty.slug,
+  )
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
+      <main className="min-h-screen bg-white text-black">
+        <nav className="border-b-2 border-black">
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <Link href="/" className="font-black text-xl tracking-tight">
+              freejobpost<span className="text-green-700">.co</span>
+            </Link>
+            <div className="flex items-center gap-6 text-sm font-medium">
+              <Link href="/jobs" className="hover:text-green-700">All jobs</Link>
+              <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+            </div>
+          </div>
+        </nav>
+
+        <article className="max-w-6xl mx-auto px-6 py-12">
+          <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
+            <Link href="/" className="hover:text-green-700">Home</Link>
+            {' / '}
+            <Link href="/specialty" className="hover:text-green-700">Specialties</Link>
+            {' / '}
+            <Link href={`/specialty/${specialty.slug}`} className="hover:text-green-700">{specialty.title}</Link>
+            {' / '}
+            <span className="text-black font-medium">{stateHub.name}</span>
+          </nav>
+
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
+            {cleanSpecialtyTitle} jobs in {stateHub.name}{' '}
+            <span className="text-green-700">— {jobs.length}</span>
+          </h1>
+          <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
+            {jobs.length} active {cleanSpecialtyTitle.toLowerCase()} role{jobs.length === 1 ? '' : 's'} in {stateHub.name} on freejobpost.co. Free to browse, free to apply, no recruiter spam — every listing has a real apply link going to the hiring employer.
+          </p>
+
+          {/* By-city linkbar */}
+          {cities.length > 1 && (
+            <div className="mb-8 flex flex-wrap gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-500 self-center mr-2">By city:</span>
+              {cities.map((c) => (
+                <span key={c} className="text-xs border border-black px-2 py-1">
+                  {c} ({jobs.filter((j) => j.city === c).length})
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Computed salary panel for this cell */}
+          {salaryOverall && (
+            <section className="mb-10 max-w-3xl">
+              <h2 className="text-2xl font-black tracking-tight mb-2">
+                {cleanSpecialtyTitle} salaries in {stateHub.name}
+              </h2>
+              <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                Based on {salaryOverall.count} active {cleanSpecialtyTitle.toLowerCase()} role{salaryOverall.count === 1 ? '' : 's'} in {stateHub.name} with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}–{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
+              </p>
+              {salaryByBucket.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-2 border-black">
+                    <thead className="bg-gray-100 text-left">
+                      <tr>
+                        <th scope="col" className="px-3 py-2 font-bold">Role / sub-specialty</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Roles</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Typical pay</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Median</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/10">
+                      {salaryByBucket.map((row) => (
+                        <tr key={row.label}>
+                          <td className="px-3 py-2">{row.label}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{row.count}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">
+                            {fmtUsdCompact(row.low)}&ndash;{fmtUsdCompact(row.high)}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums font-medium">
+                            {fmtUsdCompact(row.avg)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Job list */}
+          <ul className="border-t-2 border-black">
+            {jobs.map((j) => (
+              <li key={j.id} className="border-b border-black/10 py-5">
+                <Link href={`/jobs/${j.slug}`} className="group block">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">
+                        {stripSalarySuffix(j.title) || j.title}
+                      </h2>
+                      <p className="text-sm text-gray-700">
+                        {locationLabel(j)} · {employmentLabel(j.employment_type)}
+                        {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
+                        {j.specialty ? ` · ${stripSalarySuffix(j.specialty)}` : ''}
+                      </p>
+                    </div>
+                    {(j.salary_min || j.salary_max) && (
+                      <div className="text-sm font-bold whitespace-nowrap shrink-0">
+                        {formatSalary(j.salary_min, j.salary_max)}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Cross-links — same specialty in other states (peer cells) */}
+          {sameSpecialtyOtherStates.length > 0 && (
+            <section className="mt-16">
+              <h2 className="text-2xl font-black tracking-tight mb-4">
+                {cleanSpecialtyTitle} jobs in other states
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {sameSpecialtyOtherStates.map((c) => (
+                  <Link
+                    key={`${c.specialty.slug}|${c.state.slug}`}
+                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
+                    className="text-sm border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white font-medium"
+                  >
+                    {c.state.name} ({c.count})
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Cross-links — other specialties in this state */}
+          {sameStateOtherSpecialties.length > 0 && (
+            <section className="mt-12">
+              <h2 className="text-2xl font-black tracking-tight mb-4">
+                Other specialties hiring in {stateHub.name}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {sameStateOtherSpecialties.map((c) => (
+                  <Link
+                    key={`${c.specialty.slug}|${c.state.slug}`}
+                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
+                    className="text-sm border border-black/40 px-3 py-1.5 hover:bg-black hover:text-white"
+                  >
+                    {c.specialty.title.replace(/ Jobs$/, '')} ({c.count})
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Back-links to the parent hubs */}
+          <section className="mt-12 border-t-2 border-black pt-8 flex flex-wrap gap-4">
+            <Link
+              href={`/specialty/${specialty.slug}`}
+              className="text-sm font-bold hover:text-green-700"
+            >
+              ← All {cleanSpecialtyTitle} jobs (nationwide)
+            </Link>
+            <span className="text-gray-300">·</span>
+            <Link
+              href={`/state/${stateHub.slug}`}
+              className="text-sm font-bold hover:text-green-700"
+            >
+              ← All {stateHub.name} healthcare jobs
+            </Link>
+          </section>
+        </article>
+      </main>
+    </>
+  )
+}
+
+// Silence unused-import lint when STATE_HUBS / SPECIALTY_HUBS are only used
+// transitively via the matrix helper. Keeping them imported preserves the
+// reader's mental model of what data this page depends on.
+void STATE_HUBS
+void SPECIALTY_HUBS

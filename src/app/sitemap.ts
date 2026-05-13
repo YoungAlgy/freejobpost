@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { supabase } from '@/lib/supabase'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
+import { computeViableCells } from '@/lib/specialty-state-matrix'
 
 export const revalidate = 3600
 
@@ -79,6 +80,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
+  // Specialty × State matrix pages — only cells with ≥5 active matching jobs.
+  // Computed from the same per-cell join logic the page itself uses, so the
+  // sitemap stays in sync with what's actually 404-able vs viable.
+  const { data: matrixJobs } = await supabase
+    .from('public_jobs')
+    .select('state, specialty, role, title')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .limit(2000)
+  const matrixRoutes: MetadataRoute.Sitemap = computeViableCells(matrixJobs ?? []).map((c) => ({
+    url: `${base}/specialty/${c.specialty.slug}/${c.state.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'daily' as const,
+    priority: 0.75,
+  }))
+
   const jobRoutes: MetadataRoute.Sitemap = (jobsRes.data ?? []).map(
     (j: { slug: string; updated_at: string }) => ({
       url: `${base}/jobs/${j.slug}`,
@@ -110,5 +128,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.65,
     }))
 
-  return [...staticRoutes, ...specialtyRoutes, ...stateRoutes, ...jobRoutes, ...employerRoutes]
+  return [
+    ...staticRoutes,
+    ...specialtyRoutes,
+    ...stateRoutes,
+    ...matrixRoutes,
+    ...jobRoutes,
+    ...employerRoutes,
+  ]
 }
