@@ -43,7 +43,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: 'Florida Board of Nursing',
     nursingBoardUrl: 'https://floridasnursing.gov',
     nlcCompactStatus: 'compact',
-    editorialNote: 'Florida joined the Nurse Licensure Compact in January 2018, so multi-state RNs with a compact license can practice here without applying for endorsement — a meaningful advantage over CA, NY, and NV, which remain non-compact.',
+    editorialNote: "Florida has been a Nurse Licensure Compact state since January 2018. RNs with a multi-state compact license can work here without filing for FL endorsement — that's the 4-8 week wait you skip vs CA, NY, or NV.",
   },
   {
     slug: 'texas',
