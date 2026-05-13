@@ -86,6 +86,37 @@ export async function submitPostJob(
     auth: { persistSession: false },
   })
 
+  // Pre-flight quota check. The dashboard UI shows X/10 active and gates the
+  // "post a job" button client-side, but a scripted client could bypass it
+  // and exceed the 10-post cap on the free tier. This call enforces the
+  // same rule server-side via a small SECURITY DEFINER helper.
+  //
+  // The helper is added by `docs/quota-enforcement-migration.sql`. If it's
+  // not yet applied (or if the helper errors for any reason), we silently
+  // fall back to the existing UI-only enforcement — same as pre-migration
+  // behavior. After migration lands, this gate is real.
+  try {
+    const { data: q, error: qErr } = await sb.rpc('check_employer_quota', {
+      p_contact_email: normalized.contact_email,
+    })
+    if (!qErr && q) {
+      const quota = q as {
+        over_quota: boolean
+        active_count: number | null
+        quota: number | null
+        tier: string | null
+      }
+      if (quota.over_quota && quota.active_count != null && quota.quota != null) {
+        return {
+          success: false,
+          error: `You're at ${quota.active_count} of ${quota.quota} active posts on the free tier. Archive one before posting another, or email alex@avahealth.co and we'll uncap your account.`,
+        }
+      }
+    }
+  } catch {
+    // Helper RPC not yet deployed — fall back to UI-only enforcement.
+  }
+
   const { data, error } = await sb.rpc('submit_public_job_rpc', {
     p_contact_email: normalized.contact_email,
     p_contact_name: normalized.contact_name || null,
