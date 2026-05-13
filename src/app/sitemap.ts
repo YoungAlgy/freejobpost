@@ -7,48 +7,15 @@ export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = 'https://freejobpost.co'
-  // Use the sitemap's own revalidate boundary as the lastModified marker
-  // for static + hub routes. With revalidate=3600, Google sees the sitemap
-  // refresh hourly, which matches the actual ISR cadence on /jobs and the
-  // hub pages — gives crawlers an accurate freshness signal without
-  // requiring per-page change tracking.
-  const now = new Date()
 
-  // /employer is intentionally excluded from the sitemap — it's auth-gated
-  // (redirects to /employer/login when no session) and blocked by robots.txt.
-  // Listing it would just confuse crawlers.
-  // /employers (plural) is the public employer directory — included below.
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${base}/`, lastModified: now, changeFrequency: 'daily', priority: 1.0 },
-    { url: `${base}/jobs`, lastModified: now, changeFrequency: 'hourly', priority: 0.9 },
-    { url: `${base}/specialty`, lastModified: now, changeFrequency: 'daily', priority: 0.85 },
-    { url: `${base}/state`, lastModified: now, changeFrequency: 'daily', priority: 0.85 },
-    { url: `${base}/post-job`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${base}/pricing`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${base}/how-it-works`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${base}/for-employers`, lastModified: now, changeFrequency: 'monthly', priority: 0.65 },
-    { url: `${base}/employers`, lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
-    { url: `${base}/terms`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${base}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
-  ]
-
-  // Specialty hub pages — one per common healthcare specialty so each
-  // ranks for "[specialty] jobs" queries
-  const specialtyRoutes: MetadataRoute.Sitemap = SPECIALTY_HUBS.map((s) => ({
-    url: `${base}/specialty/${s.slug}`,
-    lastModified: now,
-    changeFrequency: 'daily' as const,
-    priority: 0.8,
-  }))
-
-  // State hub pages — one per top US state for healthcare-job density
-  const stateRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
-    url: `${base}/state/${s.slug}`,
-    lastModified: now,
-    changeFrequency: 'daily' as const,
-    priority: 0.8,
-  }))
-
+  // Pull job inventory once, ordered by updated_at DESC. We use the first row's
+  // updated_at as the lastmod signal for every route that aggregates the job
+  // table (homepage, /jobs, hub indexes, individual state/specialty hubs).
+  //
+  // Why not `new Date()`? Google's sitemap docs are explicit: if `lastmod`
+  // consistently lies (e.g. every URL shows "today" on every refresh), Google
+  // stops trusting all `lastmod` values from the host. Tying hub freshness to
+  // real underlying-data freshness keeps the signal honest.
   const [jobsRes, employersRes] = await Promise.all([
     supabase
       .from('public_jobs')
@@ -66,6 +33,51 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('slug, verified_via, company_name, verified_at')
       .not('verified_at', 'is', null),
   ])
+
+  const jobsData = (jobsRes.data ?? []) as { slug: string; updated_at: string }[]
+  const maxJobUpdate = jobsData[0]?.updated_at
+    ? new Date(jobsData[0].updated_at)
+    : new Date()
+
+  // /employer is intentionally excluded from the sitemap — it's auth-gated
+  // (redirects to /employer/login when no session) and blocked by robots.txt.
+  // /employers (plural) is the public employer directory — included below.
+  //
+  // Truly static routes (terms/privacy/post-job/pricing/how-it-works/for-employers)
+  // omit `lastModified`. Their content rarely changes; emitting a moving timestamp
+  // is the lie pattern we're avoiding.
+  // Aggregator routes (/, /jobs, /specialty, /state, /employers) carry maxJobUpdate
+  // because they all render slices of the job inventory.
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: `${base}/`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 1.0 },
+    { url: `${base}/jobs`, lastModified: maxJobUpdate, changeFrequency: 'hourly', priority: 0.9 },
+    { url: `${base}/specialty`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
+    { url: `${base}/state`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
+    { url: `${base}/employers`, lastModified: maxJobUpdate, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${base}/post-job`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${base}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/how-it-works`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/for-employers`, changeFrequency: 'monthly', priority: 0.65 },
+    { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+  ]
+
+  // Specialty hub pages — one per common healthcare specialty so each
+  // ranks for "[specialty] jobs" queries. lastmod tied to job-data freshness.
+  const specialtyRoutes: MetadataRoute.Sitemap = SPECIALTY_HUBS.map((s) => ({
+    url: `${base}/specialty/${s.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'daily' as const,
+    priority: 0.8,
+  }))
+
+  // State hub pages — one per top US state for healthcare-job density
+  const stateRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
+    url: `${base}/state/${s.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'daily' as const,
+    priority: 0.8,
+  }))
 
   const jobRoutes: MetadataRoute.Sitemap = (jobsRes.data ?? []).map(
     (j: { slug: string; updated_at: string }) => ({
