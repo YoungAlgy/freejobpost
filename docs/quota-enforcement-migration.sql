@@ -17,10 +17,14 @@
 --   server-side-of-app, with a small TOCTOU window that's acceptable at
 --   current scale (one in-flight submission per employer email).
 --
--- Apply via Chrome MCP → Supabase dashboard → SQL editor on project
--- `tsruqbodyrmxqzhvxret`. After this lands, the TypeScript code in
--- post-job/actions.ts (already deployed with graceful fallback) starts
--- actually enforcing the cap.
+-- APPLIED 2026-05-13 via Supabase MCP to project `tsruqbodyrmxqzhvxret`.
+-- Migration name on record: `check_employer_quota_helper_v2_correct_tables`.
+-- (v1 used `employers`/`jobs` table names which don't exist in this project —
+-- the correct base tables are `public_employers` and `public_jobs`. PL/pgSQL
+-- is late-bound so v1's CREATE OR REPLACE succeeded but errored at call.)
+--
+-- After this lands, the TypeScript code in post-job/actions.ts (deployed
+-- with graceful fallback) starts actually enforcing the cap.
 --
 -- Rollback: DROP FUNCTION public.check_employer_quota(text);
 --   The TS code will silently fall back to no-check (current behavior).
@@ -40,7 +44,7 @@ BEGIN
   -- post-job RPC normalizes contact_email to lowercase before insert, so
   -- this matches existing rows reliably.
   SELECT id, tier INTO v_employer
-  FROM employers
+  FROM public_employers
   WHERE lower(contact_email) = lower(p_contact_email)
   LIMIT 1;
 
@@ -70,7 +74,7 @@ BEGIN
   -- Matches the dashboard's active-filter (status IN ('active','pending_review')
   -- AND expires_at > now()). Cap is FREE_QUOTA = 10.
   SELECT count(*) INTO v_active_count
-  FROM jobs
+  FROM public_jobs
   WHERE employer_id = v_employer.id
     AND status IN ('active', 'pending_review')
     AND expires_at > now();
