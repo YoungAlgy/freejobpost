@@ -12,6 +12,7 @@ import {
   mapToSchemaEmploymentType,
 } from '@/lib/public-jobs'
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
+import { stripSalarySuffix } from '@/lib/clean-labels'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 type Props = { params: Promise<{ slug: string }> }
@@ -134,7 +135,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
   const loc = locationLabel(job)
-  const title = loc ? `${job.title} — ${loc}` : job.title
+  const cleanTitle = stripSalarySuffix(job.title) || job.title
+  const title = loc ? `${cleanTitle} — ${loc}` : cleanTitle
   const desc = (job.description || '')
     .replace(/\*\*/g, '')
     .replace(/\n+/g, ' ')
@@ -189,10 +191,16 @@ export default async function JobDetailPage({ params }: Props) {
   const datePosted = job.created_at?.split('T')[0]
   const validThrough = job.expires_at
 
+  // stripSalarySuffix on title — defense against seeded rows where salary
+  // or sign-on bonuses bled into the title field (e.g. "RN ICU - $18,900
+  // Hiring Incentives"). Per feedback_candidate_pitch_rules.md, sign-on
+  // bonus disclosure is banned. Description is left as-is — too risky to
+  // mutate the body text; the DB-side cleanup is the right fix for that.
+  const cleanJobTitle = stripSalarySuffix(job.title) || job.title
   const jobPostingJsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
-    title: job.title,
+    title: cleanJobTitle,
     description: job.description,
     datePosted,
     validThrough,
@@ -311,13 +319,13 @@ export default async function JobDetailPage({ params }: Props) {
               Jobs
             </Link>
             <span className="mx-2">/</span>
-            <span className="text-black">{job.title}</span>
+            <span className="text-black">{cleanJobTitle}</span>
           </nav>
 
           {/* Header card */}
           <div className="border-2 border-black p-6 md:p-8 mb-6">
             <h1 className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-3">
-              {job.title}
+              {cleanJobTitle}
             </h1>
             {loc && <p className="text-lg text-gray-700 mb-4">{loc}</p>}
 
@@ -477,7 +485,7 @@ export default async function JobDetailPage({ params }: Props) {
                         href={`/jobs/${r.slug}`}
                         className="grid grid-cols-12 gap-4 py-4 hover:bg-green-50 transition-colors"
                       >
-                        <div className="col-span-12 md:col-span-6 font-bold">{r.title}</div>
+                        <div className="col-span-12 md:col-span-6 font-bold">{stripSalarySuffix(r.title) || r.title}</div>
                         <div className="col-span-6 md:col-span-4 text-gray-700 text-sm self-center">
                           {rLoc || '—'}
                         </div>

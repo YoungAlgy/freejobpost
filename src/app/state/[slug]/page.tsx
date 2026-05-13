@@ -22,6 +22,7 @@ import {
   aggregateSalariesOverall,
   fmtUsdCompact,
 } from '@/lib/salary-aggregates'
+import { stripSalarySuffix } from '@/lib/clean-labels'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const revalidate = 600
@@ -111,14 +112,7 @@ export default async function StateHubPage(
   // Occupation / EstimatedSalary schema — see feedback_seo_dead_schemas).
   const salaryByBucket = aggregateSalariesByGroup(
     jobs,
-    (j) => {
-      let s = j.specialty?.trim() || j.role?.trim() || ''
-      // Some seeded job rows bled the salary into the specialty field
-      // (e.g. "Interventional Pain Physician – $550K"). Strip any
-      // trailing dash + dollar-amount so the table label reads cleanly.
-      s = s.replace(/\s*[–\-]\s*\$[\d.,KMkm\s/-]+$/, '').trim()
-      return s || null
-    },
+    (j) => stripSalarySuffix(j.specialty || j.role) || null,
   )
     .sort((a, b) => b.count - a.count)
     .slice(0, 8)
@@ -354,11 +348,11 @@ export default async function StateHubPage(
                   <Link href={`/jobs/${j.slug}`} className="group block">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">{j.title}</h2>
+                        <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
                         <p className="text-sm text-gray-700">
                           {locationLabel(j)} · {employmentLabel(j.employment_type)}
                           {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
-                          {j.specialty ? ` · ${j.specialty}` : ''}
+                          {j.specialty ? ` · ${stripSalarySuffix(j.specialty)}` : ''}
                         </p>
                       </div>
                       {(j.salary_min || j.salary_max) && (

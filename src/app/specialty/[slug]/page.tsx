@@ -22,6 +22,7 @@ import {
   aggregateSalariesOverall,
   fmtUsdCompact,
 } from '@/lib/salary-aggregates'
+import { stripSalarySuffix } from '@/lib/clean-labels'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
@@ -275,11 +276,11 @@ export default async function SpecialtyHubPage(
                   <Link href={`/jobs/${j.slug}`} className="group block">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">{j.title}</h2>
+                        <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
                         <p className="text-sm text-gray-700">
                           {locationLabel(j)} · {employmentLabel(j.employment_type)}
                           {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
-                          {j.specialty ? ` · ${j.specialty}` : ''}
+                          {j.specialty ? ` · ${stripSalarySuffix(j.specialty)}` : ''}
                         </p>
                       </div>
                       {(j.salary_min || j.salary_max) && (
