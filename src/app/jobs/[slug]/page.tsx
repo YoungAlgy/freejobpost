@@ -204,7 +204,11 @@ export default async function JobDetailPage({ params }: Props) {
     hiringOrganization: {
       '@type': 'Organization',
       name: employer.name,
-      sameAs: employer.isSeeded ? 'https://avahealth.co' : undefined,
+      ...(employer.isSeeded
+        ? { sameAs: 'https://avahealth.co', logo: 'https://avahealth.co/logo.png' }
+        : employer.slug
+        ? { sameAs: `https://freejobpost.co/employers/${employer.slug}` }
+        : {}),
     },
     jobLocation: {
       '@type': 'Place',
