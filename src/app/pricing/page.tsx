@@ -91,7 +91,7 @@ export default function PricingPage() {
           <Section
             q="What if I need more than 10 slots?"
             a={[
-              'Email hello@avahealth.co. We manually flip your account to uncapped. No credit card required during beta — we just need to know who we\u2019re working with.',
+              'Email alex@avahealth.co. We manually flip your account to uncapped. No credit card required during beta — we just need to know who we\u2019re working with.',
               'When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration + API + white-label. Grandfathered for anyone who signs up during beta.',
               'We built this to be cheaper than every alternative (~$29/mo vs Indeed\u2019s $3,000/mo typical for 10 sponsored roles), not to maximize revenue per customer. Our cost to serve you is a few pennies a month.',
             ]}
@@ -151,10 +151,10 @@ export default function PricingPage() {
           <p className="mt-6 text-sm text-gray-500">
             Questions? Email{' '}
             <a
-              href="mailto:hello@avahealth.co"
+              href="mailto:alex@avahealth.co"
               className="font-bold underline hover:text-green-700"
             >
-              hello@avahealth.co
+              alex@avahealth.co
             </a>
             .
           </p>
@@ -205,7 +205,7 @@ export default function PricingPage() {
                 name: 'What if I need more than 10 slots?',
                 acceptedAnswer: {
                   '@type': 'Answer',
-                  text: "Email hello@avahealth.co. We manually flip your account to uncapped. No credit card required during beta. When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration and API access.",
+                  text: "Email alex@avahealth.co. We manually flip your account to uncapped. No credit card required during beta. When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration and API access.",
                 },
               },
               {

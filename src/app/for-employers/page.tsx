@@ -48,7 +48,7 @@ const COST_ROWS = [
 const FAQ_ITEMS = [
   {
     q: 'Is it really free — no hidden upgrade tier?',
-    a: 'Yes. 10 active posts free, forever — see every applicant\'s full contact info immediately, repost expired roles at no cost. If you need more than 10 simultaneous active slots, email hello@avahealth.co and we\'ll uncap your account. If we ever add an optional "boost" feature it will be clearly labeled, never a paywall to see who applied.',
+    a: 'Yes. 10 active posts free, forever — see every applicant\'s full contact info immediately, repost expired roles at no cost. If you need more than 10 simultaneous active slots, email alex@avahealth.co and we\'ll uncap your account. If we ever add an optional "boost" feature it will be clearly labeled, never a paywall to see who applied.',
   },
   {
     q: 'How long does a job stay live?',
@@ -369,7 +369,7 @@ export default function ForEmployersPage() {
               Post a job free →
             </Link>
             <a
-              href="mailto:hello@avahealth.co?subject=freejobpost.co%20employer%20question"
+              href="mailto:alex@avahealth.co?subject=freejobpost.co%20employer%20question"
               className="inline-flex items-center justify-center border-2 border-white text-white px-8 py-5 text-lg font-bold hover:bg-white hover:text-black transition-colors"
             >
               Questions? Email us
