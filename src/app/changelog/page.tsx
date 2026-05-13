@@ -201,29 +201,44 @@ export default function ChangelogPage() {
                 {group.month}
               </h2>
               <ul className="space-y-7">
-                {group.entries.map((e) => (
-                  <li key={e.date + e.title} className="flex flex-col md:flex-row md:gap-6">
-                    <div className="md:w-24 shrink-0 mb-2 md:mb-0">
-                      <time
-                        dateTime={e.date}
-                        className="text-xs font-bold text-gray-500 tabular-nums tracking-wider"
-                      >
-                        {e.date}
-                      </time>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-3 mb-1.5 flex-wrap">
-                        <h3 className="text-lg font-black leading-tight tracking-tight">{e.title}</h3>
-                        <span
-                          className={`text-[10px] font-black tracking-wider uppercase px-2 py-0.5 ${TAG_STYLES[e.tag]}`}
+                {group.entries.map((e) => {
+                  const anchor = `${e.date}-${e.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`
+                  return (
+                    <li
+                      key={e.date + e.title}
+                      id={anchor}
+                      className="flex flex-col md:flex-row md:gap-6 scroll-mt-20 group"
+                    >
+                      <div className="md:w-24 shrink-0 mb-2 md:mb-0">
+                        <time
+                          dateTime={e.date}
+                          className="text-xs font-bold text-gray-500 tabular-nums tracking-wider"
                         >
-                          {e.tag}
-                        </span>
+                          {e.date}
+                        </time>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{e.body}</p>
-                    </div>
-                  </li>
-                ))}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-3 mb-1.5 flex-wrap">
+                          <h3 className="text-lg font-black leading-tight tracking-tight">
+                            <a
+                              href={`#${anchor}`}
+                              className="hover:text-green-700 focus:text-green-700"
+                              aria-label={`Permalink to ${e.title}`}
+                            >
+                              {e.title}
+                            </a>
+                          </h3>
+                          <span
+                            className={`text-[10px] font-black tracking-wider uppercase px-2 py-0.5 ${TAG_STYLES[e.tag]}`}
+                          >
+                            {e.tag}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed">{e.body}</p>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             </section>
           ))}
