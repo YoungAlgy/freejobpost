@@ -1,6 +1,18 @@
 // State hub pages — one per US state with the highest healthcare-job
 // density. Mirrors the specialty-hub pattern: each page ranks for
 // "[state] healthcare jobs" and similar long-tail queries.
+//
+// The optional editorial fields (nursingBoardName, nursingBoardUrl,
+// rnLicenseInitialFee, nlcCompactStatus, editorialNote) feed a per-state
+// licensing/market info block in /state/[slug]. They're optional so we can
+// populate state-by-state and ship as we verify the data. Hubs without the
+// fields gracefully omit the block.
+//
+// Adding state-specific data here is the post-March-2024-core-update defense:
+// scaled-content templates need ≥4 DB-populated unique data points per page
+// to avoid the "thin / duplicate template" classifier.
+
+export type NlcCompactStatus = 'compact' | 'pending' | 'none'
 
 export type StateHub = {
   slug: string
@@ -11,6 +23,12 @@ export type StateHub = {
   // Major employers / metros to mention in the page body for local relevance
   majorMetros: string[]
   topEmployers: string[]
+  // Optional editorial fields — populate per state when verified
+  nursingBoardName?: string         // e.g. "Florida Board of Nursing"
+  nursingBoardUrl?: string          // canonical URL of the BON
+  rnLicenseInitialFee?: number      // USD, by-exam initial RN fee
+  nlcCompactStatus?: NlcCompactStatus
+  editorialNote?: string            // one hand-written market-observation sentence
 }
 
 export const STATE_HUBS: StateHub[] = [
@@ -22,6 +40,10 @@ export const STATE_HUBS: StateHub[] = [
     shortDescription: "Florida healthcare openings spanning the state's top systems — Tampa Bay, Miami-Dade, Jacksonville, Orlando, and Southwest Florida (Naples / Fort Myers).",
     majorMetros: ['Tampa', 'Miami', 'Jacksonville', 'Orlando', 'Naples', 'Fort Myers', 'Tallahassee'],
     topEmployers: ['Tampa General', 'AdventHealth', 'NCH Healthcare System', 'Lee Health', 'Mayo Clinic Florida', 'Baptist Health South Florida', 'Memorial Healthcare System', 'University of Miami Health'],
+    nursingBoardName: 'Florida Board of Nursing',
+    nursingBoardUrl: 'https://floridasnursing.gov',
+    nlcCompactStatus: 'compact',
+    editorialNote: 'Florida joined the Nurse Licensure Compact in January 2018, so multi-state RNs with a compact license can practice here without applying for endorsement — a meaningful advantage over CA, NY, and NV, which remain non-compact.',
   },
   {
     slug: 'texas',

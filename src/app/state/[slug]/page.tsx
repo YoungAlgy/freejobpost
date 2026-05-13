@@ -148,9 +148,66 @@ export default async function StateHubPage(
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
             {hub.name} healthcare jobs <span className="text-green-700">— {jobs.length}</span>
           </h1>
-          <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
+          <p className="text-lg text-gray-700 leading-relaxed mb-8 max-w-3xl">
             {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers — every listing has a real apply link.
           </p>
+
+          {/* Licensing + market notes — per-state factual content. Renders only when
+              the editorial fields are populated on state-slugs.ts. Adds the unique
+              per-page data the post-March-2024 core update expects from templated
+              hubs (board name, NLC status, market sentence). NOT wrapped in
+              FAQPage / Occupation schema — those rich results are deprecated. */}
+          {(hub.nursingBoardName || hub.nlcCompactStatus || hub.editorialNote) && (
+            <aside
+              className="mb-10 border-l-4 border-green-700 bg-green-50/60 px-5 py-4 max-w-3xl"
+              aria-label={`Licensing and market notes for ${hub.name}`}
+            >
+              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
+                Licensing + market notes
+              </h2>
+              <ul className="text-sm text-gray-800 space-y-1.5">
+                {hub.nursingBoardName && (
+                  <li>
+                    <span className="font-semibold">Nursing board:</span>{' '}
+                    {hub.nursingBoardUrl ? (
+                      <a
+                        href={hub.nursingBoardUrl}
+                        className="underline hover:text-green-700"
+                        target="_blank"
+                        rel="noopener nofollow"
+                      >
+                        {hub.nursingBoardName}
+                      </a>
+                    ) : (
+                      hub.nursingBoardName
+                    )}
+                  </li>
+                )}
+                {hub.nlcCompactStatus && (
+                  <li>
+                    <span className="font-semibold">Nurse Licensure Compact:</span>{' '}
+                    {hub.nlcCompactStatus === 'compact' &&
+                      'Compact member — multi-state RN licenses are valid here.'}
+                    {hub.nlcCompactStatus === 'pending' &&
+                      'NLC implementation pending — check current status before relocating.'}
+                    {hub.nlcCompactStatus === 'none' &&
+                      'Not a compact state — RNs need a separate state license.'}
+                  </li>
+                )}
+                {typeof hub.rnLicenseInitialFee === 'number' && (
+                  <li>
+                    <span className="font-semibold">Initial RN license fee:</span>{' '}
+                    ${hub.rnLicenseInitialFee} (by examination)
+                  </li>
+                )}
+              </ul>
+              {hub.editorialNote && (
+                <p className="text-sm text-gray-700 leading-relaxed mt-3">
+                  {hub.editorialNote}
+                </p>
+              )}
+            </aside>
+          )}
 
           {/* Major metros — local relevance signal */}
           <div className="mb-8">
