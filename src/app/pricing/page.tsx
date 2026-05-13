@@ -176,67 +176,7 @@ export default function PricingPage() {
         }}
       />
 
-      {/* FAQPage schema — eligible for FAQ rich results in SERP */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: safeJsonLd({
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: [
-              {
-                '@type': 'Question',
-                name: 'What do I get for free?',
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: '10 active job posts at any given time. 60-day post duration (longer than Indeed organic). Every feature: apply-tracking dashboard, per-job view and apply counts, no paywall anywhere. Auto-syndication to Google for Jobs, Indeed organic feed, ZipRecruiter, Adzuna, and Jooble.',
-                },
-              },
-              {
-                '@type': 'Question',
-                name: "What does 'active' mean?",
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: "A post is active from the moment you verify your email until one of three things happens: it expires after 60 days, you archive it as filled, or you delete it. Archiving a filled role is a one-click action from your employer dashboard — it frees a slot instantly so you can post the next one.",
-                },
-              },
-              {
-                '@type': 'Question',
-                name: 'What if I need more than 10 slots?',
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: "Email alex@avahealth.co. We manually flip your account to uncapped. No credit card required during beta. When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration and API access.",
-                },
-              },
-              {
-                '@type': 'Question',
-                name: "Why gate it on 'verified healthcare org' at all?",
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: 'Because a totally-open free tier turns into a spam board overnight. The verification check runs automatically against your email domain and company name. About 95% of real clinics verify in seconds. Edge cases go to a 1-day manual review by our team. No paperwork, no fax forms, no sales call.',
-                },
-              },
-              {
-                '@type': 'Question',
-                name: "What's the catch?",
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: "No catch. This product exists because Indeed eliminated free organic visibility on March 31, 2026. We're sustained by the Ava Health recruiting business — this board is top-of-funnel for that. Even if zero people ever upgrade, the platform pays for itself in candidate flow.",
-                },
-              },
-              {
-                '@type': 'Question',
-                name: 'How does this compare to what we pay now?',
-                acceptedAnswer: {
-                  '@type': 'Answer',
-                  text: 'For a 10-role healthcare org, typical annual spend: Health eCareers $4,990/yr, LinkedIn Recruiter Corporate $14,000+, Indeed sponsored $36,000+, ZipRecruiter $60,000+. freejobpost.co: $0 at 10 concurrent, $290/yr if you need unlimited posts.',
-                },
-              },
-            ],
-          }),
-        }}
-      />
-    </main>
+</main>
   )
 }
 

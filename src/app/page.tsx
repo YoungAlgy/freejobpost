@@ -357,25 +357,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FAQPage JSON-LD — eligible for FAQ rich results in SERP */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: safeJsonLd({
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: [
-              { '@type': 'Question', name: 'Is freejobpost.co really free?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. No paywall, no per-applicant fee, no "sponsored" auction. We make money downstream when a placement converts on the matching engine — the job-posting side stays free forever.' } },
-              { '@type': 'Question', name: 'How long does a job stay live?', acceptedAnswer: { '@type': 'Answer', text: '60 days by default. You can repost any expired job in one click. Filled roles can be marked "closed" manually.' } },
-              { '@type': 'Question', name: 'Where else does my job get distributed?', acceptedAnswer: { '@type': 'Answer', text: 'When you check the syndication boxes during posting, your listing gets JobPosting JSON-LD for Google for Jobs plus XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings via crawl — no extra step needed. Active feed partners ingest within a few hours.' } },
-              { '@type': 'Question', name: "Who's applying — real people or bots?", acceptedAnswer: { '@type': 'Answer', text: "Real candidates. They either apply directly from the listing, or come through the freeresumepost.co matching engine — where they've uploaded their own resume. We don't scrape profiles or auto-apply." } },
-              { '@type': 'Question', name: 'Do you charge for unlocking an applicant?', acceptedAnswer: { '@type': 'Answer', text: 'No. When a candidate applies, you get their full contact info immediately. No paywall, no "contact unlock" fees, no upgrade prompts.' } },
-              { '@type': 'Question', name: 'What healthcare roles can I post?', acceptedAnswer: { '@type': 'Answer', text: 'Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing.' } },
-              { '@type': 'Question', name: 'How do candidates find my job?', acceptedAnswer: { '@type': 'Answer', text: 'Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, ZipRecruiter, etc.) — so your listing gets search visibility, direct candidate notification, and aggregator reach without any extra steps.' } },
-            ],
-          }),
-        }}
-      />
-    </main>
+</main>
   )
 }
