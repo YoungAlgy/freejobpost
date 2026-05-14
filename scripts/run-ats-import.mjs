@@ -312,7 +312,22 @@ async function fetchWorkday(cfg, existingRefs) {
     })
   }
   console.log(`    enriched(new)=${enriched}  shallow(existing)=${shallow}`)
-  return { fetched: all.length, jobs: out }
+  // Dedupe by external_ref — Workday occasionally returns the same job under
+  // multiple listing rows (e.g. when locationsText = "2 Locations" the API
+  // may emit duplicate jobPostings). Postgres ON CONFLICT can't update the
+  // same row twice within one statement, so any duplicate in a chunk poisons
+  // the whole chunk.
+  const seen = new Set()
+  const deduped = []
+  for (const job of out) {
+    if (seen.has(job.external_ref)) continue
+    seen.add(job.external_ref)
+    deduped.push(job)
+  }
+  if (deduped.length !== out.length) {
+    console.log(`    deduped ${out.length - deduped.length} duplicate external_refs`)
+  }
+  return { fetched: all.length, jobs: deduped }
 }
 
 async function fetchLever(slug) {
