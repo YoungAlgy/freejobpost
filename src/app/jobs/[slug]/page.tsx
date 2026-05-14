@@ -99,8 +99,11 @@ async function resolveEmployer(employerId: string | null | undefined): Promise<{
   // Match "Ava Health Partners", "Ava Health Partners LLC", "Ava Health Partners — Seeded Roles", etc.
   const isSeeded = /^ava health partners\b/i.test(name)
   const full = row as EmployerFull | null
-  // Provide a slug link only for real verified non-seeded employers
-  const slug = (!isSeeded && full?.slug && full?.verified_via !== 'seeded') ? full.slug : null
+  // Provide a slug link only for real verified non-seeded, non-ATS-import
+  // employers. ATS imports (verified_via='ats_import') don't have a public
+  // employer landing page; their job-detail page links straight to the
+  // employer's own apply URL.
+  const slug = (!isSeeded && full?.slug && full?.verified_via !== 'seeded' && full?.verified_via !== 'ats_import') ? full.slug : null
   return { name, isSeeded, verifiedAt: row?.verified_at ?? null, slug }
 }
 

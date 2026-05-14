@@ -44,13 +44,14 @@ export default async function JobsIndexPage() {
       .from('public_employers_directory')
       .select('id')
       .not('verified_at', 'is', null)
-      // Exclude seeded Ava inventory — "verified" filter should only surface
-      // real third-party employers who confirmed via domain email, not the
-      // staffing firm that seeds inventory during cold-start. Without this
-      // filter, the "VERIFIED ONLY" pill and green checkmarks appear on seeded
-      // jobs, implying a trust signal that doesn't apply (S7 honesty standard).
+      // Exclude seeded Ava inventory + ATS imports — "verified" should only
+      // mean a real third-party employer confirmed via domain email. Seeded
+      // jobs are placeholders during cold-start; ATS imports are Greenhouse/
+      // Lever public-feed pulls where we don't have an employer relationship.
+      // Without these filters, the "VERIFIED ONLY" pill + green checks would
+      // appear on jobs that don't carry that trust signal (S7 honesty).
       // company_name guard is defence-in-depth in case verified_via gets reset.
-      .neq('verified_via', 'seeded')
+      .not('verified_via', 'in', '(seeded,ats_import)')
       .not('company_name', 'ilike', 'Ava Health%'),
   ])
 

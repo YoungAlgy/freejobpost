@@ -117,7 +117,10 @@ async function loadSession(): Promise<{
   let publicSlug: string | null = null
   if (slugResult.status === 'fulfilled') {
     const row = slugResult.value.data as { slug: string | null; verified_via: string | null } | null
-    if (row?.slug && row.verified_via !== 'seeded') {
+    // Don't link to a public employer page for seeded or ATS-imported employers
+    // (the latter never reaches this code path in practice — they have no login —
+    // but the filter is defensive against future changes).
+    if (row?.slug && row.verified_via !== 'seeded' && row.verified_via !== 'ats_import') {
       publicSlug = row.slug
     }
   }

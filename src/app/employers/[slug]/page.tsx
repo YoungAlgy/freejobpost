@@ -55,8 +55,13 @@ async function getEmployer(slug: string): Promise<EmployerRow | null> {
     .maybeSingle()
   const row = data as EmployerRow | null
   if (!row) return null
-  // Exclude Ava-seeded inventory — those don't get a public employer page
+  // Exclude Ava-seeded inventory — those don't get a public employer page.
+  // Also exclude ATS-imported employers (Greenhouse / Lever public-board feeds):
+  // their jobs are legitimate but we don't have a relationship with the
+  // employer, so we shouldn't render an Ava-branded "About Oscar Health"
+  // landing page. Visitors who click an Oscar job land directly on oscar.com.
   if (row.verified_via === 'seeded') return null
+  if (row.verified_via === 'ats_import') return null
   if (/^ava health partners\b/i.test(row.company_name)) return null
   return row
 }
@@ -90,6 +95,7 @@ export async function generateStaticParams() {
       (r) =>
         r.slug &&
         r.verified_via !== 'seeded' &&
+        r.verified_via !== 'ats_import' &&
         !/^ava health partners\b/i.test(r.company_name)
     )
     .map((r) => ({ slug: r.slug }))

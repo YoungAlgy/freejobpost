@@ -7,24 +7,29 @@
 
 export function htmlToText(html: string): string {
   if (!html) return ''
-  let s = html
 
-  // Decode common entities
-  s = s
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&rsquo;/g, '’')
-    .replace(/&lsquo;/g, '‘')
-    .replace(/&rdquo;/g, '”')
-    .replace(/&ldquo;/g, '“')
-    .replace(/&hellip;/g, '…')
-    .replace(/&mdash;/g, '—')
-    .replace(/&ndash;/g, '–')
+  // Run TWO decode passes so double-encoded entities like &amp;nbsp; resolve
+  // correctly (Greenhouse content blobs occasionally have these). Decode &amp;
+  // FIRST in each pass so it doesn't strand the inner entity behind a &amp;
+  // prefix.
+  const decodeOnce = (str: string): string =>
+    str
+      .replace(/&amp;/g, '&')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/&rsquo;/g, '’')
+      .replace(/&lsquo;/g, '‘')
+      .replace(/&rdquo;/g, '”')
+      .replace(/&ldquo;/g, '“')
+      .replace(/&hellip;/g, '…')
+      .replace(/&mdash;/g, '—')
+      .replace(/&ndash;/g, '–')
+
+  let s = decodeOnce(decodeOnce(html))
 
   // Block tags → newline; list items → "• " prefix
   s = s

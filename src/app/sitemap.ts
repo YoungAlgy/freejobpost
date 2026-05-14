@@ -115,6 +115,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       (e) =>
         e.slug &&
         e.verified_via !== 'seeded' &&
+        e.verified_via !== 'ats_import' &&
         !/^ava health partners\b/i.test(e.company_name)
     )
     .map((e) => ({

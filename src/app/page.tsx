@@ -58,16 +58,16 @@ export default async function Home() {
       .is('deleted_at', null)
       .gt('expires_at', new Date().toISOString())
       .gte('created_at', sevenDaysAgo),
-    // Exclude seeded inventory (verified_via = 'seeded') AND any Ava entity
-    // so the count reflects real third-party employers only. The badge only
-    // shows when > 0 so during cold-start it stays hidden.
-    // Note: verified_via was fixed to 'seeded' for both Ava rows in migration
-    // 20260508080000, but the company_name guard adds defence-in-depth.
+    // Exclude seeded inventory + ATS-imported employers (Greenhouse/Lever
+    // public-feed pulls — we don't have an employer relationship) + any Ava
+    // entity so the count reflects only employers who confirmed via domain
+    // email. The badge only shows when > 0 so during cold-start it stays
+    // hidden. company_name guard adds defence-in-depth.
     supabase
       .from('public_employers_directory')
       .select('id', { count: 'exact', head: true })
       .not('verified_at', 'is', null)
-      .neq('verified_via', 'seeded')
+      .not('verified_via', 'in', '(seeded,ats_import)')
       .not('company_name', 'ilike', 'Ava Health%'),
   ])
   const liveCount = countRes.count ?? 0

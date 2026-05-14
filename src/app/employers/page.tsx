@@ -43,9 +43,16 @@ export default async function EmployersPage() {
     .order('company_name')
 
   const allRows = (data ?? []) as EmployerRow[]
-  // Exclude Ava-seeded inventory
+  // Exclude Ava-seeded inventory + ATS-imported employers. The latter have
+  // legitimate jobs (Oscar, Lyra, etc.) on our site, but we don't have a
+  // verified business relationship with them — their jobs are sourced from
+  // the public Greenhouse/Lever board APIs. Keeping them out of the directory
+  // prevents the appearance of an Ava-branded company page for Oscar Health.
   const employers = allRows.filter(
-    (r) => r.verified_via !== 'seeded' && !/^ava health partners\b/i.test(r.company_name)
+    (r) =>
+      r.verified_via !== 'seeded' &&
+      r.verified_via !== 'ats_import' &&
+      !/^ava health partners\b/i.test(r.company_name)
   )
 
   // For each employer, get their active job count
