@@ -211,8 +211,11 @@ async function fetchLever(slug) {
 
 // ── Seed boards (mirror of src/lib/ats-import/seed-boards.ts) ─────────
 const SEED_BOARDS = [
-  { provider: 'greenhouse', boardSlug: 'oscar',      companyName: 'Oscar Health', companyUrl: 'https://www.hioscar.com',      employerSlug: 'oscar-health' },
-  { provider: 'lever',      boardSlug: 'lyrahealth', companyName: 'Lyra Health',  companyUrl: 'https://www.lyrahealth.com',   employerSlug: 'lyra-health'  },
+  { provider: 'greenhouse', boardSlug: 'oscar',         companyName: 'Oscar Health',   companyUrl: 'https://www.hioscar.com',       employerSlug: 'oscar-health'    },
+  { provider: 'greenhouse', boardSlug: 'onemedical',    companyName: 'One Medical',    companyUrl: 'https://www.onemedical.com',    employerSlug: 'one-medical'     },
+  { provider: 'greenhouse', boardSlug: 'tia',           companyName: 'Tia',            companyUrl: 'https://www.asktia.com',         employerSlug: 'tia'             },
+  { provider: 'greenhouse', boardSlug: 'bicyclehealth', companyName: 'Bicycle Health', companyUrl: 'https://www.bicyclehealth.com', employerSlug: 'bicycle-health'  },
+  { provider: 'lever',      boardSlug: 'lyrahealth',    companyName: 'Lyra Health',    companyUrl: 'https://www.lyrahealth.com',    employerSlug: 'lyra-health'     },
 ]
 
 // ── Main loop ─────────────────────────────────────────────────────────

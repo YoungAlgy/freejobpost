@@ -21,6 +21,27 @@ export const SEED_BOARDS: BoardConfig[] = [
     employerSlug: 'oscar-health',
   },
   {
+    provider: 'greenhouse',
+    boardSlug: 'onemedical',
+    companyName: 'One Medical',
+    companyUrl: 'https://www.onemedical.com',
+    employerSlug: 'one-medical',
+  },
+  {
+    provider: 'greenhouse',
+    boardSlug: 'tia',
+    companyName: 'Tia',
+    companyUrl: 'https://www.asktia.com',
+    employerSlug: 'tia',
+  },
+  {
+    provider: 'greenhouse',
+    boardSlug: 'bicyclehealth',
+    companyName: 'Bicycle Health',
+    companyUrl: 'https://www.bicyclehealth.com',
+    employerSlug: 'bicycle-health',
+  },
+  {
     provider: 'lever',
     boardSlug: 'lyrahealth',
     companyName: 'Lyra Health',
