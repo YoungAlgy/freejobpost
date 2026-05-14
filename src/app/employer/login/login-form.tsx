@@ -56,6 +56,8 @@ export default function LoginForm() {
           type="email"
           required
           autoFocus
+          autoComplete="email"
+          inputMode="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           maxLength={254}

@@ -398,6 +398,8 @@ export default function PostJobForm() {
           <Field label="External apply URL (optional)" hint="If you have your own apply flow">
             <input
               type="url"
+              autoComplete="url"
+              inputMode="url"
               value={values.apply_url}
               onChange={(e) => update('apply_url', e.target.value)}
               placeholder="https://careers.yourcompany.com/apply/abc123"
@@ -413,6 +415,7 @@ export default function PostJobForm() {
           <Field label="Company name" required>
             <input
               type="text"
+              autoComplete="organization"
               value={values.company_name}
               onChange={(e) => update('company_name', e.target.value)}
               placeholder="Sunshine Medical Group"
@@ -423,6 +426,8 @@ export default function PostJobForm() {
           <Field label="Company website (optional)">
             <input
               type="url"
+              autoComplete="url"
+              inputMode="url"
               value={values.company_url}
               onChange={(e) => update('company_url', e.target.value)}
               placeholder="https://sunshinemedical.com"
@@ -433,6 +438,7 @@ export default function PostJobForm() {
           <Field label="Your name" hint="Who we email the verify link to">
             <input
               type="text"
+              autoComplete="name"
               value={values.contact_name}
               onChange={(e) => update('contact_name', e.target.value)}
               placeholder="Dr. Maya Chen"
@@ -443,6 +449,8 @@ export default function PostJobForm() {
           <Field label="Your email" required hint="We'll send you a one-click verify link">
             <input
               type="email"
+              autoComplete="email"
+              inputMode="email"
               value={values.contact_email}
               onChange={(e) => update('contact_email', e.target.value)}
               placeholder="maya@sunshinemedical.com"

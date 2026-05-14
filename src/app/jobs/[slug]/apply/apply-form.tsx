@@ -102,6 +102,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
           <input
             type="text"
             required
+            autoComplete="given-name"
             value={values.first_name}
             onChange={(e) => setValues({ ...values, first_name: e.target.value })}
             maxLength={100}
@@ -112,6 +113,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
           <input
             type="text"
             required
+            autoComplete="family-name"
             value={values.last_name}
             onChange={(e) => setValues({ ...values, last_name: e.target.value })}
             maxLength={100}
@@ -124,6 +126,8 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
         <input
           type="email"
           required
+          autoComplete="email"
+          inputMode="email"
           value={values.email}
           onChange={(e) => setValues({ ...values, email: e.target.value })}
           maxLength={254}
@@ -134,6 +138,8 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
       <Field label="Phone" hint="Optional">
         <input
           type="tel"
+          autoComplete="tel"
+          inputMode="tel"
           value={values.phone}
           onChange={(e) => setValues({ ...values, phone: e.target.value })}
           maxLength={30}
@@ -144,6 +150,8 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
       <Field label="Resume URL" hint="Optional · link to your PDF on Dropbox, Drive, etc.">
         <input
           type="url"
+          autoComplete="url"
+          inputMode="url"
           value={values.resume_url}
           onChange={(e) => setValues({ ...values, resume_url: e.target.value })}
           maxLength={500}
