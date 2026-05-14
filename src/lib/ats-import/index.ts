@@ -11,6 +11,7 @@
 import type { AtsProvider, ImportResult } from './types'
 import { fetchGreenhouseBoard } from './greenhouse'
 import { fetchLeverBoard } from './lever'
+import { fetchAshbyBoard } from './ashby'
 
 export async function importAtsBoard(
   provider: AtsProvider,
@@ -18,6 +19,7 @@ export async function importAtsBoard(
 ): Promise<ImportResult> {
   if (provider === 'greenhouse') return fetchGreenhouseBoard(boardSlug)
   if (provider === 'lever') return fetchLeverBoard(boardSlug)
+  if (provider === 'ashby') return fetchAshbyBoard(boardSlug)
   throw new Error(`Unsupported ATS provider: ${provider}`)
 }
 

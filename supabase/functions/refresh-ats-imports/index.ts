@@ -15,7 +15,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 // ── Seed boards (mirror of src/lib/ats-import/seed-boards.ts) ───────────────
 interface BoardConfig {
-  provider: 'greenhouse' | 'lever'
+  provider: 'greenhouse' | 'lever' | 'ashby'
   boardSlug: string
   companyName: string
   companyUrl: string
@@ -27,6 +27,8 @@ const SEED_BOARDS: BoardConfig[] = [
   { provider: 'greenhouse', boardSlug: 'tia',           companyName: 'Tia',            companyUrl: 'https://www.asktia.com',         employerSlug: 'tia'             },
   { provider: 'greenhouse', boardSlug: 'bicyclehealth', companyName: 'Bicycle Health', companyUrl: 'https://www.bicyclehealth.com', employerSlug: 'bicycle-health'  },
   { provider: 'lever',      boardSlug: 'lyrahealth',    companyName: 'Lyra Health',    companyUrl: 'https://www.lyrahealth.com',    employerSlug: 'lyra-health'     },
+  { provider: 'ashby',      boardSlug: 'talkiatry',     companyName: 'Talkiatry',      companyUrl: 'https://www.talkiatry.com',     employerSlug: 'talkiatry'       },
+  { provider: 'ashby',      boardSlug: 'headway',       companyName: 'Headway',        companyUrl: 'https://www.headway.co',        employerSlug: 'headway'         },
 ]
 
 // ── Filters ─────────────────────────────────────────────────────────────────
@@ -120,7 +122,11 @@ function htmlToText(html: string): string {
 
 function buildAtsSlug(title: string, provider: string, externalId: string): string {
   const ts = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80).replace(/-+$/, '')
-  const id = provider === 'greenhouse' ? `gh-${externalId}` : `lv-${String(externalId).slice(0, 8)}`
+  const id = provider === 'greenhouse'
+    ? `gh-${externalId}`
+    : provider === 'ashby'
+      ? `ab-${String(externalId).slice(0, 8)}`
+      : `lv-${String(externalId).slice(0, 8)}`
   return `${ts || 'job'}-${id}`
 }
 
@@ -163,6 +169,46 @@ async function fetchGreenhouse(token: string): Promise<{ fetched: number; jobs: 
       salary_min: null, salary_max: null,
       source: `greenhouse:${token}`,
       external_ref: `greenhouse:${token}:${j.id}`,
+    })
+  }
+  return { fetched: raw.length, jobs: out }
+}
+
+async function fetchAshby(slug: string): Promise<{ fetched: number; jobs: NormalizedJob[] }> {
+  const url = `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(slug)}`
+  const res = await fetch(url, { headers: { Accept: 'application/json' } })
+  if (!res.ok) throw new Error(`Ashby ${slug}: ${res.status}`)
+  const body = await res.json() as { jobs?: Array<{
+    id: string; title: string; department?: string; team?: string;
+    employmentType?: string; location?: string; isRemote?: boolean;
+    workplaceType?: string;
+    address?: { postalAddress?: { addressLocality?: string; addressRegion?: string } };
+    jobUrl?: string; applyUrl?: string;
+    descriptionHtml?: string; descriptionPlain?: string;
+  }> }
+  const raw = body.jobs ?? []
+  const out: NormalizedJob[] = []
+  const empMap: Record<string, string> = { FullTime: 'full_time', PartTime: 'part_time', Contract: 'contract', Contractor: 'contract', Intern: 'internship' }
+  for (const j of raw) {
+    const dept = j.department ?? j.team ?? null
+    if (!isHc(j.title, dept)) continue
+    const region = j.address?.postalAddress?.addressRegion
+    const locality = j.address?.postalAddress?.addressLocality
+    const locInput = region ? (locality ? `${locality}, ${region}` : region) : j.location ?? ''
+    const loc = parseUsLocation(locInput)
+    if (!loc.us) continue
+    const isRemote = loc.remote || j.isRemote === true || j.workplaceType === 'Remote'
+    const remote_hybrid = isRemote ? 'remote' : j.workplaceType === 'Hybrid' ? 'hybrid' : 'onsite'
+    out.push({
+      slug: buildAtsSlug(j.title, 'ashby', j.id),
+      title: j.title,
+      description: j.descriptionPlain || (j.descriptionHtml ? htmlToText(j.descriptionHtml) : ''),
+      apply_url: j.applyUrl ?? j.jobUrl ?? `https://jobs.ashbyhq.com/${slug}/${j.id}`,
+      city: loc.city, state: loc.state, remote_hybrid,
+      employment_type: empMap[j.employmentType ?? 'FullTime'] ?? 'full_time',
+      salary_min: null, salary_max: null,
+      source: `ashby:${slug}`,
+      external_ref: `ashby:${slug}:${j.id}`,
     })
   }
   return { fetched: raw.length, jobs: out }
@@ -235,7 +281,9 @@ Deno.serve(async (_req: Request) => {
     try {
       const r = cfg.provider === 'greenhouse'
         ? await fetchGreenhouse(cfg.boardSlug)
-        : await fetchLever(cfg.boardSlug)
+        : cfg.provider === 'ashby'
+          ? await fetchAshby(cfg.boardSlug)
+          : await fetchLever(cfg.boardSlug)
       boardSummary.fetched = r.fetched
       boardSummary.kept = r.jobs.length
       grandFetched += r.fetched

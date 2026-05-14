@@ -25,7 +25,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ExternalJob, ImportResult } from './types'
 
 export interface BoardConfig {
-  provider: 'greenhouse' | 'lever'
+  provider: 'greenhouse' | 'lever' | 'ashby'
   /** Board token (e.g. 'oscar' for boards.greenhouse.io/oscar) */
   boardSlug: string
   /** Display name for the employer row (e.g. "Oscar Health") */
@@ -52,7 +52,7 @@ export interface WriteResult {
  * thing. For Lever, it's a 36-char UUID — first 8 chars is enough entropy
  * given we also include the title slug.
  */
-function buildAtsSlug(job: ExternalJob, provider: 'greenhouse' | 'lever'): string {
+function buildAtsSlug(job: ExternalJob, provider: 'greenhouse' | 'lever' | 'ashby'): string {
   const titleSlug = job.title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -63,7 +63,9 @@ function buildAtsSlug(job: ExternalJob, provider: 'greenhouse' | 'lever'): strin
   const idPart =
     provider === 'greenhouse'
       ? `gh-${job.external_id}`
-      : `lv-${job.external_id.slice(0, 8)}`
+      : provider === 'ashby'
+        ? `ab-${job.external_id.slice(0, 8)}`
+        : `lv-${job.external_id.slice(0, 8)}`
 
   return `${titleSlug || 'job'}-${idPart}`
 }
@@ -144,7 +146,7 @@ interface JobUpsertRow {
 function buildJobRow(
   job: ExternalJob,
   employerId: string,
-  provider: 'greenhouse' | 'lever',
+  provider: 'greenhouse' | 'lever' | 'ashby',
 ): JobUpsertRow {
   return {
     employer_id: employerId,

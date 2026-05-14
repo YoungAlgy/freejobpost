@@ -48,4 +48,18 @@ export const SEED_BOARDS: BoardConfig[] = [
     companyUrl: 'https://www.lyrahealth.com',
     employerSlug: 'lyra-health',
   },
+  {
+    provider: 'ashby',
+    boardSlug: 'talkiatry',
+    companyName: 'Talkiatry',
+    companyUrl: 'https://www.talkiatry.com',
+    employerSlug: 'talkiatry',
+  },
+  {
+    provider: 'ashby',
+    boardSlug: 'headway',
+    companyName: 'Headway',
+    companyUrl: 'https://www.headway.co',
+    employerSlug: 'headway',
+  },
 ]

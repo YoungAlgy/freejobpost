@@ -135,7 +135,11 @@ function htmlToText(html) {
 
 function buildAtsSlug(title, provider, externalId) {
   const ts = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80).replace(/-+$/, '')
-  const id = provider === 'greenhouse' ? `gh-${externalId}` : `lv-${String(externalId).slice(0, 8)}`
+  const id = provider === 'greenhouse'
+    ? `gh-${externalId}`
+    : provider === 'ashby'
+      ? `ab-${String(externalId).slice(0, 8)}`
+      : `lv-${String(externalId).slice(0, 8)}`
   return `${ts || 'job'}-${id}`
 }
 
@@ -170,6 +174,39 @@ async function fetchGreenhouse(token) {
       salary_min: null, salary_max: null,
       source: `greenhouse:${token}`,
       external_ref: `greenhouse:${token}:${j.id}`,
+    })
+  }
+  return { fetched: raw.length, jobs: out }
+}
+
+async function fetchAshby(slug) {
+  const url = `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(slug)}`
+  const res = await fetch(url, { headers: { Accept: 'application/json' } })
+  if (!res.ok) throw new Error(`Ashby ${slug}: ${res.status}`)
+  const { jobs: raw = [] } = await res.json()
+  const out = []
+  for (const j of raw) {
+    const dept = j.department ?? j.team ?? null
+    if (!isHc(j.title, dept)) continue
+    const region = j.address?.postalAddress?.addressRegion
+    const locality = j.address?.postalAddress?.addressLocality
+    const locInput = region ? (locality ? `${locality}, ${region}` : region) : j.location ?? ''
+    const loc = parseUsLocation(locInput)
+    if (!loc.us) continue
+    const isRemote = loc.remote || j.isRemote === true || j.workplaceType === 'Remote'
+    const remote = isRemote ? 'remote' : j.workplaceType === 'Hybrid' ? 'hybrid' : 'onsite'
+    const empMap = { FullTime: 'full_time', PartTime: 'part_time', Contract: 'contract', Contractor: 'contract', Intern: 'internship' }
+    out.push({
+      slug: buildAtsSlug(j.title, 'ashby', j.id),
+      title: j.title,
+      description: j.descriptionPlain || (j.descriptionHtml ? htmlToText(j.descriptionHtml) : ''),
+      apply_url: j.applyUrl ?? j.jobUrl ?? `https://jobs.ashbyhq.com/${slug}/${j.id}`,
+      city: loc.city, state: loc.state,
+      remote_hybrid: remote,
+      employment_type: empMap[j.employmentType] ?? 'full_time',
+      salary_min: null, salary_max: null,
+      source: `ashby:${slug}`,
+      external_ref: `ashby:${slug}:${j.id}`,
     })
   }
   return { fetched: raw.length, jobs: out }
@@ -216,6 +253,8 @@ const SEED_BOARDS = [
   { provider: 'greenhouse', boardSlug: 'tia',           companyName: 'Tia',            companyUrl: 'https://www.asktia.com',         employerSlug: 'tia'             },
   { provider: 'greenhouse', boardSlug: 'bicyclehealth', companyName: 'Bicycle Health', companyUrl: 'https://www.bicyclehealth.com', employerSlug: 'bicycle-health'  },
   { provider: 'lever',      boardSlug: 'lyrahealth',    companyName: 'Lyra Health',    companyUrl: 'https://www.lyrahealth.com',    employerSlug: 'lyra-health'     },
+  { provider: 'ashby',      boardSlug: 'talkiatry',     companyName: 'Talkiatry',      companyUrl: 'https://www.talkiatry.com',     employerSlug: 'talkiatry'       },
+  { provider: 'ashby',      boardSlug: 'headway',       companyName: 'Headway',        companyUrl: 'https://www.headway.co',        employerSlug: 'headway'         },
 ]
 
 // ── Main loop ─────────────────────────────────────────────────────────
@@ -227,7 +266,9 @@ for (const cfg of SEED_BOARDS) {
   try {
     r = cfg.provider === 'greenhouse'
       ? await fetchGreenhouse(cfg.boardSlug)
-      : await fetchLever(cfg.boardSlug)
+      : cfg.provider === 'ashby'
+        ? await fetchAshby(cfg.boardSlug)
+        : await fetchLever(cfg.boardSlug)
   } catch (e) {
     console.error(`  FETCH FAILED: ${e.message}`)
     grand.errors.push(`${cfg.boardSlug}: ${e.message}`)
