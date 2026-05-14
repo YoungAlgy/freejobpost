@@ -81,6 +81,30 @@ export function computeViableCells(jobs: JobRow[]): MatrixCell[] {
 export { MIN_JOBS_PER_CELL }
 
 /**
+ * Process-scoped memoization of `computeViableCellsViaSql`. Without it,
+ * every /state/[slug] and /specialty/[slug] page (~80 routes) re-issues
+ * the same 5K-row Supabase query on ISR revalidate.
+ *
+ * The cache key is just "all" because the underlying query has no
+ * parameters. TTL of 10 min matches the page revalidate windows so
+ * stale data stays in step with the rest of the surface.
+ */
+let _cellCache: { at: number; value: MatrixCell[] } | null = null
+const CELL_CACHE_TTL_MS = 10 * 60 * 1000
+
+export async function getViableCellsCached(
+  supabase: SupabaseClient,
+): Promise<MatrixCell[]> {
+  const now = Date.now()
+  if (_cellCache && now - _cellCache.at < CELL_CACHE_TTL_MS) {
+    return _cellCache.value
+  }
+  const value = await computeViableCellsViaSql(supabase)
+  _cellCache = { at: now, value }
+  return value
+}
+
+/**
  * The SQL-counted version of computeViableCells. Issues one count query
  * per (specialty, state) pair (~900 total) using the SAME `.or()` filter
  * the runtime page uses, so the build-time list matches what's actually

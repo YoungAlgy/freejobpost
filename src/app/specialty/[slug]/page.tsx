@@ -16,6 +16,7 @@ import {
 } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
+import { getViableCellsCached } from '@/lib/specialty-state-matrix'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 import {
   aggregateSalariesByGroup,
@@ -112,6 +113,15 @@ export default async function SpecialtyHubPage(
 
   const jobs = await fetchJobsForHub(hub.matchPatterns)
 
+  // Viable matrix cells for THIS specialty — top state deep-links into the
+  // /specialty/[slug]/[state] surface. Internal-linking-mesh layer 2.4: each
+  // specialty hub passes authority down to the matrix pages it parents.
+  // Top 8 cells by job count.
+  const allCells = await getViableCellsCached(supabase)
+  const matrixCellsForSpecialty = allCells
+    .filter((c) => c.specialty.slug === hub.slug)
+    .slice(0, 8)
+
   // States represented in the result set — used for the "by state" linkbar
   const states = Array.from(
     new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
@@ -188,7 +198,7 @@ export default async function SpecialtyHubPage(
 
           {/* By-state linkbar for internal linking density */}
           {states.length > 0 && (
-            <div className="mb-10 flex flex-wrap gap-2">
+            <div className="mb-6 flex flex-wrap gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500 self-center mr-2">By state:</span>
               {states.map((s) => (
                 <Link
@@ -199,6 +209,33 @@ export default async function SpecialtyHubPage(
                   {s} ({jobs.filter((j) => j.state === s).length})
                 </Link>
               ))}
+            </div>
+          )}
+
+          {/* Matrix deep-links — Layer 2.4 internal linking mesh.
+              Viable (this-specialty × state) cells, deep-linked into the
+              /specialty/[slug]/[state] surface. Each card has ≥5 matching
+              jobs (guaranteed by getViableCellsCached) so users land on a
+              page with real inventory, not a stub. */}
+          {matrixCellsForSpecialty.length > 0 && (
+            <div className="mb-10">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
+                Top states for {hub.title.replace(/ Jobs$/, '').toLowerCase()} roles
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {matrixCellsForSpecialty.map((c) => (
+                  <Link
+                    key={`${c.specialty.slug}-${c.state.slug}`}
+                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
+                    className="flex items-baseline justify-between gap-3 text-sm border-2 border-black px-3 py-2 hover:bg-black hover:text-white"
+                  >
+                    <span className="font-medium truncate">
+                      {hub.title.replace(/ Jobs$/, '')} in {c.state.name}
+                    </span>
+                    <span className="text-xs tabular-nums opacity-70 shrink-0">{c.count}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
 

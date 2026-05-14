@@ -16,6 +16,7 @@ import {
 } from '@/lib/public-jobs'
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
+import { getViableCellsCached } from '@/lib/specialty-state-matrix'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 import {
   aggregateSalariesByGroup,
@@ -90,6 +91,15 @@ export default async function StateHubPage(
   if (!hub) notFound()
 
   const jobs = await fetchJobsForState(hub.abbr)
+
+  // Viable matrix cells for THIS state — top specialty deep-links into the
+  // /specialty/[slug]/[state] surface. This is the internal-linking-mesh
+  // layer (Layer 2.4): each state hub passes authority down to the matrix
+  // pages it parents. Top 6 cells by job count.
+  const allCells = await getViableCellsCached(supabase)
+  const matrixCellsForState = allCells
+    .filter((c) => c.state.slug === hub.slug)
+    .slice(0, 6)
 
   // Cities represented in the result set
   const cities = Array.from(
@@ -272,6 +282,33 @@ export default async function StateHubPage(
               <div className="flex flex-wrap gap-2">
                 {topSpecialties.map(([s, n]) => (
                   <span key={s} className="text-xs bg-gray-100 px-2 py-1">{s} ({n})</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Matrix deep-links — Layer 2.4 internal linking mesh.
+              For every viable (specialty × this-state) cell, link straight to
+              the dedicated /specialty/[slug]/[state] page. These cells are
+              guaranteed renderable (≥5 active matching jobs) and shared a
+              source-of-truth with sitemap.ts + generateStaticParams. */}
+          {matrixCellsForState.length > 0 && (
+            <div className="mb-10">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
+                {hub.name} jobs by specialty — direct links
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                {matrixCellsForState.map((c) => (
+                  <Link
+                    key={`${c.specialty.slug}-${c.state.slug}`}
+                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
+                    className="flex items-baseline justify-between gap-3 text-sm border-2 border-black px-3 py-2 hover:bg-black hover:text-white"
+                  >
+                    <span className="font-medium truncate">
+                      {c.specialty.title.replace(/ Jobs$/, '')} in {hub.name}
+                    </span>
+                    <span className="text-xs tabular-nums opacity-70 shrink-0">{c.count}</span>
+                  </Link>
                 ))}
               </div>
             </div>
