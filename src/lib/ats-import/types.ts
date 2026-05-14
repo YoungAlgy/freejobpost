@@ -4,7 +4,7 @@
 // Lever, etc.) before it goes into the DB. The DB writer then maps these to
 // public_jobs rows and dedupes by (source, external_id).
 
-export type AtsProvider = 'greenhouse' | 'lever' | 'ashby'
+export type AtsProvider = 'greenhouse' | 'lever' | 'ashby' | 'workday'
 
 export interface ExternalJob {
   /** Stable ID from the provider (e.g. Greenhouse job ID, Lever posting UUID).

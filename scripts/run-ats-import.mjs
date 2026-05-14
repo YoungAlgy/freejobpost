@@ -212,6 +212,102 @@ async function fetchAshby(slug) {
   return { fetched: raw.length, jobs: out }
 }
 
+async function fetchWorkday(cfg, existingRefs) {
+  const TIME_MAP = { 'Full time': 'full_time', 'Part time': 'part_time', 'Per Diem': 'per_diem', 'Per diem': 'per_diem', 'Contractor': 'contract', 'Contract': 'contract', 'Temporary': 'contract', 'Intern': 'internship' }
+  const REMOTE_MAP = { 'Fully Remote': 'remote', 'Remote': 'remote', 'On-site': 'onsite', 'Onsite': 'onsite', 'Hybrid': 'hybrid' }
+  const STATE_NAMES = {
+    alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA',
+    colorado: 'CO', connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA',
+    hawaii: 'HI', idaho: 'ID', illinois: 'IL', indiana: 'IN', iowa: 'IA',
+    kansas: 'KS', kentucky: 'KY', louisiana: 'LA', maine: 'ME', maryland: 'MD',
+    massachusetts: 'MA', michigan: 'MI', minnesota: 'MN', mississippi: 'MS',
+    missouri: 'MO', montana: 'MT', nebraska: 'NE', nevada: 'NV',
+    'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM',
+    'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND',
+    ohio: 'OH', oklahoma: 'OK', oregon: 'OR', pennsylvania: 'PA',
+    'rhode island': 'RI', 'south carolina': 'SC', 'south dakota': 'SD',
+    tennessee: 'TN', texas: 'TX', utah: 'UT', vermont: 'VT', virginia: 'VA',
+    washington: 'WA', 'west virginia': 'WV', wisconsin: 'WI', wyoming: 'WY',
+  }
+  function parseLoc(locText, detailLoc, fallback) {
+    const candidates = [detailLoc, locText].filter(Boolean)
+    for (const raw of candidates) {
+      const p = parseUsLocation(raw)
+      if (p.us && p.state) return { city: p.city, state: p.state, remote: p.remote }
+    }
+    const lower = (locText || '').toLowerCase()
+    for (const [n, abbr] of Object.entries(STATE_NAMES)) {
+      if (lower.includes(n)) return { city: null, state: abbr, remote: false }
+    }
+    return { city: null, state: fallback, remote: false }
+  }
+
+  const wd = cfg.workday
+  const apiUrl = `https://${wd.tenantHost}/wday/cxs/${wd.tenant}/${wd.site}/jobs`
+  const all = []
+  const PAGE = 20
+  let offset = 0, total = -1
+  while (total === -1 || offset < total) {
+    const r = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ limit: PAGE, offset, searchText: '', appliedFacets: {} }),
+    })
+    if (!r.ok) throw new Error(`Workday ${wd.tenant} offset=${offset}: ${r.status}`)
+    const data = await r.json()
+    all.push(...(data.jobPostings ?? []))
+    if (total === -1) total = data.total
+    offset += PAGE
+    if (all.length >= 10000) break
+  }
+  console.log(`    listings pulled: ${all.length}`)
+
+  const out = []
+  let enriched = 0, shallow = 0
+  for (const item of all) {
+    if (!isHc(item.title, null)) continue
+    const externalRef = `workday:${wd.tenant}/${wd.site}:${item.externalPath}`
+    const needsEnrich = !existingRefs.has(externalRef)
+
+    let description = htmlToText(item.jobDescription ?? '')
+    let detailLoc
+    if (needsEnrich) {
+      try {
+        const detailUrl = `https://${wd.tenantHost}/wday/cxs/${wd.tenant}/${wd.site}${item.externalPath}`
+        const dr = await fetch(detailUrl, { headers: { Accept: 'application/json' } })
+        if (dr.ok) {
+          const dd = await dr.json()
+          const info = dd?.jobPostingInfo
+          if (info) {
+            description = htmlToText(info.jobDescription ?? '') || description
+            detailLoc = info.location
+          }
+        }
+        enriched++
+      } catch {}
+    } else {
+      shallow++
+    }
+
+    const parsed = parseLoc(item.locationsText, detailLoc, wd.defaultState)
+    const remote_hybrid = REMOTE_MAP[item.remoteType ?? ''] ?? (parsed.remote ? 'remote' : 'onsite')
+
+    out.push({
+      slug: buildAtsSlug(item.title, 'workday', item.externalPath.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-').slice(-12)),
+      title: item.title,
+      description,
+      apply_url: `https://${wd.tenantHost}/${wd.site}${item.externalPath}`,
+      city: parsed.city, state: parsed.state, remote_hybrid,
+      employment_type: TIME_MAP[item.timeType ?? ''] ?? 'full_time',
+      salary_min: null, salary_max: null,
+      source: `workday:${wd.tenant}/${wd.site}`,
+      external_ref: externalRef,
+    })
+  }
+  console.log(`    enriched(new)=${enriched}  shallow(existing)=${shallow}`)
+  return { fetched: all.length, jobs: out }
+}
+
 async function fetchLever(slug) {
   const url = `https://api.lever.co/v0/postings/${encodeURIComponent(slug)}?mode=json`
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
@@ -255,6 +351,11 @@ const SEED_BOARDS = [
   { provider: 'lever',      boardSlug: 'lyrahealth',    companyName: 'Lyra Health',    companyUrl: 'https://www.lyrahealth.com',    employerSlug: 'lyra-health'     },
   { provider: 'ashby',      boardSlug: 'talkiatry',     companyName: 'Talkiatry',      companyUrl: 'https://www.talkiatry.com',     employerSlug: 'talkiatry'       },
   { provider: 'ashby',      boardSlug: 'headway',       companyName: 'Headway',        companyUrl: 'https://www.headway.co',        employerSlug: 'headway'         },
+  // Workday boards — heavier (paginated listings + per-job detail fetch for new jobs)
+  { provider: 'workday', boardSlug: 'ccf/ClevelandClinicCareers', companyName: 'Cleveland Clinic', companyUrl: 'https://my.clevelandclinic.org', employerSlug: 'cleveland-clinic',
+    workday: { tenantHost: 'ccf.wd1.myworkdayjobs.com', tenant: 'ccf', site: 'ClevelandClinicCareers', defaultState: 'OH' } },
+  { provider: 'workday', boardSlug: 'adventhealth/AH_External_Career_Site', companyName: 'AdventHealth', companyUrl: 'https://www.adventhealth.com', employerSlug: 'adventhealth',
+    workday: { tenantHost: 'adventhealth.wd12.myworkdayjobs.com', tenant: 'adventhealth', site: 'AH_External_Career_Site', defaultState: 'FL' } },
 ]
 
 // ── Main loop ─────────────────────────────────────────────────────────
@@ -264,11 +365,26 @@ for (const cfg of SEED_BOARDS) {
   console.log(`\n=== ${cfg.companyName} (${cfg.provider}:${cfg.boardSlug}) ===`)
   let r
   try {
-    r = cfg.provider === 'greenhouse'
-      ? await fetchGreenhouse(cfg.boardSlug)
-      : cfg.provider === 'ashby'
-        ? await fetchAshby(cfg.boardSlug)
-        : await fetchLever(cfg.boardSlug)
+    if (cfg.provider === 'workday') {
+      // Pre-query existing external_refs for this Workday board so we only
+      // enrich (detail-fetch) the NEW jobs. Massively cheaper than a full
+      // re-enrich on every run.
+      const sourceTag = `workday:${cfg.workday.tenant}/${cfg.workday.site}`
+      const { data: existing } = await supabase
+        .from('public_jobs')
+        .select('external_ref')
+        .eq('source', sourceTag)
+        .not('external_ref', 'is', null)
+      const existingRefs = new Set((existing ?? []).map((row) => row.external_ref).filter(Boolean))
+      console.log(`  Pre-query: ${existingRefs.size} existing refs for ${sourceTag}`)
+      r = await fetchWorkday(cfg, existingRefs)
+    } else {
+      r = cfg.provider === 'greenhouse'
+        ? await fetchGreenhouse(cfg.boardSlug)
+        : cfg.provider === 'ashby'
+          ? await fetchAshby(cfg.boardSlug)
+          : await fetchLever(cfg.boardSlug)
+    }
   } catch (e) {
     console.error(`  FETCH FAILED: ${e.message}`)
     grand.errors.push(`${cfg.boardSlug}: ${e.message}`)
