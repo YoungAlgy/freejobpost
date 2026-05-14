@@ -139,7 +139,9 @@ function buildAtsSlug(title, provider, externalId) {
     ? `gh-${externalId}`
     : provider === 'ashby'
       ? `ab-${String(externalId).slice(0, 8)}`
-      : `lv-${String(externalId).slice(0, 8)}`
+      : provider === 'workday'
+        ? `wd-${externalId}`  // pass the actual unique Workday job ID, not a slice
+        : `lv-${String(externalId).slice(0, 8)}`
   return `${ts || 'job'}-${id}`
 }
 
@@ -292,8 +294,13 @@ async function fetchWorkday(cfg, existingRefs) {
     const parsed = parseLoc(item.locationsText, detailLoc, wd.defaultState)
     const remote_hybrid = REMOTE_MAP[item.remoteType ?? ''] ?? (parsed.remote ? 'remote' : 'onsite')
 
+    // Extract the unique Workday job ID from the externalPath. Pattern is
+    // /job/{facility}/{title-slug}_{jobId} where jobId is unique per tenant.
+    // Fall back to the last 20 alphanumeric chars if no underscore found.
+    const pathClean = item.externalPath.replace(/[^a-z0-9_-]+/gi, '')
+    const jobId = pathClean.match(/_([^_]+)$/)?.[1] ?? pathClean.slice(-20)
     out.push({
-      slug: buildAtsSlug(item.title, 'workday', item.externalPath.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-').slice(-12)),
+      slug: buildAtsSlug(item.title, 'workday', jobId),
       title: item.title,
       description,
       apply_url: `https://${wd.tenantHost}/${wd.site}${item.externalPath}`,

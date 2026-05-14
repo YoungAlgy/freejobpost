@@ -52,7 +52,7 @@ export interface WriteResult {
  * thing. For Lever, it's a 36-char UUID — first 8 chars is enough entropy
  * given we also include the title slug.
  */
-function buildAtsSlug(job: ExternalJob, provider: 'greenhouse' | 'lever' | 'ashby'): string {
+function buildAtsSlug(job: ExternalJob, provider: 'greenhouse' | 'lever' | 'ashby' | 'workday'): string {
   const titleSlug = job.title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -60,12 +60,21 @@ function buildAtsSlug(job: ExternalJob, provider: 'greenhouse' | 'lever' | 'ashb
     .slice(0, 80)
     .replace(/-+$/, '')
 
-  const idPart =
-    provider === 'greenhouse'
-      ? `gh-${job.external_id}`
-      : provider === 'ashby'
-        ? `ab-${job.external_id.slice(0, 8)}`
-        : `lv-${job.external_id.slice(0, 8)}`
+  let idPart: string
+  if (provider === 'greenhouse') {
+    idPart = `gh-${job.external_id}`
+  } else if (provider === 'ashby') {
+    idPart = `ab-${job.external_id.slice(0, 8)}`
+  } else if (provider === 'workday') {
+    // Workday external_id is the externalPath; extract the unique job ID
+    // (trailing _XXXX in the path) so we don't collide on common title-prefix
+    // pairs across hospital facilities.
+    const cleaned = job.external_id.replace(/[^a-z0-9_-]+/gi, '')
+    const m = cleaned.match(/_([^_]+)$/)
+    idPart = `wd-${m ? m[1] : cleaned.slice(-20)}`
+  } else {
+    idPart = `lv-${job.external_id.slice(0, 8)}`
+  }
 
   return `${titleSlug || 'job'}-${idPart}`
 }

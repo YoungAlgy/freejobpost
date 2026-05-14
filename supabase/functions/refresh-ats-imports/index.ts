@@ -290,8 +290,11 @@ async function fetchWorkday(cfg: BoardConfig, existingRefs: Set<string>): Promis
     const remoteRaw = item.remoteType ?? ''
     const remote_hybrid = REMOTE_MAP_LOC[remoteRaw] ?? 'onsite'
 
+    // Unique Workday job ID lives after the last underscore in externalPath
+    const pathClean = item.externalPath.replace(/[^a-z0-9_-]+/gi, '')
+    const jobId = pathClean.match(/_([^_]+)$/)?.[1] ?? pathClean.slice(-20)
     out.push({
-      slug: buildAtsSlug(item.title, 'workday', item.externalPath.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-').slice(-12)),
+      slug: buildAtsSlug(item.title, 'workday', jobId),
       title: item.title,
       description,
       apply_url: `https://${wd.tenantHost}/${wd.site}${item.externalPath}`,
