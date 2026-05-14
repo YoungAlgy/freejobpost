@@ -62,4 +62,52 @@ export const SEED_BOARDS: BoardConfig[] = [
     companyUrl: 'https://www.headway.co',
     employerSlug: 'headway',
   },
+  // Workday tenants (hospital systems + payers — biggest supply unlock).
+  // boardSlug is "{tenant}/{site}" for human-readable identification.
+  // Per-board workday config (tenantHost/tenant/site/defaultState) is on
+  // the run script + edge function copies; this file is the canonical list.
+  // First-time seed requires the local run script (~detail-fetch heavy);
+  // cron picks up incremental updates after.
+  {
+    provider: 'workday',
+    boardSlug: 'ccf/ClevelandClinicCareers',
+    companyName: 'Cleveland Clinic',
+    companyUrl: 'https://my.clevelandclinic.org',
+    employerSlug: 'cleveland-clinic',
+  },
+  {
+    provider: 'workday',
+    boardSlug: 'adventhealth/AH_External_Career_Site',
+    companyName: 'AdventHealth',
+    companyUrl: 'https://www.adventhealth.com',
+    employerSlug: 'adventhealth',
+  },
+  {
+    provider: 'workday',
+    boardSlug: 'stanfordhealthcare/SHC_External_Career_Site',
+    companyName: 'Stanford Health Care',
+    companyUrl: 'https://stanfordhealthcare.org',
+    employerSlug: 'stanford-health-care',
+  },
+  {
+    provider: 'workday',
+    boardSlug: 'massgeneralbrigham/MGBExternal',
+    companyName: 'Mass General Brigham',
+    companyUrl: 'https://www.massgeneralbrigham.org',
+    employerSlug: 'mass-general-brigham',
+  },
+  {
+    provider: 'workday',
+    boardSlug: 'saintlukes/saintlukeshealthcareers',
+    companyName: "Saint Luke's Healthcare",
+    companyUrl: 'https://www.saintlukeskc.org',
+    employerSlug: 'saint-lukes-healthcare',
+  },
+  {
+    provider: 'workday',
+    boardSlug: 'elevancehealth/ANT',
+    companyName: 'Elevance Health',
+    companyUrl: 'https://www.elevancehealth.com',
+    employerSlug: 'elevance-health',
+  },
 ]

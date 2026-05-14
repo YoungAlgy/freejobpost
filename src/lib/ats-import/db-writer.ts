@@ -25,8 +25,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ExternalJob, ImportResult } from './types'
 
 export interface BoardConfig {
-  provider: 'greenhouse' | 'lever' | 'ashby'
-  /** Board token (e.g. 'oscar' for boards.greenhouse.io/oscar) */
+  provider: 'greenhouse' | 'lever' | 'ashby' | 'workday'
+  /** Board token. For Greenhouse/Lever/Ashby: just the slug ('oscar').
+   *  For Workday: "{tenant}/{site}" (e.g. 'ccf/ClevelandClinicCareers'). */
   boardSlug: string
   /** Display name for the employer row (e.g. "Oscar Health") */
   companyName: string
@@ -155,7 +156,7 @@ interface JobUpsertRow {
 function buildJobRow(
   job: ExternalJob,
   employerId: string,
-  provider: 'greenhouse' | 'lever' | 'ashby',
+  provider: 'greenhouse' | 'lever' | 'ashby' | 'workday',
 ): JobUpsertRow {
   return {
     employer_id: employerId,

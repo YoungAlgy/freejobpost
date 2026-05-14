@@ -363,6 +363,14 @@ const SEED_BOARDS = [
     workday: { tenantHost: 'ccf.wd1.myworkdayjobs.com', tenant: 'ccf', site: 'ClevelandClinicCareers', defaultState: 'OH' } },
   { provider: 'workday', boardSlug: 'adventhealth/AH_External_Career_Site', companyName: 'AdventHealth', companyUrl: 'https://www.adventhealth.com', employerSlug: 'adventhealth',
     workday: { tenantHost: 'adventhealth.wd12.myworkdayjobs.com', tenant: 'adventhealth', site: 'AH_External_Career_Site', defaultState: 'FL' } },
+  { provider: 'workday', boardSlug: 'stanfordhealthcare/SHC_External_Career_Site', companyName: 'Stanford Health Care', companyUrl: 'https://stanfordhealthcare.org', employerSlug: 'stanford-health-care',
+    workday: { tenantHost: 'stanfordhealthcare.wd5.myworkdayjobs.com', tenant: 'stanfordhealthcare', site: 'SHC_External_Career_Site', defaultState: 'CA' } },
+  { provider: 'workday', boardSlug: 'massgeneralbrigham/MGBExternal', companyName: 'Mass General Brigham', companyUrl: 'https://www.massgeneralbrigham.org', employerSlug: 'mass-general-brigham',
+    workday: { tenantHost: 'massgeneralbrigham.wd1.myworkdayjobs.com', tenant: 'massgeneralbrigham', site: 'MGBExternal', defaultState: 'MA' } },
+  { provider: 'workday', boardSlug: 'saintlukes/saintlukeshealthcareers', companyName: 'Saint Luke\'s Healthcare', companyUrl: 'https://www.saintlukeskc.org', employerSlug: 'saint-lukes-healthcare',
+    workday: { tenantHost: 'saintlukes.wd1.myworkdayjobs.com', tenant: 'saintlukes', site: 'saintlukeshealthcareers', defaultState: 'MO' } },
+  { provider: 'workday', boardSlug: 'elevancehealth/ANT', companyName: 'Elevance Health', companyUrl: 'https://www.elevancehealth.com', employerSlug: 'elevance-health',
+    workday: { tenantHost: 'elevancehealth.wd1.myworkdayjobs.com', tenant: 'elevancehealth', site: 'ANT', defaultState: 'IN' } },
 ]
 
 // ── Main loop ─────────────────────────────────────────────────────────
