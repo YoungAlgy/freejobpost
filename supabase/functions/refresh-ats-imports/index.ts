@@ -4,6 +4,47 @@
 // upserts them into public_jobs via ats_import_upsert_jobs(). Designed to be
 // invoked by pg_cron every 4 hours.
 //
+// v13 (2026-05-16): add identifying User-Agent header to Workday fetch sites.
+//   Workday tenants throttle anonymous JSON-API traffic aggressively and
+//   the 2026-05-16 maintenance-page incident (HTTP 303 → community.workday.com
+//   /maintenance-page on all 6 of our tenants while unrelated tenants
+//   like Kaiser returned HTTP 422) was a coordinated Saturday-morning
+//   outage. Adding `User-Agent: freejobpost.co/aggregator (alex@avahealth.co)`
+//   to listing + detail fetches gives Workday a way to identify our
+//   traffic instead of lumping us with bot/scraper signatures, so future
+//   throttling can be addressed via outreach rather than IP bans.
+// v12 (2026-05-16): add USAJobs (federal healthcare jobs) as the 4th
+//   provider. Pulls from data.usajobs.gov/api/Search filtered by Job
+//   Category Codes 0601-0690 (medical/clinical series). API key lives
+//   in Supabase vault (name 'usajobs_api_key') and is fetched via the
+//   public.get_vault_secret SECURITY DEFINER RPC. Expected yield:
+//   ~5,000 federal positions (VA, IHS, DoD military health, NIH, HHS).
+// v11 (2026-05-16): cross-run slug-collision dedup. The slug pre-query
+//   now runs for all providers (not just Workday) and returns slug→
+//   external_ref map; jobs whose slug already exists in DB under a different
+//   external_ref are dropped before upsert. Kills the intermittent MGB
+//   public_jobs_slug_key errors that v10 still emitted.
+// v10 (2026-05-16): re-introduce detail-fetch for NEW Workday jobs only,
+//   parallelized at concurrency 10, capped at 100 per board. Adds ~5s of
+//   wall time but gives new jobs full descriptions instead of 150-char
+//   listing previews. Also adds slug-level dedup to eliminate the
+//   intermittent public_jobs.slug unique-constraint violations.
+// v9 (2026-05-16): drop per-item Workday detail-fetch. Listing endpoint
+//   already returns title/externalPath/locationsText/jobDescription preview
+//   — enough for a complete public_jobs row. Detail-fetch was sequential
+//   (500ms × N) and triggered the 150s idle timeout on AdventHealth/CCF
+//   when hundreds of jobs were newer than the last May-14 local seed. Deep
+//   enrichment moves to the local run-ats-import.mjs script.
+// v8 (2026-05-16): cap Workday listing at 30 pages (600 newest jobs).
+//   Big tenants (CCF/AdventHealth/MGB each ~2000 jobs = ~100 pages) blew
+//   the 150s edge cap even with parallel-5 batches. Cap covers many days
+//   of new postings per 4h cron tick; deletes/full-refresh handled by
+//   local run-ats-import.mjs script.
+// v7 (2026-05-16): parallel pagination — fixes 504 on small Workday boards.
+//   - .limit(2000) on existingRefs pre-query (was capped at 1000 default).
+//   - Workday listing pagination fetches in parallel batches of 5.
+//   - All 13 boards process concurrently via Promise.all.
+//
 // Auth: verify_jwt=false at the function level + X-Invoke-Secret header check.
 // Matches the existing cron-edge-function pattern in this project (see
 // run-drip-scheduler, process-bulk-send-queue, weekly-digest).
@@ -16,7 +57,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 // ── Seed boards (mirror of src/lib/ats-import/seed-boards.ts) ───────────────
 interface WorkdayCfg { tenantHost: string; tenant: string; site: string; defaultState: string }
 interface BoardConfig {
-  provider: 'greenhouse' | 'lever' | 'ashby' | 'workday'
+  provider: 'greenhouse' | 'lever' | 'ashby' | 'workday' | 'usajobs'
   boardSlug: string
   companyName: string
   companyUrl: string
@@ -43,9 +84,15 @@ const SEED_BOARDS: BoardConfig[] = [
     workday: { tenantHost: 'saintlukes.wd1.myworkdayjobs.com', tenant: 'saintlukes', site: 'saintlukeshealthcareers', defaultState: 'MO' } },
   { provider: 'workday', boardSlug: 'elevancehealth/ANT', companyName: 'Elevance Health', companyUrl: 'https://www.elevancehealth.com', employerSlug: 'elevance-health',
     workday: { tenantHost: 'elevancehealth.wd1.myworkdayjobs.com', tenant: 'elevancehealth', site: 'ANT', defaultState: 'IN' } },
+  // USAJobs: federal healthcare positions (VA, IHS, DoD military health, NIH, HHS).
+  // Single logical board covering ~5,000 jobs across 40 Job Category Codes.
+  { provider: 'usajobs', boardSlug: 'federal', companyName: 'U.S. Federal Government', companyUrl: 'https://www.usajobs.gov', employerSlug: 'us-federal-government' },
 ]
 
-// ── Filters ─────────────────────────────────────────────────────────────────
+// Identifying header for Workday traffic — see v13 changelog above.
+const WORKDAY_UA = 'freejobpost.co/aggregator (alex@avahealth.co)'
+
+// ── Filters ──────────────────────────────────────────────────
 const STATES: Record<string, string> = {
   alabama: 'AL', alaska: 'AK', arizona: 'AZ', arkansas: 'AR', california: 'CA',
   colorado: 'CO', connecticut: 'CT', delaware: 'DE', florida: 'FL', georgia: 'GA',
@@ -151,7 +198,9 @@ function buildAtsSlug(title: string, provider: string, externalId: string): stri
       ? `ab-${String(externalId).slice(0, 8)}`
       : provider === 'workday'
         ? `wd-${String(externalId).slice(0, 12)}`
-        : `lv-${String(externalId).slice(0, 8)}`
+        : provider === 'usajobs'
+          ? `uj-${externalId}`
+          : `lv-${String(externalId).slice(0, 8)}`
   return `${ts || 'job'}-${id}`
 }
 
@@ -244,23 +293,50 @@ async function fetchWorkday(cfg: BoardConfig, existingRefs: Set<string>): Promis
   const TIME_MAP_LOC: Record<string,string> = { 'Full time': 'full_time', 'Part time': 'part_time', 'Per Diem': 'per_diem', 'Per diem': 'per_diem', 'Contractor': 'contract', 'Contract': 'contract', 'Temporary': 'contract', 'Intern': 'internship' }
   const REMOTE_MAP_LOC: Record<string,string> = { 'Fully Remote': 'remote', 'Remote': 'remote', 'On-site': 'onsite', 'Onsite': 'onsite', 'Hybrid': 'hybrid' }
 
-  // Listing pagination
+  // Listing pagination — first page sequential to get total, then parallel
+  // batches of 5 for the rest. Workday rate-limits per-tenant but accepts
+  // ~5 concurrent requests cleanly. Cuts CCF's 99-page traversal from
+  // 99 × 1.66s = ~164s sequential to ~20 batches × 1.2s = ~24s wall time.
   const apiUrl = `https://${wd.tenantHost}/wday/cxs/${wd.tenant}/${wd.site}/jobs`
   const all: Array<{ title: string; externalPath: string; locationsText?: string; timeType?: string; remoteType?: string; jobDescription?: string }> = []
   const PAGE = 20
-  let offset = 0, total = -1
-  while (total === -1 || offset < total) {
+  const PARALLEL = 5
+  const MAX_JOBS = 10000
+  // Cap pagination at 30 pages (600 newest jobs). Big Workday tenants
+  // (CCF, AdventHealth, MGB each ~2000 jobs = ~100 pages) blew the 150s
+  // edge cap even with parallel-5 batches. Workday lists newest-first by
+  // default, and the cron runs every 4h — 600 jobs covers many days of
+  // new postings even at the busiest hospitals. Initial seed + full
+  // refresh runs via the local run-ats-import.mjs Node script (no time
+  // limit).
+  const MAX_LISTING_PAGES = 30
+
+  async function fetchPage(offset: number) {
     const r = await fetch(apiUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'User-Agent': WORKDAY_UA,
+      },
       body: JSON.stringify({ limit: PAGE, offset, searchText: '', appliedFacets: {} }),
     })
     if (!r.ok) throw new Error(`Workday ${wd.tenant} listing ${offset}: ${r.status}`)
-    const data = await r.json() as { total: number; jobPostings?: typeof all }
-    all.push(...(data.jobPostings ?? []))
-    if (total === -1) total = data.total
-    offset += PAGE
-    if (all.length >= 10000) break
+    return await r.json() as { total: number; jobPostings?: typeof all }
+  }
+
+  const first = await fetchPage(0)
+  all.push(...(first.jobPostings ?? []))
+  const total = Math.min(first.total ?? 0, MAX_JOBS)
+
+  const offsets: number[] = []
+  const pageCap = Math.min(total, PAGE * MAX_LISTING_PAGES)
+  for (let o = PAGE; o < pageCap; o += PAGE) offsets.push(o)
+  for (let i = 0; i < offsets.length; i += PARALLEL) {
+    const batch = offsets.slice(i, i + PARALLEL)
+    const pages = await Promise.all(batch.map((o) => fetchPage(o).catch(() => ({ total: 0, jobPostings: [] }))))
+    for (const p of pages) all.push(...(p.jobPostings ?? []))
+    if (all.length >= MAX_JOBS) break
   }
 
   function findStateInText(text: string | undefined, fallback: string): string {
@@ -275,26 +351,50 @@ async function fetchWorkday(cfg: BoardConfig, existingRefs: Set<string>): Promis
     return fallback
   }
 
-  const out: NormalizedJob[] = []
-  for (const item of all) {
-    if (!isHc(item.title, null)) continue
+  // v10: parallel detail-fetch for NEW Workday jobs only, capped at 100 per
+  // board per cron tick. Existing jobs (in existingRefs Set) skip the
+  // detail call and use the listing's ~150-char description preview. New
+  // jobs get the full jobPostingInfo.jobDescription. Concurrency 10 keeps
+  // wall time bounded (~5s for 100 enrichments at 500ms each).
+  const ENRICH_PARALLEL = 10
+  const ENRICH_CAP = 100
+  const healthcare = all.filter((item) => isHc(item.title, null))
+
+  // Pick which items need enrichment (newest-first, capped)
+  const toEnrich: typeof healthcare = []
+  for (const item of healthcare) {
+    if (toEnrich.length >= ENRICH_CAP) break
     const externalRef = `workday:${wd.tenant}/${wd.site}:${item.externalPath}`
-    const needsEnrich = !existingRefs.has(externalRef)
-    let description = htmlToText(item.jobDescription ?? '')
-    let detailLoc: string | undefined
-    if (needsEnrich) {
+    if (!existingRefs.has(externalRef)) toEnrich.push(item)
+  }
+
+  // Parallel-fetch their details, with per-batch concurrency limit
+  const enrichments = new Map<string, { description?: string; location?: string }>()
+  for (let i = 0; i < toEnrich.length; i += ENRICH_PARALLEL) {
+    const batch = toEnrich.slice(i, i + ENRICH_PARALLEL)
+    await Promise.all(batch.map(async (item) => {
       try {
-        const dr = await fetch(`https://${wd.tenantHost}/wday/cxs/${wd.tenant}/${wd.site}${item.externalPath}`, { headers: { Accept: 'application/json' } })
-        if (dr.ok) {
-          const dd = await dr.json() as { jobPostingInfo?: { jobDescription?: string; location?: string } }
-          if (dd?.jobPostingInfo) {
-            description = htmlToText(dd.jobPostingInfo.jobDescription ?? '') || description
-            detailLoc = dd.jobPostingInfo.location
-          }
+        const dr = await fetch(`https://${wd.tenantHost}/wday/cxs/${wd.tenant}/${wd.site}${item.externalPath}`, {
+          headers: { Accept: 'application/json', 'User-Agent': WORKDAY_UA },
+        })
+        if (!dr.ok) return
+        const dd = await dr.json() as { jobPostingInfo?: { jobDescription?: string; location?: string } }
+        if (dd?.jobPostingInfo) {
+          enrichments.set(item.externalPath, {
+            description: htmlToText(dd.jobPostingInfo.jobDescription ?? ''),
+            location: dd.jobPostingInfo.location,
+          })
         }
       } catch {}
-    }
-    const state = findStateInText(detailLoc ?? item.locationsText, wd.defaultState)
+    }))
+  }
+
+  const out: NormalizedJob[] = []
+  for (const item of healthcare) {
+    const externalRef = `workday:${wd.tenant}/${wd.site}:${item.externalPath}`
+    const enrich = enrichments.get(item.externalPath)
+    const description = enrich?.description || htmlToText(item.jobDescription ?? '')
+    const state = findStateInText(enrich?.location ?? item.locationsText, wd.defaultState)
     const remoteRaw = item.remoteType ?? ''
     const remote_hybrid = REMOTE_MAP_LOC[remoteRaw] ?? 'onsite'
 
@@ -314,6 +414,120 @@ async function fetchWorkday(cfg: BoardConfig, existingRefs: Set<string>): Promis
     })
   }
   return { fetched: all.length, jobs: out }
+}
+
+async function fetchUSAJobs(apiKey: string): Promise<{ fetched: number; jobs: NormalizedJob[] }> {
+  // Federal healthcare job category codes (US OPM series 0601-0690).
+  // Curated list covers medical officers, nurses, allied health, dental,
+  // pharmacy, public health, and health system administration roles.
+  const HC_CODES = [
+    '0601', '0602', '0603', '0610', '0620', '0630', '0631', '0633', '0635', '0636',
+    '0637', '0638', '0644', '0645', '0646', '0647', '0648', '0649', '0650', '0651',
+    '0660', '0661', '0662', '0664', '0665', '0667', '0668', '0669', '0670', '0671',
+    '0672', '0675', '0679', '0680', '0681', '0682', '0683', '0685', '0688', '0690',
+  ].join(';')
+  const RESULTS_PER_PAGE = 500
+  const MAX_PAGES = 20
+
+  async function fetchPage(page: number) {
+    const url = `https://data.usajobs.gov/api/Search?JobCategoryCode=${HC_CODES}&ResultsPerPage=${RESULTS_PER_PAGE}&Page=${page}`
+    const r = await fetch(url, {
+      headers: {
+        Host: 'data.usajobs.gov',
+        'User-Agent': 'alex@avahealth.co',
+        'Authorization-Key': apiKey,
+        Accept: 'application/json',
+      },
+    })
+    if (!r.ok) throw new Error(`USAJobs page ${page}: ${r.status}`)
+    return await r.json() as {
+      SearchResult: {
+        SearchResultCountAll?: number
+        SearchResultItems?: Array<{
+          MatchedObjectId: string
+          MatchedObjectDescriptor?: {
+            PositionTitle?: string
+            PositionURI?: string
+            ApplyURI?: string[]
+            OrganizationName?: string
+            DepartmentName?: string
+            PositionLocation?: Array<{ CityName?: string; CountrySubDivisionCode?: string; LocationName?: string }>
+            JobCategory?: Array<{ Name?: string; Code?: string }>
+            PositionRemuneration?: Array<{ MinimumRange?: string; MaximumRange?: string; RateIntervalCode?: string; Description?: string }>
+            PositionEndDate?: string
+            UserArea?: { Details?: { JobSummary?: string } }
+          }
+        }>
+      }
+    }
+  }
+
+  const first = await fetchPage(1)
+  const items = [...(first.SearchResult.SearchResultItems ?? [])]
+  const total = first.SearchResult.SearchResultCountAll ?? 0
+  const totalPages = Math.min(MAX_PAGES, Math.ceil(total / RESULTS_PER_PAGE))
+
+  // Parallel-fetch remaining pages, batches of 3 (USAJobs rate-limits more
+  // aggressively than Workday — keep concurrency low).
+  const PARALLEL = 3
+  const remaining: number[] = []
+  for (let p = 2; p <= totalPages; p++) remaining.push(p)
+  for (let i = 0; i < remaining.length; i += PARALLEL) {
+    const batch = remaining.slice(i, i + PARALLEL)
+    const pages = await Promise.all(
+      batch.map((p) => fetchPage(p).catch(() => null)),
+    )
+    for (const pg of pages) {
+      if (pg?.SearchResult?.SearchResultItems) items.push(...pg.SearchResult.SearchResultItems)
+    }
+  }
+
+  const out: NormalizedJob[] = []
+  const nowMs = Date.now()
+  for (const item of items) {
+    const md = item.MatchedObjectDescriptor
+    if (!md?.PositionTitle) continue
+
+    // Skip jobs whose application window has already closed
+    if (md.PositionEndDate) {
+      const end = Date.parse(md.PositionEndDate)
+      if (!isNaN(end) && end < nowMs) continue
+    }
+
+    const title = md.PositionTitle
+    const dept = md.JobCategory?.[0]?.Name ?? md.DepartmentName ?? null
+    // Defensive isHc check — server-side JobCategoryCode filter should
+    // already enforce healthcare-only, but keep both layers for safety.
+    if (!isHc(title, dept)) continue
+
+    const loc = md.PositionLocation?.[0]
+    if (!loc) continue
+    const stateName = (loc.CountrySubDivisionCode ?? '').toLowerCase()
+    const state = STATES[stateName] ?? null
+    if (!state) continue  // skip non-US (territories etc.)
+    const cityRaw = loc.CityName ?? ''
+    const city = cityRaw.split(',')[0]?.trim() || null
+
+    const sal = md.PositionRemuneration?.[0]
+    const isUsdAnnual = sal?.RateIntervalCode === 'PA' && /year/i.test(sal?.Description ?? '')
+    const salary_min = isUsdAnnual && sal?.MinimumRange ? Math.round(Number(sal.MinimumRange)) || null : null
+    const salary_max = isUsdAnnual && sal?.MaximumRange ? Math.round(Number(sal.MaximumRange)) || null : null
+
+    const id = String(item.MatchedObjectId)
+    out.push({
+      slug: buildAtsSlug(title, 'usajobs', id),
+      title,
+      description: md.UserArea?.Details?.JobSummary ?? '',
+      apply_url: md.ApplyURI?.[0] ?? md.PositionURI ?? `https://www.usajobs.gov/job/${id}`,
+      city, state,
+      remote_hybrid: 'onsite',
+      employment_type: 'full_time',
+      salary_min, salary_max,
+      source: 'usajobs:federal',
+      external_ref: `usajobs:${id}`,
+    })
+  }
+  return { fetched: items.length, jobs: out }
 }
 
 async function fetchLever(slug: string): Promise<{ fetched: number; jobs: NormalizedJob[] }> {
@@ -357,7 +571,7 @@ async function fetchLever(slug: string): Promise<{ fetched: number; jobs: Normal
   return { fetched: raw.length, jobs: out }
 }
 
-// ── HTTP handler ────────────────────────────────────────────────────────────
+// ── HTTP handler ───────────────────────────────────────────────
 Deno.serve(async (_req: Request) => {
   // No bespoke auth check — the function reads no inputs and only performs
   // idempotent upserts of a hardcoded set of public-job boards. Worst case
@@ -375,24 +589,52 @@ Deno.serve(async (_req: Request) => {
   let grandFetched = 0, grandInserted = 0, grandUpdated = 0
   const errors: string[] = []
 
-  for (const cfg of SEED_BOARDS) {
+  // Fetch USAJobs API key once from Supabase vault (SECURITY DEFINER RPC,
+  // service-role only). Cached across all USAJobs board fetches in this run.
+  let usaJobsKey: string | null = null
+  try {
+    const { data } = await supabase.rpc('get_vault_secret', { secret_name: 'usajobs_api_key' })
+    usaJobsKey = (data as string | null) || null
+  } catch (e) {
+    errors.push(`usajobs vault: ${e instanceof Error ? e.message : String(e)}`)
+  }
+
+  // Run all boards in parallel — Workday boards (the slow ones with 1968-job
+  // listings) overlap with each other and with the fast Greenhouse/Lever/Ashby
+  // boards. Wall time drops from sequential O(sum) to max(per-board) ~25s.
+  await Promise.all(SEED_BOARDS.map(async (cfg) => {
     const boardSummary: Record<string, unknown> = {
       provider: cfg.provider, boardSlug: cfg.boardSlug, companyName: cfg.companyName,
       fetched: 0, inserted: 0, updated: 0,
     }
     try {
+      // v11: pre-query existing rows for THIS source so we can (a) skip
+      // detail-fetch for known Workday jobs and (b) dedupe against cross-run
+      // slug collisions across all providers. One indexed query per board.
+      const sourceTag = cfg.provider === 'workday'
+        ? `workday:${cfg.workday!.tenant}/${cfg.workday!.site}`
+        : cfg.provider === 'usajobs'
+          ? 'usajobs:federal'
+          : `${cfg.provider}:${cfg.boardSlug}`
+      const { data: existing } = await supabase
+        .from('public_jobs')
+        .select('slug, external_ref')
+        .eq('source', sourceTag)
+        .not('external_ref', 'is', null)
+        .limit(2000)
+      const existingRefs = new Set<string>()
+      const existingSlugToRef = new Map<string, string>()
+      for (const row of (existing ?? []) as Array<{ slug: string; external_ref: string }>) {
+        existingRefs.add(row.external_ref)
+        if (row.slug) existingSlugToRef.set(row.slug, row.external_ref)
+      }
+
       let r
       if (cfg.provider === 'workday') {
-        // Pre-query existing external_refs so we only enrich (detail-fetch)
-        // new jobs. Bounds the per-cron cost; initial seed runs locally.
-        const sourceTag = `workday:${cfg.workday!.tenant}/${cfg.workday!.site}`
-        const { data: existing } = await supabase
-          .from('public_jobs')
-          .select('external_ref')
-          .eq('source', sourceTag)
-          .not('external_ref', 'is', null)
-        const existingRefs = new Set(((existing ?? []) as Array<{ external_ref: string }>).map((row) => row.external_ref))
         r = await fetchWorkday(cfg, existingRefs)
+      } else if (cfg.provider === 'usajobs') {
+        if (!usaJobsKey) throw new Error('USAJobs API key not loaded from vault')
+        r = await fetchUSAJobs(usaJobsKey)
       } else {
         r = cfg.provider === 'greenhouse'
           ? await fetchGreenhouse(cfg.boardSlug)
@@ -403,8 +645,28 @@ Deno.serve(async (_req: Request) => {
       boardSummary.fetched = r.fetched
       boardSummary.kept = r.jobs.length
       grandFetched += r.fetched
-      for (let i = 0; i < r.jobs.length; i += CHUNK) {
-        const chunk = r.jobs.slice(i, i + CHUNK)
+      // v11: two-layer slug dedup before chunking:
+      //   1. Within-run: drop second-occurrence dups in the fetched batch.
+      //   2. Cross-run: drop new jobs whose slug already exists in the DB
+      //      under a different external_ref. The upsert RPC ON CONFLICT
+      //      keys on external_ref, so it can't gracefully handle slug-only
+      //      collisions and falls back to a unique-constraint error.
+      const seenSlugs = new Set<string>()
+      let droppedCrossRun = 0
+      const dedupedJobs = r.jobs.filter((j) => {
+        if (seenSlugs.has(j.slug)) return false
+        seenSlugs.add(j.slug)
+        const dbExistingRef = existingSlugToRef.get(j.slug)
+        if (dbExistingRef && dbExistingRef !== j.external_ref) {
+          droppedCrossRun++
+          return false
+        }
+        return true
+      })
+      boardSummary.dedupedFromSlug = r.jobs.length - dedupedJobs.length
+      boardSummary.dedupedCrossRun = droppedCrossRun
+      for (let i = 0; i < dedupedJobs.length; i += CHUNK) {
+        const chunk = dedupedJobs.slice(i, i + CHUNK)
         const { data, error } = await supabase.rpc('ats_import_upsert_jobs', {
           p_employer_slug: cfg.employerSlug,
           p_company_name:  cfg.companyName,
@@ -430,7 +692,7 @@ Deno.serve(async (_req: Request) => {
       boardSummary.error = msg
     }
     summary.push(boardSummary)
-  }
+  }))
 
   // Best-effort: refresh candidate matches so new ATS jobs surface to anyone
   // with a resume already uploaded. Failure here is non-fatal — the cron
