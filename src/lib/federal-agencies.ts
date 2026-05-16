@@ -112,3 +112,22 @@ export function agencyOrFilter(agency: FederalAgency): string {
 
 /** @deprecated kept for any pre-rename imports; new code should call agencyOrFilter. */
 export const agencyTitleOrFilter = agencyOrFilter
+
+/**
+ * Returns true when the given job is attributable to `agency` — matches
+ * any of the agency's titleKeywords against job.title or job.description
+ * (case-insensitive substring). Mirrors the PostgREST .or() that
+ * agencyOrFilter() builds.
+ */
+export function jobMatchesAgency(
+  job: { title?: string | null; description?: string | null },
+  agency: FederalAgency,
+): boolean {
+  const title = (job.title ?? '').toLowerCase()
+  const desc = (job.description ?? '').toLowerCase()
+  for (const kw of agency.titleKeywords) {
+    const lower = kw.toLowerCase()
+    if (title.includes(lower) || desc.includes(lower)) return true
+  }
+  return false
+}

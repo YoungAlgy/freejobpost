@@ -1,0 +1,122 @@
+// Computes viable (agency, state) cells for the /jobs/federal/[agency]/[state]
+// matrix surface. A cell is "viable" when ≥5 active USAJobs federal jobs match
+// the agency's titleKeywords AND share the same state abbreviation.
+//
+// Mirrors the structure of specialty-state-matrix.ts but scoped to
+// source = 'usajobs:federal'. The pre-2026-05-16 federal hub had only the
+// 5 agency leaves; this expands to ~50-80 high-signal intersection pages
+// (most VA × top state combos qualify; smaller agencies fewer).
+//
+// The 5-job floor matches the specialty matrix — high enough that the page
+// has a meaningful job list, low enough that we don't suppress real demand.
+
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { FEDERAL_AGENCIES, type FederalAgency, jobMatchesAgency } from './federal-agencies'
+import { STATE_HUBS, type StateHub } from './state-slugs'
+
+export type FederalMatrixCell = {
+  agency: FederalAgency
+  state: StateHub
+  count: number
+}
+
+const MIN_JOBS_PER_CELL = 5
+
+/**
+ * Pull every active federal job once, run agency-match in JS, group by
+ * (agency, state). Returns cells with ≥5 jobs in deterministic order.
+ *
+ * Single query rather than per-cell .count() — there are at most ~2,500
+ * federal rows in inventory, well under the PostgREST anon-role 1,000-cap
+ * threshold IF we cap one batch... but we expect to grow. Fetch in two
+ * .range() batches like /jobs/page.tsx does, then process JS-side.
+ *
+ * Used by:
+ *   - generateStaticParams on /jobs/federal/[agency]/[state]
+ *   - sitemap.ts to enumerate the federal-matrix URLs
+ *   - the runtime page renderer (to seed the count badge before fetching
+ *     the actual listing slice)
+ */
+export async function computeViableFederalCells(
+  supabase: SupabaseClient,
+): Promise<FederalMatrixCell[]> {
+  const nowIso = new Date().toISOString()
+  const baseFed = () => supabase
+    .from('public_jobs')
+    .select('state, title, description')
+    .eq('source', 'usajobs:federal')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', nowIso)
+
+  // Two .range() batches to bypass the PostgREST 1,000-row cap. Current
+  // federal inventory is ~2,361 rows; two batches covers it with headroom.
+  // If federal grows past 2,000, add a third batch.
+  const [batch1, batch2] = await Promise.all([
+    baseFed().range(0, 999),
+    baseFed().range(1000, 1999),
+  ])
+
+  type JobRow = { state: string | null; title: string | null; description: string | null }
+  const jobs: JobRow[] = [
+    ...((batch1.data ?? []) as JobRow[]),
+    ...((batch2.data ?? []) as JobRow[]),
+  ]
+
+  const byAbbr = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.abbr, s]))
+  const counts = new Map<string, FederalMatrixCell>()
+
+  for (const job of jobs) {
+    if (!job.state) continue
+    const stateHub = byAbbr.get(job.state)
+    if (!stateHub) continue
+    // A job can attribute to multiple agencies (e.g. a VA hospital's
+    // contractor role might match both VA and DoD keywords). Count it
+    // toward each matching agency rather than picking one — keeps the
+    // hub pages honest: a "DoD jobs in Texas" page that excludes a job
+    // mentioning DoD would feel wrong to a searcher.
+    for (const agency of FEDERAL_AGENCIES) {
+      if (!jobMatchesAgency(job, agency)) continue
+      const key = `${agency.slug}|${stateHub.slug}`
+      const existing = counts.get(key)
+      if (existing) {
+        existing.count += 1
+      } else {
+        counts.set(key, { agency, state: stateHub, count: 1 })
+      }
+    }
+  }
+
+  return Array.from(counts.values())
+    .filter((c) => c.count >= MIN_JOBS_PER_CELL)
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count
+      if (a.agency.slug !== b.agency.slug) {
+        return a.agency.slug.localeCompare(b.agency.slug)
+      }
+      return a.state.slug.localeCompare(b.state.slug)
+    })
+}
+
+/**
+ * Process-scoped memoization mirroring getViableCellsCached for the
+ * specialty matrix. The sitemap + every /jobs/federal/[agency]/[state]
+ * page hits this; the underlying query is parameter-free, so a single
+ * cache slot is enough.
+ */
+let _cellCache: { at: number; value: FederalMatrixCell[] } | null = null
+const CELL_CACHE_TTL_MS = 10 * 60 * 1000
+
+export async function getViableFederalCellsCached(
+  supabase: SupabaseClient,
+): Promise<FederalMatrixCell[]> {
+  const now = Date.now()
+  if (_cellCache && now - _cellCache.at < CELL_CACHE_TTL_MS) {
+    return _cellCache.value
+  }
+  const value = await computeViableFederalCells(supabase)
+  _cellCache = { at: now, value }
+  return value
+}
+
+export { MIN_JOBS_PER_CELL }

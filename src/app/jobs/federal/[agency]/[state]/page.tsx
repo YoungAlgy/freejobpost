@@ -12,74 +12,78 @@ import {
   locationLabel,
 } from '@/lib/public-jobs'
 import {
-  FEDERAL_AGENCIES,
   findAgencyBySlug,
   agencyOrFilter,
 } from '@/lib/federal-agencies'
+import { STATE_HUBS } from '@/lib/state-slugs'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
 export const revalidate = 300
 
-// Pre-render all known agency landing pages at build time. Adding a new agency
-// is a single config-list edit in src/lib/federal-agencies.ts.
-export function generateStaticParams() {
-  return FEDERAL_AGENCIES.map((a) => ({ agency: a.slug }))
+// Pre-render only the (agency, state) cells with ≥5 active jobs. Anything
+// outside the prerendered set falls through to a 404 (dynamicParams: false).
+// Saves the build from rendering ~80 thin pages and protects the index
+// against the templated-thin-content classifier.
+export async function generateStaticParams() {
+  const cells = await getViableFederalCellsCached(supabase)
+  return cells.map((c) => ({ agency: c.agency.slug, state: c.state.slug }))
 }
 
-// Force 404 for unknown agency slugs rather than runtime-fetching.
 export const dynamicParams = false
 
+function findStateBySlug(slug: string) {
+  return STATE_HUBS.find((s) => s.slug === slug)
+}
+
 export async function generateMetadata(
-  { params }: { params: Promise<{ agency: string }> },
+  { params }: { params: Promise<{ agency: string; state: string }> },
 ): Promise<Metadata> {
-  const { agency: slug } = await params
-  const agency = findAgencyBySlug(slug)
-  if (!agency) return { title: 'Federal healthcare jobs' }
-  const canonical = `https://freejobpost.co/jobs/federal/${agency.slug}`
+  const { agency: agencySlug, state: stateSlug } = await params
+  const agency = findAgencyBySlug(agencySlug)
+  const state = findStateBySlug(stateSlug)
+  if (!agency || !state) {
+    return { title: 'Federal healthcare jobs' }
+  }
+  const canonical = `https://freejobpost.co/jobs/federal/${agency.slug}/${state.slug}`
   return {
-    // Root layout adds " | Free Job Post" via title.template — don't repeat.
-    title: `${agency.fullName} healthcare jobs`,
-    description: `${agency.blurb} Open positions sourced from USAJobs, refreshed every 4 hours. Apply directly via the federal application portal.`,
+    title: `${agency.fullName} healthcare jobs in ${state.name}`,
+    description: `Open ${agency.name} healthcare positions in ${state.name} — sourced from USAJobs, refreshed every 4 hours. Apply directly via the federal application portal.`,
     alternates: { canonical },
     openGraph: {
-      title: `${agency.fullName} healthcare jobs`,
-      description: agency.blurb,
+      title: `${agency.fullName} healthcare jobs — ${state.name}`,
+      description: `${agency.blurb}`,
       url: canonical,
       type: 'website',
     },
   }
 }
 
-export default async function AgencyJobsPage(
-  { params }: { params: Promise<{ agency: string }> },
+export default async function FederalAgencyStatePage(
+  { params }: { params: Promise<{ agency: string; state: string }> },
 ) {
-  const { agency: slug } = await params
-  const agency = findAgencyBySlug(slug)
-  if (!agency) notFound()
+  const { agency: agencySlug, state: stateSlug } = await params
+  const agency = findAgencyBySlug(agencySlug)
+  const state = findStateBySlug(stateSlug)
+  if (!agency || !state) notFound()
 
   const nowIso = new Date().toISOString()
-  // Three parallel queries:
-  //  - rendered list of agency-matching jobs (capped at 500 — agency hubs are
-  //    narrower than the global /jobs index so a smaller cap is fine)
-  //  - the total count, for an honest header badge
-  //  - the agency's state-matrix cells, so we can render in-page links to the
-  //    /jobs/federal/[agency]/[state] leaves (≥5 jobs per cell) — gives crawlers
-  //    a discovery path and gives users a fast state filter
-  const allCells = await getViableFederalCellsCached(supabase)
-  const stateCells = allCells
-    .filter((c) => c.agency.slug === agency.slug)
-    .sort((a, b) => b.count - a.count)
+  // Same agency-keyword filter as the parent /jobs/federal/[agency] page,
+  // intersected with state. Two parallel queries: the rendered list (capped
+  // at 200 — agency × state pages are narrower than the global federal hub)
+  // and the total count for the header badge.
+  const baseQuery = () => supabase
+    .from('public_jobs')
+    .select(JOB_LIST_FIELDS)
+    .eq('source', 'usajobs:federal')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', nowIso)
+    .eq('state', state.abbr)
+    .or(agencyOrFilter(agency))
   const [jobsRes, countRes] = await Promise.all([
-    supabase
-      .from('public_jobs')
-      .select(JOB_LIST_FIELDS)
-      .eq('source', 'usajobs:federal')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso)
-      .or(agencyOrFilter(agency))
+    baseQuery()
       .order('updated_at', { ascending: false })
-      .limit(500),
+      .limit(200),
     supabase
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
@@ -87,6 +91,7 @@ export default async function AgencyJobsPage(
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
+      .eq('state', state.abbr)
       .or(agencyOrFilter(agency)),
   ])
 
@@ -105,6 +110,12 @@ export default async function AgencyJobsPage(
         position: 4,
         name: agency.fullName,
         item: `https://freejobpost.co/jobs/federal/${agency.slug}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 5,
+        name: state.name,
+        item: `https://freejobpost.co/jobs/federal/${agency.slug}/${state.slug}`,
       },
     ],
   }
@@ -150,70 +161,55 @@ export default async function AgencyJobsPage(
           <span className="mx-2">/</span>
           <Link href="/jobs/federal" className="hover:text-green-700">Federal</Link>
           <span className="mx-2">/</span>
-          <span className="text-black">{agency.name}</span>
+          <Link href={`/jobs/federal/${agency.slug}`} className="hover:text-green-700">
+            {agency.name}
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="text-black">{state.name}</span>
         </div>
 
         <section className="border-b-2 border-black">
           <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
             <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
               <span className="w-2 h-2 bg-green-600" />
-              {totalCount.toLocaleString()} {agency.name.toUpperCase()} ROLES
+              {totalCount.toLocaleString()} {agency.name.toUpperCase()} ROLES IN {state.name.toUpperCase()}
             </div>
             <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight mb-4">
               {agency.fullName}
               <br />
-              <span className="text-green-700">Healthcare jobs.</span>
+              <span className="text-green-700">{state.name} jobs.</span>
             </h1>
-            <p className="text-lg md:text-xl max-w-3xl text-gray-700">{agency.blurb}</p>
+            <p className="text-lg md:text-xl max-w-3xl text-gray-700">
+              {agency.blurb}
+            </p>
             <p className="mt-4 text-sm text-gray-500">
-              Sourced from USAJobs; apply links route directly to the federal
-              application portal. Refreshed every 4 hours.
+              Filtered to {state.name} (state abbreviation: {state.abbr}). Sourced
+              from USAJobs and refreshed every 4 hours. Apply links route directly
+              to the federal application portal.
             </p>
           </div>
         </section>
-
-        {/* State-cell quick links — only states with ≥5 active jobs for this
-            agency are rendered (the same threshold that powers
-            /jobs/federal/[agency]/[state] static-param generation). Gives
-            crawlers a clean discovery path to the matrix leaves and gives
-            users a one-click state filter without leaving the agency hub. */}
-        {stateCells.length > 0 && (
-          <section className="max-w-6xl mx-auto px-6 pt-10">
-            <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
-              BROWSE {agency.name.toUpperCase()} BY STATE
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {stateCells.map((c) => (
-                <Link
-                  key={c.state.slug}
-                  href={`/jobs/federal/${agency.slug}/${c.state.slug}`}
-                  className="inline-flex items-baseline gap-1.5 border-2 border-black px-3 py-1.5 text-sm font-bold hover:bg-green-50 transition-colors"
-                >
-                  <span>{c.state.name}</span>
-                  <span className="text-xs text-gray-500 font-normal tabular-nums">
-                    {c.count.toLocaleString()}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
 
         <section className="max-w-6xl mx-auto px-6 py-10">
           {jobs.length === 0 ? (
             <div className="py-12 text-center border-2 border-black bg-gray-50">
               <p className="text-lg font-bold mb-2">
-                No active {agency.name} listings right now.
+                No active {agency.name} listings in {state.name} right now.
               </p>
               <p className="text-sm text-gray-600 mb-4">
-                Federal job postings move fast. Check back later or browse other agencies.
+                Federal job postings move fast.{' '}
+                <Link
+                  href={`/jobs/federal/${agency.slug}`}
+                  className="underline hover:text-green-700"
+                >
+                  See all {agency.name} jobs nationwide
+                </Link>{' '}
+                or{' '}
+                <Link href="/jobs/federal" className="underline hover:text-green-700">
+                  browse other agencies
+                </Link>
+                .
               </p>
-              <Link
-                href="/jobs/federal"
-                className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
-              >
-                ← All federal agencies
-              </Link>
             </div>
           ) : (
             <>
@@ -264,15 +260,41 @@ export default async function AgencyJobsPage(
               {jobs.length < totalCount && (
                 <p className="mt-6 text-center text-sm text-gray-500">
                   Showing first {jobs.length.toLocaleString()} of{' '}
-                  {totalCount.toLocaleString()} {agency.name} jobs. Use the main{' '}
-                  <Link href="/jobs" className="underline hover:text-green-700">
-                    job search
-                  </Link>{' '}
-                  to filter further by state, role, or remote.
+                  {totalCount.toLocaleString()} {agency.name} jobs in {state.name}.
+                  For more, view{' '}
+                  <Link
+                    href={`/jobs/federal/${agency.slug}`}
+                    className="underline hover:text-green-700"
+                  >
+                    all {agency.name} nationwide
+                  </Link>
+                  .
                 </p>
               )}
             </>
           )}
+        </section>
+
+        {/* Sibling-state navigation — link back up and out so this isn't a dead-end leaf */}
+        <section className="max-w-6xl mx-auto px-6 pb-16">
+          <div className="border-t border-gray-200 pt-8">
+            <p className="text-sm text-gray-600">
+              ←{' '}
+              <Link
+                href={`/jobs/federal/${agency.slug}`}
+                className="underline hover:text-green-700"
+              >
+                All {agency.name} jobs (nationwide)
+              </Link>{' '}
+              · ←{' '}
+              <Link
+                href="/jobs/federal"
+                className="underline hover:text-green-700"
+              >
+                Browse other federal agencies
+              </Link>
+            </p>
+          </div>
         </section>
       </main>
     </>

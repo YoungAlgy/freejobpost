@@ -4,6 +4,7 @@ import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
+import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
 export const revalidate = 3600
 
@@ -93,6 +94,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
+  // Federal agency × state matrix leaves — only cells with ≥5 active jobs
+  // (same threshold the route's generateStaticParams enforces, so the sitemap
+  // and the actually-renderable URLs stay in lockstep). At current inventory
+  // this is ~50-80 URLs, dominated by VA × state combos.
+  const federalMatrixCells = await getViableFederalCellsCached(supabase)
+  const federalMatrixRoutes: MetadataRoute.Sitemap = federalMatrixCells.map((c) => ({
+    url: `${base}/jobs/federal/${c.agency.slug}/${c.state.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'daily' as const,
+    priority: 0.75,
+  }))
+
   // Specialty × State matrix pages — only cells with ≥5 active matching jobs.
   // Uses the shared SQL-counted helper so the sitemap, generateStaticParams,
   // and the runtime renderable URLs stay in lockstep.
@@ -141,6 +154,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...specialtyRoutes,
     ...stateRoutes,
     ...federalRoutes,
+    ...federalMatrixRoutes,
     ...matrixRoutes,
     ...jobRoutes,
     ...employerRoutes,
