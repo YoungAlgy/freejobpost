@@ -29,17 +29,33 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 export default async function JobsIndexPage() {
-  // Fetch jobs and the verified-employer ID set in parallel — we'll surface
-  // the verified pool as a filter pill in JobsFilter.
-  const [jobsRes, verifiedRes] = await Promise.all([
+  // Fetch jobs, the total count, and the verified-employer ID set in parallel.
+  //
+  // - jobsRes: the actual rendered list. Ordering by updated_at (not created_at)
+  //   keeps any single big ingest (e.g. the +2,361 USAJobs federal jobs from
+  //   the 2026-05-16 v12 deploy) from monopolising the top of the list — every
+  //   4h cron tick re-touches Workday/Greenhouse/Lever rows, bubbling them back
+  //   into the top window. Limit of 2,000 covers ~25% of inventory; the client
+  //   filter component paginates the result 50-at-a-time.
+  // - countRes: gives the honest total for the "OPEN ROLES" badge, decoupled
+  //   from how many we actually rendered. Without this the badge said "500"
+  //   even when the DB had 8,000+ active jobs.
+  // - verifiedRes: surfaces the verified pool as a filter pill in JobsFilter.
+  const [jobsRes, countRes, verifiedRes] = await Promise.all([
     supabase
       .from('public_jobs')
       .select(JOB_LIST_FIELDS)
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(500),
+      .order('updated_at', { ascending: false })
+      .limit(2000),
+    supabase
+      .from('public_jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', new Date().toISOString()),
     supabase
       .from('public_employers_directory')
       .select('id')
@@ -56,6 +72,7 @@ export default async function JobsIndexPage() {
   ])
 
   const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]
+  const totalActive: number = countRes.count ?? jobs.length
   const verifiedEmployerIds: string[] = (
     (verifiedRes.data ?? []) as Array<{ id: string }>
   ).map((row) => row.id)
@@ -124,7 +141,7 @@ export default async function JobsIndexPage() {
           <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
             <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
               <span className="w-2 h-2 bg-green-600" />
-              {jobs.length} OPEN ROLES
+              {totalActive.toLocaleString()} OPEN ROLES
             </div>
             <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight mb-4">
               Healthcare jobs.
