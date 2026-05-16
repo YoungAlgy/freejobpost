@@ -31,31 +31,36 @@ export const revalidate = 300
 export default async function JobsIndexPage() {
   // Fetch jobs, the total count, and the verified-employer ID set in parallel.
   //
-  // - jobsRes: the actual rendered list. Ordering by updated_at (not created_at)
-  //   keeps any single big ingest (e.g. the +2,361 USAJobs federal jobs from
-  //   the 2026-05-16 v12 deploy) from monopolising the top of the list — every
-  //   4h cron tick re-touches Workday/Greenhouse/Lever rows, bubbling them back
-  //   into the top window. Limit of 2,000 covers ~25% of inventory; the client
-  //   filter component paginates the result 50-at-a-time.
+  // - jobsRes (two batches): the actual rendered list. Ordering by updated_at
+  //   (not created_at) keeps any single big ingest (e.g. the +2,361 USAJobs
+  //   federal jobs from the 2026-05-16 v12 deploy) from monopolising the top
+  //   of the list — every 4h cron tick re-touches Workday/Greenhouse/Lever
+  //   rows, bubbling them back into the top window. Fetched as two parallel
+  //   .range() batches of 1,000 because Supabase's anon-role PostgREST cap is
+  //   1,000 rows per query (`pgrst.db_max_rows=1000`), so a single .limit(2000)
+  //   silently clamps. Two batches gets us ~25% of inventory; client filter
+  //   component paginates 50-at-a-time with a "Show more" button.
   // - countRes: gives the honest total for the "OPEN ROLES" badge, decoupled
   //   from how many we actually rendered. Without this the badge said "500"
   //   even when the DB had 8,000+ active jobs.
   // - verifiedRes: surfaces the verified pool as a filter pill in JobsFilter.
-  const [jobsRes, countRes, verifiedRes] = await Promise.all([
-    supabase
-      .from('public_jobs')
-      .select(JOB_LIST_FIELDS)
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .order('updated_at', { ascending: false })
-      .limit(2000),
+  const nowIso = new Date().toISOString()
+  const baseJobs = () => supabase
+    .from('public_jobs')
+    .select(JOB_LIST_FIELDS)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', nowIso)
+    .order('updated_at', { ascending: false })
+  const [jobsBatch1, jobsBatch2, countRes, verifiedRes] = await Promise.all([
+    baseJobs().range(0, 999),
+    baseJobs().range(1000, 1999),
     supabase
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'active')
       .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString()),
+      .gt('expires_at', nowIso),
     supabase
       .from('public_employers_directory')
       .select('id')
@@ -71,7 +76,10 @@ export default async function JobsIndexPage() {
       .not('company_name', 'ilike', 'Ava Health%'),
   ])
 
-  const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]
+  const jobs: PublicJob[] = ([
+    ...((jobsBatch1.data ?? []) as PublicJob[]),
+    ...((jobsBatch2.data ?? []) as PublicJob[]),
+  ])
   const totalActive: number = countRes.count ?? jobs.length
   const verifiedEmployerIds: string[] = (
     (verifiedRes.data ?? []) as Array<{ id: string }>

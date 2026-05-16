@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
+import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 
 export const revalidate = 3600
 
@@ -52,6 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 1.0 },
     { url: `${base}/jobs`, lastModified: maxJobUpdate, changeFrequency: 'hourly', priority: 0.9 },
+    { url: `${base}/jobs/federal`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/specialty`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/state`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/employers`, lastModified: maxJobUpdate, changeFrequency: 'weekly', priority: 0.6 },
@@ -77,6 +79,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // State hub pages — one per top US state for healthcare-job density
   const stateRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
     url: `${base}/state/${s.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'daily' as const,
+    priority: 0.8,
+  }))
+
+  // Federal-agency landing pages — one per FEDERAL_AGENCIES entry. The /jobs/
+  // federal index is in staticRoutes above; this adds the per-agency leaves.
+  const federalRoutes: MetadataRoute.Sitemap = FEDERAL_AGENCIES.map((a) => ({
+    url: `${base}/jobs/federal/${a.slug}`,
     lastModified: maxJobUpdate,
     changeFrequency: 'daily' as const,
     priority: 0.8,
@@ -129,6 +140,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticRoutes,
     ...specialtyRoutes,
     ...stateRoutes,
+    ...federalRoutes,
     ...matrixRoutes,
     ...jobRoutes,
     ...employerRoutes,

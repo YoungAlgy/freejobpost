@@ -104,7 +104,14 @@ async function resolveEmployer(employerId: string | null | undefined): Promise<{
   // employer landing page; their job-detail page links straight to the
   // employer's own apply URL.
   const slug = (!isSeeded && full?.slug && full?.verified_via !== 'seeded' && full?.verified_via !== 'ats_import') ? full.slug : null
-  return { name, isSeeded, verifiedAt: row?.verified_at ?? null, slug }
+  // Suppress the verified-employer green check badge for seeded inventory and
+  // ATS imports. The /jobs index already gates the "VERIFIED ONLY" filter pill
+  // on the same logic; this brings the per-job detail page in line so e.g.
+  // 'U.S. Federal Government' (USAJobs ats_import) doesn't carry a verified
+  // checkmark — we never confirmed that employer via domain email (S3/S7).
+  const trustedVerify = full?.verified_via !== 'ats_import' && full?.verified_via !== 'seeded'
+  const verifiedAt = (row?.verified_at && trustedVerify) ? row.verified_at : null
+  return { name, isSeeded, verifiedAt, slug }
 }
 
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
