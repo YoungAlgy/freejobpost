@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
-import { FEDERAL_AGENCIES, agencyTitleOrFilter } from '@/lib/federal-agencies'
+import { FEDERAL_AGENCIES, agencyOrFilter } from '@/lib/federal-agencies'
 
 // 5-min revalidate matches /jobs index. The federal page's content is mostly
 // aggregate counts + agency overview blurbs, so a longer TTL would also be
@@ -10,7 +10,8 @@ import { FEDERAL_AGENCIES, agencyTitleOrFilter } from '@/lib/federal-agencies'
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Federal healthcare jobs — VA, IHS, DoD, NIH, HHS | Free Job Post',
+  // The root layout adds " | Free Job Post" via title.template — don't repeat it here.
+  title: 'Federal healthcare jobs — VA, IHS, DoD, NIH, HHS',
   description:
     'Browse federal healthcare job openings from the U.S. Department of Veterans Affairs, Indian Health Service, military health (Army, Navy, Air Force), NIH, and HHS agencies (CDC, FDA, CMS). Free to browse, free to apply via USAJobs.',
   alternates: { canonical: 'https://freejobpost.co/jobs/federal' },
@@ -43,7 +44,7 @@ export default async function FederalJobsHubPage() {
         .eq('status', 'active')
         .is('deleted_at', null)
         .gt('expires_at', nowIso)
-        .or(agencyTitleOrFilter(agency))
+        .or(agencyOrFilter(agency))
     ),
   ])
 

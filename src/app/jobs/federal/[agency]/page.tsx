@@ -14,7 +14,7 @@ import {
 import {
   FEDERAL_AGENCIES,
   findAgencyBySlug,
-  agencyTitleOrFilter,
+  agencyOrFilter,
 } from '@/lib/federal-agencies'
 
 export const revalidate = 300
@@ -33,10 +33,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { agency: slug } = await params
   const agency = findAgencyBySlug(slug)
-  if (!agency) return { title: 'Federal healthcare jobs | Free Job Post' }
+  if (!agency) return { title: 'Federal healthcare jobs' }
   const canonical = `https://freejobpost.co/jobs/federal/${agency.slug}`
   return {
-    title: `${agency.fullName} healthcare jobs | Free Job Post`,
+    // Root layout adds " | Free Job Post" via title.template — don't repeat.
+    title: `${agency.fullName} healthcare jobs`,
     description: `${agency.blurb} Open positions sourced from USAJobs, refreshed every 4 hours. Apply directly via the federal application portal.`,
     alternates: { canonical },
     openGraph: {
@@ -68,7 +69,7 @@ export default async function AgencyJobsPage(
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
-      .or(agencyTitleOrFilter(agency))
+      .or(agencyOrFilter(agency))
       .order('updated_at', { ascending: false })
       .limit(500),
     supabase
@@ -78,7 +79,7 @@ export default async function AgencyJobsPage(
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
-      .or(agencyTitleOrFilter(agency)),
+      .or(agencyOrFilter(agency)),
   ])
 
   const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]

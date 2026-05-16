@@ -90,12 +90,25 @@ export function findAgencyBySlug(slug: string): FederalAgency | undefined {
   return FEDERAL_AGENCIES.find((a) => a.slug === slug)
 }
 
-/** Build a Supabase .or() filter string matching any of the title keywords. */
-export function agencyTitleOrFilter(agency: FederalAgency): string {
-  // PostgREST .or() expects comma-separated conditions. Each .ilike pattern
-  // is `column.ilike.%value%`. Wildcards are spelled with the literal `*` in
-  // PostgREST URL syntax (translated to SQL `%`).
-  return agency.titleKeywords
-    .map((kw) => `title.ilike.*${kw.replace(/,/g, '\\,')}*`)
-    .join(',')
+/**
+ * Build a Supabase .or() filter matching any of the keywords against EITHER
+ * job title OR description. USAJobs puts the originating agency in body text
+ * (e.g. "The VA New Mexico Healthcare System is seeking..."), not the title
+ * column — so a title-only filter undercounts every agency by ~50x.
+ *
+ * Each keyword expands to two ILIKE clauses (title + description), joined by
+ * commas as PostgREST `.or()` expects. Wildcards are spelled `*` in the
+ * PostgREST URL syntax and translated to SQL `%` by the gateway.
+ */
+export function agencyOrFilter(agency: FederalAgency): string {
+  const clauses: string[] = []
+  for (const kw of agency.titleKeywords) {
+    const safe = kw.replace(/,/g, '\\,')
+    clauses.push(`title.ilike.*${safe}*`)
+    clauses.push(`description.ilike.*${safe}*`)
+  }
+  return clauses.join(',')
 }
+
+/** @deprecated kept for any pre-rename imports; new code should call agencyOrFilter. */
+export const agencyTitleOrFilter = agencyOrFilter
