@@ -31,19 +31,22 @@ export const revalidate = 300
 export default async function JobsIndexPage() {
   // Fetch jobs, the total count, and the verified-employer ID set in parallel.
   //
-  // - jobsRes (two batches): the actual rendered list. Ordering by updated_at
-  //   (not created_at) keeps any single big ingest (e.g. the +2,361 USAJobs
-  //   federal jobs from the 2026-05-16 v12 deploy) from monopolising the top
-  //   of the list — every 4h cron tick re-touches Workday/Greenhouse/Lever
-  //   rows, bubbling them back into the top window. Fetched as two parallel
-  //   .range() batches of 1,000 because Supabase's anon-role PostgREST cap is
-  //   1,000 rows per query (`pgrst.db_max_rows=1000`), so a single .limit(2000)
-  //   silently clamps. Two batches gets us ~25% of inventory; client filter
-  //   component paginates 50-at-a-time with a "Show more" button.
+  // - jobsBatches: the actual rendered list. Ordering by updated_at (not
+  //   created_at) keeps any single big ingest (e.g. the +2,361 USAJobs federal
+  //   jobs from the 2026-05-16 v12 deploy) from monopolising the top — every
+  //   4h cron tick re-touches Workday/Greenhouse/Lever rows, bubbling them
+  //   back into the top window. Fetched as N parallel .range() batches of
+  //   1,000 because Supabase's anon-role PostgREST hard-caps single queries
+  //   at 1,000 rows (`pgrst.db_max_rows=1000`); a single .limit(N) silently
+  //   clamps. NUM_BATCHES=9 gives us 9,000 rows — covers current inventory
+  //   (~8,037 active jobs as of 2026-05-16) with headroom for growth. All
+  //   batches fire in parallel so wall time stays ~200ms regardless.
   // - countRes: gives the honest total for the "OPEN ROLES" badge, decoupled
   //   from how many we actually rendered. Without this the badge said "500"
   //   even when the DB had 8,000+ active jobs.
   // - verifiedRes: surfaces the verified pool as a filter pill in JobsFilter.
+  const NUM_BATCHES = 9
+  const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseJobs = () => supabase
     .from('public_jobs')
@@ -52,9 +55,10 @@ export default async function JobsIndexPage() {
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false })
-  const [jobsBatch1, jobsBatch2, countRes, verifiedRes] = await Promise.all([
-    baseJobs().range(0, 999),
-    baseJobs().range(1000, 1999),
+  const jobsBatchPromises = Array.from({ length: NUM_BATCHES }, (_, i) =>
+    baseJobs().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+  )
+  const [countRes, verifiedRes, ...jobsBatches] = await Promise.all([
     supabase
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
@@ -74,12 +78,12 @@ export default async function JobsIndexPage() {
       // company_name guard is defence-in-depth in case verified_via gets reset.
       .not('verified_via', 'in', '(seeded,ats_import)')
       .not('company_name', 'ilike', 'Ava Health%'),
+    ...jobsBatchPromises,
   ])
 
-  const jobs: PublicJob[] = ([
-    ...((jobsBatch1.data ?? []) as PublicJob[]),
-    ...((jobsBatch2.data ?? []) as PublicJob[]),
-  ])
+  const jobs: PublicJob[] = jobsBatches.flatMap(
+    (b) => (b.data ?? []) as PublicJob[]
+  )
   const totalActive: number = countRes.count ?? jobs.length
   const verifiedEmployerIds: string[] = (
     (verifiedRes.data ?? []) as Array<{ id: string }>
