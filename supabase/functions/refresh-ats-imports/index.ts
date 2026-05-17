@@ -4,6 +4,18 @@
 // upserts them into public_jobs via ats_import_upsert_jobs(). Designed to be
 // invoked by pg_cron every 4 hours.
 //
+// v14 (2026-05-17): route existingRefs pre-query through the new
+//   `get_ats_existing_refs(p_source)` SECURITY DEFINER RPC. The prior
+//   .from('public_jobs').select(...) was silently returning null because
+//   service_role has no SELECT grant on public_jobs (only postgres /
+//   authenticated / anon do). That made the v10-v13 "skip detail-fetch
+//   for known jobs" + cross-run slug-dedup optimizations no-ops — every
+//   cron tick re-fetched detail for the first 100 of each Workday board.
+//   v14 closes that silent failure. Discovered during the 2026-05-17
+//   backfill-workday-descriptions rollout when an analogous SELECT
+//   surfaced the permission-denied error explicitly (the existingRefs
+//   query swallowed it via `const { data: existing } = await ...` with
+//   no `.error` destructure).
 // v13 (2026-05-16): add identifying User-Agent header to Workday fetch sites.
 //   Workday tenants throttle anonymous JSON-API traffic aggressively and
 //   the 2026-05-16 maintenance-page incident (HTTP 303 → community.workday.com
@@ -608,26 +620,31 @@ Deno.serve(async (_req: Request) => {
       fetched: 0, inserted: 0, updated: 0,
     }
     try {
-      // v11: pre-query existing rows for THIS source so we can (a) skip
-      // detail-fetch for known Workday jobs and (b) dedupe against cross-run
-      // slug collisions across all providers. One indexed query per board.
+      // v14: pre-query existing rows for THIS source via the
+      // `get_ats_existing_refs` SECURITY DEFINER RPC. We can't query
+      // public_jobs directly because service_role has no grant; the RPC
+      // runs as postgres and is scoped to a single source. Used for
+      // (a) skip-detail-fetch for known Workday jobs and (b) cross-run
+      // slug-collision dedup across all providers.
       const sourceTag = cfg.provider === 'workday'
         ? `workday:${cfg.workday!.tenant}/${cfg.workday!.site}`
         : cfg.provider === 'usajobs'
           ? 'usajobs:federal'
           : `${cfg.provider}:${cfg.boardSlug}`
-      const { data: existing } = await supabase
-        .from('public_jobs')
-        .select('slug, external_ref')
-        .eq('source', sourceTag)
-        .not('external_ref', 'is', null)
-        .limit(2000)
+      const { data: existing, error: existingErr } = await supabase
+        .rpc('get_ats_existing_refs', { p_source: sourceTag })
+      if (existingErr) {
+        // Don't swallow it like v10-v13 did — surface in the per-board
+        // summary so future grant/RPC drift is visible in the response.
+        boardSummary.existingRefsError = existingErr.message
+      }
       const existingRefs = new Set<string>()
       const existingSlugToRef = new Map<string, string>()
       for (const row of (existing ?? []) as Array<{ slug: string; external_ref: string }>) {
         existingRefs.add(row.external_ref)
         if (row.slug) existingSlugToRef.set(row.slug, row.external_ref)
       }
+      boardSummary.existingRefs = existingRefs.size
 
       let r
       if (cfg.provider === 'workday') {
