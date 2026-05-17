@@ -4,6 +4,13 @@
 // upserts them into public_jobs via ats_import_upsert_jobs(). Designed to be
 // invoked by pg_cron every 4 hours.
 //
+// v15 (2026-05-17): switch existingRefs to the jsonb-returning variant
+//   `get_ats_existing_refs_jsonb` to bypass PostgREST's default
+//   db_max_rows=1000 cap on TABLE-returning RPCs. v14 was correctly
+//   wired through an RPC but boardSummary.existingRefs topped out at
+//   1000 for CCF (1,420 active) / AdventHealth (1,391) / MGB (1,086) /
+//   USAJobs (2,361). jsonb returns as a single scalar so the row cap
+//   doesn't apply.
 // v14 (2026-05-17): route existingRefs pre-query through the new
 //   `get_ats_existing_refs(p_source)` SECURITY DEFINER RPC. The prior
 //   .from('public_jobs').select(...) was silently returning null because
@@ -620,19 +627,21 @@ Deno.serve(async (_req: Request) => {
       fetched: 0, inserted: 0, updated: 0,
     }
     try {
-      // v14: pre-query existing rows for THIS source via the
-      // `get_ats_existing_refs` SECURITY DEFINER RPC. We can't query
+      // v15: pre-query existing rows for THIS source via the
+      // `get_ats_existing_refs_jsonb` SECURITY DEFINER RPC. We can't query
       // public_jobs directly because service_role has no grant; the RPC
       // runs as postgres and is scoped to a single source. Used for
       // (a) skip-detail-fetch for known Workday jobs and (b) cross-run
-      // slug-collision dedup across all providers.
+      // slug-collision dedup across all providers. The jsonb variant
+      // bypasses the PostgREST default 1000-row cap that bit v14 on the
+      // larger sources (CCF / AdventHealth / MGB / USAJobs).
       const sourceTag = cfg.provider === 'workday'
         ? `workday:${cfg.workday!.tenant}/${cfg.workday!.site}`
         : cfg.provider === 'usajobs'
           ? 'usajobs:federal'
           : `${cfg.provider}:${cfg.boardSlug}`
       const { data: existing, error: existingErr } = await supabase
-        .rpc('get_ats_existing_refs', { p_source: sourceTag })
+        .rpc('get_ats_existing_refs_jsonb', { p_source: sourceTag })
       if (existingErr) {
         // Don't swallow it like v10-v13 did — surface in the per-board
         // summary so future grant/RPC drift is visible in the response.
