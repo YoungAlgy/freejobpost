@@ -1,22 +1,35 @@
 // backfill-workday-descriptions edge function
 // =============================================================================
 // One-shot rate-limited backfill for Workday jobs whose description was
-// captured from the listing endpoint (≤150-char preview) instead of the
-// full job-detail endpoint. Iterates jobs in batches, fetches the
+// captured from the listing endpoint (≤150-char preview or empty) instead
+// of the full job-detail endpoint. Iterates jobs in batches, fetches the
 // jobPostingInfo.jobDescription, and UPDATEs public_jobs in place.
 //
-// Background: refresh-ats-imports v9 dropped the per-item Workday detail-
-// fetch to stay under the 150s edge cap. v10 re-introduced it but ONLY for
-// new jobs (capped at 100/board/run via the existingRefs set). That left
-// ~1,258 already-imported Workday jobs stuck with 150-char description
-// previews — bad for UX and bad for the public_jobs SEO surface.
+// v3 (2026-05-17): switch SELECT + UPDATE to the SECURITY DEFINER RPC pair
+//   (get_workday_backfill_candidates, apply_workday_description_backfill).
+//   service_role has no grants on public_jobs (only postgres/authenticated/
+//   anon do); rather than broaden grants on a shared production table, we
+//   route the backfill through SECURITY DEFINER RPCs scoped to the Workday
+//   subset. Matches the existing ats_import_upsert_jobs pattern in
+//   refresh-ats-imports.
+// v2 (2026-05-17): verify_jwt=false, matches the cron-edge-function
+//   convention used by refresh-ats-imports / run-drip-scheduler /
+//   process-bulk-send-queue. Function is safe to invoke without auth — only
+//   reads + writes public_jobs.description, all updates idempotent and
+//   length-guarded.
+//
+// Background: refresh-ats-imports v9 dropped per-item Workday detail-fetch
+// to stay under the 150s edge cap. v10 re-introduced it but ONLY for new
+// jobs (capped at 100/board/run). That left ~1,200 already-imported Workday
+// jobs stuck with empty / 150-char descriptions — bad for UX and bad for
+// the public_jobs SEO surface.
 //
 // This function is invoked manually (HTTP POST) and works through the
-// backlog 50 jobs at a time. Re-run until it returns processed=0.
+// backlog 50 jobs at a time. Re-run until `candidates` returns 0.
 //
 // Idempotent: only updates rows whose current description is shorter than
-// `MIN_GOOD_LENGTH` chars (default 300) — re-running is a no-op once a
-// row has been hydrated with the full description.
+// `min_length` chars (default 300) AND only when the freshly fetched
+// description is strictly longer than the current one (RPC enforces both).
 //
 // Input body (all optional):
 //   { limit?: number,      // jobs per invocation, default 50, max 200
@@ -24,10 +37,6 @@
 //                          // 'workday:ccf/ClevelandClinicCareers'
 //     min_length?: number, // re-hydrate threshold, default 300
 //     dry_run?: boolean }  // skip the UPDATE, just report what would change
-//
-// Auth: verify_jwt=true (default). Service-role / authenticated callers
-// only. Function only reads + writes public_jobs.description, no other
-// surface affected.
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
@@ -36,10 +45,6 @@ const WORKDAY_UA = 'freejobpost.co/aggregator (alex@avahealth.co)'
 
 // Hard-coded mapping of source-tag → (tenantHost, tenant, site). Mirrors
 // the Workday entries in refresh-ats-imports SEED_BOARDS — keep in sync.
-// We derive these here instead of parsing apply_url because the apply_url
-// shape is `https://${tenantHost}/${site}${externalPath}` and externalPath
-// itself starts with /, so naive parsing is brittle. Explicit lookup is
-// 6 lines and unambiguous.
 const WORKDAY_TENANTS: Record<string, { tenantHost: string; tenant: string; site: string }> = {
   'workday:ccf/ClevelandClinicCareers': {
     tenantHost: 'ccf.wd1.myworkdayjobs.com',
@@ -92,20 +97,11 @@ function htmlToText(html: string): string {
 
 interface ExternalPathInfo { externalPath: string; tenant: { tenantHost: string; tenant: string; site: string } | null }
 
-/**
- * The apply_url for a Workday job looks like:
- *   https://{tenantHost}/{site}/job/{location}/{title}_{id}
- * Convert that to the detail-API URL by combining tenant lookup with the
- * portion of the path after `/${site}`. We use the explicit WORKDAY_TENANTS
- * map (keyed by source tag) so we don't have to URL-parse loosely.
- */
 function deriveExternalPath(applyUrl: string, sourceTag: string): ExternalPathInfo {
   const tenant = WORKDAY_TENANTS[sourceTag] ?? null
   if (!tenant) return { externalPath: '', tenant: null }
   try {
     const u = new URL(applyUrl)
-    // pathname looks like `/ClevelandClinicCareers/job/.../...`
-    // externalPath should be `/job/.../...` (everything after `/{site}`)
     const sitePrefix = `/${tenant.site}`
     if (!u.pathname.startsWith(sitePrefix)) return { externalPath: '', tenant: null }
     const externalPath = u.pathname.slice(sitePrefix.length)
@@ -115,6 +111,8 @@ function deriveExternalPath(applyUrl: string, sourceTag: string): ExternalPathIn
   }
 }
 
+interface Candidate { id: string; source: string; apply_url: string; description: string }
+
 Deno.serve(async (req: Request) => {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -122,7 +120,6 @@ Deno.serve(async (req: Request) => {
     { auth: { persistSession: false, autoRefreshToken: false } },
   )
 
-  // Parse body (optional).
   let body: { limit?: number; board?: string; min_length?: number; dry_run?: boolean } = {}
   if (req.method === 'POST') {
     try { body = await req.json() } catch {}
@@ -132,33 +129,17 @@ Deno.serve(async (req: Request) => {
   const dryRun = body.dry_run === true
   const startedAt = Date.now()
 
-  // Pick the next batch of Workday jobs that look short. ORDER BY id to
-  // produce a deterministic walk through the backlog so consecutive
-  // invocations make forward progress instead of re-rolling the same set.
-  let query = supabase
-    .from('public_jobs')
-    .select('id, slug, source, apply_url, description')
-    .like('source', 'workday:%')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .order('id', { ascending: true })
-    .limit(limit)
-  if (body.board) query = query.eq('source', body.board)
-
-  const { data: rows, error: selErr } = await query
+  const { data: candidatesRaw, error: selErr } = await supabase.rpc(
+    'get_workday_backfill_candidates',
+    { p_limit: limit, p_min_length: minLength, p_board: body.board ?? null },
+  )
   if (selErr) {
-    return new Response(JSON.stringify({ ok: false, error: selErr.message }), {
+    return new Response(JSON.stringify({ ok: false, stage: 'select', error: selErr.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
   }
-
-  // PostgREST has no `length(description) < N` filter, so we cap candidate
-  // rows in JS after fetching. Worst case we fetch `limit` rows and skip
-  // most of them — fine at limit ≤ 200.
-  const candidates = (rows ?? []).filter((r) =>
-    typeof r.description === 'string' && r.description.length < minLength,
-  )
+  const candidates: Candidate[] = (candidatesRaw ?? []) as Candidate[]
 
   const PARALLEL = 8  // detail fetches per batch; under WD's per-tenant rate ceiling
   const updates: Array<{ id: string; description: string }> = []
@@ -170,7 +151,7 @@ Deno.serve(async (req: Request) => {
     await Promise.all(batch.map(async (row) => {
       const { externalPath, tenant } = deriveExternalPath(row.apply_url ?? '', row.source)
       if (!tenant || !externalPath) {
-        skipped.push({ id: String(row.id), reason: 'cannot derive externalPath' })
+        skipped.push({ id: row.id, reason: 'cannot derive externalPath' })
         return
       }
       const detailUrl = `https://${tenant.tenantHost}/wday/cxs/${tenant.tenant}/${tenant.site}${externalPath}`
@@ -185,42 +166,36 @@ Deno.serve(async (req: Request) => {
         const dd = await r.json() as { jobPostingInfo?: { jobDescription?: string } }
         const html = dd?.jobPostingInfo?.jobDescription ?? ''
         if (!html) {
-          skipped.push({ id: String(row.id), reason: 'no jobDescription in response' })
+          skipped.push({ id: row.id, reason: 'no jobDescription in response' })
           return
         }
         const text = htmlToText(html)
         if (text.length <= (row.description ?? '').length) {
-          skipped.push({ id: String(row.id), reason: 'detail-fetch description not longer than current' })
+          skipped.push({ id: row.id, reason: 'detail-fetch description not longer than current' })
           return
         }
-        updates.push({ id: String(row.id), description: text })
+        updates.push({ id: row.id, description: text })
       } catch (e) {
         fetchErrors.push(`${row.id} (${e instanceof Error ? e.message : String(e)})`)
       }
     }))
   }
 
-  // Apply the UPDATEs. Doing them one row at a time keeps semantics simple
-  // (per-row error isolation) and at limit ≤ 200 the round-trip cost is
-  // acceptable. Use a batched RPC if this ever needs to scale.
   let updated = 0
-  if (!dryRun) {
-    for (const u of updates) {
-      const { error } = await supabase
-        .from('public_jobs')
-        .update({ description: u.description })
-        .eq('id', u.id)
-      if (error) {
-        fetchErrors.push(`update ${u.id}: ${error.message}`)
-      } else {
-        updated++
-      }
+  if (!dryRun && updates.length > 0) {
+    const { data: updResult, error: updErr } = await supabase.rpc(
+      'apply_workday_description_backfill',
+      { p_updates: updates },
+    )
+    if (updErr) {
+      fetchErrors.push(`apply RPC: ${updErr.message}`)
+    } else {
+      updated = (updResult as number) ?? 0
     }
   }
 
   return new Response(JSON.stringify({
     ok: fetchErrors.length === 0,
-    inspected: rows?.length ?? 0,
     candidates: candidates.length,
     updated: dryRun ? 0 : updated,
     would_update: dryRun ? updates.length : null,
