@@ -32,8 +32,11 @@ export const dynamicParams = true
 
 type Props = { params: Promise<{ slug: string }> }
 
-// Slug validation — matches slugify_employer_name() SQL output
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,120}$/
+// Employer slugs are produced by slugify_employer_name() which lowercases,
+// but keep the regex permissive for symmetry with the job-slug regex (which
+// had to be relaxed for ~3,400 uppercase Workday slugs — see the commentary
+// in src/app/jobs/[slug]/page.tsx).
+const SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9-]{0,120}$/
 
 type EmployerRow = {
   id: string

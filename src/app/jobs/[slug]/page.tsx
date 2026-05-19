@@ -15,14 +15,40 @@ import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
-type Props = { params: Promise<{ slug: string }> }
+type Props = {
+  params: Promise<{ slug: string }>
+  // ?ref=<partner> attribution carried from publisher feeds (Indeed,
+  // Talent.com, Adzuna, etc.) lets us tag the apply-click that follows.
+  // Defaults to 'internal' when absent (visitors who land via Google / SEO).
+  searchParams?: Promise<{ ref?: string }>
+}
+
+// Validate + normalize the partner attribution string. We accept lowercase
+// alphanumeric + hyphen up to 64 chars, the same shape log_apply_click()
+// enforces server-side. Bad input collapses to 'internal'.
+function normalizePartner(raw: string | undefined): string {
+  if (!raw) return 'internal'
+  const lower = raw.toLowerCase().trim().slice(0, 64)
+  return /^[a-z0-9-]+$/.test(lower) ? lower : 'internal'
+}
 
 export const revalidate = 600
 
 // Tight slug guard — lowercase, digits, hyphens only. Matches the DB slugify()
 // output shape; anything else is a scraper/garbage URL and gets 404'd without
 // hitting Supabase.
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,120}$/
+// Workday and some Greenhouse boards keep uppercase identifiers in their
+// external IDs (e.g. "...-wd-R2654676"). buildAtsSlug() in the ATS-import
+// edge function concatenates those as-is, so ~3,400 active job slugs have
+// uppercase chars in production (verified 2026-05-19 across MGB, Saint
+// Luke's, Stanford, Elevance, AdventHealth — all 4 Workday tenants except
+// CCF which happens to use numeric-only external IDs).
+//
+// The prior `/^[a-z0-9]...$/` regex rejected those as malformed and 404'd
+// every single one of them — meaning ~39% of our active inventory was
+// unreachable from the /jobs listing's click-through. Allow uppercase so
+// the slugs in the DB actually resolve.
+const SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9-]{0,120}$/
 
 type JobWithTargets = PublicJob & {
   syndication_targets?: string[] | null
@@ -185,8 +211,10 @@ function renderDescription(md: string): string {
     .join('')
 }
 
-export default async function JobDetailPage({ params }: Props) {
+export default async function JobDetailPage({ params, searchParams }: Props) {
   const { slug } = await params
+  const sp = searchParams ? await searchParams : {}
+  const partner = normalizePartner(sp.ref)
   const job = await getJob(slug)
   if (!job) notFound()
 
@@ -370,8 +398,12 @@ export default async function JobDetailPage({ params }: Props) {
 
             <div className="flex flex-col sm:flex-row gap-3">
               {job.apply_url ? (
+                // Route every outbound apply click through /click/[slug] so we
+                // can log per-partner attribution. The endpoint logs + 302s
+                // to the real apply_url; failure modes still bounce the user
+                // to a usable destination.
                 <a
-                  href={job.apply_url}
+                  href={`/click/${job.slug}?p=${encodeURIComponent(partner)}`}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
                   className="inline-flex items-center justify-center bg-black text-white px-6 py-4 text-base font-bold hover:bg-green-700 transition-colors"

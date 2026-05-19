@@ -9,7 +9,8 @@ import {
 } from '@/lib/public-jobs'
 import ApplyForm from './apply-form'
 
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,120}$/
+// See src/app/jobs/[slug]/page.tsx for why uppercase is allowed in slugs.
+const SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9-]{0,120}$/
 
 type Props = { params: Promise<{ slug: string }> }
 
