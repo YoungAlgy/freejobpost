@@ -46,8 +46,8 @@ I'm submitting to the volume-friendly publishers this week. Each is a 5-10 minut
 | Talent.com | Applied (awaiting reply) | `freejobpost.co/jobs.xml?ref=talent` |
 | Adzuna | Submitting | `freejobpost.co/jobs.xml?ref=adzuna` |
 | Jooble | Submitting | `freejobpost.co/jobs.xml?ref=jooble` |
-| Careerjet | Submitting | `freejobpost.co/jobs.xml?ref=careerjet` |
 | Glassdoor | Submitting | `freejobpost.co/jobs.xml?ref=glassdoor` |
+| Careerjet | Deferred (needs dedicated feed route) | n/a yet |
 
 Indeed / LinkedIn / ZipRecruiter intentionally deferred:
 - Indeed killed free organic XML feeds in 2023 — entry now requires Appcast or Pandologic spend (~$1-3k minimum). I'd rather earn placement data on the free partners first, then justify the spend.

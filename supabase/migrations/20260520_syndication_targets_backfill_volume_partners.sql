@@ -17,8 +17,12 @@
 -- 1,000 of the newly-opted-in 9,000). Otherwise the backfill is "real" but
 -- the feeds still under-serve.
 
+-- Careerjet intentionally omitted from this list — there's no
+-- /feeds/careerjet.xml route yet (would require adding 'careerjet' to the
+-- SyndicationTargetId type union + SYNDICATION_TARGETS array + the test).
+-- Add when the Careerjet partner channel is ready.
 UPDATE public.public_jobs
-   SET syndication_targets = ARRAY['talent','adzuna','jooble','careerjet','glassdoor','rss','google']::text[]
+   SET syndication_targets = ARRAY['talent','adzuna','jooble','glassdoor','rss','google']::text[]
  WHERE status = 'active'
    AND deleted_at IS NULL
    AND expires_at > now()
