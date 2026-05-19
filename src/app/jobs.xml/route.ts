@@ -1,23 +1,31 @@
 // Indeed v2 + Google for Jobs + ZipRecruiter compatible XML job feed.
 //
-// Feed URL: https://freejobpost.co/jobs.xml
+// Feed URL:
+//   https://freejobpost.co/jobs.xml             — generic (attribution=internal)
+//   https://freejobpost.co/jobs.xml?ref=talent  — partner-attributed (talent, adzuna, jooble, etc.)
 //
-// This is THE "post everywhere for free" endpoint. Submit this URL to:
-//   - Google Search Console → Jobs → Add feed
-//   - Indeed Free Organic XML Feed (https://employers.indeed.com/p/resources/free-posting)
-//   - ZipRecruiter partner feed intake
-//   - LinkedIn Limited Listings via content feed
+// Submit the partner-attributed variant to each publisher:
+//   - Talent.com:  /jobs.xml?ref=talent
+//   - Adzuna:      /jobs.xml?ref=adzuna
+//   - Jooble:      /jobs.xml?ref=jooble
+//   - Careerjet:   /jobs.xml?ref=careerjet
+//   - Glassdoor:   /jobs.xml?ref=glassdoor
+//   - ZipRecruiter:/jobs.xml?ref=ziprecruiter
+//   - LinkedIn:    /jobs.xml?ref=linkedin
 //
-// Each aggregator ingests, parses, and lists. Indeed re-syndicates to its
-// partner network. Google for Jobs uses the JobPosting JSON-LD we already
-// emit on each /jobs/[slug] page as the primary signal — this feed is the
-// discovery path that tells Google (and everyone else) which slugs to crawl.
+// The ref token is templated into every <url> as ?ref=<partner>, which the
+// /jobs/[slug] page reads and passes to /click/[slug] for per-partner
+// attribution in apply_clicks. Without the param, traffic registers as
+// "internal" — fine for Google for Jobs / SEO discovery, useless for
+// publisher-program attribution. Always hand partners the partner-tagged
+// URL.
 //
 // Spec references (as of Apr 2026):
 //   - Indeed v2 XML: https://docs.indeed.com/direct-job-posting/xml-feed
 //   - Google for Jobs JobPosting: https://developers.google.com/search/docs/appearance/structured-data/job-posting
 //   - ZipRecruiter XML: mirrors Indeed format with <source> root
 
+import { type NextRequest } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
@@ -26,11 +34,33 @@ import {
   locationLabel,
 } from '@/lib/public-jobs'
 
+// Allowlist of partner attribution keys. Anything outside this set collapses
+// to 'internal' so a malicious ?ref doesn't pollute apply_clicks with
+// arbitrary strings (the log_apply_click RPC also length-caps + lowercases,
+// but defense-in-depth here keeps the feed honest).
+const PARTNER_ALLOWLIST = new Set([
+  'internal', 'talent', 'adzuna', 'jooble', 'careerjet',
+  'glassdoor', 'ziprecruiter', 'linkedin', 'indeed', 'monster',
+  'simplyhired', 'rss', 'google',
+])
+
+function normalizePartner(raw: string | null | undefined): string {
+  if (!raw) return 'internal'
+  const lower = raw.toLowerCase().trim().slice(0, 64)
+  return PARTNER_ALLOWLIST.has(lower) ? lower : 'internal'
+}
+
 // Refresh the feed every 15 minutes — aggregators re-crawl on their own
 // schedule (Indeed ~4h, Google ~24h) so sub-hour ISR is overkill, but we
 // keep it moving.
+//
+// IMPORTANT: do NOT add `export const dynamic = 'force-static'` here. The
+// previous version had it (May 16 deploy), which contradicted `revalidate`
+// and pinned the response to whatever inventory existed at build time.
+// Without force-static, Next.js generates this route at ISR cadence,
+// honoring the 900s revalidate window. The route reads no per-request
+// inputs so it's still cacheable at the CDN edge.
 export const revalidate = 900
-export const dynamic = 'force-static'
 
 // Escape content for CDATA sections. CDATA lets us keep the HTML description
 // readable without double-escaping every entity, but we still have to guard
@@ -77,21 +107,43 @@ function iso822(d: Date): string {
   return d.toUTCString()
 }
 
-export async function GET(): Promise<Response> {
-  // /jobs.xml is the legacy "everything" feed (every active job, regardless
-  // of per-network opt-in). The per-network feeds live at /feeds/<network>.xml
-  // and respect the recruiter's syndication_targets choices.
-  const { data } = await supabase
+export async function GET(req: NextRequest): Promise<Response> {
+  // Per-partner attribution: every <url> in the body becomes
+  // https://freejobpost.co/jobs/<slug>?ref=<partner>. The /jobs/[slug] page
+  // reads ?ref and uses it for the Apply button's /click/[slug]?p=<partner>.
+  const partner = normalizePartner(req.nextUrl.searchParams.get('ref'))
+  const partnerSuffix = partner === 'internal' ? '' : `?ref=${encodeURIComponent(partner)}`
+
+  // /jobs.xml is the "everything" publisher feed. Submitted to Indeed /
+  // ZipRecruiter / Talent.com / Adzuna partner intake. Each partner ingests
+  // and respects employer-level rules at the row level (per-network opt-in
+  // lives in syndication_targets — surfaced via /feeds/<network>.xml in
+  // the future when partners want filtered streams).
+  //
+  // The PostgREST anon-role default `db_max_rows=1000` silently clamps a
+  // single `.limit(N>1000)`. The previous version had `.limit(5000)` and
+  // was therefore silently serving 1,000 of ~9,000 active jobs to every
+  // crawler — 89% under-coverage. Fix: parallel .range() batches mirroring
+  // the /jobs page (commit a7aaf6f) and the freeresumepost homepage. Wall
+  // time is unchanged because all batches fire concurrently.
+  const NUM_BATCHES = 9
+  const BATCH_SIZE = 1000
+  const nowIso = new Date().toISOString()
+  const baseQuery = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false })
-    .limit(5000)
+    .gt('expires_at', nowIso)
+    .order('updated_at', { ascending: false })
+  const batches = await Promise.all(
+    Array.from({ length: NUM_BATCHES }, (_, i) =>
+      baseQuery().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    )
+  )
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
-  const jobs = (data ?? []) as unknown as FeedJob[]
+  const jobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 
   // Resolve company names per employer in one batched query.
   // Reads from public_employers_directory (anon-safe view) — the underlying
@@ -124,7 +176,7 @@ export async function GET(): Promise<Response> {
     <date>${cdata(posted)}</date>
     <expirationdate>${cdata(validThrough)}</expirationdate>
     <referencenumber>${cdata(job.slug)}</referencenumber>
-    <url>${cdata(`https://freejobpost.co/jobs/${job.slug}`)}</url>
+    <url>${cdata(`https://freejobpost.co/jobs/${job.slug}${partnerSuffix}`)}</url>
     <company>${cdata(employerName)}</company>
     <sourcename>${cdata('freejobpost.co')}</sourcename>
     <city>${cdata(job.city ?? '')}</city>
