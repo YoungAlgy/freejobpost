@@ -15,7 +15,6 @@ import {
 import { jobUrlWithUtm } from '@/lib/feed-builders'
 
 export const revalidate = 900
-export const dynamic = 'force-static'
 
 function escapeXml(s: string | null | undefined): string {
   return (s ?? '')

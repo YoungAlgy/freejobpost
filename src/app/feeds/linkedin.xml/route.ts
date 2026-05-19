@@ -29,7 +29,6 @@ import {
 import { jobUrlWithUtm } from '@/lib/feed-builders'
 
 export const revalidate = 900
-export const dynamic = 'force-static'
 
 function cdata(s: string | null | undefined): string {
   const v = (s ?? '').replace(/]]>/g, ']]]]><![CDATA[>')

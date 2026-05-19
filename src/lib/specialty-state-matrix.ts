@@ -128,14 +128,27 @@ export async function computeViableCellsViaSql(
   // adjacent to a non-RN role). This version checks each field separately,
   // which is exactly what SQL ILIKE does, so cell counts match the runtime
   // `fetchCellJobs` query.
-  const { data } = await supabase
+  // 9-batch range — PostgREST silently caps `.limit(>1000)` for anon role,
+  // so the prior `.limit(5000)` was returning 1,000 rows. With ~9,000 active
+  // jobs that's 88% under-coverage, and the matrix-cell counts that drive
+  // /specialty/[specialty]/[state] page generation were silently truncated.
+  // 9-batch covers the full active inventory.
+  const NUM_BATCHES = 9
+  const BATCH_SIZE = 1000
+  const nowIso = new Date().toISOString()
+  const baseQ = () => supabase
     .from('public_jobs')
     .select('state, specialty, role, title')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .limit(5000)
-  const jobs = (data ?? []) as Array<{
+    .gt('expires_at', nowIso)
+    .order('updated_at', { ascending: false })
+  const batches = await Promise.all(
+    Array.from({ length: NUM_BATCHES }, (_, i) =>
+      baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    )
+  )
+  const jobs = batches.flatMap((b) => (b.data ?? [])) as Array<{
     state: string | null
     specialty: string | null
     role: string | null

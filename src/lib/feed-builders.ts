@@ -26,8 +26,14 @@ export function cdata(s: string | null | undefined): string {
 // but enough networks pass through query params that this still gives us
 // trackable referrer signal in Vercel Analytics + downstream tooling.
 // Canonical on /jobs/[slug] strips UTMs, so SEO isn't fragmented.
+//
+// `?ref=<partner>` is what /jobs/[slug]/page.tsx reads to pass through to
+// the /click/[slug]?p=<partner> redirect — this is the link that powers
+// apply_clicks attribution. The utm_* params are kept for Vercel Analytics
+// + any external downstream tooling that's already wired to UTMs. Both
+// living on the same URL is intentional belt-and-suspenders.
 export function jobUrlWithUtm(slug: string, target: SyndicationTargetId | 'rss'): string {
-  return `https://freejobpost.co/jobs/${slug}?utm_source=${target}&utm_medium=feed&utm_campaign=syndication`
+  return `https://freejobpost.co/jobs/${slug}?ref=${target}&utm_source=${target}&utm_medium=feed&utm_campaign=syndication`
 }
 
 export function rfc822(d: Date): string {
@@ -66,31 +72,53 @@ export function descriptionHtml(job: PublicJob): string {
 // not applied), fall back to returning every active job. This keeps every
 // feed route serving content even if Algy hasn't pasted the SQL yet — the
 // recruiter-opt-in story kicks in only after the column is live.
+//
+// NUM_BATCHES=9 parallel .range() batches — PostgREST's anon-role default
+// db_max_rows=1000 silently clamps a single `.limit(N>1000)`. Pre-2026-05-19
+// this used `.limit(5000)` which was silently returning 1,000 of ~9,000
+// active jobs → 88% under-coverage on EVERY per-partner feed (adzuna,
+// glassdoor, indeed, jooble, linkedin, talent, ziprecruiter). Combined
+// with the missing force-static fix on those routes, partners were getting
+// the same 1,000 stale jobs forever.
+const NUM_BATCHES = 9
+const BATCH_SIZE = 1000
+
 async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
-  const filtered = await supabase
+  const nowIso = new Date().toISOString()
+  const baseFiltered = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', nowIso)
     .contains('syndication_targets', [target])
-    .order('created_at', { ascending: false })
-    .limit(5000)
+    .order('updated_at', { ascending: false })
 
-  if (!filtered.error) {
-    return (filtered.data ?? []) as unknown as FeedJob[]
+  const filteredBatches = await Promise.all(
+    Array.from({ length: NUM_BATCHES }, (_, i) =>
+      baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    )
+  )
+  // If the first batch errored (column doesn't exist), fall back to
+  // unfiltered. Otherwise concat everything.
+  if (!filteredBatches[0]?.error) {
+    return filteredBatches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
   }
 
   // Fallback: no syndication_targets column → unfiltered feed.
-  const fallback = await supabase
+  const baseFallback = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false })
-    .limit(5000)
-  return (fallback.data ?? []) as unknown as FeedJob[]
+    .gt('expires_at', nowIso)
+    .order('updated_at', { ascending: false })
+  const fallbackBatches = await Promise.all(
+    Array.from({ length: NUM_BATCHES }, (_, i) =>
+      baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    )
+  )
+  return fallbackBatches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 }
 
 // Resolve company names for a batch of employer ids in one query.

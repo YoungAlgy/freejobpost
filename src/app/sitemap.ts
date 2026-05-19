@@ -19,15 +19,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // consistently lies (e.g. every URL shows "today" on every refresh), Google
   // stops trusting all `lastmod` values from the host. Tying hub freshness to
   // real underlying-data freshness keeps the signal honest.
-  const [jobsRes, employersRes] = await Promise.all([
-    supabase
-      .from('public_jobs')
-      .select('slug, updated_at')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .order('updated_at', { ascending: false })
-      .limit(5000),
+  // Jobs: 9-batch range pattern (PostgREST anon caps a single .limit(>1000)
+  // at 1,000 silently; with ~9,000 active jobs we'd ship a sitemap covering
+  // only 11% of inventory without batching). Verified 2026-05-19 — pre-fix
+  // sitemap had been missing ~8,000 URLs from Google's index for weeks.
+  const SITEMAP_NUM_BATCHES = 9
+  const SITEMAP_BATCH_SIZE = 1000
+  const nowIso = new Date().toISOString()
+  const baseJobs = () => supabase
+    .from('public_jobs')
+    .select('slug, updated_at')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', nowIso)
+    .order('updated_at', { ascending: false })
+  const jobsBatchPromises = Array.from({ length: SITEMAP_NUM_BATCHES }, (_, i) =>
+    baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)
+  )
+  const [employersRes, ...jobsBatches] = await Promise.all([
     // Employer pages — only verified non-seeded employers with at least 1 active job
     // (the page itself enforces the job-count gate, but pre-filtering here keeps
     // the sitemap clean and avoids surfacing empty 404-bound pages to crawlers)
@@ -35,9 +44,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('public_employers_directory')
       .select('slug, verified_via, company_name, verified_at')
       .not('verified_at', 'is', null),
+    ...jobsBatchPromises,
   ])
 
-  const jobsData = (jobsRes.data ?? []) as { slug: string; updated_at: string }[]
+  const jobsData = jobsBatches.flatMap(
+    (b) => (b.data ?? []) as { slug: string; updated_at: string }[]
+  )
   const maxJobUpdate = jobsData[0]?.updated_at
     ? new Date(jobsData[0].updated_at)
     : new Date()
@@ -117,14 +129,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }))
 
-  const jobRoutes: MetadataRoute.Sitemap = (jobsRes.data ?? []).map(
-    (j: { slug: string; updated_at: string }) => ({
-      url: `${base}/jobs/${j.slug}`,
-      lastModified: j.updated_at,
-      changeFrequency: 'daily' as const,
-      priority: 0.7,
-    })
-  )
+  const jobRoutes: MetadataRoute.Sitemap = jobsData.map((j) => ({
+    url: `${base}/jobs/${j.slug}`,
+    lastModified: j.updated_at,
+    changeFrequency: 'daily' as const,
+    priority: 0.7,
+  }))
 
   type EmpSitemapRow = {
     slug: string

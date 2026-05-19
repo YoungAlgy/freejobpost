@@ -4,7 +4,6 @@
 import { buildIndeedFormatFeed } from '@/lib/feed-builders'
 
 export const revalidate = 900
-export const dynamic = 'force-static'
 
 export async function GET(): Promise<Response> {
   return buildIndeedFormatFeed('jooble', 'Jooble')
