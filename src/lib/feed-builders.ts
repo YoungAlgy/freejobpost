@@ -212,3 +212,93 @@ export async function buildIndeedFormatFeed(
     },
   })
 }
+
+// Fetch active jobs that ORIGINATE on freejobpost — i.e. employer-posted
+// via /post-job + Ava Health seeded roles. Excludes ATS-imported jobs
+// (Workday / Greenhouse / Lever / Ashby / USAJobs) that strict publishers
+// like Indeed and LinkedIn classify as "republished" content.
+//
+// Same 9-batch range pattern as fetchJobsForTarget; current inventory is
+// ~422 originated jobs but the pattern future-proofs us as employers
+// onboard via /post-job.
+async function fetchOriginatedJobs(): Promise<FeedJob[]> {
+  const nowIso = new Date().toISOString()
+  const baseQ = () => supabase
+    .from('public_jobs')
+    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', nowIso)
+    .eq('is_ats_import', false)
+    .order('updated_at', { ascending: false })
+  const batches = await Promise.all(
+    Array.from({ length: NUM_BATCHES }, (_, i) =>
+      baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    )
+  )
+  return batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
+}
+
+// Indeed-format feed restricted to originated (non-ATS-imported) jobs.
+// Designed for strict partners (Indeed, LinkedIn Limited Listings,
+// ZipRecruiter Publisher Program) whose quality scoring penalizes
+// republished content. Hand them
+// https://freejobpost.co/feeds/originated.xml.
+//
+// Doesn't use a SyndicationTargetId (those represent per-board opt-in
+// gates; "originated" is a content-source dimension, not a publisher
+// target). The <url> field falls back to a clean canonical URL — strict
+// partners typically rewrite or append their own attribution params on
+// crawl anyway.
+export async function buildOriginatedFeed(networkLabel: string): Promise<Response> {
+  const jobs = await fetchOriginatedJobs()
+  const employerNames = await resolveEmployerNames(jobs)
+  const jobsXml = jobs
+    .map((job) => {
+      const name = employerNames.get(job.employer_id) || 'Ava Health Partners'
+      // Inline the indeedFormatJobElement body to bypass the
+      // jobUrlWithUtm SyndicationTargetId constraint. URL is the bare
+      // canonical /jobs/[slug] — no ?ref, no utm_* — since strict
+      // partners append their own attribution.
+      const loc = locationLabel(job)
+      const sal = formatSalary(job.salary_min, job.salary_max)
+      const title = job.title || job.role || 'Healthcare Role'
+      const posted = job.created_at ? rfc822(new Date(job.created_at)) : rfc822(new Date())
+      const validThrough = job.expires_at
+        ? rfc822(new Date(job.expires_at))
+        : rfc822(new Date(Date.now() + 60 * 86400_000))
+      return `  <job>
+    <title>${cdata(title)}</title>
+    <date>${cdata(posted)}</date>
+    <expirationdate>${cdata(validThrough)}</expirationdate>
+    <referencenumber>${cdata(job.slug)}</referencenumber>
+    <url>${cdata(`https://freejobpost.co/jobs/${job.slug}`)}</url>
+    <company>${cdata(name)}</company>
+    <sourcename>${cdata('freejobpost.co')}</sourcename>
+    <city>${cdata(job.city ?? '')}</city>
+    <state>${cdata(job.state ?? '')}</state>
+    <country>${cdata('US')}</country>
+    <description>${cdata(descriptionHtml(job))}</description>
+    <salary>${cdata(sal ?? '')}</salary>
+    <jobtype>${cdata(indeedJobType(job.employment_type))}</jobtype>
+    <category>${cdata(job.specialty ?? job.role ?? 'Healthcare')}</category>
+    <experience>${cdata(job.experience_required ?? '')}</experience>
+    <remotetype>${cdata(
+      job.remote_hybrid === 'remote'
+        ? 'Fully Remote'
+        : job.remote_hybrid === 'hybrid'
+        ? 'Hybrid Remote'
+        : ''
+    )}</remotetype>
+    <location>${cdata(loc)}</location>
+  </job>`
+    })
+    .join('\n')
+  const xml = wrapIndeedFormat(jobsXml, jobs.length, networkLabel)
+  return new Response(xml, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+    },
+  })
+}
