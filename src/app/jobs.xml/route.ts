@@ -26,7 +26,11 @@
 //   - ZipRecruiter XML: mirrors Indeed format with <source> root
 
 import { type NextRequest } from 'next/server'
-import { supabase } from '@/lib/supabase'
+// supabaseFresh has a 30s fetch revalidate vs the 300s default — see
+// src/lib/supabase.ts for why feed routes specifically need a short window
+// after data-shape migrations (e.g. the 2026-05-20 syndication_targets
+// backfill stuck this route at 425 jobs for 6+ hours).
+import { supabaseFresh as supabase } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
@@ -126,7 +130,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   // crawler — 89% under-coverage. Fix: parallel .range() batches mirroring
   // the /jobs page (commit a7aaf6f) and the freeresumepost homepage. Wall
   // time is unchanged because all batches fire concurrently.
-  const NUM_BATCHES = 9
+  // 12 × 1000 headroom — /jobs.xml hit the 9-batch ceiling on 2026-05-20
+  // once total active inventory crossed 9,000. See same constant in
+  // src/lib/feed-builders.ts for the matching rationale.
+  const NUM_BATCHES = 12
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQuery = () => supabase

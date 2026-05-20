@@ -8,7 +8,9 @@
 
 import type { PublicJob } from './public-jobs'
 import { JOB_DETAIL_FIELDS, formatSalary, locationLabel } from './public-jobs'
-import { supabase } from './supabase'
+// Use the short-revalidate supabase client — see src/lib/supabase.ts for
+// why feed routes need a 30s fetch window vs the page-default 300s.
+import { supabaseFresh as supabase } from './supabase'
 import type { SyndicationTargetId } from './syndication-targets'
 
 export type FeedJob = PublicJob & {
@@ -73,14 +75,18 @@ export function descriptionHtml(job: PublicJob): string {
 // feed route serving content even if Algy hasn't pasted the SQL yet — the
 // recruiter-opt-in story kicks in only after the column is live.
 //
-// NUM_BATCHES=9 parallel .range() batches — PostgREST's anon-role default
+// NUM_BATCHES parallel .range() batches — PostgREST's anon-role default
 // db_max_rows=1000 silently clamps a single `.limit(N>1000)`. Pre-2026-05-19
 // this used `.limit(5000)` which was silently returning 1,000 of ~9,000
-// active jobs → 88% under-coverage on EVERY per-partner feed (adzuna,
-// glassdoor, indeed, jooble, linkedin, talent, ziprecruiter). Combined
-// with the missing force-static fix on those routes, partners were getting
-// the same 1,000 stale jobs forever.
-const NUM_BATCHES = 9
+// active jobs → 88% under-coverage on EVERY per-partner feed.
+//
+// Bumped from 9 to 12 on 2026-05-20 after the syndication_targets backfill
+// opted 8,536 ATS-imported jobs into the volume partners. /jobs.xml hit
+// the 9-batch ceiling exactly (9,000 returned vs 8,961 expected — last
+// batch was a full 1k) which means total inventory had already crossed
+// 9,000 and we were under-serving the tail. 12 batches gives 12,000-row
+// headroom for the next federal-pipeline + ATS-onboarding additions.
+const NUM_BATCHES = 12
 const BATCH_SIZE = 1000
 
 async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
