@@ -28,9 +28,27 @@ cb234b1  fix(seo): opengraph-image SLUG_RE — allow uppercase
 17a2eb9  fix(rpc): add 'careerjet' to set_pending_job_syndication_targets v_known
 9a3c4c1  refactor(jobs.xml): dedupe XML helpers — import from feed-builders
 d2be7cc  fix(content): stale 850K stat on /post-job → 1.4M+ (canonical)
+42c9f5a  docs(deploy): refresh after Pass 9 (3 new fixes + 1 new migration)
+9089a13  fix(seo): tighten oversized meta descriptions + lang=en-US
+9adc165  feat(seo): ItemList JSON-LD on every hub page
+3e52cfa  feat(seo): BROWSE MORE hub-links section on every per-job page
+e4d1936  feat(seo): expose 30 direct hub links on homepage (was 0)
+45a54b7  feat(seo): sitewide "Popular" hub-link row in footer
 ```
 
-Total: 22 commits, no breaking schema changes, fully backward-compatible.
+Total: 29 commits, no breaking schema changes, fully backward-compatible.
+
+### SEO sprint (last 5 commits in the list)
+
+| Commit | Surface | Impact |
+|---|---|---|
+| `9089a13` | layout.tsx + 4 metadata blocks | `<html lang="en-US">` geo-signal; 4 meta descriptions tightened to ≤155 chars (no more SERP truncation) |
+| `9adc165` | 6 hub surfaces | ItemList JSON-LD on /jobs, /specialty/[slug], /state/[slug], /jobs/federal/[agency], + both matrix surfaces. Unlocks Google category-style SERP treatment. |
+| `3e52cfa` | /jobs/[slug] | New "BROWSE MORE" section linking back to specialty + state + federal hubs. Per-job pages went from **0 hub links → up to 4**. |
+| `e4d1936` | homepage | 30 direct hub links (12 states + 18 specialties), 1-click from root. Up from **2** (just the index pages). |
+| `45a54b7` | global footer | 9 popular-hub links sitewide. Every page now passes authority to RN, NP, PA, Family medicine, Cardiology, FL, TX, CA, Federal. |
+
+Net effect: homepage hub-link surface went from **2 → 31**, per-job pages from **0 → 9-13**. Sitewide internal-link density up ~5×.
 
 ## Vercel env vars to set BEFORE first deploy
 
