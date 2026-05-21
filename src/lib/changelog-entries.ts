@@ -19,6 +19,55 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
+    date: '2026-05-21',
+    title: 'Per-partner feed quality pass',
+    body:
+      'Every per-partner XML feed (Indeed, ZipRecruiter, Glassdoor, Talent.com, Adzuna, Jooble, Careerjet, LinkedIn, RSS) now filters out jobs with empty descriptions before publishing. Healthier feeds = better partner ingestion + cleaner search-engine indexing.',
+    tag: 'improved',
+  },
+  {
+    date: '2026-05-21',
+    title: 'Bug fix: 655 jobs missing from Google for Jobs',
+    body:
+      'Some ATS-imported jobs were silently missing from Google for Jobs and from every per-partner feed because of how the import RPC initialized their syndication preferences. Fixed at the data layer + render layer so those jobs now show up everywhere.',
+    tag: 'fixed',
+  },
+  {
+    date: '2026-05-20',
+    title: 'Careerjet added as a 4th partner channel',
+    body:
+      'Careerjet (international job-search aggregator, 90+ countries) now reads /feeds/careerjet.xml. Adds ~20M monthly searches of reach for every job you post.',
+    tag: 'new',
+  },
+  {
+    date: '2026-05-20',
+    title: 'Submitted to Talent.com, Adzuna, and Jooble',
+    body:
+      'Free-tier publisher programs at Talent.com, Adzuna, and Jooble received our feed via their partner intake forms today. Aggregator placement onboarding takes 1–2 weeks; tracking attributed traffic via our new partner-attribution dashboard once placements go live.',
+    tag: 'new',
+  },
+  {
+    date: '2026-05-19',
+    title: 'Per-Apply-click attribution',
+    body:
+      'Every Apply-button click now logs the source partner (talent, adzuna, jooble, careerjet, glassdoor, RSS, or internal). Lets us prove which boards actually drive applicants — and gives employers an honest per-source breakdown.',
+    tag: 'new',
+  },
+  {
+    date: '2026-05-19',
+    title: 'Bug fix: 3,443 jobs returning 404',
+    body:
+      'Workday job IDs use uppercase letters (R2654676, JR192702, etc.) but our slug validator rejected uppercase characters, sending users to a 404 page. 3,443 active jobs — 39% of the listing — were unreachable. Fixed: uppercase slugs now resolve normally.',
+    tag: 'fixed',
+  },
+  {
+    date: '2026-05-19',
+    title: 'Sitemap fix: 1,165 → 9,328 URLs',
+    body:
+      'The sitemap was capping at 1,000 URLs due to a PostgREST query-limit edge case, so search engines were only seeing about 13% of our inventory. Fixed with a parallel-batch fetch pattern. Google + Bing now see every active job.',
+    tag: 'fixed',
+  },
+  {
     date: '2026-05-13',
     title: 'Specialty × state landing pages',
     body:
