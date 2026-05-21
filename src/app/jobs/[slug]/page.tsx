@@ -303,7 +303,18 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   // Only emit JobPosting JSON-LD if the recruiter opted into Google for Jobs
   // syndication. Breadcrumb is always safe to emit (it's about the page, not
   // the listing).
-  const optedIntoGoogle = !job.syndication_targets || job.syndication_targets.includes('google')
+  //
+  // Semantics: empty syndication_targets array means "no preference set"
+  // (e.g., ATS-imported jobs are inserted with `ARRAY[]::text[]` by the
+  // ats_import_upsert_jobs RPC), NOT "explicit opt-out from everything."
+  // Pre-2026-05-20 audit: this check rejected 655 active jobs (6.8% of
+  // inventory — every ATS row added since the 2026-05-20 backfill ran)
+  // because `[].includes('google') === false`. Treat empty as "all opt-in"
+  // to match the implied default; explicit opt-out requires a non-empty
+  // array that lacks 'google'.
+  const targets = job.syndication_targets
+  const optedIntoGoogle =
+    !targets || targets.length === 0 || targets.includes('google')
 
   return (
     <>

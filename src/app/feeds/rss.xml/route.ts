@@ -31,14 +31,16 @@ function cdata(s: string | null | undefined): string {
 }
 
 export async function GET(): Promise<Response> {
-  // Defensive: pre-migration fallback to unfiltered.
+  // Defensive: pre-migration fallback to unfiltered. Empty-array semantics
+  // matches the other partner feeds — empty == "no preference set" (ATS
+  // default), include in feed.
   const filtered = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
-    .contains('syndication_targets', ['rss'])
+    .or('syndication_targets.cs.{rss},syndication_targets.eq.{}')
     .order('created_at', { ascending: false })
     .limit(500)
 

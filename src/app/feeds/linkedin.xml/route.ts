@@ -78,31 +78,57 @@ function iso8601Date(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
+// PostgREST anon-role default db_max_rows=1000 silently clamps a single
+// .limit(N>1000). Same 12-batch pattern as the other partner feeds and
+// /jobs.xml — see src/lib/feed-builders.ts. Pre-fix 2026-05-21 audit:
+// /feeds/linkedin.xml was returning 1,000 of ~9,600 active jobs.
+const NUM_BATCHES = 12
+const BATCH_SIZE = 1000
+
 export async function GET(): Promise<Response> {
-  // Defensive: if syndication_targets column isn't live yet (migration
-  // not applied), fall back to unfiltered active-jobs query so the feed
-  // never returns empty just because the schema is mid-migration.
-  const filtered = await supabase
+  // STRICT PARTNER: LinkedIn requires EXPLICIT opt-in. Empty arrays are NOT
+  // auto-included — see feed-builders.ts STRICT_PARTNERS for the canonical
+  // list (indeed/linkedin/ziprecruiter). We never republish ATS-aggregated
+  // jobs to LinkedIn without a recruiter's deliberate choice; LinkedIn's
+  // Job Wrapping quality scoring penalizes feeds heavy on republished
+  // content. Pre-2026-05-20 audit confirmed 425 explicitly-opted-in jobs
+  // is the correct number for this surface.
+  const nowIso = new Date().toISOString()
+  const baseFiltered = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', nowIso)
     .contains('syndication_targets', ['linkedin'])
-    .order('created_at', { ascending: false })
-    .limit(5000)
+    .order('updated_at', { ascending: false })
 
-  let data: unknown[] | null = filtered.data
-  if (filtered.error) {
-    const fallback = await supabase
+  const filteredBatches = await Promise.all(
+    Array.from({ length: NUM_BATCHES }, (_, i) =>
+      baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    )
+  )
+
+  // Pre-migration fallback: if column doesn't exist, fetch unfiltered. Use
+  // the first batch's error status as the signal (the others would error
+  // identically).
+  let data: unknown[] | null
+  if (filteredBatches[0]?.error) {
+    const baseFallback = () => supabase
       .from('public_jobs')
       .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
       .eq('status', 'active')
       .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(5000)
-    data = fallback.data
+      .gt('expires_at', nowIso)
+      .order('updated_at', { ascending: false })
+    const fallbackBatches = await Promise.all(
+      Array.from({ length: NUM_BATCHES }, (_, i) =>
+        baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+      )
+    )
+    data = fallbackBatches.flatMap((b) => (b.data ?? []) as unknown[])
+  } else {
+    data = filteredBatches.flatMap((b) => (b.data ?? []) as unknown[])
   }
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }

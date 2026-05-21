@@ -89,15 +89,45 @@ export function descriptionHtml(job: PublicJob): string {
 const NUM_BATCHES = 12
 const BATCH_SIZE = 1000
 
+// Strict partners require an EXPLICIT opt-in in syndication_targets — no
+// auto-inclusion of empty-array rows. These are partners with strict quality
+// controls or paid-only ingestion where republishing ATS-aggregated jobs is
+// either disallowed (Indeed/LinkedIn) or risks feed-quality scoring
+// penalties (ZipRecruiter). Volume partners (glassdoor / talent / adzuna /
+// jooble / careerjet / rss / google) auto-include empty-array rows, which
+// is the "no preference set" default for ATS-imported jobs.
+const STRICT_PARTNERS: ReadonlySet<SyndicationTargetId> = new Set([
+  'indeed',
+  'linkedin',
+  'ziprecruiter',
+])
+
 async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
   const nowIso = new Date().toISOString()
+  // Volume partners: match jobs where syndication_targets either contains the
+  // partner OR is empty (empty array semantically means "no preference set" —
+  // usually ATS-imported rows that ats_import_upsert_jobs inserts with
+  // `ARRAY[]::text[]`. Pre-2026-05-20 audit found 655 such jobs being
+  // silently excluded from every per-partner feed). Explicit opt-out
+  // requires a non-empty array that lacks the partner key.
+  //
+  // Strict partners: require explicit opt-in. Empty arrays excluded so we
+  // never republish ATS-aggregated rows to Indeed/LinkedIn/ZipRecruiter
+  // without a recruiter's deliberate choice.
+  //
+  // PostgREST `.or()` joins clauses with OR; `cs.{target}` is the array
+  // `@>` operator, `eq.{}` matches an empty array literal.
+  const isStrict = STRICT_PARTNERS.has(target)
+  const filterClause = isStrict
+    ? `syndication_targets.cs.{${target}}`
+    : `syndication_targets.cs.{${target}},syndication_targets.eq.{}`
   const baseFiltered = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
-    .contains('syndication_targets', [target])
+    .or(filterClause)
     .order('updated_at', { ascending: false })
 
   const filteredBatches = await Promise.all(
