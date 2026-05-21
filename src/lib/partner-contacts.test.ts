@@ -29,11 +29,19 @@ describe('PARTNER_CONTACTS', () => {
     }
   })
 
-  it('email_active entries have a non-null primaryEmail; everything else has null', () => {
+  it('entries with an active or in-flight email channel must have a valid primaryEmail; auto_crawl / gated / dead must have null', () => {
+    // web_form_submitted entries can have either: a documented fallback
+    // email (the address we'd use if the form route goes silent) or null
+    // (no email path at all). Both are valid.
     for (const [key, contact] of Object.entries(PARTNER_CONTACTS)) {
       if (contact.status === 'email_active') {
         expect(contact.primaryEmail, `${key} should have primaryEmail`).not.toBe(null)
         expect(contact.primaryEmail).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+      } else if (contact.status === 'web_form_submitted') {
+        // primaryEmail allowed to be either null or a valid fallback address
+        if (contact.primaryEmail !== null) {
+          expect(contact.primaryEmail).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+        }
       } else {
         expect(contact.primaryEmail, `${key} should not have primaryEmail`).toBe(null)
       }
@@ -41,7 +49,9 @@ describe('PARTNER_CONTACTS', () => {
   })
 
   it('every status is one of the documented values', () => {
-    const valid = new Set(['auto_crawl', 'email_active', 'gated_portal', 'channel_dead'])
+    const valid = new Set([
+      'auto_crawl', 'email_active', 'gated_portal', 'channel_dead', 'web_form_submitted',
+    ])
     for (const [key, contact] of Object.entries(PARTNER_CONTACTS)) {
       expect(valid.has(contact.status), `${key} has invalid status ${contact.status}`).toBe(true)
     }

@@ -24,6 +24,7 @@ export type DeliveryStatus =
   | 'email_active' // Email channel verified delivering as of `lastVerifiedAt`
   | 'gated_portal' // Web portal that requires sales call / invite / Talent Solutions rep
   | 'channel_dead' // No working public channel as of last verification
+  | 'web_form_submitted' // Application submitted via the partner's web form, awaiting reply
 
 export type PartnerContact = {
   /** Network id — matches `SyndicationTargetId` from syndication-targets.ts */
@@ -96,34 +97,47 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
   },
   adzuna: {
     target: 'adzuna',
-    status: 'email_active',
+    status: 'web_form_submitted',
     primaryEmail: 'content@adzuna.com',
     ccEmail: 'support@adzuna.com',
-    lastVerifiedAt: '2026-04-30',
+    lastVerifiedAt: '2026-05-20',
+    bouncedAddresses: ['data@adzuna.com'],
     instructions:
-      'Email content@adzuna.com with the feed URL (cc support@adzuna.com).',
+      'Submitted via adzuna.com/hire/contact on 2026-05-20 (universal "Speak to our team" form, "How can we help" message). content@adzuna.com still works for direct contact; data@adzuna.com hit an OOO (Bobbie on maternity leave).',
     note:
-      'Delivered 2026-04-29 and Matt Woodbridge (Product Manager) replied within 24h asking for relationship + sourcing details. Adzuna retired their public partners.html submission form; the content team handles intake informally.',
+      'Confirmation screen: "Thanks for contacting us! We will get in touch with you shortly." Replaces the prior 2026-04-29 email contact path with Matt Woodbridge.',
   },
   jooble: {
     target: 'jooble',
-    status: 'email_active',
+    status: 'web_form_submitted',
     primaryEmail: 'support@jooble.com',
-    lastVerifiedAt: '2026-04-30',
+    lastVerifiedAt: '2026-05-20',
     bouncedAddresses: ['partners@jooble.com'],
     instructions:
-      'Email support@jooble.com with the feed URL — the support inbox forwards to the partnerships team.',
+      'Submitted via jooble.org/partner/ppc partner-application form on 2026-05-20. Stated SLA: "respond within one business day." support@jooble.com is the documented fallback if no reply.',
     note:
-      'Direct partners@jooble.com bounces 550 5.1.1. Fallback if no reply: book a call at uk.jooble.org/partner/for-publishers (Calendly-style "Book a call" CTA).',
+      'Direct partners@jooble.com bounces 550 5.1.1. Form is the verified path going forward.',
   },
   talent: {
     target: 'talent',
-    status: 'channel_dead',
+    status: 'web_form_submitted',
     primaryEmail: null,
-    lastVerifiedAt: '2026-04-30',
+    lastVerifiedAt: '2026-05-20',
     bouncedAddresses: ['partner@talent.com', 'partners@talent.com'],
     instructions:
-      "No public email channel — both partner@talent.com and partners@talent.com bounce. The publisher portal at talent.com/publishers is invite-only. Path forward: LinkedIn outreach to a Talent.com employee (Sales / Partnerships) or skip — Talent.com is the lowest-volume of the four major aggregators.",
+      'Submitted via talent.com/contact/employers (Employer support form, "Something else" issue type) on 2026-05-20. Both partner@ email addresses bounce 550. The form route ticket-ID lands in their internal support system; reply via talent.com/help.',
+    note:
+      'Updated 2026-05-20 from channel_dead → web_form_submitted after finding the publisher route via the support form (the /publishers login is invite-only).',
+  },
+  careerjet: {
+    target: 'careerjet',
+    status: 'email_active',
+    primaryEmail: 'partners@careerjet.com',
+    lastVerifiedAt: '2026-05-20',
+    instructions:
+      'Email partners@careerjet.com with the feed URL (https://freejobpost.co/jobs.xml?ref=careerjet) and a one-paragraph pitch. Careerjet ingests Indeed-spec XML; their crawl picks up new sources on a ~weekly cycle once whitelisted.',
+    note:
+      'Per Careerjet partner docs, they accept the same <source><job> envelope Indeed v2 specifies — no schema changes vs. the other partner feeds.',
   },
   rss: {
     target: 'rss',

@@ -18,6 +18,7 @@ export type SyndicationTargetId =
   | 'adzuna'
   | 'jooble'
   | 'talent'
+  | 'careerjet'
   | 'rss'
 
 export type SyndicationTarget = {
@@ -104,11 +105,20 @@ export const SYNDICATION_TARGETS: SyndicationTarget[] = [
   {
     id: 'talent',
     label: 'Talent.com',
-    blurb: 'Formerly Neuvoo; aggregator with strong allied-health reach. Partner channel currently inactive — feed ready for when the channel opens.',
+    blurb: 'Formerly Neuvoo; aggregator with strong allied-health reach. Submitted via partner form 2026-05-20, awaiting reply.',
     feedUrl: 'https://freejobpost.co/feeds/talent.xml',
     spec: 'Talent.com XML',
-    defaultOn: false,  // channel_dead as of 2026-04-30; re-enable when partner contact established
+    defaultOn: true,  // re-enabled 2026-05-20 after submitting via talent.com/contact/employers (the partner@talent.com email route bounced 550)
     reach: '~30M monthly visits',
+  },
+  {
+    id: 'careerjet',
+    label: 'Careerjet',
+    blurb: 'International job-search aggregator, 90+ countries. Crawl-ingested feed; submission via partner form.',
+    feedUrl: 'https://freejobpost.co/feeds/careerjet.xml',
+    spec: 'Careerjet XML (Indeed-format compatible)',
+    defaultOn: true,
+    reach: '~20M monthly visits',
   },
   {
     id: 'rss',

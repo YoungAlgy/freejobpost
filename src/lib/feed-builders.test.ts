@@ -37,9 +37,12 @@ describe('cdata', () => {
 })
 
 describe('jobUrlWithUtm', () => {
-  it('builds the canonical URL with UTM params for attribution', () => {
+  it('builds the canonical URL with both ?ref and UTM params for attribution', () => {
+    // jobUrlWithUtm emits BOTH ?ref=<partner> (the apply_clicks attribution param read by
+    // /jobs/[slug]) AND the utm_* params (Vercel Analytics + external UTM consumers).
+    // ?ref was added 2026-05-19 in commit b3cf15e — both params live on the same URL.
     expect(jobUrlWithUtm('cardiology-md-tampa', 'indeed')).toBe(
-      'https://freejobpost.co/jobs/cardiology-md-tampa?utm_source=indeed&utm_medium=feed&utm_campaign=syndication'
+      'https://freejobpost.co/jobs/cardiology-md-tampa?ref=indeed&utm_source=indeed&utm_medium=feed&utm_campaign=syndication'
     )
   })
 

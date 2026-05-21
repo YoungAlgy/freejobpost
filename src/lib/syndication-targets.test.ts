@@ -9,8 +9,8 @@ import {
 // ── Structural invariants ────────────────────────────────────────────────────
 
 describe('SYNDICATION_TARGETS', () => {
-  it('defines exactly 9 syndication targets', () => {
-    expect(SYNDICATION_TARGETS).toHaveLength(9)
+  it('defines exactly 10 syndication targets', () => {
+    expect(SYNDICATION_TARGETS).toHaveLength(10)
   })
 
   it('every target has the required fields', () => {
@@ -33,8 +33,8 @@ describe('SYNDICATION_TARGETS', () => {
 // ── Default-on targets (S7 lock-in test) ─────────────────────────────────────
 //
 // defaultOn controls which checkboxes the POST JOB form pre-checks.
-// Channel-inactive targets (linkedin, talent) must stay OFF by default so we
-// never advertise distribution to networks that aren't actually live.
+// Channel-inactive targets (currently just linkedin) must stay OFF by default
+// so we never advertise distribution to networks that aren't actually live.
 // Any change to these should be intentional and reviewed.
 
 describe('DEFAULT_TARGET_IDS', () => {
@@ -45,14 +45,14 @@ describe('DEFAULT_TARGET_IDS', () => {
     expect(DEFAULT_TARGET_IDS).toContain('google')
     expect(DEFAULT_TARGET_IDS).toContain('adzuna')
     expect(DEFAULT_TARGET_IDS).toContain('jooble')
+    expect(DEFAULT_TARGET_IDS).toContain('talent')      // re-enabled 2026-05-20 — submitted via talent.com/contact/employers form
+    expect(DEFAULT_TARGET_IDS).toContain('careerjet')   // added 2026-05-20
     expect(DEFAULT_TARGET_IDS).toContain('rss')
   })
 
   it('does NOT include gated/inactive channels', () => {
     // linkedin: gated — requires Talent Solutions rep; not yet active
     expect(DEFAULT_TARGET_IDS).not.toContain('linkedin')
-    // talent: channel_dead — both partner@ addresses bounce; no public intake
-    expect(DEFAULT_TARGET_IDS).not.toContain('talent')
   })
 
   it('matches the defaultOn flag on each target', () => {
@@ -71,8 +71,8 @@ describe('ALL_TARGET_IDS', () => {
     expect([...ALL_TARGET_IDS].sort()).toEqual([...allFromTargets].sort())
   })
 
-  it('has 9 items (all 9 networks, including inactive)', () => {
-    expect(ALL_TARGET_IDS).toHaveLength(9)
+  it('has 10 items (all 10 networks, including gated)', () => {
+    expect(ALL_TARGET_IDS).toHaveLength(10)
   })
 })
 
@@ -106,7 +106,7 @@ describe('SyndicationTargetId', () => {
     // documentation lock-in.
     const knownIds: SyndicationTargetId[] = [
       'indeed', 'ziprecruiter', 'glassdoor', 'linkedin',
-      'google', 'adzuna', 'jooble', 'talent', 'rss',
+      'google', 'adzuna', 'jooble', 'talent', 'careerjet', 'rss',
     ]
     for (const t of SYNDICATION_TARGETS) {
       expect(knownIds).toContain(t.id as SyndicationTargetId)
