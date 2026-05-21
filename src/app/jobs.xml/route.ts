@@ -37,22 +37,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-
-// Allowlist of partner attribution keys. Anything outside this set collapses
-// to 'internal' so a malicious ?ref doesn't pollute apply_clicks with
-// arbitrary strings (the log_apply_click RPC also length-caps + lowercases,
-// but defense-in-depth here keeps the feed honest).
-const PARTNER_ALLOWLIST = new Set([
-  'internal', 'talent', 'adzuna', 'jooble', 'careerjet',
-  'glassdoor', 'ziprecruiter', 'linkedin', 'indeed', 'monster',
-  'simplyhired', 'rss', 'google',
-])
-
-function normalizePartner(raw: string | null | undefined): string {
-  if (!raw) return 'internal'
-  const lower = raw.toLowerCase().trim().slice(0, 64)
-  return PARTNER_ALLOWLIST.has(lower) ? lower : 'internal'
-}
+import { normalizePartner } from '@/lib/partner-attribution'
 
 // Refresh the feed every 15 minutes — aggregators re-crawl on their own
 // schedule (Indeed ~4h, Google ~24h) so sub-hour ISR is overkill, but we

@@ -13,23 +13,19 @@ import {
 } from '@/lib/public-jobs'
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { stripSalarySuffix } from '@/lib/clean-labels'
-
 import { safeJsonLd } from '@/lib/safe-jsonld'
+// Partner-attribution allowlist + normalizer live in
+// src/lib/partner-attribution.ts (shared with /jobs.xml). Anything outside
+// the known set collapses to 'internal' so a malicious ?ref doesn't
+// pollute apply_clicks.
+import { normalizePartner } from '@/lib/partner-attribution'
+
 type Props = {
   params: Promise<{ slug: string }>
   // ?ref=<partner> attribution carried from publisher feeds (Indeed,
   // Talent.com, Adzuna, etc.) lets us tag the apply-click that follows.
   // Defaults to 'internal' when absent (visitors who land via Google / SEO).
   searchParams?: Promise<{ ref?: string }>
-}
-
-// Validate + normalize the partner attribution string. We accept lowercase
-// alphanumeric + hyphen up to 64 chars, the same shape log_apply_click()
-// enforces server-side. Bad input collapses to 'internal'.
-function normalizePartner(raw: string | undefined): string {
-  if (!raw) return 'internal'
-  const lower = raw.toLowerCase().trim().slice(0, 64)
-  return /^[a-z0-9-]+$/.test(lower) ? lower : 'internal'
 }
 
 export const revalidate = 600
