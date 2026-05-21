@@ -110,6 +110,37 @@ export default function RootLayout({
           {children}
         </div>
         <footer className="max-w-6xl mx-auto px-4 py-8 mt-12 border-t border-gray-200">
+          {/* Popular-hub footer row — every page on the site links to
+             these 9 hubs, giving Google a constant signal of where the
+             important category surfaces live. Boosts crawl frequency
+             + PageRank flow to long-tail combinations. Kept under 10
+             links so the footer stays tasteful (Google's anti-footer-
+             link-junk heuristic kicks in past ~30 sitewide links). */}
+          <nav
+            aria-label="Popular healthcare job hubs"
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-500 mb-5 pb-5 border-b border-gray-100"
+          >
+            <span className="font-bold tracking-widest uppercase text-gray-700">
+              Popular:
+            </span>
+            <Link href="/specialty/registered-nurse" className="hover:text-gray-900">RN jobs</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/specialty/nurse-practitioner" className="hover:text-gray-900">NP jobs</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/specialty/physician-assistant" className="hover:text-gray-900">PA jobs</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/specialty/family-medicine" className="hover:text-gray-900">Family medicine</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/specialty/cardiology" className="hover:text-gray-900">Cardiology</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/state/florida" className="hover:text-gray-900">Florida</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/state/texas" className="hover:text-gray-900">Texas</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/state/california" className="hover:text-gray-900">California</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/jobs/federal" className="hover:text-gray-900">Federal</Link>
+          </nav>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link href="/jobs" className="hover:text-gray-900">
