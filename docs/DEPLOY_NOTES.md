@@ -21,9 +21,16 @@ faf8289  docs(deploy): refresh manifest after the 3 trailing SEO fixes
 cb38034  deps: npm audit fix — bump ws + brace-expansion to patched versions
 4d6a2d9  fix(admin): partner_attribution_daily view recognizes service_role
 ed33648  docs(migration): update partner_attribution_daily COMMENT
+503c622  docs(deploy): refresh commit manifest after admin view fix
+0851715  fix(attribution): unify partner allowlist between /jobs.xml and /jobs/[slug]
+cb234b1  fix(seo): opengraph-image SLUG_RE — allow uppercase
+7937f72  fix(perf): unify NUM_BATCHES → 12 across /jobs, sitemap, matrix
+17a2eb9  fix(rpc): add 'careerjet' to set_pending_job_syndication_targets v_known
+9a3c4c1  refactor(jobs.xml): dedupe XML helpers — import from feed-builders
+d2be7cc  fix(content): stale 850K stat on /post-job → 1.4M+ (canonical)
 ```
 
-Total: 16 commits, no breaking schema changes, fully backward-compatible.
+Total: 22 commits, no breaking schema changes, fully backward-compatible.
 
 ## Vercel env vars to set BEFORE first deploy
 
@@ -40,12 +47,13 @@ If either is missing, `/admin/attribution` 404s rather than 500ing — no inform
 
 Run via `supabase db push` or apply manually in the SQL editor. Order matters (alphabetical date prefix):
 
-1. `20260520_ats_import_syndication_targets_default.sql` — **new today**, fixes `ats_import_upsert_jobs` RPC default + backfills 655 empty rows + catches up 8,961 rows with `careerjet`.
-2. `20260520_partner_attribution_daily_view.sql` — `partner_attribution_daily` view powering `/admin/attribution`.
+1. `20260520_ats_import_syndication_targets_default.sql` — **new this batch**, fixes `ats_import_upsert_jobs` RPC default + backfills 655 empty rows + catches up 8,961 rows with `careerjet`.
+2. `20260520_partner_attribution_daily_view.sql` — `partner_attribution_daily` view powering `/admin/attribution`. **Updated this batch** to recognize `service_role` JWT (the original would have returned 0 rows under the service-role client).
 3. `20260520_syndication_targets_add_careerjet.sql` — no-op after #1 (idempotent).
 4. `20260520_syndication_targets_backfill_volume_partners.sql` — no-op after #1 (idempotent).
+5. `20260521_set_pending_job_syndication_targets_add_careerjet.sql` — **new this batch**, adds `'careerjet'` to the RPC's v_known whitelist so explicit recruiter opt-ins via /post-job survive sanitization. Without this, recruiters checking the Careerjet box have their choice silently stripped.
 
-All 4 are safe to re-run. The catch-up logic in #1 makes #3 + #4 redundant; they remain in the tree for the audit trail.
+All 5 are safe to re-run (CREATE OR REPLACE + idempotent backfills). #3 + #4 stay in the tree for audit trail.
 
 ## Post-deploy smoke tests
 
