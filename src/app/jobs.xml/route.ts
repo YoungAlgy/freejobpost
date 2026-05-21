@@ -38,6 +38,18 @@ import {
   locationLabel,
 } from '@/lib/public-jobs'
 import { normalizePartner } from '@/lib/partner-attribution'
+// All XML helpers (cdata, indeedJobType, descriptionHtml, rfc822) live in
+// feed-builders.ts. /jobs.xml previously had its own local copies that
+// silently drifted — e.g. rfc822() was a misnamed clone of rfc822() (there
+// is no such thing as ISO 822; the format Indeed/ZipRecruiter expect IS
+// RFC 822). Consolidating prevents future drift between the
+// per-partner feeds and this multi-publisher feed.
+import {
+  cdata,
+  indeedJobType,
+  descriptionHtml,
+  rfc822,
+} from '@/lib/feed-builders'
 
 // Refresh the feed every 15 minutes — aggregators re-crawl on their own
 // schedule (Indeed ~4h, Google ~24h) so sub-hour ISR is overkill, but we
@@ -50,51 +62,6 @@ import { normalizePartner } from '@/lib/partner-attribution'
 // honoring the 900s revalidate window. The route reads no per-request
 // inputs so it's still cacheable at the CDN edge.
 export const revalidate = 900
-
-// Escape content for CDATA sections. CDATA lets us keep the HTML description
-// readable without double-escaping every entity, but we still have to guard
-// against the literal "]]>" sequence ending the section early.
-function cdata(s: string | null | undefined): string {
-  const v = (s ?? '').replace(/]]>/g, ']]]]><![CDATA[>')
-  return `<![CDATA[${v}]]>`
-}
-
-// Indeed's enum for employment type. We also keep our richer native enum
-// stored in the DB — this is just the feed projection.
-function indeedJobType(t: PublicJob['employment_type']): string {
-  switch (t) {
-    case 'full_time': return 'fulltime'
-    case 'part_time': return 'parttime'
-    case 'contract': return 'contract'
-    case 'locum': return 'temporary'
-    case 'per_diem': return 'temporary'
-    case 'internship': return 'internship'
-    default: return 'fulltime'
-  }
-}
-
-// Build an HTML description suitable for the <description> CDATA. Google for
-// Jobs wants structured markup; Indeed wants HTML but will strip most tags.
-// Common denominator: paragraph + basic formatting, no scripts/iframes.
-function descriptionHtml(job: PublicJob): string {
-  const src = (job.description ?? '')
-  // Convert our **Label:** lines + blank-line paragraphs → <p> + <strong>
-  const blocks = src.split(/\n\n+/).map((b) => {
-    const html = b
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br/>')
-    return `<p>${html}</p>`
-  })
-  return blocks.join('')
-}
-
-function iso822(d: Date): string {
-  // RFC 822 date format — what both Indeed and ZipRecruiter expect.
-  return d.toUTCString()
-}
 
 export async function GET(req: NextRequest): Promise<Response> {
   // Per-partner attribution: every <url> in the body becomes
@@ -165,17 +132,17 @@ export async function GET(req: NextRequest): Promise<Response> {
     for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
   }
 
-  const now = iso822(new Date())
+  const now = rfc822(new Date())
 
   const jobsXml = jobs
     .map((job) => {
       const loc = locationLabel(job)
       const sal = formatSalary(job.salary_min, job.salary_max)
       const title = job.title || job.role || 'Healthcare Role'
-      const posted = job.created_at ? iso822(new Date(job.created_at)) : now
+      const posted = job.created_at ? rfc822(new Date(job.created_at)) : now
       const validThrough = job.expires_at
-        ? iso822(new Date(job.expires_at))
-        : iso822(new Date(Date.now() + 60 * 86400_000))
+        ? rfc822(new Date(job.expires_at))
+        : rfc822(new Date(Date.now() + 60 * 86400_000))
       const employerName = employerNameMap.get(job.employer_id) || 'Ava Health Partners'
       return `  <job>
     <title>${cdata(title)}</title>
