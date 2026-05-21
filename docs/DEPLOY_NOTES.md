@@ -17,9 +17,13 @@ a484171  fix(seo): /favicon.ico → /icon redirect
 d7bede2  fix(seo): add og:image + twitter:image to /jobs listing
 f37e33f  fix(seo): robots.txt — disallow /admin/ and /click/
 3cff623  fix(security): disable X-Powered-By header (info-leak hardening)
+faf8289  docs(deploy): refresh manifest after the 3 trailing SEO fixes
+cb38034  deps: npm audit fix — bump ws + brace-expansion to patched versions
+4d6a2d9  fix(admin): partner_attribution_daily view recognizes service_role
+ed33648  docs(migration): update partner_attribution_daily COMMENT
 ```
 
-Total: 12 commits, no breaking schema changes, fully backward-compatible.
+Total: 16 commits, no breaking schema changes, fully backward-compatible.
 
 ## Vercel env vars to set BEFORE first deploy
 
