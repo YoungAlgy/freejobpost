@@ -132,7 +132,20 @@ export async function GET(): Promise<Response> {
   }
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
-  const jobs = (data ?? []) as unknown as FeedJob[]
+  // Filter thin descriptions before publishing to LinkedIn. LinkedIn Job
+  // Wrapping quality scoring penalizes thin-content feeds; see
+  // src/lib/feed-builders.ts hasUsableDescription() for the canonical
+  // ≥50-char rule (post-strip-HTML, post-whitespace-collapse). Pre-2026-05-21
+  // audit: 24% of corpus has empty/<p></p>-only descriptions from
+  // Workday-shallow-refresh imports.
+  const allJobs = (data ?? []) as unknown as FeedJob[]
+  const jobs = allJobs.filter((j) => {
+    const stripped = (j.description ?? '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    return stripped.length >= 50
+  })
 
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }

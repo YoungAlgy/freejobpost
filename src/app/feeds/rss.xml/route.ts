@@ -58,7 +58,18 @@ export async function GET(): Promise<Response> {
   }
 
   type RssJob = PublicJob & { updated_at: string }
-  const jobs = (data ?? []) as unknown as RssJob[]
+  // Skip thin-description jobs — RSS readers (Feedly / Inoreader / Apple
+  // News) treat empty <description> as a render bug and de-prioritize the
+  // entire feed. Same ≥50-char rule used across all per-partner feeds;
+  // see src/lib/feed-builders.ts hasUsableDescription().
+  const allJobs = (data ?? []) as unknown as RssJob[]
+  const jobs = allJobs.filter((j) => {
+    const stripped = (j.description ?? '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    return stripped.length >= 50
+  })
   const now = new Date().toUTCString()
 
   const items = jobs

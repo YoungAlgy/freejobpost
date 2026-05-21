@@ -313,8 +313,18 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   // to match the implied default; explicit opt-out requires a non-empty
   // array that lacks 'google'.
   const targets = job.syndication_targets
-  const optedIntoGoogle =
+  const optedIntoGoogleByTargets =
     !targets || targets.length === 0 || targets.includes('google')
+
+  // Google for Jobs rejects (and penalizes the whole feed for) JobPosting
+  // entries with empty/thin descriptions. Some ATS-imported rows arrive
+  // with no description body (provider returns only a title + apply URL).
+  // Guard: require >=50 chars of non-whitespace description before
+  // emitting JobPosting JSON-LD. Page still renders for humans; we just
+  // don't ship a known-invalid markup blob to the indexer.
+  const descLen = (job.description ?? '').replace(/\s+/g, ' ').trim().length
+  const hasUsableDescription = descLen >= 50
+  const optedIntoGoogle = optedIntoGoogleByTargets && hasUsableDescription
 
   return (
     <>

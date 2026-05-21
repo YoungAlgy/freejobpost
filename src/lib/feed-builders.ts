@@ -226,13 +226,42 @@ ${jobsXml}
 </source>`
 }
 
+// Minimum non-whitespace description length we'll publish to partner feeds.
+// Partners (Talent.com, Adzuna, Jooble, etc.) penalize feeds with high
+// percentages of thin-content listings — Talent.com explicitly down-ranks
+// "less than one paragraph" entries during their crawl scoring. Filtering
+// these out at the feed level (rather than emitting and getting penalized
+// across the whole feed) is the safer move.
+//
+// Pre-2026-05-21 audit: 2,300 / 9,664 jobs in talent.xml (24%) had
+// empty/<p></p>-only descriptions because the Workday ATS importer
+// doesn't fetch detail-endpoint descriptions on shallow refresh
+// (enrichAll defaults to false — see src/lib/ats-import/workday.ts:215).
+// Long-term fix is to default-enrich descriptions in the importer +
+// backfill existing rows. Until then we keep these jobs on /jobs (users
+// can still browse) but exclude them from partner feeds.
+export const MIN_DESCRIPTION_CHARS = 50
+
+export function hasUsableDescription(description: string | null | undefined): boolean {
+  if (!description) return false
+  // Strip HTML tags + collapse whitespace before measuring — empty
+  // <p></p> wrappers from html-to-text imports otherwise pass a naive
+  // length check.
+  const stripped = description
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return stripped.length >= MIN_DESCRIPTION_CHARS
+}
+
 // One-call helper used by every Indeed-format feed route. Pass the target
 // (e.g. 'indeed', 'adzuna') and a label for the description.
 export async function buildIndeedFormatFeed(
   target: SyndicationTargetId,
   networkLabel: string,
 ): Promise<Response> {
-  const jobs = await fetchJobsForTarget(target)
+  const allJobs = await fetchJobsForTarget(target)
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
   const employerNames = await resolveEmployerNames(jobs)
   const jobsXml = jobs
     .map((job) => {
@@ -287,7 +316,11 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
 // partners typically rewrite or append their own attribution params on
 // crawl anyway.
 export async function buildOriginatedFeed(networkLabel: string): Promise<Response> {
-  const jobs = await fetchOriginatedJobs()
+  const allJobs = await fetchOriginatedJobs()
+  // Same thin-description filter as buildIndeedFormatFeed — strict
+  // partners are even more sensitive to thin content than volume
+  // partners. See hasUsableDescription() for context.
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
   const employerNames = await resolveEmployerNames(jobs)
   const jobsXml = jobs
     .map((job) => {

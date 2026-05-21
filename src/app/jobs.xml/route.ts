@@ -150,7 +150,21 @@ export async function GET(req: NextRequest): Promise<Response> {
   )
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
-  const jobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
+  const allJobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
+
+  // Thin-description filter. Indeed v2 / Google for Jobs / Talent.com /
+  // ZipRecruiter all penalize feeds with high percentages of empty-body
+  // listings — and our /jobs.xml is the ONE feed Indeed and Google read.
+  // Pre-2026-05-21 audit: ~24% of corpus has empty/<p></p>-only descriptions
+  // from the Workday shallow-refresh import path. See
+  // src/lib/feed-builders.ts hasUsableDescription() for the canonical rule.
+  const jobs = allJobs.filter((j) => {
+    const stripped = (j.description ?? '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    return stripped.length >= 50
+  })
 
   // Resolve company names per employer in one batched query.
   // Reads from public_employers_directory (anon-safe view) — the underlying

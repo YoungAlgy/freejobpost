@@ -5,6 +5,8 @@ import {
   rfc822,
   indeedJobType,
   descriptionHtml,
+  hasUsableDescription,
+  MIN_DESCRIPTION_CHARS,
 } from './feed-builders'
 import type { PublicJob } from './public-jobs'
 
@@ -136,5 +138,48 @@ describe('descriptionHtml', () => {
   it('converts single newlines (within a paragraph) to <br/>', () => {
     const out = descriptionHtml(baseJob('Line one\nLine two'))
     expect(out).toContain('Line one<br/>Line two')
+  })
+})
+
+describe('hasUsableDescription', () => {
+  it('rejects null + undefined + empty', () => {
+    expect(hasUsableDescription(null)).toBe(false)
+    expect(hasUsableDescription(undefined)).toBe(false)
+    expect(hasUsableDescription('')).toBe(false)
+  })
+
+  it('rejects empty HTML paragraph wrappers (the common Workday-shallow-refresh shape)', () => {
+    // Workday's listing endpoint returns no jobDescription for most tenants;
+    // the importer falls back to empty string but `descriptionHtml()` would
+    // wrap it as `<p></p>` (7 chars). Guard must see through this.
+    expect(hasUsableDescription('<p></p>')).toBe(false)
+    expect(hasUsableDescription('<p>   </p>')).toBe(false)
+    expect(hasUsableDescription('<div><p></p></div>')).toBe(false)
+  })
+
+  it('rejects whitespace-only content', () => {
+    expect(hasUsableDescription('   \n\n\t   ')).toBe(false)
+  })
+
+  it('rejects content under the MIN_DESCRIPTION_CHARS threshold', () => {
+    expect(hasUsableDescription('Short.')).toBe(false)
+    expect(hasUsableDescription('a'.repeat(MIN_DESCRIPTION_CHARS - 1))).toBe(false)
+  })
+
+  it('accepts content at or above the threshold (post-HTML-strip)', () => {
+    expect(hasUsableDescription('a'.repeat(MIN_DESCRIPTION_CHARS))).toBe(true)
+    expect(
+      hasUsableDescription(
+        '<p>RN ICU role at a Level 1 trauma center. 12-hr shifts, weekends rotating.</p>'
+      )
+    ).toBe(true)
+  })
+
+  it('counts text inside HTML tags, not the tags themselves', () => {
+    // 30 chars of text inside lots of HTML noise — should still measure to 30, not 100.
+    const text = 'Short body of about thirty chrs'
+    expect(text.length).toBeGreaterThanOrEqual(MIN_DESCRIPTION_CHARS - 20)
+    expect(text.length).toBeLessThan(MIN_DESCRIPTION_CHARS)
+    expect(hasUsableDescription(`<div><p><strong>${text}</strong></p></div>`)).toBe(false)
   })
 })
