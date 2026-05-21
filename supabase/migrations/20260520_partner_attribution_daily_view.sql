@@ -6,9 +6,9 @@
 -- proxy for unique people, since ip_hash is the truncated SHA-256 of the
 -- client IP so two browsers behind the same NAT collapse to one).
 --
--- Internal-only: reuses the is_internal_user() RLS pattern via a security
--- barrier — only internal users see rows. Anon / authenticated candidate-
--- side reads get nothing.
+-- Internal-only: gated to internal users OR service_role (the latter so
+-- server-side admin pages on the Next.js side can read the rollup via
+-- the service-role key without auth.uid() being set).
 --
 -- Refreshes on every query — apply_clicks volume is currently low and this
 -- view is queried interactively. Materialize later if it gets hot.
@@ -23,7 +23,16 @@ AS
     COUNT(DISTINCT job_slug) AS unique_jobs,
     COUNT(DISTINCT ip_hash) AS unique_ips
   FROM public.apply_clicks
-  WHERE public.is_internal_user()
+  WHERE
+    -- service_role: server-side admin pages with the service-role key
+    -- (e.g. /admin/attribution) get the full rollup. service-role
+    -- bypasses RLS on tables but NOT query-level WHERE inside view
+    -- bodies — so we have to recognize it explicitly here.
+    coalesce(auth.jwt() ->> 'role', '') = 'service_role'
+    -- authenticated internal users (e.g. CRM operators logged in
+    -- with a real Supabase Auth session): same path as the
+    -- apply_clicks RLS policy.
+    OR public.is_internal_user()
   GROUP BY partner, date_trunc('day', created_at);
 
 REVOKE ALL ON public.partner_attribution_daily FROM PUBLIC;

@@ -58,10 +58,12 @@ export default async function AttributionDashboard({ searchParams }: Props) {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
-  // Pull last 30 days of attribution. partner_attribution_daily view gates
-  // on is_internal_user(), but service-role bypasses RLS so we get all
-  // rows. The view returns one row per (partner, day) — we re-shape into
-  // {partner: [...days...]} on the JS side for table rendering.
+  // Pull last 30 days of attribution from the partner_attribution_daily
+  // VIEW. The view's WHERE clause explicitly allows service_role tokens
+  // (see migration 20260520_partner_attribution_daily_view.sql:32-37) so
+  // this query returns rows under our service-role client. Returns one
+  // row per (partner, day) — re-shape into {partner: [...days...]} on
+  // the JS side for table rendering.
   const sinceIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
   const { data, error } = await sb
     .from('partner_attribution_daily')
