@@ -124,7 +124,34 @@ ORDER BY COUNT(*) DESC;
 
 First non-zero `partner='talent'` / `'adzuna'` / `'jooble'` row is the signal that a partner has successfully ingested + a candidate has clicked through.
 
+## Post-deploy: drain the Workday description backlog
+
+The `backfill-workday-descriptions` edge function + its SECURITY DEFINER RPCs were deployed on 2026-05-17 but never invoked operationally. ~2,300 active Workday jobs still carry empty / <300-char descriptions left over from the pre-v10 shallow-refresh era. Those rows are currently invisible to Google for Jobs (suppressed by the thin-description JobPosting JSON-LD guard) and excluded from every per-partner feed (the thin-description filter from commit `120691f`).
+
+After Vercel deploys + migrations apply, **run this once locally**:
+
+```bash
+# Dry-run first to see what would change:
+node scripts/backfill-workday-descriptions.mjs --dry-run
+
+# Then drain the backlog for real (paces ~1 invocation/sec; ~15 min wall time
+# at 2,300 candidates / 200 per invocation / 1s pacing):
+node scripts/backfill-workday-descriptions.mjs
+```
+
+The script reads `.env.local` for `SUPABASE_SERVICE_ROLE_KEY` (same one the
+admin dashboard uses). Expected output: ~12 invocations until `candidates`
+hits 0, ~2,300 rows updated total.
+
+After the backfill: those 2,300 jobs start emitting valid JobPosting JSON-LD
++ re-enter all per-partner feeds on the next ISR cycle (max 15 min).
+
 ## Known limitations (NOT blockers for this deploy)
 
-- **Workday ATS importer doesn't enrich descriptions on shallow refresh** (`src/lib/ats-import/workday.ts:212-224`). 2,300 active jobs have empty descriptions and are filtered out of partner feeds. Tracked as a follow-up — requires editing the edge function `refresh-ats-imports` to default `enrichAll` to `true` for new rows, plus a one-shot backfill RPC for existing thin rows.
+- **ATS imports going forward STILL need the v10+ enrichment to keep
+  populating descriptions.** The existing edge function at
+  `supabase/functions/refresh-ats-imports/index.ts:373-409` ALREADY does
+  this for NEW Workday rows (capped at 100/board/cron tick). So once the
+  backlog is drained, the cron handles the steady state automatically.
+  No further code change needed.
 - **Careerjet feed empty until migration #1 applies.** Pre-migration the feed serves only 655 jobs (post-2026-05-20 ATS imports with empty `syndication_targets`). Post-migration: jumps to ~7,300 just like the other volume partners.
