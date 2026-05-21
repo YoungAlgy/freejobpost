@@ -128,12 +128,37 @@ export default async function JobsIndexPage() {
     ],
   }
 
+  // ItemList JSON-LD — signals to Google that this page IS a list of
+  // related jobs (vs. a generic landing page), unlocking category-style
+  // SERP treatment + tying detail pages back to this hub via the
+  // numbered list. URL + name only — no employer/salary, mirroring the
+  // per-hub policy on /specialty + /state. Capped at 30 items (Google
+  // ignores past ~30).
+  const itemListJsonLd = jobs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Healthcare jobs on freejobpost.co',
+    numberOfItems: Math.min(jobs.length, 30),
+    itemListElement: jobs.slice(0, 30).map((j, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://freejobpost.co/jobs/${j.slug}`,
+      name: j.title,
+    })),
+  } : null
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
+        />
+      )}
       <main className="min-h-screen bg-white text-black">
         {/* Nav */}
         <nav className="border-b-2 border-black">

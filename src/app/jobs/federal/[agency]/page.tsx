@@ -109,12 +109,36 @@ export default async function AgencyJobsPage(
     ],
   }
 
+  // ItemList JSON-LD: typed list of agency-specific jobs so Google
+  // treats this as a category page. URL + name only (no employer
+  // override — the agency is the employer for these federal roles
+  // but the per-job JobPosting JSON-LD already nails that). Capped
+  // at 30 entries (Google ignores past ~30).
+  const itemListJsonLd = jobs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${agency.fullName} healthcare jobs`,
+    numberOfItems: Math.min(jobs.length, 30),
+    itemListElement: jobs.slice(0, 30).map((j, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://freejobpost.co/jobs/${j.slug}`,
+      name: j.title,
+    })),
+  } : null
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
+        />
+      )}
       <main className="min-h-screen bg-white text-black">
         <nav className="border-b-2 border-black">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

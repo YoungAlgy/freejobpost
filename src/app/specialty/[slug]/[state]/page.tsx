@@ -143,6 +143,24 @@ export default async function SpecialtyStateMatrixPage(
     ],
   }
 
+  // ItemList JSON-LD — specialty×state matrix is the deepest long-tail
+  // surface ("registered-nurse jobs florida", "cardiology jobs texas").
+  // Typed list signal helps Google treat these as category pages and
+  // distinguish them from blog/article surfaces. URL + name only, capped
+  // at 30 (Google ignores past ~30).
+  const itemListJsonLd = jobs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${cleanSpecialtyTitle} jobs in ${stateHub.name}`,
+    numberOfItems: Math.min(jobs.length, 30),
+    itemListElement: jobs.slice(0, 30).map((j, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://freejobpost.co/jobs/${j.slug}`,
+      name: j.title,
+    })),
+  } : null
+
   // Peer-cell cross-links DEFERRED to a follow-up commit. The fully-correct
   // version requires the SQL-counted helper (50 + 18 = 68 narrow queries per
   // matrix page) — measured under Next's 60s build worker timeout for some
@@ -155,6 +173,12 @@ export default async function SpecialtyStateMatrixPage(
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
+        />
+      )}
       <main className="min-h-screen bg-white text-black">
         <nav className="border-b-2 border-black">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

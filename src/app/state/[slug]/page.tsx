@@ -145,12 +145,35 @@ export default async function StateHubPage(
     ],
   }
 
+  // ItemList JSON-LD — gives Google a typed list of related job URLs so
+  // the page reads as a category/listing page. URL + name only (no
+  // employer or salary) to avoid the JobPosting misattribution risk
+  // documented above. Capped at 30 entries (Google ignores past ~30).
+  const itemListJsonLd = jobs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Healthcare jobs in ${hub.name}`,
+    numberOfItems: Math.min(jobs.length, 30),
+    itemListElement: jobs.slice(0, 30).map((j, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://freejobpost.co/jobs/${j.slug}`,
+      name: j.title,
+    })),
+  } : null
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
+        />
+      )}
       <main className="min-h-screen bg-white text-black">
         <nav className="border-b-2 border-black">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

@@ -161,12 +161,38 @@ export default async function SpecialtyHubPage(
     ],
   }
 
+  // ItemList JSON-LD: Google uses this on category/listing pages to
+  // understand the page IS a list of related entities, which unlocks
+  // category-style SERP treatment + improves understanding of the
+  // hub-vs-detail relationship. Lists URL + name only (no employer,
+  // salary, or location) — avoids the JobPosting misattribution risk
+  // documented above while still giving Google the list shape.
+  // Top 30 entries (Google ignores beyond ~30 anyway).
+  const itemListJsonLd = jobs.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${hub.title} on freejobpost.co`,
+    numberOfItems: Math.min(jobs.length, 30),
+    itemListElement: jobs.slice(0, 30).map((j, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://freejobpost.co/jobs/${j.slug}`,
+      name: j.title,
+    })),
+  } : null
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
+      {itemListJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
+        />
+      )}
       <main className="min-h-screen bg-white text-black">
         <nav className="border-b-2 border-black">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
