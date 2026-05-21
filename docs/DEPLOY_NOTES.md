@@ -13,9 +13,13 @@ bc7dfe0  docs(ally): update status doc with 2026-05-20 partner-submission result
 0ddf7e1  fix(seo): close X-Robots-Tag conflicts on /admin + /employer
 a484171  fix(seo): /favicon.ico → /icon redirect
 7b33f20  docs(changelog): catch up on user-visible ships since 2026-05-13
+885e423  docs(deploy): pre-push checklist for the freejobpost batch
+d7bede2  fix(seo): add og:image + twitter:image to /jobs listing
+f37e33f  fix(seo): robots.txt — disallow /admin/ and /click/
+3cff623  fix(security): disable X-Powered-By header (info-leak hardening)
 ```
 
-Total: 8 commits, no breaking schema changes, fully backward-compatible.
+Total: 12 commits, no breaking schema changes, fully backward-compatible.
 
 ## Vercel env vars to set BEFORE first deploy
 
