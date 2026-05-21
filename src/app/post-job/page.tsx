@@ -81,7 +81,10 @@ export default async function PostJobPage() {
           </div>
           <div className="border-l-2 border-black pl-4">
             <div className="text-[10px] font-bold tracking-wider uppercase text-gray-600 mb-1">Provider network</div>
-            <div className="text-2xl font-black tabular-nums">850K+</div>
+            {/* Conservative round-down of the live count (1,400,648 verified 2026-05-13
+                via the NPPES bulk + cross-table dedupe). See ~/.claude/.../MEMORY.md
+                feedback_850k_stat.md — the canonical marketing stat is "1.4M+". */}
+            <div className="text-2xl font-black tabular-nums">1.4M+</div>
           </div>
           <div className="border-l-2 border-black pl-4">
             <div className="text-[10px] font-bold tracking-wider uppercase text-gray-600 mb-1">Auction fees</div>
