@@ -23,6 +23,18 @@ export const metadata: Metadata = {
     description: 'Hundreds of healthcare jobs, free to browse and apply.',
     url: 'https://freejobpost.co/jobs',
     type: 'website',
+    // Falls back to the root /opengraph-image generator. Every other major
+    // hub page (/, /specialty/[slug], /state/[slug]) sets its og:image
+    // explicitly via a sibling opengraph-image.tsx file — /jobs intentionally
+    // reuses the homepage card since the page itself is a generic
+    // "all healthcare jobs" listing without a specialty/state hook.
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Healthcare jobs — freejobpost.co',
+    description: 'Hundreds of healthcare jobs, free to browse and apply.',
+    images: ['/opengraph-image'],
   },
 }
 
