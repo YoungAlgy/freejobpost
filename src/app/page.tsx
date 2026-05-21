@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
+import { STATE_HUBS } from '@/lib/state-slugs'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
@@ -259,7 +260,12 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Browse by state + specialty — hub discovery for crawlers + users */}
+      {/* Browse by state + specialty — hub discovery for crawlers + users.
+         Direct hub links (rather than only the index page) keep the
+         depth-from-homepage = 1 for every popular hub, maximizing crawl
+         frequency + authority flow. Pre-fix, all hubs were 2 clicks deep
+         (homepage → /state → /state/florida) and the homepage was
+         passing zero direct authority to per-state pages. */}
       <section className="border-b-2 border-black bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="grid md:grid-cols-2 gap-12">
@@ -268,14 +274,35 @@ export default async function Home() {
               <p className="text-2xl font-black leading-tight mb-4">
                 Every major US healthcare market.
               </p>
-              <p className="text-gray-700 mb-6">
-                Florida, Texas, California, New York, and 30+ more states — each with major-metro and top-employer breakouts.
+              <p className="text-gray-700 mb-5">
+                {STATE_HUBS.length} state hubs, each with major-metro and top-employer breakouts.
               </p>
+              <div className="flex flex-wrap gap-2 mb-5">
+                {/* Top 12 state hubs by healthcare-market size — direct links
+                   parented to homepage for max crawl-depth efficiency. */}
+                {[
+                  'florida', 'texas', 'california', 'new-york',
+                  'illinois', 'pennsylvania', 'ohio', 'georgia',
+                  'north-carolina', 'massachusetts', 'michigan', 'washington',
+                ].map((slug) => {
+                  const hub = STATE_HUBS.find((h) => h.slug === slug)
+                  if (!hub) return null
+                  return (
+                    <Link
+                      key={slug}
+                      href={`/state/${slug}`}
+                      className="text-sm border-2 border-black bg-white px-2.5 py-1 font-bold hover:bg-black hover:text-white transition-colors"
+                    >
+                      {hub.name}
+                    </Link>
+                  )
+                })}
+              </div>
               <Link
                 href="/state"
                 className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
               >
-                See all states →
+                See all {STATE_HUBS.length} states →
               </Link>
             </div>
             <div>
@@ -283,9 +310,23 @@ export default async function Home() {
               <p className="text-2xl font-black leading-tight mb-4">
                 {SPECIALTY_HUBS.length} healthcare specialties.
               </p>
-              <p className="text-gray-700 mb-6">
-                Cardiology, hospital medicine, EM, ortho, NP, PA, RN, CRNA, pharmacist — filtered to active openings only.
+              <p className="text-gray-700 mb-5">
+                Cardiology, hospital medicine, EM, ortho, NP, PA, RN, CRNA, pharmacist — active openings only.
               </p>
+              <div className="flex flex-wrap gap-2 mb-5">
+                {/* All specialty hubs — there are only 18, so showing the
+                   full set on the homepage is reasonable. Each link is
+                   1-click deep instead of the prior 2-click depth. */}
+                {SPECIALTY_HUBS.map((hub) => (
+                  <Link
+                    key={hub.slug}
+                    href={`/specialty/${hub.slug}`}
+                    className="text-sm border-2 border-black bg-white px-2.5 py-1 font-bold hover:bg-black hover:text-white transition-colors"
+                  >
+                    {hub.title.replace(/ Jobs$/, '')}
+                  </Link>
+                ))}
+              </div>
               <Link
                 href="/specialty"
                 className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
