@@ -44,11 +44,26 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/((?!_next|api).*)',
+        // Catch-all X-Robots-Tag for public pages. Explicitly excludes
+        // private surfaces (/employer/* recruiter dashboard, /admin/*
+        // internal-only attribution dashboard) and Next.js internals.
+        // Without these exclusions, the private rules below would emit a
+        // SECOND conflicting X-Robots-Tag header — Next.js merges headers
+        // from multiple matching rules, so duplicates with opposing values
+        // would ship to crawlers (the meta-robots noindex would still
+        // protect us, but conflicting signals look broken to humans
+        // auditing the site).
+        source: '/((?!_next|api|employer|admin).*)',
         headers: [{ key: 'X-Robots-Tag', value: 'index, follow' }],
       },
       {
         source: '/employer/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        // /admin/* is internal-only (e.g. /admin/attribution dashboard,
+        // gated by ADMIN_DASHBOARD_KEY env var). Never indexable.
+        source: '/admin/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
     ]
