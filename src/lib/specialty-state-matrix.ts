@@ -128,12 +128,15 @@ export async function computeViableCellsViaSql(
   // adjacent to a non-RN role). This version checks each field separately,
   // which is exactly what SQL ILIKE does, so cell counts match the runtime
   // `fetchCellJobs` query.
-  // 9-batch range — PostgREST silently caps `.limit(>1000)` for anon role,
-  // so the prior `.limit(5000)` was returning 1,000 rows. With ~9,000 active
+  // 12-batch range — PostgREST silently caps `.limit(>1000)` for anon role,
+  // so the prior `.limit(5000)` was returning 1,000 rows. With ~9,616 active
   // jobs that's 88% under-coverage, and the matrix-cell counts that drive
   // /specialty/[specialty]/[state] page generation were silently truncated.
-  // 9-batch covers the full active inventory.
-  const NUM_BATCHES = 9
+  // Bumped from 9 → 12 on 2026-05-21 to match /jobs.xml + feed-builders +
+  // /sitemap.ts; one canonical batch count across every full-inventory
+  // fetch in the codebase prevents the matrix from drifting out of sync
+  // with feeds as inventory grows past 9k.
+  const NUM_BATCHES = 12
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQ = () => supabase

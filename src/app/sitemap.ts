@@ -19,11 +19,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // consistently lies (e.g. every URL shows "today" on every refresh), Google
   // stops trusting all `lastmod` values from the host. Tying hub freshness to
   // real underlying-data freshness keeps the signal honest.
-  // Jobs: 9-batch range pattern (PostgREST anon caps a single .limit(>1000)
-  // at 1,000 silently; with ~9,000 active jobs we'd ship a sitemap covering
+  // Jobs: 12-batch range pattern (PostgREST anon caps a single .limit(>1000)
+  // at 1,000 silently; with ~9,616 active jobs we'd ship a sitemap covering
   // only 11% of inventory without batching). Verified 2026-05-19 — pre-fix
   // sitemap had been missing ~8,000 URLs from Google's index for weeks.
-  const SITEMAP_NUM_BATCHES = 9
+  // Bumped from 9 → 12 on 2026-05-21 to match /jobs.xml + feed-builders;
+  // keeps the sitemap ahead of inventory growth and avoids the 9-batch
+  // ceiling that hit /jobs.xml on 2026-05-20.
+  const SITEMAP_NUM_BATCHES = 12
   const SITEMAP_BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseJobs = () => supabase

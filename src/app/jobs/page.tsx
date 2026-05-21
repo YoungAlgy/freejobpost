@@ -50,14 +50,17 @@ export default async function JobsIndexPage() {
   //   back into the top window. Fetched as N parallel .range() batches of
   //   1,000 because Supabase's anon-role PostgREST hard-caps single queries
   //   at 1,000 rows (`pgrst.db_max_rows=1000`); a single .limit(N) silently
-  //   clamps. NUM_BATCHES=9 gives us 9,000 rows — covers current inventory
-  //   (~8,037 active jobs as of 2026-05-16) with headroom for growth. All
-  //   batches fire in parallel so wall time stays ~200ms regardless.
+  //   clamps. NUM_BATCHES=12 gives us 12,000 rows — covers current inventory
+  //   (~9,616 active jobs as of 2026-05-21) with headroom for growth. Bumped
+  //   from 9 → 12 on 2026-05-21 once /jobs.xml hit the 9-batch ceiling
+  //   (commit 94997ca region); keeping the constants aligned across the
+  //   feeds and the on-site listing prevents drift. All batches fire in
+  //   parallel so wall time stays ~200ms regardless.
   // - countRes: gives the honest total for the "OPEN ROLES" badge, decoupled
   //   from how many we actually rendered. Without this the badge said "500"
   //   even when the DB had 8,000+ active jobs.
   // - verifiedRes: surfaces the verified pool as a filter pill in JobsFilter.
-  const NUM_BATCHES = 9
+  const NUM_BATCHES = 12
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseJobs = () => supabase
