@@ -39,4 +39,4 @@ REVOKE ALL ON public.partner_attribution_daily FROM PUBLIC;
 GRANT SELECT ON public.partner_attribution_daily TO authenticated;
 
 COMMENT ON VIEW public.partner_attribution_daily IS
-  'Daily rollup of apply_clicks for the partner-attribution dashboard. Internal users only via the is_internal_user() gate inside the view body.';
+  'Daily rollup of apply_clicks for the partner-attribution dashboard. Gated to service_role (server-side admin pages with the service-role key) and authenticated internal users (is_internal_user()).';
