@@ -80,9 +80,7 @@ After 7 days, Search Console → **Enhancements → Job postings** will show:
 - Any errors or warnings per-job
 - The error breakdown is the punch-list for follow-up fixes
 
-## What we can build next (next deploy cycle)
-
-### Google Indexing API integration
+## Google Indexing API — code SHIPPED, Algy needs 1-time GCP setup
 
 From Google's spec: **"For job posting URLs, we recommend using the
 Indexing API instead of sitemaps because the Indexing API prompts
@@ -91,28 +89,54 @@ Googlebot to crawl your page sooner."**
 Without it: Google discovers new jobs via sitemap crawl, ~2–24h latency.
 With it: ~1–15 minutes from job-create to Googlebot crawl.
 
-For a job board where freshness matters (recruiters expect their post to
-show up TODAY), this is the next biggest lever.
+### What we shipped in code (commit `2bc6587`)
 
-Implementation plan:
-1. Create a Google Cloud project + service account
-2. Verify service account as Site Owner in Search Console
-3. Add `GOOGLE_SERVICE_ACCOUNT_JSON` env var in Vercel (the service
-   account's private-key JSON)
-4. New module `src/lib/google-indexing-api.ts`:
-   - Sign JWT with RS256 using the service-account private key
-   - Exchange for OAuth2 access token (cache 50 min)
-   - POST to `https://indexing.googleapis.com/v3/urlNotifications:publish`
-     with `{ url, type: 'URL_UPDATED' }` on every new job
-5. Wire into:
-   - `/post-job/verify/[token]/route.ts` after a job activates
-   - `supabase/functions/refresh-ats-imports/index.ts` for ATS imports
+- `src/lib/google-indexing-api.ts`: full OAuth2 JWT-bearer client with
+  in-process token cache. No new npm dependency — uses Node's built-in
+  crypto module.
+- Wired into `/post-job/verify/[token]/page.tsx`: every newly-verified
+  job already fires a Google Indexing API notification alongside the
+  existing IndexNow ping (Bing/Yandex/etc).
+- **Activation gate**: when `GOOGLE_SERVICE_ACCOUNT_JSON` env var is
+  unset, every call is a fast no-op. The integration is safe to ship
+  pre-setup; activates automatically the moment the env var lands.
 
-Quota: Google's default is 200 URL notifications per day per project.
-That covers /post-job submissions easily. For ATS-import bursts
-(~30 new jobs per refresh cycle, ~6 cycles/day = ~180/day max) we're
-just under the cap. Request a quota increase if needed — Google grants
-publisher-program quota expansions free for JobPosting use cases.
+### What Algy does AFTER push (one-time, ~10 minutes)
+
+1. **Create a Google Cloud project** (https://console.cloud.google.com)
+   if you don't already have one for freejobpost.
+2. **Enable the "Web Search Indexing API"** on that project.
+   APIs & Services → Library → search "Indexing API" → Enable.
+3. **Create a service account** under IAM & Admin → Service Accounts.
+   Name it `freejobpost-indexing-bot` or similar. No special roles
+   needed inside the GCP project (the API permission comes from Search
+   Console, not GCP IAM).
+4. **Generate a JSON key** for that service account. Keys tab → Add key
+   → Create new key → JSON. The file downloads automatically — treat it
+   like a password.
+5. **In Google Search Console** (https://search.google.com/search-console):
+   - Select the freejobpost.co property
+   - Settings → Users and permissions → Add user
+   - Paste the service-account `client_email` from the JSON file
+   - Role: **Owner** (Indexing API requires Owner, not just Full)
+6. **In Vercel** (project settings → Environment Variables):
+   - Add `GOOGLE_SERVICE_ACCOUNT_JSON`
+   - Value: paste the FULL JSON-key file contents in one line. Vercel
+     handles the newline-escaping correctly.
+   - Apply to: Production (and Preview if you want to test it there)
+   - Redeploy to pick up the new env var
+
+After step 6: every new /post-job submission will ping the Indexing API
+on verify. Verify by watching the Vercel function logs — successful
+calls log nothing, errors log a `[google-indexing] …` warning line.
+
+### Quota
+
+Google's default is 200 URL notifications per project per day. That
+covers /post-job submissions easily. ATS-import bursts (~30 jobs ×
+~6 cycles = ~180/day max) come close — if we hit the cap, the
+fire-and-forget integration just drops the extras gracefully and we
+request a quota lift (free, routinely granted for JobPosting).
 
 ### educationRequirements (beta)
 

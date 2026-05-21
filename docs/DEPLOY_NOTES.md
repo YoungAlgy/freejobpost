@@ -58,8 +58,9 @@ Both server-side only. Mark as not-public in Vercel project settings.
 |---|---|---|
 | `SUPABASE_SERVICE_ROLE_KEY` | `/admin/attribution` reads `partner_attribution_daily` via service-role to bypass RLS | Supabase Dashboard → Project Settings → API → service_role key |
 | `ADMIN_DASHBOARD_KEY` | Query-param gate for `/admin/attribution?key=…` | `openssl rand -hex 24` once, bookmark the URL+key combo |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` (optional) | Activates Google Indexing API pings on every new job verify — drops Google for Jobs indexing latency from ~24h to ~15 min | GCP service-account JSON key. Full setup playbook in `docs/GOOGLE_FOR_JOBS.md`. Safe to leave unset — code is a no-op without it. |
 
-If either is missing, `/admin/attribution` 404s rather than 500ing — no information leakage. So a partial deploy is safe; the dashboard just won't work until both are set.
+If `SUPABASE_SERVICE_ROLE_KEY` or `ADMIN_DASHBOARD_KEY` is missing, `/admin/attribution` 404s rather than 500ing — no information leakage. So a partial deploy is safe; the dashboard just won't work until both are set. `GOOGLE_SERVICE_ACCOUNT_JSON` is fully optional — verify-page flow runs normally without it.
 
 ## Supabase migrations to apply
 
