@@ -2,6 +2,11 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
+  // Suppress the default `X-Powered-By: Next.js` response header. It's a
+  // minor information leak — it tells attackers (and fingerprinting
+  // services) exactly which framework + version-class we're on, which
+  // narrows their CVE search. Standard hardening for production sites.
+  poweredByHeader: false,
   async redirects() {
     return [
       {
