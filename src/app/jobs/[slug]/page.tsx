@@ -237,6 +237,39 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   // bonus disclosure is banned. Description is left as-is — too risky to
   // mutate the body text; the DB-side cleanup is the right fix for that.
   const cleanJobTitle = stripSalarySuffix(job.title) || job.title
+  // Build the location block per Google's spec:
+  //
+  //   - REMOTE: omit jobLocation entirely; set jobLocationType:'TELECOMMUTE'
+  //     + applicantLocationRequirements (Country). Emitting jobLocation on
+  //     a remote role contradicts the TELECOMMUTE signal and can trip
+  //     Google's content-mismatch rejection.
+  //
+  //   - ONSITE / HYBRID: include jobLocation with whatever city/state we
+  //     have. Google's minimum is country, but city + state when available
+  //     improves placement in geo-targeted search.
+  //
+  // Reference: developers.google.com/search/docs/appearance/structured-data/job-posting
+  const isRemote = job.remote_hybrid === 'remote'
+  const locationBlock: Record<string, unknown> = isRemote
+    ? {
+        jobLocationType: 'TELECOMMUTE',
+        applicantLocationRequirements: {
+          '@type': 'Country',
+          name: 'USA',
+        },
+      }
+    : {
+        jobLocation: {
+          '@type': 'Place',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: job.city || undefined,
+            addressRegion: job.state || undefined,
+            addressCountry: 'US',
+          },
+        },
+      }
+
   const jobPostingJsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
@@ -258,15 +291,7 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
         ? { sameAs: `https://freejobpost.co/employers/${employer.slug}` }
         : {}),
     },
-    jobLocation: {
-      '@type': 'Place',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: job.city || undefined,
-        addressRegion: job.state || undefined,
-        addressCountry: 'US',
-      },
-    },
+    ...locationBlock,
     employmentType: mapToSchemaEmploymentType(job.employment_type),
     url: `https://freejobpost.co/jobs/${job.slug}`,
     directApply: false,
@@ -284,7 +309,18 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
           },
         }
       : {}),
-    ...(job.remote_hybrid === 'remote' ? { jobLocationType: 'TELECOMMUTE' } : {}),
+    // experienceRequirements (BETA per Google spec). Emitted as
+    // OccupationalExperienceRequirements when we have a non-empty value.
+    // Numeric months only — free-text values (e.g. "2-3 years preferred")
+    // would risk content mismatch with the rendered page so we skip them.
+    ...(job.experience_required && /^\d+/.test(job.experience_required)
+      ? {
+          experienceRequirements: {
+            '@type': 'OccupationalExperienceRequirements',
+            monthsOfExperience: Number.parseInt(job.experience_required, 10) * 12,
+          },
+        }
+      : {}),
   }
 
   const breadcrumbJsonLd = {
