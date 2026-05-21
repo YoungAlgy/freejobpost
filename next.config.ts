@@ -12,6 +12,16 @@ const nextConfig: NextConfig = {
         destination: '/specialty/registered-nurse',
         permanent: true,
       },
+      {
+        // Modern icons live at /icon (src/app/icon.tsx) and /apple-icon
+        // (src/app/apple-icon.tsx) — Next.js auto-generates them with
+        // versioned query strings. But many crawlers + older browsers
+        // still hit /favicon.ico directly. Redirect to the canonical
+        // generated icon instead of returning 404.
+        source: '/favicon.ico',
+        destination: '/icon',
+        permanent: true,
+      },
     ]
   },
   async headers() {
