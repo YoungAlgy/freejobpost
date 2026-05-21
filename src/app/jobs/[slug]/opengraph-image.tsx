@@ -18,7 +18,15 @@ export const contentType = 'image/png'
 
 const BRAND = '#003D5C'
 const ACCENT = '#7FBC00'
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,120}$/
+// Allow uppercase chars in slugs — Workday + Greenhouse external IDs
+// (e.g. RQ4052378, JR192702) keep uppercase, and buildAtsSlug() carries
+// them through to the slug. The page route's SLUG_RE was loosened on
+// 2026-05-19 to fix ~3,400 active jobs returning 404; the OG image
+// generator was missed in that pass. Without this, social-share embeds
+// for Workday/Greenhouse jobs fall back to a generic "Healthcare role"
+// card instead of the job-specific one. See
+// src/app/jobs/[slug]/page.tsx SLUG_RE for the canonical pattern.
+const SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9-]{0,120}$/
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
