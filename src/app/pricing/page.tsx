@@ -5,7 +5,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'How posting works · freejobpost.co',
   description:
-    'Healthcare orgs get 10 free job posts, forever. This page explains how that works, what happens if you need more slots, and why we built freejobpost.co as a utility rather than a SaaS.',
+    'Healthcare orgs get 10 free job posts, forever. No auction, no credit card. Built as a utility, not a SaaS. Here is how it works and what to do if you need more slots.',
   alternates: { canonical: 'https://freejobpost.co/pricing' },
   openGraph: {
     title: 'How posting works — freejobpost.co',

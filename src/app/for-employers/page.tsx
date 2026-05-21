@@ -6,7 +6,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Post healthcare jobs free — no Indeed tax, no per-applicant fees',
   description:
-    'Free healthcare job posting for hospitals, clinics, and staffing firms. Post RN, MD, NP, PA, PT roles in 60 seconds. Applicants go straight to your inbox. No sponsored-bid auction.',
+    'Free healthcare job posting for hospitals, clinics, and staffing firms. Post RN, MD, NP, PA, PT roles in 60 seconds — no Indeed tax, no auction.',
   alternates: { canonical: 'https://freejobpost.co/for-employers' },
   openGraph: {
     title: 'Post healthcare jobs free | freejobpost.co',
