@@ -6,9 +6,27 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        // Don't index multi-step form intermediate states or employer auth paths.
+        // Don't index:
+        //   /employer/*               recruiter auth + dashboard (private)
+        //   /admin/*                  internal attribution dashboard (key-gated)
+        //   /api/*                    defensive; no /api routes today but
+        //                             reserves future route handlers from
+        //                             accidentally getting crawled
+        //   /post-job/verify*         multi-step form intermediate state
+        //   /jobs/*/apply/success     post-apply success page (one-time view)
+        //   /click/*                  click-tracking redirect endpoint —
+        //                             no SEO value, every URL is just a
+        //                             302 to the employer ATS, indexing
+        //                             would waste crawl budget
         // /jobs.xml is the aggregator feed — let all UAs fetch it.
-        disallow: ['/employer/', '/api/', '/post-job/verify', '/jobs/*/apply/success'],
+        disallow: [
+          '/employer/',
+          '/admin/',
+          '/api/',
+          '/post-job/verify',
+          '/jobs/*/apply/success',
+          '/click/',
+        ],
       },
     ],
     // Sitemap points to both the human-facing sitemap and the job-feed XML.
