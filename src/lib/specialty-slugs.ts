@@ -148,3 +148,30 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
 export function getSpecialtyHub(slug: string): SpecialtyHub | undefined {
   return SPECIALTY_HUBS.find((s) => s.slug === slug)
 }
+
+/**
+ * Find the SpecialtyHub whose matchPatterns matches any of the provided
+ * free-text fields (typically a job's specialty + role + title).
+ * Returns the first hub whose patterns hit; undefined if no match.
+ *
+ * Used by per-job pages to construct an internal link to the relevant
+ * specialty hub for SEO link-graph density. Each hub's matchPatterns
+ * intentionally use lowercase substrings (e.g. 'cardio', 'orthopedic')
+ * so common variations + ATS-import inconsistency in casing don't
+ * miss obvious cases.
+ *
+ * Matches are case-insensitive substring tests, NOT regex — keeps the
+ * lookup deterministic + cheap (no surprise patterns from user input).
+ */
+export function findSpecialtyHub(
+  ...candidates: Array<string | null | undefined>
+): SpecialtyHub | undefined {
+  const haystack = candidates
+    .filter((c): c is string => typeof c === 'string' && c.length > 0)
+    .map((c) => c.toLowerCase())
+    .join(' | ')
+  if (!haystack) return undefined
+  return SPECIALTY_HUBS.find((hub) =>
+    hub.matchPatterns.some((p) => haystack.includes(p.toLowerCase()))
+  )
+}

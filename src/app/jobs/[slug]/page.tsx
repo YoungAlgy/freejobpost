@@ -19,6 +19,12 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 // the known set collapses to 'internal' so a malicious ?ref doesn't
 // pollute apply_clicks.
 import { normalizePartner } from '@/lib/partner-attribution'
+// Hub-link helpers — drive the BROWSE MORE internal-linking section so
+// per-job pages route PageRank back to the matching specialty / state
+// hubs + employer page. Without these, /jobs/[slug] had zero links
+// back into the category-page graph.
+import { findSpecialtyHub } from '@/lib/specialty-slugs'
+import { findStateHubByAbbr } from '@/lib/state-slugs'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -527,6 +533,62 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
               </p>
             </aside>
           )}
+
+          {/* Browse more — internal links back to specialty / state hubs.
+             Critical for SEO link-graph: per-job pages parented to the
+             relevant category hub instead of being orphans. Each link
+             resolves to a real, indexable, content-rich page (the hub
+             passes authority back to other jobs in the cohort). */}
+          {(() => {
+            const specialtyHub = findSpecialtyHub(job.specialty, job.role, job.title)
+            const stateHub = findStateHubByAbbr(job.state)
+            const links: Array<{ href: string; label: string }> = []
+            if (specialtyHub) {
+              links.push({
+                href: `/specialty/${specialtyHub.slug}`,
+                label: `More ${specialtyHub.title.replace(/ Jobs$/, '')} jobs`,
+              })
+            }
+            if (stateHub) {
+              links.push({
+                href: `/state/${stateHub.slug}`,
+                label: `Healthcare jobs in ${stateHub.name}`,
+              })
+            }
+            if (specialtyHub && stateHub) {
+              links.push({
+                href: `/specialty/${specialtyHub.slug}/${stateHub.slug}`,
+                label: `${specialtyHub.title.replace(/ Jobs$/, '')} in ${stateHub.name}`,
+              })
+            }
+            // Federal source signal — usajobs:federal jobs link back to
+            // /jobs/federal/<agency>. We can't infer the agency without the
+            // raw source string parsed elsewhere, so just link to the
+            // /jobs/federal index for any federal source.
+            if (job.source?.startsWith('usajobs:')) {
+              links.push({ href: '/jobs/federal', label: 'Federal healthcare jobs' })
+            }
+            if (links.length === 0) return null
+            return (
+              <section className="border-t-2 border-black pt-10 mb-10">
+                <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
+                  BROWSE MORE
+                </h2>
+                <ul className="flex flex-wrap gap-3">
+                  {links.map((l) => (
+                    <li key={l.href}>
+                      <Link
+                        href={l.href}
+                        className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                      >
+                        {l.label} →
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )
+          })()}
 
           {/* Related */}
           {related.length > 0 && (

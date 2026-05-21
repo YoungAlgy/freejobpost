@@ -684,6 +684,17 @@ export const STATE_HUBS: StateHub[] = [
   },
 ]
 
+/**
+ * Lookup a StateHub by 2-letter abbreviation (e.g. 'FL' → Florida hub).
+ * Used by per-job pages to construct internal links back to the relevant
+ * state hub. Case-insensitive; returns undefined for unknown abbreviations.
+ */
+export function findStateHubByAbbr(abbr: string | null | undefined): StateHub | undefined {
+  if (!abbr) return undefined
+  const upper = abbr.toUpperCase().trim()
+  return STATE_HUBS.find((s) => s.abbr === upper)
+}
+
 export function getStateHub(slug: string): StateHub | undefined {
   return STATE_HUBS.find((s) => s.slug === slug)
 }
