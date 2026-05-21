@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notifyIndexNowForJob } from '@/lib/indexnow'
+import { notifyGoogleForJob } from '@/lib/google-indexing-api'
 
 export const metadata: Metadata = {
   title: 'Verifying your job post…',
@@ -46,12 +47,20 @@ export default async function VerifyTokenPage({ params }: Props) {
   const decoded = decodeURIComponent(token ?? '')
   const result = decoded ? await consumeToken(decoded) : { success: false as const, error: 'Missing token' }
 
-  // Notify IndexNow so participating engines (Bing, Yandex, Naver, Seznam,
-  // Yep) crawl the new listing immediately. Skip on re-verify of an
-  // already-live job — the URL was already announced on first verify.
-  // Fire-and-forget; we don't block the verify page render on it.
+  // Notify search engines to crawl the new listing immediately. Skip on
+  // re-verify of an already-live job — the URL was already announced on
+  // first verify. Both calls are fire-and-forget; we don't block the
+  // verify page render on either.
+  //
+  //   - IndexNow → Bing, Yandex, Naver, Seznam, Yep
+  //   - Google Indexing API → Googlebot crawls within ~15 min (vs.
+  //     the typical ~24h sitemap-discovery latency). Drops to a no-op
+  //     when GOOGLE_SERVICE_ACCOUNT_JSON env var is unset — see
+  //     src/lib/google-indexing-api.ts + docs/GOOGLE_FOR_JOBS.md for
+  //     the GCP setup steps needed to activate.
   if (result.success && !result.was_already_verified) {
     void notifyIndexNowForJob(result.job_slug)
+    void notifyGoogleForJob(result.job_slug)
   }
 
   return (
