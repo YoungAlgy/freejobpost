@@ -20,6 +20,13 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
     date: '2026-05-22',
+    title: 'Polish pass: link previews, error pages, page titles, a11y',
+    body:
+      '14 pages were rendering blank or default link-preview cards when shared to LinkedIn / iMessage / Slack — now every page emits the branded Open Graph card. Added a styled error page with one-click retry for transient failures. Stopped browser tabs from showing the brand twice on the home page. Added aria-pressed to the LOCATION toggle buttons so screen-reader users can hear which mode is active. Locked the specialty .or() filter behind a unit-tested helper across all three consumers (hub pages, city × specialty pages, RSS feeds) so future regressions of the encoding bug get caught in CI before they ship.',
+    tag: 'improved',
+  },
+  {
+    date: '2026-05-22',
     title: 'Bug fix: hundreds of specialty hub pages were silently empty',
     body:
       'A PostgREST URL-encoding bug was causing specialty hubs with multi-word match patterns (Physician Assistant, Registered Nurse, Family Medicine, Internal Medicine, Hospital Medicine, Emergency Medicine, etc.) to silently return zero jobs at runtime. Build-time + sitemap thought the pages existed; the live pages 404’d. Discovered + fixed in an overnight audit pass. Hundreds of long-tail listing pages now render full inventory.',
@@ -27,9 +34,9 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   },
   {
     date: '2026-05-22',
-    title: '15 career-path guides for healthcare roles',
+    title: '20 career-path guides for healthcare roles',
     body:
-      'Plain-English “How to become an X” guides for RN, NP, PA, CRNA, PharmD, LPN, CNA, PT, RT, MA, Surgical Tech, Radiologic Tech, OT, SLP, and EMT/Paramedic. Each guide covers education, licensing, exam, timeline, practice settings, and compensation, with direct deep-links to current openings. Sourced from BLS, NCSBN, NBRC, CAPTE, NCCPA, ARRT, NBCOT, ASHA, AAMA, AMT.',
+      'Plain-English “How to become an X” guides for RN, NP, PA, CRNA, PharmD, LPN, CNA, PT, RT, MA, Surgical Tech, Radiologic Tech, OT, SLP, EMT/Paramedic, Phlebotomist, Dental Hygienist, Dietitian, Audiologist, and Genetic Counselor. Each guide covers education, licensing, exam, timeline, practice settings, and compensation, with direct deep-links to current openings. Sourced from BLS, NCSBN, NBRC, CAPTE, NCCPA, ARRT, NBCOT, ASHA, AAMA, AMT, ABGC, ASCP, ADHA, CDR.',
     tag: 'new',
   },
   {
