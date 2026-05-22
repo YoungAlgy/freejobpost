@@ -19,6 +19,34 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
+    date: '2026-05-22',
+    title: 'Bug fix: hundreds of specialty hub pages were silently empty',
+    body:
+      'A PostgREST URL-encoding bug was causing specialty hubs with multi-word match patterns (Physician Assistant, Registered Nurse, Family Medicine, Internal Medicine, Hospital Medicine, Emergency Medicine, etc.) to silently return zero jobs at runtime. Build-time + sitemap thought the pages existed; the live pages 404’d. Discovered + fixed in an overnight audit pass. Hundreds of long-tail listing pages now render full inventory.',
+    tag: 'fixed',
+  },
+  {
+    date: '2026-05-22',
+    title: '15 career-path guides for healthcare roles',
+    body:
+      'Plain-English “How to become an X” guides for RN, NP, PA, CRNA, PharmD, LPN, CNA, PT, RT, MA, Surgical Tech, Radiologic Tech, OT, SLP, and EMT/Paramedic. Each guide covers education, licensing, exam, timeline, practice settings, and compensation, with direct deep-links to current openings. Sourced from BLS, NCSBN, NBRC, CAPTE, NCCPA, ARRT, NBCOT, ASHA, AAMA, AMT.',
+    tag: 'new',
+  },
+  {
+    date: '2026-05-22',
+    title: 'City × Specialty long-tail matrix',
+    body:
+      'Pages like /city/tampa-fl/registered-nurse, /city/houston-tx/cardiology now exist for every (metro × specialty) combination with five or more active matching jobs. Same threshold as the existing state × specialty matrix.',
+    tag: 'new',
+  },
+  {
+    date: '2026-05-22',
+    title: 'RSS feed per specialty + per state',
+    body:
+      'Niche aggregators and RSS readers can now subscribe to /feeds/specialty/<slug> or /feeds/state/<slug> for filtered job streams. 28 specialty feeds + 50 state feeds, auto-discoverable via <link rel="alternate"> on each hub page.',
+    tag: 'new',
+  },
+  {
     date: '2026-05-21',
     title: 'City hub pages — 32 US healthcare metros',
     body:
