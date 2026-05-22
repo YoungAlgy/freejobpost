@@ -195,7 +195,11 @@ export async function fetchWorkdayBoard(
 ): Promise<ImportResult> {
   const listings = await fetchAllListings(cfg)
 
-  let droppedNonUs = 0
+  // droppedNonUs is a stub — the current Workday parseLocation always
+  // resolves to a US state via defaultState fallback, so we never see
+  // a non-US job to drop. Kept in the ImportResult shape so a future
+  // strict-US-only filter can populate it without touching the type.
+  const droppedNonUs = 0
   let droppedNonHealthcare = 0
   const jobs: ExternalJob[] = []
 

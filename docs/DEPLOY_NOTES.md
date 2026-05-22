@@ -124,6 +124,34 @@ ORDER BY COUNT(*) DESC;
 
 First non-zero `partner='talent'` / `'adzuna'` / `'jooble'` row is the signal that a partner has successfully ingested + a candidate has clicked through.
 
+## Post-deploy: redeploy the ATS edge function
+
+Vercel auto-deploys the Next.js side on `git push`. The Supabase Edge
+Functions under `supabase/functions/` are NOT auto-deployed — they live
+in a separate deploy path. After this push, redeploy two functions:
+
+```bash
+supabase functions deploy refresh-ats-imports
+supabase functions deploy backfill-workday-descriptions
+```
+
+`refresh-ats-imports` picks up the new Google Indexing API integration
+(commit `41c8366`) — pings Google's Indexing API for every newly-inserted
+ATS job, capped 30/cycle = ~180/day total. No-op until
+`GOOGLE_SERVICE_ACCOUNT_JSON` is set in Supabase Functions Secrets.
+
+`backfill-workday-descriptions` is unchanged but worth redeploying to
+make sure the latest version is running before invoking it (next section).
+
+To set the `GOOGLE_SERVICE_ACCOUNT_JSON` secret in Supabase:
+
+```bash
+supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON='<paste-the-full-json>'
+```
+
+Same JSON contents as the Vercel env var with the same name — the
+service account is shared by both sides.
+
 ## Post-deploy: drain the Workday description backlog
 
 The `backfill-workday-descriptions` edge function + its SECURITY DEFINER RPCs were deployed on 2026-05-17 but never invoked operationally. ~2,300 active Workday jobs still carry empty / <300-char descriptions left over from the pre-v10 shallow-refresh era. Those rows are currently invisible to Google for Jobs (suppressed by the thin-description JobPosting JSON-LD guard) and excluded from every per-partner feed (the thin-description filter from commit `120691f`).
