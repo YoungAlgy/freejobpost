@@ -7,7 +7,10 @@ import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
 
 export const metadata: Metadata = {
-  title: 'Free Job Post — Healthcare jobs without the Indeed tax',
+  // `absolute` bypasses the layout template `%s | Free Job Post`. Without
+  // it the rendered title would be the double-branded "Free Job Post —
+  // Healthcare jobs without the Indeed tax | Free Job Post".
+  title: { absolute: 'Free Job Post — Healthcare jobs without the Indeed tax' },
   description:
     'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Free Job Post is where growing employers hire.',
   alternates: { canonical: 'https://freejobpost.co' },
@@ -314,9 +317,12 @@ export default async function Home() {
                 Cardiology, hospital medicine, EM, ortho, NP, PA, RN, CRNA, pharmacist — active openings only.
               </p>
               <div className="flex flex-wrap gap-2 mb-5">
-                {/* All specialty hubs — there are only 18, so showing the
-                   full set on the homepage is reasonable. Each link is
-                   1-click deep instead of the prior 2-click depth. */}
+                {/* All specialty hubs — full set rendered to maximize 1-click
+                   crawl depth from homepage to each hub. SPECIALTY_HUBS.length
+                   currently 33; wraps cleanly even on narrow mobile widths.
+                   If this grows past ~60 we should swap to a top-N + "see all"
+                   pattern (same shape as the state row above), but at 33
+                   chips the homepage stays scannable. */}
                 {SPECIALTY_HUBS.map((hub) => (
                   <Link
                     key={hub.slug}

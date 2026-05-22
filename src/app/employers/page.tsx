@@ -12,7 +12,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const revalidate = 600
 
 export const metadata: Metadata = {
-  title: 'Healthcare employers hiring on freejobpost.co',
+  title: 'Healthcare employers hiring',
   description:
     'Verified healthcare employers currently hiring on freejobpost.co. Browse open roles by organization — free to apply, no account required.',
   alternates: { canonical: 'https://freejobpost.co/employers' },

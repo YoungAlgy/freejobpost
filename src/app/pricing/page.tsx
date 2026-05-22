@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
 export const metadata: Metadata = {
-  title: 'How posting works · freejobpost.co',
+  title: 'How posting works',
   description:
     'Healthcare orgs get 10 free job posts, forever. No auction, no credit card. Built as a utility, not a SaaS. Here is how it works and what to do if you need more slots.',
   alternates: { canonical: 'https://freejobpost.co/pricing' },

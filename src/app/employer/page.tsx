@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
 import Dashboard from './dashboard'
 
 export const metadata: Metadata = {
-  title: 'Dashboard · freejobpost.co',
+  title: 'Dashboard',
   robots: { index: false, follow: false },
 }
 
