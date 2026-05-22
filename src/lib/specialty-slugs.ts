@@ -220,6 +220,42 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
     shortDescription: 'Paramedic + EMT (Basic / Advanced / Intermediate) roles across 911/EMS, hospital ED, critical-care transport, and event medicine.',
     matchPatterns: ['paramedic', 'emt-b', 'emt-p', 'emt-i', 'emt ', ' emt', 'emergency medical tech'],
   },
+  // Third batch — entry-level + clinical-doctorate roles (2026-05-22).
+  {
+    slug: 'phlebotomist',
+    title: 'Phlebotomist Jobs',
+    metaDescription: 'Free phlebotomist jobs — hospitals, clinics, labs, mobile, donor centers. CPT-certified roles. Apply free.',
+    shortDescription: 'Phlebotomist roles across hospital labs, outpatient clinics, reference labs (LabCorp, Quest), mobile draw services, and blood-donor centers.',
+    matchPatterns: ['phlebotomist', 'phlebotomy', 'blood draw'],
+  },
+  {
+    slug: 'dental-hygienist',
+    title: 'Dental Hygienist Jobs',
+    metaDescription: 'Free RDH jobs — general dentistry, periodontics, pediatric, public health. Licensed dental hygienist roles. Apply free.',
+    shortDescription: 'Registered Dental Hygienist (RDH) roles across general dentistry, periodontics, pediatric dental, community health, and DSO groups.',
+    matchPatterns: ['dental hygienist', 'rdh '],
+  },
+  {
+    slug: 'dietitian',
+    title: 'Dietitian + Nutritionist Jobs',
+    metaDescription: 'Free RDN jobs — clinical, community, sports, eating-disorder, oncology, dialysis nutrition. Apply free.',
+    shortDescription: 'Registered Dietitian Nutritionist (RDN) roles across clinical nutrition, community health, sports performance, eating-disorder treatment, oncology, and renal nutrition.',
+    matchPatterns: ['dietitian', 'dietician', 'nutritionist', 'rdn '],
+  },
+  {
+    slug: 'audiologist',
+    title: 'Audiologist Jobs',
+    metaDescription: 'Free audiologist jobs — ENT clinics, hospitals, schools, VA, hearing-aid groups. AuD + CCC-A roles. Apply free.',
+    shortDescription: 'Audiologist (AuD) roles in ENT practices, hospital audiology departments, school-based audiology, VA, and private hearing-aid practices.',
+    matchPatterns: ['audiologist', 'audiology', 'aud ', ' aud'],
+  },
+  {
+    slug: 'genetic-counselor',
+    title: 'Genetic Counselor Jobs',
+    metaDescription: 'Free genetic counselor jobs — oncology, prenatal, cardio, pediatric, lab-side. CGC + ABGC roles. Apply free.',
+    shortDescription: 'Genetic Counselor (CGC) roles in oncology, prenatal/reproductive, cardiogenetic, pediatric, neurogenetic, and laboratory-side practice.',
+    matchPatterns: ['genetic counselor', 'genetic counselling', 'cgc '],
+  },
 ]
 
 export function getSpecialtyHub(slug: string): SpecialtyHub | undefined {

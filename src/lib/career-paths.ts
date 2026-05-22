@@ -632,6 +632,201 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     specialtyLabel: 'EMT + Paramedic jobs',
     oneLiner: 'EMT-B (~150h) → AEMT (~250h) → Paramedic (1-2 yr) → NREMT cert + state license.',
   },
+  {
+    slug: 'phlebotomist',
+    title: 'How to become a Phlebotomist',
+    abbreviation: 'CPT',
+    metaDescription:
+      'How to become a Phlebotomist — short certificate program (4-8 weeks) → national cert (ASCP/AMT/NHA) → state requirements vary. Open phlebotomist jobs.',
+    lede:
+      'Phlebotomists draw blood samples for diagnostic testing, transfusion, donation, and research. About 138,000 phlebotomists work nationally per BLS — one of the shortest training paths into clinical healthcare.',
+    sections: [
+      {
+        heading: 'Training',
+        body:
+          'Accredited phlebotomy certificate programs run 4-12 weeks (some longer) at community colleges, vocational schools, the American Red Cross, and many hospital labs. Curriculum covers anatomy + venipuncture, infection control, specimen handling + labeling, capillary draws, special collections (blood cultures, ABGs), patient communication, and supervised clinical hours. Most programs require 100-120 successful supervised draws before completion.',
+      },
+      {
+        heading: 'Certification',
+        body:
+          'National certification is voluntary in most states but strongly preferred by employers. Multiple credentials exist: CPT (Certified Phlebotomy Technician) from ASCP, RPT (Registered Phlebotomy Technician) from AMT, CPT (Certified Phlebotomy Technician) from NHA, and PBT (Phlebotomy Technician) from ASCP. California, Louisiana, Nevada, and Washington require state-specific certification.',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Hospital labs (in/outpatient), reference labs (LabCorp, Quest Diagnostics), physician offices + clinics, plasma + blood donation centers (Grifols, CSL Plasma, American Red Cross), mobile draw services, research facilities. Hospital phlebotomy is typically the highest-volume + most varied; reference-lab work is the most efficient + repetitive.',
+      },
+      {
+        heading: 'Career progression',
+        body:
+          'Phlebotomy is widely used as a stepping-stone — direct patient-care experience that PA/medical/nursing schools accept as clinical hours. Common next moves: medical assistant, nursing program, clinical lab tech (CLT/MLT), or specialty phlebotomy (donor-center, pediatric, intensive draws). CPT credential plus 2+ years experience opens lead-phlebotomist + lab-supervisor roles.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS median annual phlebotomist salary in the $40k-$45k range. Hospital + trauma-center phlebotomy generally pays more than retail blood-draw or reference-lab work. Night + weekend differentials are common. The role doesn\'t require a degree, so total time-to-paid is among the fastest in healthcare.',
+      },
+    ],
+    specialtySlug: 'phlebotomist',
+    specialtyLabel: 'Phlebotomist jobs',
+    oneLiner: 'Phlebotomy certificate (4-12 weeks) → optional national cert (CPT/RPT) → first job.',
+  },
+  {
+    slug: 'dental-hygienist',
+    title: 'How to become a Dental Hygienist (RDH)',
+    abbreviation: 'RDH',
+    metaDescription:
+      'How to become an RDH — accredited dental-hygiene program (2-4 yr) → NBDHE → state clinical exam + license. Open RDH jobs on freejobpost.co.',
+    lede:
+      'Dental Hygienists deliver preventive oral care: cleanings, periodontal therapy, sealants, fluoride application, oral-health education, and clinical screening for systemic conditions visible in the mouth. About 217,000 RDHs practice nationally per BLS.',
+    sections: [
+      {
+        heading: 'Education',
+        body:
+          'Two CODA-accredited paths qualify a candidate to sit for licensing exams: an Associate of Applied Science in Dental Hygiene (typically 2-3 years at a community college) or a Bachelor of Science in Dental Hygiene (4 years). Both lead to the same RDH license. ADHA (American Dental Hygienists\' Association) reports the BS path opens additional opportunities in research, public health, and corporate / DSO settings.',
+      },
+      {
+        heading: 'Licensing exams',
+        body:
+          'Candidates take the National Board Dental Hygiene Examination (NBDHE — written) administered by the Joint Commission on National Dental Examinations, AND a regional or state clinical examination (most states accept ADEX, WREB, CITA, or CRDTS). Both required for RDH licensure. Some states additionally require a state jurisprudence exam.',
+      },
+      {
+        heading: 'Scope of practice',
+        body:
+          'RDHs perform prophy (cleaning) + scaling-and-root-planing (SRP), administer local anesthesia in ~46 states (state-dependent), take + interpret dental radiographs, place sealants, apply fluoride, conduct periodontal charting, and document oral findings. About 24 states allow some form of dental hygiene practice without on-site dentist supervision (varies widely — collaborative practice agreements, public-health hygiene, etc.).',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Private dental practices employ the majority — general dentistry + periodontic specialty offices. Pediatric dental, community + public health, school-based programs, DSO (dental service organization) groups like Heartland + Pacific Dental, and corporate roles with dental product companies all hire RDHs.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS reports median annual RDH salary around $87k-$93k. RDH commonly ranks in the top 10 highest-paying associate-degree-only US careers. Compensation varies by state and practice setting — DSO + corporate groups typically structure as base + production bonus; private offices commonly hourly + benefits.',
+      },
+    ],
+    specialtySlug: 'dental-hygienist',
+    specialtyLabel: 'Dental Hygienist jobs',
+    oneLiner: 'CODA-accredited program (2-4 yr) → NBDHE + state clinical exam → RDH license.',
+  },
+  {
+    slug: 'dietitian',
+    title: 'How to become a Registered Dietitian Nutritionist (RDN)',
+    abbreviation: 'RDN',
+    metaDescription:
+      'How to become a Registered Dietitian — accredited bachelor\'s + master\'s (required 2024+) → internship → CDR exam → state license. Open RDN jobs.',
+    lede:
+      'Registered Dietitian Nutritionists (RDNs) translate nutrition science into patient-care plans across clinical, community, sports, food-service, and outpatient settings. About 75,000 RDNs practice nationally per the Commission on Dietetic Registration; the credentialing requirements moved from bachelor\'s to master\'s as of January 2024.',
+    sections: [
+      {
+        heading: 'Education',
+        body:
+          'As of January 2024, the Commission on Dietetic Registration (CDR) requires a graduate degree to sit for the RDN exam — typically a Master of Science in Nutrition or a coordinated program leading to MS + supervised practice. ACEND-accredited programs are the only ones whose graduates are eligible.',
+      },
+      {
+        heading: 'Supervised practice',
+        body:
+          'Candidates complete an ACEND-accredited supervised-practice rotation (formerly a "dietetic internship") totaling at least 1,000 hours across clinical, community, and food-service settings. Coordinated programs integrate the supervised practice into the master\'s curriculum; standalone internships run ~9-12 months post-degree. Match rates for standalone internships historically run 50-70% — coordinated programs avoid this risk.',
+      },
+      {
+        heading: 'Examination + licensure',
+        body:
+          'After supervised practice, candidates sit for the CDR registration exam. Passing = RDN credential. About 38 states + DC also require state licensure in addition to RDN — application requirements vary; some states accept CDR registration directly, others require a state-specific application + fee.',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Clinical (hospital + outpatient) is the largest segment — inpatient medical nutrition therapy, diabetes education, weight-management programs, oncology nutrition, renal/dialysis, eating-disorder treatment. Other paths: community + public health (WIC, SNAP-Ed), sports nutrition (collegiate, pro teams), corporate wellness, food-service management (Sodexo, Aramark, Compass), retail (supermarket dietitians at Kroger / Wegmans), private practice (insurance-billed or cash-pay), and pharmaceutical / food industry.',
+      },
+      {
+        heading: 'Specialization',
+        body:
+          'CDR offers board certifications in 8 specialty areas — oncology (CSO), pediatric (CSP), renal (CSR), gerontological (CSG), sports (CSSD), obesity/weight management (CSOWM), and Intuitive Eating + clinical eating-disorder credentials offered through other bodies.',
+      },
+    ],
+    specialtySlug: 'dietitian',
+    specialtyLabel: 'Dietitian jobs',
+    oneLiner: 'Master\'s in nutrition + ACEND supervised practice → CDR exam → RDN + state license.',
+  },
+  {
+    slug: 'audiologist',
+    title: 'How to become an Audiologist (AuD)',
+    abbreviation: 'AuD',
+    metaDescription:
+      'How to become an Audiologist — bachelor\'s → 4-year AuD doctoral program → Praxis + ASHA CCC-A → state license. Open audiologist jobs.',
+    lede:
+      'Audiologists diagnose + treat hearing and balance disorders across the lifespan. The entry-level credential moved from master\'s to Doctor of Audiology (AuD) in 2007 — all current entry paths are doctoral. About 14,000 audiologists practice in the US per BLS.',
+    sections: [
+      {
+        heading: 'Undergraduate',
+        body:
+          'Most AuD programs accept candidates from any bachelor\'s major + completion of prerequisite courses (typically a year of biology, physics, chemistry, statistics, and several CSD or speech-and-hearing-sciences courses). Communication Sciences and Disorders (CSD) is the most direct undergraduate major; psychology + biology are also common.',
+      },
+      {
+        heading: 'Doctoral program',
+        body:
+          'The Doctor of Audiology (AuD) is a 4-year clinical doctorate accredited by CAA (Council on Academic Accreditation in Audiology and Speech-Language Pathology). Curriculum covers anatomy + physiology of the auditory + vestibular systems, audiometric testing, hearing aids + cochlear implants, pediatric audiology, vestibular assessment, electrophysiology, balance disorders, and ~1,820 hours of supervised clinical practicum culminating in a fourth-year externship.',
+      },
+      {
+        heading: 'Credentialing + licensure',
+        body:
+          'After graduation, candidates take the Praxis Examination in Audiology administered by ETS. Pass = eligible for the Certificate of Clinical Competence in Audiology (CCC-A) from ASHA, the standard credential most employers + insurers require. State licensure (all 50 states + DC) is separate; most states accept CCC-A directly.',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Otolaryngology (ENT) practices, hospital audiology departments, school-based audiology (educational audiologist credential adds state-dependent requirements), Veterans Affairs (one of the largest US audiology employers), private hearing-aid + cochlear-implant practices, balance + vestibular specialty clinics, pediatric specialty hospitals, military medicine.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS reports median annual audiologist salary around $87k-$92k. VA + hospital settings + senior management roles command meaningfully more; private-practice owners earn highly variable income based on case mix + product fitting. Specialty certifications (Cochlear Implant, Vestibular Audiology) add a modest premium.',
+      },
+    ],
+    specialtySlug: 'audiologist',
+    specialtyLabel: 'Audiologist jobs',
+    oneLiner: 'Bachelor\'s + prereqs → 4-year AuD → Praxis + ASHA CCC-A → state license.',
+  },
+  {
+    slug: 'genetic-counselor',
+    title: 'How to become a Genetic Counselor (CGC)',
+    abbreviation: 'CGC',
+    metaDescription:
+      'How to become a Genetic Counselor — bachelor\'s + prereqs → master\'s in genetic counseling (~2 yr) → ABGC certification → state license. Open CGC jobs.',
+    lede:
+      'Genetic Counselors interpret genetic and genomic testing results for patients + clinicians — translating risk, recurrence, and management implications into actionable clinical guidance. About 5,800 board-certified genetic counselors practice in the US per the American Board of Genetic Counseling — one of the fastest-growing healthcare professions per BLS.',
+    sections: [
+      {
+        heading: 'Undergraduate prerequisites',
+        body:
+          'Most genetic-counseling programs require a bachelor\'s degree + a defined prerequisite course set: genetics, biochemistry, statistics, psychology (including abnormal + lifespan), and often organic chemistry. Many candidates major in biology, genetics, psychology, or molecular biology. Programs also typically require documented experience in counseling + healthcare exposure (crisis-line volunteering, advocacy work, shadowing) — applications without these tend to be uncompetitive.',
+      },
+      {
+        heading: 'Master\'s program',
+        body:
+          'Master of Science in Genetic Counseling accredited by ACGC (Accreditation Council for Genetic Counseling) — typically 2 years (4 semesters + summer rotations). Curriculum: medical genetics, prenatal + pediatric + adult genetics, cancer genetics, cardiogenetics, neurogenetics, counseling theory, ethics, lab methods (NGS, microarray, karyotype), and ~50+ supervised clinical cases across multiple specialty areas. ACGC programs are competitive — historically <30% acceptance rates at established programs.',
+      },
+      {
+        heading: 'Certification + licensure',
+        body:
+          'After graduation, candidates sit for the ABGC (American Board of Genetic Counseling) certification exam. Pass = CGC credential. State licensure is jurisdiction-dependent — about half of US states + DC license genetic counselors, requiring ABGC certification + state-specific application; others rely solely on ABGC.',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Hospital-based clinical genetics (most common — prenatal, pediatric, cancer, cardio, neuro), commercial laboratories (variant interpretation, customer-facing CGC roles at Invitae, Natera, Color, Ambry, Myriad), telehealth (Genome Medical, Genoox), industry / pharmaceutical, research, and increasingly outpatient + specialty groups embedding CGCs into existing teams (cancer centers, cardiology + neurology specialty practices).',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'NSGC professional-status survey reports median annual GC salary around $95k-$105k, with industry + telehealth + senior clinical roles trending higher ($110k-$150k+). Cost of entry (a 2-year master\'s) is moderate compared to AuD or DNP paths; growth rate is among the highest in healthcare per BLS (~16% over 2024-2034).',
+      },
+    ],
+    specialtySlug: 'genetic-counselor',
+    specialtyLabel: 'Genetic Counselor jobs',
+    oneLiner: 'Bachelor\'s + prereqs + counseling exposure → ACGC master\'s (~2 yr) → ABGC → license (jurisdiction-dependent).',
+  },
 ]
 
 export function getCareerPath(slug: string): CareerPathGuide | undefined {
