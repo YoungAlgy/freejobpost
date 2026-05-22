@@ -17,6 +17,7 @@ import {
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm } from '@/lib/feed-builders'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
+import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 
 export const revalidate = 900
 
@@ -38,18 +39,10 @@ function cdata(s: string | null | undefined): string {
   return `<![CDATA[${v}]]>`
 }
 
-// Build the PostgREST .or() clause from the hub's match patterns,
-// scanning specialty / role / title fields. Same pattern as the
-// runtime hub page uses.
-function buildOrFilter(patterns: readonly string[]): string {
-  const parts: string[] = []
-  for (const p of patterns) {
-    parts.push(`specialty.ilike.%${p}%`)
-    parts.push(`role.ilike.%${p}%`)
-    parts.push(`title.ilike.%${p}%`)
-  }
-  return parts.join(',')
-}
+// Specialty .or() filter delegates to the shared helper at
+// @/lib/specialty-filter. The inline copy that used to live here
+// drifted from the runtime hub-page implementation; consolidating
+// here means the 9-test regression suite covers the feed too.
 
 export async function GET(
   _req: Request,
@@ -67,7 +60,7 @@ export async function GET(
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
-    .or(buildOrFilter(hub.matchPatterns))
+    .or(buildSpecialtyOrFilter(hub.matchPatterns))
     .order('created_at', { ascending: false })
     .limit(200)
 

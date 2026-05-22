@@ -23,6 +23,7 @@ import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 
 export const revalidate = 600
 // Cells we haven't pre-rendered (i.e. specialty patterns added after
@@ -42,17 +43,13 @@ function cityOrFilter(patterns: string[]): string {
   return patterns.map((p) => `city.ilike.%${p}%`).join(',')
 }
 
-// Build PostgREST .or() filter for the specialty's match patterns,
-// scanning specialty/role/title fields.
-function specialtyOrFilter(patterns: string[]): string {
-  const parts: string[] = []
-  for (const p of patterns) {
-    parts.push(`specialty.ilike.%${p}%`)
-    parts.push(`role.ilike.%${p}%`)
-    parts.push(`title.ilike.%${p}%`)
-  }
-  return parts.join(',')
-}
+// Specialty .or() filter delegates to the shared helper at
+// @/lib/specialty-filter. Inline copies of this function used to live
+// here and on the specialty hub pages, and one of those copies pre-
+// encoded the wildcards — causing the 2026-05-22 silent-zero bug across
+// 6+ specialty hubs. Funneling every call through the shared helper +
+// regression-tested file means a future regression breaks the unit
+// tests in CI before any URL goes silent in production.
 
 async function fetchCellJobs(
   cityPatterns: string[],
@@ -67,7 +64,7 @@ async function fetchCellJobs(
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
     .or(cityOrFilter(cityPatterns))
-    .or(specialtyOrFilter(specialtyPatterns))
+    .or(buildSpecialtyOrFilter(specialtyPatterns))
     .order('created_at', { ascending: false })
     .limit(100)
   return (data ?? []) as PublicJob[]
