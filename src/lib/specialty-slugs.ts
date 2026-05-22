@@ -143,6 +143,46 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
     shortDescription: 'Pharmacist + PharmD roles in hospital, retail, specialty, and ambulatory care.',
     matchPatterns: ['pharmacist', 'pharmd'],
   },
+  // Volume-allied roles added 2026-05-21 alongside the matching
+  // /become/[slug] career-path guides. Match patterns use multi-word
+  // anchors where the abbreviation alone is too short / ambiguous to
+  // be safe (e.g. 'pt' would false-positive on every Patient Transport
+  // role; 'ma' would false-positive on Manager).
+  {
+    slug: 'lpn',
+    title: 'LPN / LVN Jobs',
+    metaDescription: 'Free LPN + LVN jobs — long-term care, skilled nursing, clinics, home health, hospitals. Apply directly, no recruiter spam.',
+    shortDescription: 'Licensed Practical Nurse + Licensed Vocational Nurse roles across long-term care, SNF, clinics, home health, and hospital med-surg.',
+    matchPatterns: ['lpn', 'lvn', 'licensed practical', 'licensed vocational'],
+  },
+  {
+    slug: 'cna',
+    title: 'CNA + Nursing Assistant Jobs',
+    metaDescription: 'Free CNA + nursing-assistant jobs — long-term care, hospitals, home health. Entry-level pathway into healthcare; apply free.',
+    shortDescription: 'Certified Nursing Assistant + nursing-aide roles in long-term care, skilled nursing, hospitals, and home health agencies.',
+    matchPatterns: ['cna', 'certified nursing assistant', 'nursing assistant', 'nursing aide', 'patient care assistant', 'patient care tech'],
+  },
+  {
+    slug: 'physical-therapy',
+    title: 'Physical Therapy Jobs',
+    metaDescription: 'Free physical therapy jobs — outpatient ortho, acute care, home health, SNF. DPT, PT, and PTA roles. Apply free, no recruiter spam.',
+    shortDescription: 'Physical Therapist (DPT/PT) + Physical Therapist Assistant (PTA) roles across outpatient orthopedic, acute-care hospital, home health, and skilled-nursing settings.',
+    matchPatterns: ['physical therap', 'physiotherapist', 'dpt ', ' dpt', 'pta '],
+  },
+  {
+    slug: 'respiratory-therapy',
+    title: 'Respiratory Therapy Jobs',
+    metaDescription: 'Free respiratory therapy jobs — RRT, CRT, ICU, ED, NICU, home health, sleep medicine. Apply directly, no recruiter spam.',
+    shortDescription: 'Respiratory Therapist roles (RRT + CRT) across hospital ICU/ED/NICU, sleep medicine, pulmonary rehab, and home respiratory care.',
+    matchPatterns: ['respiratory therap', 'rrt ', ' rrt', ' crt '],
+  },
+  {
+    slug: 'medical-assistant',
+    title: 'Medical Assistant Jobs',
+    metaDescription: 'Free medical assistant jobs — primary care, specialty clinics, urgent care. CMA + RMA roles. Apply free, no recruiter spam.',
+    shortDescription: 'Medical Assistant (CMA, RMA, AAMA) roles across primary care, specialty clinics, urgent care, and ambulatory groups.',
+    matchPatterns: ['medical assistant', 'medical asst', 'cma ', ' cma', 'rma ', ' rma'],
+  },
 ]
 
 export function getSpecialtyHub(slug: string): SpecialtyHub | undefined {

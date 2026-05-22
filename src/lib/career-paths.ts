@@ -232,6 +232,201 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     specialtyLabel: 'Pharmacist jobs',
     oneLiner: 'Pre-pharm undergrad → 4-year PharmD → NAPLEX + MPJE → state license.',
   },
+  {
+    slug: 'lpn',
+    title: 'How to become a Licensed Practical Nurse (LPN/LVN)',
+    abbreviation: 'LPN',
+    metaDescription:
+      'How to become an LPN/LVN — practical-nursing program (12-18 months), NCLEX-PN, state license. Open LPN jobs on freejobpost.co.',
+    lede:
+      'Licensed Practical Nurses (LPNs, called Licensed Vocational Nurses or LVNs in California and Texas) provide basic nursing care under the supervision of RNs and physicians. About 660,000 LPNs/LVNs practice nationally per the latest BLS data, with most concentrated in long-term care, skilled nursing facilities, home health, and physician offices.',
+    sections: [
+      {
+        heading: 'Education',
+        body:
+          'Accredited practical-nursing programs run 12-18 months full-time and are offered at community colleges, technical schools, and some hospital-based diploma programs. Curriculum covers basic nursing skills, pharmacology, gerontology, and supervised clinical rotations across long-term care + acute settings. Prerequisites are typically a high-school diploma or GED plus minimum GPA + sometimes the TEAS entrance exam.',
+      },
+      {
+        heading: 'Licensing',
+        body:
+          'After program completion, candidates sit for the NCLEX-PN — the national exam administered by NCSBN. Pass = state-board application for licensure. Like RNs, LPN/LVN practice is governed by the Nurse Licensure Compact in 40+ states; non-compact states (CA, NY, MA, etc.) require state-specific licenses.',
+      },
+      {
+        heading: 'Scope of practice',
+        body:
+          'LPN scope varies by state but generally covers basic patient care, vital signs, wound care, medication administration (oral + sometimes IV per state law), and routine assessments. RN supervision is required for care planning + IV-push medications in most states. LPNs cannot independently triage or perform sterile procedures requiring RN scope.',
+      },
+      {
+        heading: 'Where LPNs work',
+        body:
+          'Roughly 35% in skilled-nursing facilities and continuing-care retirement communities, 20% in physician offices, 12% in home health, 12% in hospitals, with the rest spread across schools, correctional facilities, dialysis centers, and outpatient clinics. Hospitals have shifted away from LPN bedside roles toward all-RN staffing in many ICU/med-surg settings; long-term care and outpatient clinics remain the durable LPN job market.',
+      },
+      {
+        heading: 'Career progression',
+        body:
+          'Common next step is an LPN-to-RN bridge program (~1-2 years to ADN, ~2-3 years to BSN). Many employers tuition-reimburse the bridge program for current LPN employees. From RN, further graduate paths open to NP / CRNA / educator roles.',
+      },
+    ],
+    specialtySlug: 'lpn',
+    specialtyLabel: 'LPN jobs',
+    oneLiner: 'Practical-nursing program (12-18 mo) → NCLEX-PN → state license.',
+  },
+  {
+    slug: 'cna',
+    title: 'How to become a Certified Nursing Assistant (CNA)',
+    abbreviation: 'CNA',
+    metaDescription:
+      'How to become a CNA — 4-12 week state-approved program → competency exam → state registry. Fastest entry into healthcare. Open CNA jobs on freejobpost.co.',
+    lede:
+      'CNA is the fastest legitimate entry point into US healthcare — most states require only a 75-150 hour state-approved training program followed by a competency exam. About 1.4 million CNAs and home health aides work nationally per BLS, primarily in long-term care, hospitals, and home health.',
+    sections: [
+      {
+        heading: 'Training',
+        body:
+          'Federal law (OBRA 1987) sets a minimum of 75 training hours; most states require 75-150 hours of state-approved curriculum split between classroom instruction (anatomy + physiology, infection control, patient rights, basic care skills) and supervised clinical practice. Programs are offered at community colleges, vocational schools, the American Red Cross, and many long-term care facilities directly (often free in exchange for an employment commitment).',
+      },
+      {
+        heading: 'Certification',
+        body:
+          'After completing training, candidates sit for the state competency exam (written + hands-on skills demonstration). Passing both halves places the candidate on the state\'s Nurse Aide Registry — that registry listing is what employers verify before hiring. Some states use the Prometric or Pearson Vue NACES exam; others run their own.',
+      },
+      {
+        heading: 'Scope of practice',
+        body:
+          'CNAs handle activities of daily living (ADLs): bathing, feeding, ambulation, repositioning, toileting, vital signs, basic measurements. They report observations to RNs/LPNs but do not administer medications or perform sterile procedures. Some states allow Medication Aide certification as an add-on credential that expands scope to limited medication passes under supervision.',
+      },
+      {
+        heading: 'Workplace',
+        body:
+          'Skilled-nursing facilities (SNFs) and long-term care employ the majority of CNAs; hospitals (often as Patient Care Techs, a similar role with slightly broader scope) and home health agencies cover most of the rest. Workload is physically demanding and turnover is high, but the path provides direct patient-care experience often required for PA school + competitive nursing-school applications.',
+      },
+      {
+        heading: 'Career progression',
+        body:
+          'CNA is widely used as the prerequisite patient-care experience for nursing school, PA school, and other clinical programs. Many CNAs progress to LPN (1-1.5 years additional training) or RN (2-4 years). PA-school programs typically require 1,000-3,000 hours of direct patient care; CNA work counts toward that requirement.',
+      },
+    ],
+    specialtySlug: 'cna',
+    specialtyLabel: 'CNA jobs',
+    oneLiner: '75-150 hour state-approved training → state competency exam → registry listing.',
+  },
+  {
+    slug: 'physical-therapy',
+    title: 'How to become a Physical Therapist (PT/DPT)',
+    abbreviation: 'PT',
+    metaDescription:
+      'How to become a Physical Therapist — bachelor\'s → DPT (3 years) → NPTE → state license. Open PT jobs on freejobpost.co.',
+    lede:
+      'Physical Therapists treat impairment, dysfunction, and disability through movement-based interventions. Per the American Physical Therapy Association, about 251,000 PTs practice in the US, with the largest practice settings being outpatient orthopedic clinics, acute-care hospitals, home health, and skilled-nursing facilities.',
+    sections: [
+      {
+        heading: 'Pre-PT undergraduate',
+        body:
+          'Most DPT programs require a bachelor\'s degree plus specific prerequisite courses: anatomy + physiology, general + organic chemistry, physics, biology, statistics, psychology, and sometimes exercise physiology. Many candidates major in exercise science, kinesiology, or biology; the specific major is less important than the prereq GPA + observation hours (typically 100-200 hours of shadowing across multiple PT practice settings).',
+      },
+      {
+        heading: 'DPT program',
+        body:
+          'The Doctor of Physical Therapy is the only entry-level pathway since 2016 — Masters-level PT degrees were phased out by CAPTE (the accrediting body). DPT programs run ~3 years (some 2.5, some 3.5) and award the DPT degree. Curriculum covers anatomy, kinesiology, neuroscience, biomechanics, therapeutic exercise, manual therapy, and ~30+ weeks of full-time clinical rotations across diverse settings.',
+      },
+      {
+        heading: 'Licensing',
+        body:
+          'After graduation, candidates sit for the National Physical Therapy Examination (NPTE), administered by the Federation of State Boards of Physical Therapy. Pass + state application = PT license. Some states also require a jurisprudence exam covering state-specific PT practice law. Most states have direct-access provisions allowing PTs to evaluate + treat patients without a physician referral, though insurance reimbursement sometimes still requires one.',
+      },
+      {
+        heading: 'Residencies + specialization',
+        body:
+          'Optional 12-18 month residencies are available in specialty areas (orthopedic, sports, neurologic, pediatric, geriatric, cardiopulmonary, women\'s health, electrophysiology) and lead to board-certified specialist credentials via the American Board of Physical Therapy Specialties (ABPTS). Residency is not required for general practice but expected for many academic + sports-medicine roles.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS reports median annual PT salary in the $100k-$105k range nationally. Compensation varies by setting (outpatient orthopedic generally lower base + higher productivity bonus; home health + travel PT pay highest hourly) and geography.',
+      },
+    ],
+    specialtySlug: 'physical-therapy',
+    specialtyLabel: 'Physical Therapy jobs',
+    oneLiner: 'Bachelor\'s + ~150 observation hours → DPT (3 yr) → NPTE → state license.',
+  },
+  {
+    slug: 'respiratory-therapy',
+    title: 'How to become a Respiratory Therapist (RRT)',
+    abbreviation: 'RRT',
+    metaDescription:
+      'How to become a Respiratory Therapist — associate or bachelor\'s degree → NBRC TMC + CSE exams → state license. Open RT jobs on freejobpost.co.',
+    lede:
+      'Respiratory Therapists evaluate, treat, and manage patients with breathing or cardiopulmonary disorders — from neonatal-intensive-care ventilator management to outpatient COPD therapy. About 137,000 RTs work nationally per BLS, concentrated in hospital critical-care + emergency settings.',
+    sections: [
+      {
+        heading: 'Education',
+        body:
+          'Two accredited pathways: an Associate of Science in Respiratory Therapy (typically 2 years at a community college) or a Bachelor of Science in Respiratory Therapy/Care (4 years). Both qualify the candidate to sit for the credentialing exams. CoARC (Commission on Accreditation for Respiratory Care) accredits programs; only graduates of CoARC programs are eligible for the NBRC exams.',
+      },
+      {
+        heading: 'Credentialing',
+        body:
+          'The National Board for Respiratory Care (NBRC) administers two exams: the Therapist Multiple Choice (TMC) and the Clinical Simulation Examination (CSE). Passing the TMC at the lower cut score = CRT (Certified Respiratory Therapist). Passing both TMC at the higher cut + CSE = RRT (Registered Respiratory Therapist), the standard credential most hospitals require. RRT is required at most US hospitals and is the credential most employers post for.',
+      },
+      {
+        heading: 'State license',
+        body:
+          'After NBRC certification, candidates apply for state licensure (49 states + DC license RTs; Alaska does not). Renewal is typically every 2 years with continuing-education requirements.',
+      },
+      {
+        heading: 'Specialties + advanced credentials',
+        body:
+          'RTs can earn advanced specialty credentials through NBRC: NPS (Neonatal/Pediatric Specialist), ACCS (Adult Critical Care Specialist), SDS (Sleep Disorders Specialist), CPFT/RPFT (Pulmonary Function Technologist). Many hospital RTs specialize in NICU, adult ICU, ECMO, or sleep medicine after a few years of bedside experience.',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Hospitals employ ~80% of RTs — ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19; demand remains elevated.',
+      },
+    ],
+    specialtySlug: 'respiratory-therapy',
+    specialtyLabel: 'Respiratory Therapy jobs',
+    oneLiner: 'Associate or bachelor\'s in RT → NBRC TMC + CSE exams → state license.',
+  },
+  {
+    slug: 'medical-assistant',
+    title: 'How to become a Medical Assistant (MA)',
+    abbreviation: 'MA',
+    metaDescription:
+      'How to become a Medical Assistant — postsecondary certificate (~1 year) or on-the-job training → CMA/RMA cert. Open MA jobs on freejobpost.co.',
+    lede:
+      'Medical Assistants handle the administrative + clinical workflow of outpatient practices — rooming patients, taking vitals, drawing blood, doing EKGs, and managing referrals + records. About 760,000 MAs work nationally per BLS, almost entirely in physician offices, urgent care, and outpatient clinics. The role doesn\'t legally require certification in most states but credentialing significantly improves hiring + pay.',
+    sections: [
+      {
+        heading: 'Training pathways',
+        body:
+          'Three common paths. (1) Postsecondary certificate or diploma program — accredited by CAAHEP or ABHES, typically 9-12 months at a community college or vocational school. (2) Associate degree in medical assisting — typically 2 years, includes general-education + practical coursework. (3) On-the-job training — some employers (especially primary-care groups) hire MAs without formal training and certify them in-house, but the credentialing route is harder to access without an accredited program.',
+      },
+      {
+        heading: 'Certification',
+        body:
+          'Multiple national credentials, each with its own exam: CMA (Certified Medical Assistant) by the AAMA, RMA (Registered Medical Assistant) by AMT, CCMA by NHA, NCMA by NCCT. The CMA from AAMA requires graduation from a CAAHEP/ABHES-accredited program; the others have more flexible eligibility. Hospitals and large primary-care groups generally prefer certified MAs and may pay $1-3/hr more.',
+      },
+      {
+        heading: 'Scope of practice',
+        body:
+          'MAs handle clinical tasks (vital signs, EKGs, phlebotomy, injections, sterile procedures assist, point-of-care testing) AND administrative tasks (scheduling, insurance verification, prior authorizations, charting, referrals). Scope is delegated by the supervising physician and varies by state — some states regulate MA injection authority + EKG performance, others leave it to physician discretion.',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Primary-care offices employ the largest share, followed by specialty practices (cardiology, dermatology, OB-GYN), urgent care, and ambulatory surgery centers. Larger group practices and federally qualified health centers (FQHCs) hire heavily. Hospitals employ MAs in outpatient departments + procedural areas, less commonly inpatient.',
+      },
+      {
+        heading: 'Career progression',
+        body:
+          'MA is a common stepping-stone to LPN/RN, PA school, or surgical-tech roles. The 1,000-3,000 clinical hours PA programs require are easily accumulated during MA work; MAs frequently apply to PA school after 2-3 years of practice.',
+      },
+    ],
+    specialtySlug: 'medical-assistant',
+    specialtyLabel: 'Medical Assistant jobs',
+    oneLiner: 'Postsecondary certificate (~12 mo) or on-the-job training → optional CMA/RMA cert.',
+  },
 ]
 
 export function getCareerPath(slug: string): CareerPathGuide | undefined {
