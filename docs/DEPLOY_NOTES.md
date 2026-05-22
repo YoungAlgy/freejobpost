@@ -1,54 +1,27 @@
 # Deploy notes — freejobpost.co
 
-Pre-push checklist for the next Vercel deploy. Locked overnight on 2026-05-21; reflects every local-only change since `origin/main`.
+Pre-push checklist for the Vercel deploy. Last refreshed 2026-05-22 after the
+overnight audit-pass session that uncovered + fixed several critical bugs in
+the SEO surface. Every commit on `origin/main` since `42d9c5e` is covered.
 
-## Commits ready to push (oldest → newest)
+## Most important commits (skim these before deploy)
 
-```
-42d9c5e  feat(careerjet): add Careerjet as 4th volume-friendly partner channel
-993a2a5  feat(admin): partner-attribution dashboard at /admin/attribution
-bc7dfe0  docs(ally): update status doc with 2026-05-20 partner-submission results
-94997ca  fix(syndication): empty-array semantics + strict-partner refinement
-120691f  fix(feeds): filter thin-description jobs from partner feeds + JSON-LD
-0ddf7e1  fix(seo): close X-Robots-Tag conflicts on /admin + /employer
-a484171  fix(seo): /favicon.ico → /icon redirect
-7b33f20  docs(changelog): catch up on user-visible ships since 2026-05-13
-885e423  docs(deploy): pre-push checklist for the freejobpost batch
-d7bede2  fix(seo): add og:image + twitter:image to /jobs listing
-f37e33f  fix(seo): robots.txt — disallow /admin/ and /click/
-3cff623  fix(security): disable X-Powered-By header (info-leak hardening)
-faf8289  docs(deploy): refresh manifest after the 3 trailing SEO fixes
-cb38034  deps: npm audit fix — bump ws + brace-expansion to patched versions
-4d6a2d9  fix(admin): partner_attribution_daily view recognizes service_role
-ed33648  docs(migration): update partner_attribution_daily COMMENT
-503c622  docs(deploy): refresh commit manifest after admin view fix
-0851715  fix(attribution): unify partner allowlist between /jobs.xml and /jobs/[slug]
-cb234b1  fix(seo): opengraph-image SLUG_RE — allow uppercase
-7937f72  fix(perf): unify NUM_BATCHES → 12 across /jobs, sitemap, matrix
-17a2eb9  fix(rpc): add 'careerjet' to set_pending_job_syndication_targets v_known
-9a3c4c1  refactor(jobs.xml): dedupe XML helpers — import from feed-builders
-d2be7cc  fix(content): stale 850K stat on /post-job → 1.4M+ (canonical)
-42c9f5a  docs(deploy): refresh after Pass 9 (3 new fixes + 1 new migration)
-9089a13  fix(seo): tighten oversized meta descriptions + lang=en-US
-9adc165  feat(seo): ItemList JSON-LD on every hub page
-3e52cfa  feat(seo): BROWSE MORE hub-links section on every per-job page
-e4d1936  feat(seo): expose 30 direct hub links on homepage (was 0)
-45a54b7  feat(seo): sitewide "Popular" hub-link row in footer
-```
-
-Total: 29 commits, no breaking schema changes, fully backward-compatible.
-
-### SEO sprint (last 5 commits in the list)
-
-| Commit | Surface | Impact |
+| Commit | What | Why it matters |
 |---|---|---|
-| `9089a13` | layout.tsx + 4 metadata blocks | `<html lang="en-US">` geo-signal; 4 meta descriptions tightened to ≤155 chars (no more SERP truncation) |
-| `9adc165` | 6 hub surfaces | ItemList JSON-LD on /jobs, /specialty/[slug], /state/[slug], /jobs/federal/[agency], + both matrix surfaces. Unlocks Google category-style SERP treatment. |
-| `3e52cfa` | /jobs/[slug] | New "BROWSE MORE" section linking back to specialty + state + federal hubs. Per-job pages went from **0 hub links → up to 4**. |
-| `e4d1936` | homepage | 30 direct hub links (12 states + 18 specialties), 1-click from root. Up from **2** (just the index pages). |
-| `45a54b7` | global footer | 9 popular-hub links sitewide. Every page now passes authority to RN, NP, PA, Family medicine, Cardiology, FL, TX, CA, Federal. |
+| `6e2b839` | **fix(critical): specialty hub + matrix .or() double-encoding** | THE bug of the session. encodeURIComponent inside the runtime filter caused space-containing matchPatterns (PA, RN, family-medicine, internal-medicine, hospital-medicine, ER, OB-GYN, etc.) to silently return 0 jobs at runtime. Build-time + sitemap thought the cells existed; runtime 404'd them. Fix unlocks 150+ matrix cells + 6 specialty hub pages that were silent zeroes. |
+| `aee278f` | feat: 5 more career-path guides + per-{specialty,state} RSS | 79 new SEO surfaces |
+| `c0a55ab` | feat: /city/[slug] hub pages — 32 US healthcare metros | New long-tail surface between state hubs + per-job pages |
+| `f7e930b` | feat: city×specialty matrix + JSON-LD validator + typo redirects | ~30+ new long-tail pages + 26 protective unit tests catching JobPosting markup regressions |
+| `41c8366` | feat: ATS edge function pings Google Indexing API on new jobs | Indexing latency for ATS-imported jobs drops from ~24h to ~15min once GCP setup is done |
+| `2bc6587` | feat: Google Indexing API integration (Next.js side) | Same as above but for /post-job/verify flow |
+| `6f207bf` | fix: correct remote-job JobPosting JSON-LD | Remote jobs were emitting both `jobLocation` + `jobLocationType:TELECOMMUTE` — Google rejects that |
+| `4d6a2d9` | fix: partner_attribution_daily view recognizes service_role | /admin/attribution would have rendered empty in prod without this |
+| `94997ca` | fix: empty-array syndication_targets semantics | 655 ATS jobs were silently missing from Google for Jobs + every partner feed |
+| `120691f` | fix: thin-description filter on partner feeds | 24% of corpus had empty descriptions polluting partner feeds |
 
-Net effect: homepage hub-link surface went from **2 → 31**, per-job pages from **0 → 9-13**. Sitewide internal-link density up ~5×.
+## Full commit list
+
+Run `git log --oneline 42d9c5e~1..HEAD --reverse` for the complete chronological log. ~50 commits, no breaking schema changes, fully backward-compatible.
 
 ## Vercel env vars to set BEFORE first deploy
 
