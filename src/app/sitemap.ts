@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { supabase } from '@/lib/supabase'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
+import { CITY_HUBS } from '@/lib/city-slugs'
 import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
@@ -72,6 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/jobs/federal`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/specialty`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/state`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
+    { url: `${base}/city`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/employers`, lastModified: maxJobUpdate, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${base}/post-job`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
@@ -95,6 +97,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // State hub pages — one per top US state for healthcare-job density
   const stateRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
     url: `${base}/state/${s.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'daily' as const,
+    priority: 0.8,
+  }))
+
+  // City hub pages — one per curated US healthcare metro. Closes the
+  // gap between state hubs (broad) and per-job pages (narrow).
+  const cityRoutes: MetadataRoute.Sitemap = CITY_HUBS.map((c) => ({
+    url: `${base}/city/${c.slug}`,
     lastModified: maxJobUpdate,
     changeFrequency: 'daily' as const,
     priority: 0.8,
@@ -166,6 +177,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticRoutes,
     ...specialtyRoutes,
     ...stateRoutes,
+    ...cityRoutes,
     ...federalRoutes,
     ...federalMatrixRoutes,
     ...matrixRoutes,

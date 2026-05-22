@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
+import { CITY_HUBS } from '@/lib/city-slugs'
 
 export const metadata: Metadata = {
   title: 'Free Job Post — Healthcare jobs without the Indeed tax',
@@ -333,6 +334,44 @@ export default async function Home() {
                 See all specialties →
               </Link>
             </div>
+          </div>
+
+          {/* City row — third axis of long-tail SEO. Top 12 metros chosen
+             by healthcare-market size (combined TMC, NYC, LA, Chicago,
+             Boston, Philadelphia, SF, Houston-Dallas-Austin, Tampa-Miami). */}
+          <div className="mt-12 pt-10 border-t-2 border-black">
+            <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">BROWSE BY CITY</h2>
+            <p className="text-2xl font-black leading-tight mb-4">
+              Top US healthcare metros.
+            </p>
+            <p className="text-gray-700 mb-5 max-w-3xl">
+              {CITY_HUBS.length} curated metros, each with major-employer breakouts. Tampa, NYC, Boston, LA, Houston, and more — direct links to active openings.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-5">
+              {[
+                'houston-tx', 'new-york-ny', 'los-angeles-ca', 'chicago-il',
+                'boston-ma', 'philadelphia-pa', 'tampa-fl', 'miami-fl',
+                'dallas-tx', 'atlanta-ga', 'seattle-wa', 'denver-co',
+              ].map((slug) => {
+                const hub = CITY_HUBS.find((h) => h.slug === slug)
+                if (!hub) return null
+                return (
+                  <Link
+                    key={slug}
+                    href={`/city/${slug}`}
+                    className="text-sm border-2 border-black bg-white px-2.5 py-1 font-bold hover:bg-black hover:text-white transition-colors"
+                  >
+                    {hub.name.split(',')[0]}
+                  </Link>
+                )
+              })}
+            </div>
+            <Link
+              href="/city"
+              className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+            >
+              See all {CITY_HUBS.length} cities →
+            </Link>
           </div>
         </div>
       </section>

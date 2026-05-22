@@ -20,6 +20,13 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
     date: '2026-05-21',
+    title: 'City hub pages — 32 US healthcare metros',
+    body:
+      'Pages like /city/tampa-fl, /city/houston-tx, /city/boston-ma now exist for every top US healthcare market. Each carries a major-employer breakout + active openings filtered to that metro. Closes the gap between state-level hubs and per-job pages.',
+    tag: 'new',
+  },
+  {
+    date: '2026-05-21',
     title: 'Per-partner feed quality pass',
     body:
       'Every per-partner XML feed (Indeed, ZipRecruiter, Glassdoor, Talent.com, Adzuna, Jooble, Careerjet, LinkedIn, RSS) now filters out jobs with empty descriptions before publishing. Healthier feeds = better partner ingestion + cleaner search-engine indexing.',

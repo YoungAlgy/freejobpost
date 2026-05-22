@@ -25,6 +25,7 @@ import { normalizePartner } from '@/lib/partner-attribution'
 // back into the category-page graph.
 import { findSpecialtyHub } from '@/lib/specialty-slugs'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
+import { findCityHub } from '@/lib/city-slugs'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -578,7 +579,16 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
           {(() => {
             const specialtyHub = findSpecialtyHub(job.specialty, job.role, job.title)
             const stateHub = findStateHubByAbbr(job.state)
+            const cityHub = findCityHub(job.city, job.state)
             const links: Array<{ href: string; label: string }> = []
+            if (cityHub) {
+              // City links carry more candidate intent than state links
+              // for high-density metros — surface them first.
+              links.push({
+                href: `/city/${cityHub.slug}`,
+                label: `Healthcare jobs in ${cityHub.name.split(',')[0]}`,
+              })
+            }
             if (specialtyHub) {
               links.push({
                 href: `/specialty/${specialtyHub.slug}`,
