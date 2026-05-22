@@ -1,8 +1,8 @@
-// @ts-nocheck-deno-runtime (the Deno global is provided by the Supabase
+// NOTE on Deno globals: the `Deno` global is provided by the Supabase
 // Edge runtime — type definitions come from the jsr d.ts import in
 // index.ts; this sibling file only needs them at runtime, not at
-// editor-time. The Node-side tsc that runs in CI will skip this file
-// because it's under supabase/functions/.)
+// editor-time. The Node-side tsc that runs in CI skips this file
+// because it's under supabase/functions/ (excluded by tsconfig).
 
 // Google Indexing API client — Deno-flavored sibling of
 // src/lib/google-indexing-api.ts (Node).

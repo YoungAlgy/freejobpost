@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
 import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
@@ -42,8 +43,22 @@ const INITIAL: PostJobInput = {
 }
 
 export default function PostJobForm() {
+  // Prefill company details when the employer navigates here from
+  // /employer (dashboard passes ?co=<company_name>&cn=<contact_name>).
+  // Resolved via the useState initializer so the value is set on first
+  // render — no useEffect → setState cascade. useSearchParams returns
+  // null during SSR pre-hydration, which the initializer handles by
+  // falling back to empty strings.
+  //
+  // Email is intentionally NOT prefilled — the employer confirms their
+  // address each time to avoid accidental wrong-account posts.
+  const searchParams = useSearchParams()
   const [step, setStep] = useState<1 | 2 | 3>(1)
-  const [values, setValues] = useState<PostJobInput>(INITIAL)
+  const [values, setValues] = useState<PostJobInput>(() => ({
+    ...INITIAL,
+    company_name: searchParams?.get('co') ?? '',
+    contact_name: searchParams?.get('cn') ?? '',
+  }))
   const [result, setResult] = useState<PostJobResult | null>(null)
   const [stepError, setStepError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -57,25 +72,6 @@ export default function PostJobForm() {
   // Incrementing key forces TurnstileWidget to remount after a failed submit
   // so the user gets a fresh challenge (Turnstile tokens are single-use).
   const [turnstileKey, setTurnstileKey] = useState(0)
-
-  // Prefill company details when the employer navigates here from /employer.
-  // The dashboard passes ?co=<company_name>&cn=<contact_name> as URL params.
-  // We only fill fields that are still empty (user may have already typed
-  // something). Email is intentionally NOT prefilled — the employer confirms
-  // their address each time to avoid accidental wrong-account posts.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const co = params.get('co') ?? ''
-    const cn = params.get('cn') ?? ''
-    if (co || cn) {
-      setValues((prev) => ({
-        ...prev,
-        company_name: prev.company_name || co,
-        contact_name: prev.contact_name || cn,
-      }))
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // intentionally empty: run once on mount only
 
   const update = <K extends keyof PostJobInput>(key: K, v: PostJobInput[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))
