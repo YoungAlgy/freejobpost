@@ -102,14 +102,16 @@ const nextConfig: NextConfig = {
       {
         // Catch-all X-Robots-Tag for public pages. Explicitly excludes
         // private surfaces (/employer/* recruiter dashboard, /admin/*
-        // internal-only attribution dashboard) and Next.js internals.
+        // internal-only attribution dashboard, /post-job/verify one-shot
+        // consume path) and Next.js internals.
         // Without these exclusions, the private rules below would emit a
         // SECOND conflicting X-Robots-Tag header — Next.js merges headers
         // from multiple matching rules, so duplicates with opposing values
         // would ship to crawlers (the meta-robots noindex would still
         // protect us, but conflicting signals look broken to humans
-        // auditing the site).
-        source: '/((?!_next|api|employer|admin).*)',
+        // auditing the site + can confuse some bots that respect headers
+        // over meta).
+        source: '/((?!_next|api|employer|admin|post-job/verify|click).*)',
         headers: [{ key: 'X-Robots-Tag', value: 'index, follow' }],
       },
       {
@@ -120,6 +122,19 @@ const nextConfig: NextConfig = {
         // /admin/* is internal-only (e.g. /admin/attribution dashboard,
         // gated by ADMIN_DASHBOARD_KEY env var). Never indexable.
         source: '/admin/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        // /post-job/verify/<token> is a one-shot consume path — the page
+        // itself sets robots:noindex,nofollow in its metadata. Headers
+        // should agree.
+        source: '/post-job/verify/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        // /click/<slug> is a 302-redirect endpoint — not a content URL.
+        // Already in robots.txt Disallow list; header reinforces.
+        source: '/click/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
     ]
