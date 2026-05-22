@@ -18,6 +18,14 @@ export const metadata: Metadata = {
       'Education + licensing + timeline guides for healthcare roles. Plain-English, no email gate.',
     url: 'https://freejobpost.co/become',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Healthcare career-path guides | freejobpost.co',
+    description:
+      'Education + licensing + timeline guides for healthcare roles. Plain-English, no email gate.',
+    images: ['/opengraph-image'],
   },
 }
 

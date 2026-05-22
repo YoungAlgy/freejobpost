@@ -16,6 +16,13 @@ export const metadata: Metadata = {
     description: 'Browse open healthcare roles in the top US metros.',
     url: 'https://freejobpost.co/city',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Healthcare jobs by city | freejobpost.co',
+    description: 'Browse open healthcare roles in the top US metros.',
+    images: ['/opengraph-image'],
   },
 }
 

@@ -92,6 +92,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: canonical,
       type: 'website',
+      images: ['/opengraph-image'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | freejobpost.co`,
+      description,
+      images: ['/opengraph-image'],
     },
   }
 }

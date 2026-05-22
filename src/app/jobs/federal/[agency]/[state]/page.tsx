@@ -54,6 +54,13 @@ export async function generateMetadata(
       description: `${agency.blurb}`,
       url: canonical,
       type: 'website',
+      images: ['/opengraph-image'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${agency.fullName} healthcare jobs — ${state.name}`,
+      description: `${agency.blurb}`,
+      images: ['/opengraph-image'],
     },
   }
 }

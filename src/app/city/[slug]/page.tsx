@@ -86,6 +86,16 @@ export async function generateMetadata(
       description: hub.metaDescription,
       url: `https://freejobpost.co/city/${hub.slug}`,
       type: 'website',
+      // Fall back to root /opengraph-image — no dedicated per-city OG
+      // image generator (the root one is brand-card style + works for
+      // every hub type uniformly).
+      images: ['/opengraph-image'],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | freejobpost.co`,
+      description: hub.metaDescription,
+      images: ['/opengraph-image'],
     },
   }
 }
