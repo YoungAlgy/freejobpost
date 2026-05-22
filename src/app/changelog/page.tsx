@@ -6,6 +6,7 @@ import {
   type ChangelogTag,
   type ChangelogEntry,
 } from '@/lib/changelog-entries'
+import { safeJsonLd } from '@/lib/safe-jsonld'
 
 export const metadata: Metadata = {
   title: 'Changelog',
@@ -65,8 +66,25 @@ export default function ChangelogPage() {
   const grouped = groupByMonth(ENTRIES)
   const lastUpdated = ENTRIES[0]?.date
 
+  // BreadcrumbList — every public page emits one so Google can render
+  // the breadcrumb above the title in SERP. The /changelog page was
+  // missing this; sister pages (/how-it-works, /pricing, etc.) already
+  // emit it.
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://freejobpost.co' },
+      { '@type': 'ListItem', position: 2, name: 'Changelog', item: 'https://freejobpost.co/changelog' },
+    ],
+  }
+
   return (
     <main className="min-h-screen bg-white text-black">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <nav className="border-b-2 border-black">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="font-black text-xl tracking-tight">
