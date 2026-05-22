@@ -427,6 +427,211 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     specialtyLabel: 'Medical Assistant jobs',
     oneLiner: 'Postsecondary certificate (~12 mo) or on-the-job training → optional CMA/RMA cert.',
   },
+  {
+    slug: 'surgical-technologist',
+    title: 'How to become a Surgical Technologist (CST)',
+    abbreviation: 'CST',
+    metaDescription:
+      'How to become a Surgical Technologist (CST) — accredited program (~12-24 mo) → NBSTSA cert → state recognition. Open surgical tech jobs on freejobpost.co.',
+    lede:
+      'Surgical Technologists (scrub techs) prepare the operating room, assist the surgeon during procedures, and manage sterile fields + instruments. About 117,000 surgical techs work nationally per BLS, almost entirely in hospital ORs and ambulatory surgery centers — a role that grew faster than overall healthcare hiring through 2020-2024.',
+    sections: [
+      {
+        heading: 'Training',
+        body:
+          'Accredited programs run 12-24 months and award a certificate, diploma, or associate degree. Accreditation comes from CAAHEP or ABHES; only graduates of accredited programs are eligible for the leading certification (CST). Curriculum covers anatomy, microbiology, surgical procedures across specialties (general, ortho, cardio, neuro, ENT, OB-GYN, GU), sterile technique, and supervised OR clinical rotations.',
+      },
+      {
+        heading: 'Certification',
+        body:
+          'The Certified Surgical Technologist (CST) credential is administered by the NBSTSA (National Board of Surgical Technology and Surgical Assisting) and is the standard credential most hospitals require. NCCT offers an alternative — the TS-C (Tech in Surgery — Certified). A few states (TX, NY, MA, IN, NJ, PA, SC, TN, WA) require state recognition or registration in addition to national cert; the rest defer to the national credential.',
+      },
+      {
+        heading: 'Specialization',
+        body:
+          'After 1-2 years of general OR experience, techs commonly specialize in a single service line: cardiothoracic, neurosurgery, orthopedic, robotic-assisted surgery, transplant, or trauma. Many ASCs (ambulatory surgery centers) cross-train techs across multiple specialties. Travel surgical-tech work is a high-paying option for experienced CSTs willing to relocate every 13 weeks.',
+      },
+      {
+        heading: 'Career progression',
+        body:
+          'Common next steps: lead/charge surgical tech, surgical first-assistant (CSFA — requires additional training + credential), nursing (LPN/RN bridge programs), or PA school. The OR exposure surgical techs accumulate is highly valued by PA programs as direct patient-care hours.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS lists median annual surgical-tech salary in the $58k-$62k range, with significant geographic + setting variance. Travel CSTs and night-shift trauma roles command meaningfully higher comp. Ambulatory surgery centers typically pay less than hospital ORs but offer more predictable hours.',
+      },
+    ],
+    specialtySlug: 'surgical-technologist',
+    specialtyLabel: 'Surgical Technologist jobs',
+    oneLiner: 'Accredited program (12-24 mo) → NBSTSA CST exam → (state recognition where required).',
+  },
+  {
+    slug: 'radiologic-technologist',
+    title: 'How to become a Radiologic Technologist (RT)',
+    abbreviation: 'RT(R)',
+    metaDescription:
+      'How to become a Radiologic Technologist — accredited program (2 yr AS) → ARRT exam → state license. Open RT jobs on freejobpost.co.',
+    lede:
+      'Radiologic Technologists operate the imaging equipment that produces diagnostic X-rays, CT scans, MRI, mammography, ultrasound, and fluoroscopy. About 220,000 radiologic + MRI techs work nationally per BLS, primarily in hospital radiology departments, outpatient imaging centers, and specialty diagnostic groups.',
+    sections: [
+      {
+        heading: 'Education',
+        body:
+          'Accredited radiologic-technology programs run 22-24 months and award an Associate of Science (AS) degree. Accreditation comes from JRCERT (Joint Review Committee on Education in Radiologic Technology); only JRCERT-accredited program graduates are ARRT-eligible. A small number of 4-year BS-level programs exist, often combined with management or sub-specialty tracks. Curriculum covers radiation physics, anatomy, patient positioning, radiation safety, imaging principles, and ~1,800-2,000 hours of supervised clinical practice.',
+      },
+      {
+        heading: 'ARRT certification',
+        body:
+          'The American Registry of Radiologic Technologists (ARRT) administers the primary credentialing exam. Passing earns the R.T.(R)(ARRT) credential — "Radiography" certification, the entry-level RT credential. Most states (37 + DC) require state licensure in addition to ARRT certification; some states accept ARRT certification directly, others require a state-specific exam.',
+      },
+      {
+        heading: 'Modality specialties',
+        body:
+          'After working as a general radiographer, techs typically pursue a second ARRT post-primary certification in a modality: Computed Tomography (CT), Magnetic Resonance Imaging (MRI), Mammography (M), Vascular-Interventional (VI), Cardiac-Interventional (CI), Bone Densitometry (BD), Sonography (S), Nuclear Medicine (NM), or Radiation Therapy (T). Most modalities require documented clinical hours + a separate ARRT exam. CT and MRI are the highest-volume specialty paths.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS reports median annual radiologic-tech salary in the $76k-$80k range. MRI techs and CT techs typically earn 10-25% above general radiography. Night/weekend differentials in trauma centers + IR cath labs add meaningfully to base. Travel radiologic-tech work is widely available.',
+      },
+      {
+        heading: 'Career progression',
+        body:
+          'Lead/chief tech, modality supervisor, imaging-department manager, applications specialist (working for a manufacturer like GE/Siemens/Philips), CT/MRI fellowship, or RA (Radiologist Assistant — a master\'s-level credential that expands scope significantly).',
+      },
+    ],
+    specialtySlug: 'radiologic-technologist',
+    specialtyLabel: 'Radiologic Technologist jobs',
+    oneLiner: 'AS in radiologic tech (~24 mo) → ARRT(R) exam → state license + modality specialty.',
+  },
+  {
+    slug: 'occupational-therapy',
+    title: 'How to become an Occupational Therapist (OTR/L)',
+    abbreviation: 'OT',
+    metaDescription:
+      'How to become an Occupational Therapist — bachelor\'s → MOT or OTD → NBCOT cert → state license. Open OT jobs on freejobpost.co.',
+    lede:
+      'Occupational Therapists help patients regain independence in activities of daily living (ADLs) — feeding, dressing, work tasks, school participation — after injury, illness, developmental delay, or aging. About 152,000 OTs practice nationally per BLS, with growth projections among the highest of any healthcare profession (12% over 2024-2034).',
+    sections: [
+      {
+        heading: 'Pre-OT undergraduate',
+        body:
+          'Most OT programs require a bachelor\'s degree + specific prereq courses: anatomy + physiology, neuroscience, statistics, psychology (lifespan + abnormal), sociology, and ~40-60 hours of observation across multiple OT practice settings. Common undergraduate majors: psychology, kinesiology, exercise science, biology — though any major satisfying prereqs is acceptable.',
+      },
+      {
+        heading: 'Graduate program',
+        body:
+          'Two accredited entry-level paths since ACOTE\'s 2027 deadline removed: Master of Occupational Therapy (MOT, ~2-2.5 years) or Doctor of Occupational Therapy (OTD, ~3 years). Both qualify graduates for licensure. The OTD adds a 14-16 week doctoral capstone but is not currently required for general practice. Curriculum covers anatomy, kinesiology, neurology, occupational science, intervention planning, evidence-based practice, and 24+ weeks of full-time Level II fieldwork.',
+      },
+      {
+        heading: 'Licensing',
+        body:
+          'After graduation, candidates sit for the NBCOT (National Board for Certification in Occupational Therapy) exam. Pass = OTR (Occupational Therapist, Registered) credential. State licensure is administered separately by each state — all 50 + DC license OTs. Many states also license Certified Occupational Therapy Assistants (COTAs), the associate-degree-level OT support role.',
+      },
+      {
+        heading: 'Practice settings',
+        body:
+          'Outpatient hand therapy, acute-care hospital, pediatric (schools + early intervention), skilled-nursing + long-term care, home health, mental-health, and emerging telehealth-based ergonomic + return-to-work consulting. Pediatric OT (school-based + early-intervention) and adult outpatient hand therapy are the two highest-volume specialty paths.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS reports median annual OT salary around $93k-$98k. Home-health + travel OT pay highest hourly; school-based OT typically lowest (but with school-year schedule + benefits). Specialty hand therapy (CHT credential) commands a premium.',
+      },
+    ],
+    specialtySlug: 'occupational-therapy',
+    specialtyLabel: 'Occupational Therapy jobs',
+    oneLiner: 'Bachelor\'s + 40-60 observation hours → MOT or OTD → NBCOT exam → state license.',
+  },
+  {
+    slug: 'speech-language-pathology',
+    title: 'How to become a Speech-Language Pathologist (SLP)',
+    abbreviation: 'SLP',
+    metaDescription:
+      'How to become an SLP — bachelor\'s → master\'s in speech-language pathology → CCC-SLP → state license. Open SLP jobs on freejobpost.co.',
+    lede:
+      'Speech-Language Pathologists evaluate, diagnose, and treat communication and swallowing disorders across the lifespan — from pediatric language delay to post-stroke aphasia to swallowing dysfunction in neuro-degenerative disease. About 175,000 SLPs practice nationally per BLS; ~55% work in schools and ~25% in healthcare settings.',
+    sections: [
+      {
+        heading: 'Undergraduate',
+        body:
+          'A bachelor\'s in Communication Sciences and Disorders (CSD) is the most direct path — but applicants from other majors can complete post-baccalaureate prereq coursework (typically 1 year) to qualify for master\'s programs. Prereqs include statistics, biological + physical sciences, social/behavioral sciences, and CSD-specific courses (phonetics, anatomy of speech + hearing, language development).',
+      },
+      {
+        heading: 'Master\'s program',
+        body:
+          'Master\'s in Speech-Language Pathology (MA/MS) is the standard entry-level degree, accredited by the Council on Academic Accreditation (CAA). Programs run 2 years full-time, with the second year heavily clinical — students complete 400+ clock hours of supervised clinical experience across diverse settings (pediatric + adult, medical + educational).',
+      },
+      {
+        heading: 'Clinical Fellowship + CCC',
+        body:
+          'After graduation, the new SLP completes a Clinical Fellowship (CF) — a 36-week paid practicum under the supervision of a CCC-credentialed SLP. After CF completion + passing the Praxis Exam in Speech-Language Pathology, ASHA awards the Certificate of Clinical Competence in Speech-Language Pathology (CCC-SLP). This is the standard credential employers + most state licensing boards require.',
+      },
+      {
+        heading: 'Licensing',
+        body:
+          'All 50 states + DC require state licensure. Many states accept CCC-SLP directly; some require separate state exams. School-based SLPs may need an additional teaching credential depending on the state — some states require the educational SLP credential, others accept the clinical CCC-SLP for school employment.',
+      },
+      {
+        heading: 'Specialization',
+        body:
+          'ASHA offers Board Certification in Specialty Areas (BCS) — child language, swallowing, fluency, intraoperative monitoring. Common practice specialties: pediatric (early-intervention + school-age + autism), adult neurogenic (post-stroke + TBI + dementia), dysphagia (swallowing), AAC (augmentative + alternative communication), voice + speech motor, fluency.',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS reports median annual SLP salary around $89k-$95k. Healthcare-setting SLPs typically earn meaningfully more than school-based, with travel SLPs at the top of the range. Sign-on bonuses are common in dysphagia + hospital-based adult-neurogenic roles where supply is tight.',
+      },
+    ],
+    specialtySlug: 'speech-language-pathology',
+    specialtyLabel: 'SLP jobs',
+    oneLiner: 'Bachelor\'s (CSD or w/ prereqs) → Master\'s in SLP → CF + Praxis → CCC-SLP + state license.',
+  },
+  {
+    slug: 'paramedic',
+    title: 'How to become an EMT or Paramedic',
+    abbreviation: 'EMT/Paramedic',
+    metaDescription:
+      'How to become an EMT or Paramedic — EMT-B (~150h) or Paramedic (1-2 years) → NREMT cert → state license. Open EMT/paramedic jobs.',
+    lede:
+      'Emergency Medical Technicians and Paramedics provide pre-hospital + transport emergency care — from basic life support at the EMT level to advanced cardiac, airway, and trauma management at the Paramedic level. About 270,000 EMTs + paramedics work nationally per BLS, across 911 services, fire-rescue, hospital-based ambulance services, and critical-care transport.',
+    sections: [
+      {
+        heading: 'EMT-Basic (entry level)',
+        body:
+          'EMT-Basic (EMT) is the entry-level credential. Training is a ~120-200 hour state-approved program (typically 8-16 weeks part-time, or a 1-semester course at a community college). Coverage: patient assessment, CPR + AED, oxygen, basic airway management, trauma care, OB emergencies, hazmat awareness. Prereqs: high-school diploma, age 18+, and usually current CPR certification.',
+      },
+      {
+        heading: 'Advanced + Intermediate EMT',
+        body:
+          'Advanced EMT (AEMT — sometimes called EMT-I depending on state) adds IV access, limited medication administration, advanced airway adjuncts (King airway, supraglottic devices), and more advanced patient assessment. Training is ~150-250 hours beyond EMT-B. AEMT is heavily used in rural systems where Paramedic-staffed ambulances aren\'t economically feasible.',
+      },
+      {
+        heading: 'Paramedic',
+        body:
+          'Paramedic is the highest pre-hospital provider level. Accredited Paramedic programs run 1-2 years (1,000-1,800 hours) at community colleges, vocational schools, or fire-academy programs, and award a certificate or associate degree. Many BS-level Paramedic programs exist, especially in academic + flight-medicine settings. Scope adds: cardiac monitoring + 12-lead interpretation, defibrillation + cardioversion + pacing, advanced airway (intubation, cricothyrotomy in some states), advanced pharmacology + IV/IO drug administration, fluid resuscitation, and field-decision-making for STEMI/stroke/trauma triage.',
+      },
+      {
+        heading: 'Certification + licensure',
+        body:
+          'The National Registry of Emergency Medical Technicians (NREMT) administers cognitive + psychomotor exams at each level (EMT, AEMT, Paramedic). NREMT certification + state-specific application = state license. About 47 states use NREMT as the basis for state licensure; the rest run their own state exams. NREMT recertification every 2 years requires continuing education + skills verification.',
+      },
+      {
+        heading: 'Practice settings + progression',
+        body:
+          '911 / municipal EMS (fire-based or third-service), hospital-based ambulance, private inter-facility transport, critical-care transport (CCT), flight medicine (HEMS), event medicine, industrial + offshore EMS, military medicine. Common progression: EMT → Paramedic → flight medic, critical-care paramedic (CCP-C), educator, EMS supervisor, or bridge to RN / PA / nursing programs (EMS field experience is highly valued in clinical-program admissions).',
+      },
+      {
+        heading: 'Compensation',
+        body:
+          'BLS reports wide compensation ranges: EMT median around $42k, Paramedic median around $50k-$60k, flight paramedics + critical-care paramedics in the $70k-$95k range. Fire-based EMS pay tends to be higher than third-service or private; coastal + metropolitan systems pay above rural. Overtime is heavy in most 911 systems.',
+      },
+    ],
+    specialtySlug: 'paramedic',
+    specialtyLabel: 'EMT + Paramedic jobs',
+    oneLiner: 'EMT-B (~150h) → AEMT (~250h) → Paramedic (1-2 yr) → NREMT cert + state license.',
+  },
 ]
 
 export function getCareerPath(slug: string): CareerPathGuide | undefined {

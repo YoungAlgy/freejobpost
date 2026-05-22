@@ -183,6 +183,43 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
     shortDescription: 'Medical Assistant (CMA, RMA, AAMA) roles across primary care, specialty clinics, urgent care, and ambulatory groups.',
     matchPatterns: ['medical assistant', 'medical asst', 'cma ', ' cma', 'rma ', ' rma'],
   },
+  // Second batch of volume-allied roles (2026-05-21). Match-pattern
+  // anchors avoid the dangerous 2-letter abbreviations alone.
+  {
+    slug: 'surgical-technologist',
+    title: 'Surgical Technologist Jobs',
+    metaDescription: 'Free surgical tech jobs — OR, ambulatory surgery, ortho, neuro, cardio. CST and scrub-tech roles. Apply free, no recruiter spam.',
+    shortDescription: 'Surgical Technologist (CST) + scrub-tech roles across hospital ORs, ambulatory surgery centers, and specialty surgical practices.',
+    matchPatterns: ['surgical tech', 'surg tech', 'scrub tech', 'surgical technologist'],
+  },
+  {
+    slug: 'radiologic-technologist',
+    title: 'Radiologic Technologist Jobs',
+    metaDescription: 'Free radiologic technologist jobs — X-ray, CT, MRI, mammography, ultrasound, IR. ARRT-certified roles. Apply free.',
+    shortDescription: 'Radiologic Technologist roles (ARRT-certified) across X-ray, CT, MRI, mammography, ultrasound, and interventional radiology.',
+    matchPatterns: ['radiologic tech', 'rad tech', 'x-ray tech', 'xray tech', 'ct tech', 'mri tech', 'mammography tech', 'imaging tech', 'sonographer', 'ultrasound tech'],
+  },
+  {
+    slug: 'occupational-therapy',
+    title: 'Occupational Therapy Jobs',
+    metaDescription: 'Free occupational therapy jobs — OTR, OT/L, COTA. Outpatient, acute care, schools, home health. Apply free.',
+    shortDescription: 'Occupational Therapist (OTR/L) + Certified Occupational Therapy Assistant (COTA) roles across outpatient, acute-care hospital, school-based, and home-health settings.',
+    matchPatterns: ['occupational therap', 'otr/l', 'cota '],
+  },
+  {
+    slug: 'speech-language-pathology',
+    title: 'Speech-Language Pathology Jobs',
+    metaDescription: 'Free SLP jobs — CCC-SLP, school-based, medical, early intervention, telehealth. Apply free, no recruiter spam.',
+    shortDescription: 'Speech-Language Pathologist (CCC-SLP) roles in schools, acute-care hospitals, early intervention, outpatient, and telehealth.',
+    matchPatterns: ['speech language', 'speech-language', 'speech pathol', 'slp ', ' slp', 'ccc-slp'],
+  },
+  {
+    slug: 'paramedic',
+    title: 'EMT + Paramedic Jobs',
+    metaDescription: 'Free paramedic + EMT jobs — 911 / EMS, hospital ED, critical-care transport, event medicine. NREMT roles. Apply free.',
+    shortDescription: 'Paramedic + EMT (Basic / Advanced / Intermediate) roles across 911/EMS, hospital ED, critical-care transport, and event medicine.',
+    matchPatterns: ['paramedic', 'emt-b', 'emt-p', 'emt-i', 'emt ', ' emt', 'emergency medical tech'],
+  },
 ]
 
 export function getSpecialtyHub(slug: string): SpecialtyHub | undefined {

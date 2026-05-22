@@ -60,7 +60,14 @@ export async function generateMetadata(
   return {
     title,
     description,
-    alternates: { canonical: `https://freejobpost.co/state/${hub.slug}` },
+    alternates: {
+      canonical: `https://freejobpost.co/state/${hub.slug}`,
+      // RSS alternate so feed-reader browser extensions auto-discover
+      // the per-state filtered feed at /feeds/state/<slug>.
+      types: {
+        'application/rss+xml': `https://freejobpost.co/feeds/state/${hub.slug}`,
+      },
+    },
     openGraph: {
       title: `${title} | freejobpost.co`,
       description,

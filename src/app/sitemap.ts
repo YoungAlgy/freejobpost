@@ -97,12 +97,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
+  // Per-specialty RSS feeds — pre-filtered streams for niche aggregators
+  // + RSS readers. Lower priority than the human-facing hub page.
+  const specialtyFeedRoutes: MetadataRoute.Sitemap = SPECIALTY_HUBS.map((s) => ({
+    url: `${base}/feeds/specialty/${s.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'hourly' as const,
+    priority: 0.4,
+  }))
+
   // State hub pages — one per top US state for healthcare-job density
   const stateRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
     url: `${base}/state/${s.slug}`,
     lastModified: maxJobUpdate,
     changeFrequency: 'daily' as const,
     priority: 0.8,
+  }))
+
+  // Per-state RSS feeds — pre-filtered streams for state-specific
+  // aggregators + RSS readers.
+  const stateFeedRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
+    url: `${base}/feeds/state/${s.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'hourly' as const,
+    priority: 0.4,
   }))
 
   // City hub pages — one per curated US healthcare metro. Closes the
@@ -198,7 +216,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticRoutes,
     ...specialtyRoutes,
+    ...specialtyFeedRoutes,
     ...stateRoutes,
+    ...stateFeedRoutes,
     ...cityRoutes,
     ...careerPathRoutes,
     ...federalRoutes,
