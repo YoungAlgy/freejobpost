@@ -14,6 +14,14 @@ export const metadata: Metadata = {
       'Free healthcare job posting. No credit card, no per-applicant fees, no sponsored bids.',
     url: 'https://freejobpost.co/for-employers',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Post healthcare jobs free | freejobpost.co',
+    description:
+      'Free healthcare job posting. No credit card, no per-applicant fees, no sponsored bids.',
+    images: ['/opengraph-image'],
   },
 }
 

@@ -13,6 +13,14 @@ export const metadata: Metadata = {
       'Free healthcare job posts, no auction, no paywall. Post in 60 seconds.',
     url: 'https://freejobpost.co/how-it-works',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How freejobpost.co works',
+    description:
+      'Free healthcare job posts, no auction, no paywall. Post in 60 seconds.',
+    images: ['/opengraph-image'],
   },
 }
 

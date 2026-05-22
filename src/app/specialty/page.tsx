@@ -15,6 +15,13 @@ export const metadata: Metadata = {
     description: 'Browse open healthcare roles by specialty.',
     url: 'https://freejobpost.co/specialty',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Healthcare jobs by specialty | freejobpost.co',
+    description: 'Browse open healthcare roles by specialty.',
+    images: ['/opengraph-image'],
   },
 }
 

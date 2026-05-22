@@ -21,6 +21,13 @@ export const metadata: Metadata = {
     description: 'Verified healthcare employers currently hiring on freejobpost.co.',
     url: 'https://freejobpost.co/employers',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Healthcare employers — freejobpost.co',
+    description: 'Verified healthcare employers currently hiring on freejobpost.co.',
+    images: ['/opengraph-image'],
   },
 }
 

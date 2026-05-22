@@ -14,6 +14,14 @@ export const metadata: Metadata = {
       'Post healthcare jobs for free. No auction fees, no paywall, no credit card.',
     url: 'https://freejobpost.co/post-job',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Post a healthcare job — free',
+    description:
+      'Post healthcare jobs for free. No auction fees, no paywall, no credit card.',
+    images: ['/opengraph-image'],
   },
 }
 

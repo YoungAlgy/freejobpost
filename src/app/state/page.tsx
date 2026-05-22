@@ -15,6 +15,13 @@ export const metadata: Metadata = {
     description: 'Browse open healthcare roles by state.',
     url: 'https://freejobpost.co/state',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Healthcare jobs by state | freejobpost.co',
+    description: 'Browse open healthcare roles by state.',
+    images: ['/opengraph-image'],
   },
 }
 

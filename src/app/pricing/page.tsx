@@ -13,6 +13,14 @@ export const metadata: Metadata = {
       '10 free healthcare job posts, forever. No auction, no credit card.',
     url: 'https://freejobpost.co/pricing',
     type: 'website',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How posting works — freejobpost.co',
+    description:
+      '10 free healthcare job posts, forever. No auction, no credit card.',
+    images: ['/opengraph-image'],
   },
 }
 
