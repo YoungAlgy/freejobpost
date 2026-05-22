@@ -18,6 +18,7 @@ import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CAREER_PATHS } from '@/lib/career-paths'
 import { getViableCellsCached } from '@/lib/specialty-state-matrix'
+import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 import {
   aggregateSalariesByGroup,
@@ -46,14 +47,13 @@ export async function generateStaticParams() {
   return SPECIALTY_HUBS.map((s) => ({ slug: s.slug }))
 }
 
-function buildHubOrFilter(matchPatterns: string[]): string {
-  const orParts: string[] = []
-  for (const p of matchPatterns) {
-    const pat = `%${p}%`
-    orParts.push(`specialty.ilike.${pat}`, `title.ilike.${pat}`, `role.ilike.${pat}`)
-  }
-  return orParts.join(',')
-}
+// Filter-build moved to src/lib/specialty-filter.ts + unit-tested with
+// regression guards against the 2026-05-22 PostgREST .or() double-
+// encoding bug (commit 6e2b839). Two consumers (this file +
+// /specialty/[slug]/[state]/page.tsx) used to keep their own inline
+// copies, which is how the bug landed in the first place. The shared
+// helper + tests stop that recurrence.
+const buildHubOrFilter = buildSpecialtyOrFilter
 
 async function fetchJobCountForSpecialty(matchPatterns: string[]): Promise<number> {
   const { count } = await supabase
