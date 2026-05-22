@@ -63,7 +63,10 @@ export default async function AttributionDashboard({ searchParams }: Props) {
   // (see migration 20260520_partner_attribution_daily_view.sql:32-37) so
   // this query returns rows under our service-role client. Returns one
   // row per (partner, day) — re-shape into {partner: [...days...]} on
-  // the JS side for table rendering.
+  // the JS side for table rendering. Date.now() at module scope would
+  // freeze sinceIso at first-render; we want it fresh per-request, which
+  // is exactly what `dynamic = 'force-dynamic'` guarantees up top.
+  // eslint-disable-next-line react-hooks/purity
   const sinceIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
   const { data, error } = await sb
     .from('partner_attribution_daily')

@@ -5,7 +5,6 @@ import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 
-import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Free Job Post — Healthcare jobs without the Indeed tax',
   description:

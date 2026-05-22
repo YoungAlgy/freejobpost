@@ -367,7 +367,7 @@ export default async function StateHubPage(
                     </a>{' '}
                     is the authoritative source for current fees, timelines, CE
                     requirements, and endorsement paperwork. Third-party rewrites
-                    tend to go stale — the board's own site is the only place to
+                    tend to go stale — the board&rsquo;s own site is the only place to
                     confirm what&apos;s current.
                   </p>
                 </div>
