@@ -17,8 +17,8 @@ import {
   remoteLabel,
   employmentLabel,
 } from '@/lib/public-jobs'
-import { CITY_HUBS, getCityHub } from '@/lib/city-slugs'
-import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
+import { getCityHub } from '@/lib/city-slugs'
+import { getSpecialtyHub } from '@/lib/specialty-slugs'
 import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { stripSalarySuffix } from '@/lib/clean-labels'

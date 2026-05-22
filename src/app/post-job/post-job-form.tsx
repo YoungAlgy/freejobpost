@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useTransition, useEffect } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
 import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
@@ -43,25 +42,40 @@ const INITIAL: PostJobInput = {
 }
 
 export default function PostJobForm() {
-  // Prefill company details when the employer navigates here from
-  // /employer (dashboard passes ?co=<company_name>&cn=<contact_name>).
-  // Resolved via the useState initializer so the value is set on first
-  // render — no useEffect → setState cascade. useSearchParams returns
-  // null during SSR pre-hydration, which the initializer handles by
-  // falling back to empty strings.
-  //
-  // Email is intentionally NOT prefilled — the employer confirms their
-  // address each time to avoid accidental wrong-account posts.
-  const searchParams = useSearchParams()
   const [step, setStep] = useState<1 | 2 | 3>(1)
-  const [values, setValues] = useState<PostJobInput>(() => ({
-    ...INITIAL,
-    company_name: searchParams?.get('co') ?? '',
-    contact_name: searchParams?.get('cn') ?? '',
-  }))
+  const [values, setValues] = useState<PostJobInput>(INITIAL)
   const [result, setResult] = useState<PostJobResult | null>(null)
   const [stepError, setStepError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+
+  // Prefill company details when the employer navigates here from
+  // /employer (dashboard passes ?co=<company_name>&cn=<contact_name>).
+  //
+  // Why not the useState initializer + useSearchParams? That requires
+  // wrapping the form in <Suspense> at build time, which makes ALL
+  // users see a brief "Loading form…" fallback to enable a prefill
+  // convenience for the FEW users arriving from /employer. Net-negative
+  // UX — better to keep the form static at SSR + run a single
+  // mount-time effect to populate from URL params. React 19's
+  // set-state-in-effect rule flags this as a perf concern; the
+  // disable below is justified because it's a single one-shot prefill,
+  // not a cascading state pattern.
+  //
+  // Email is intentionally NOT prefilled — employer confirms their
+  // address each time to avoid accidental wrong-account posts.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const co = params.get('co') ?? ''
+    const cn = params.get('cn') ?? ''
+    if (co || cn) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot mount-time URL-param prefill; see comment above
+      setValues((prev) => ({
+        ...prev,
+        company_name: prev.company_name || co,
+        contact_name: prev.contact_name || cn,
+      }))
+    }
+  }, [])
 
   // Cloudflare Turnstile token. Empty string when Turnstile isn't configured
   // (dev / preview environments) — the widget fires onSuccess('') in that

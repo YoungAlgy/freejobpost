@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import PostJobForm from './post-job-form'
@@ -93,14 +92,7 @@ export default async function PostJobPage() {
           </div>
         </div>
 
-        {/* Suspense wrapper required because PostJobForm calls
-           useSearchParams() — without it, the whole /post-job page
-           deopts to dynamic rendering. The fallback is a minimal
-           "loading…" placeholder; useSearchParams resolves synchronously
-           on hydration so users essentially never see it. */}
-        <Suspense fallback={<div className="text-sm text-gray-500">Loading form…</div>}>
-          <PostJobForm />
-        </Suspense>
+        <PostJobForm />
 
         {/* After you post — sets expectations for what happens next */}
         <div className="mt-14 mb-10">
