@@ -49,8 +49,8 @@ export async function generateStaticParams() {
 function buildHubOrFilter(matchPatterns: string[]): string {
   const orParts: string[] = []
   for (const p of matchPatterns) {
-    const enc = encodeURIComponent(`*${p}*`)
-    orParts.push(`specialty.ilike.${enc}`, `title.ilike.${enc}`, `role.ilike.${enc}`)
+    const pat = `%${p}%`
+    orParts.push(`specialty.ilike.${pat}`, `title.ilike.${pat}`, `role.ilike.${pat}`)
   }
   return orParts.join(',')
 }

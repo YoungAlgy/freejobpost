@@ -26,6 +26,8 @@ import { findSpecialtyHub } from '@/lib/specialty-slugs'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { findCityHub } from '@/lib/city-slugs'
 import { buildJobPostingJsonLd } from '@/lib/job-posting-jsonld'
+import { getViableCellsCached } from '@/lib/specialty-state-matrix'
+import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -221,9 +223,17 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   const job = await getJob(slug)
   if (!job) notFound()
 
-  const [related, employer] = await Promise.all([
+  const [related, employer, specialtyStateCells, citySpecialtyCells] = await Promise.all([
     getRelated(job),
     resolveEmployer(job.employer_id),
+    // Cell sets used to validate BROWSE MORE matrix-link destinations
+    // before rendering them — without this we'd link to /specialty/<x>/
+    // <state> and /city/<slug>/<specialty> URLs that 404 because the
+    // matrix-page route notFounds when the cell has <5 active matching
+    // jobs. Both helpers are process-cached so successive jobs in the
+    // same Next worker reuse the same fetch.
+    getViableCellsCached(supabase),
+    getViableCityCellsCached(supabase),
   ])
   const loc = locationLabel(job)
   const sal = formatSalary(job.salary_min, job.salary_max)
@@ -524,11 +534,35 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
                 label: `Healthcare jobs in ${stateHub.name}`,
               })
             }
+            // Matrix-cell links: only render when the cell actually
+            // exists in the viable-cell set. The matrix routes
+            // notFound() when zero jobs match (specialty-state/page.tsx
+            // line 106, city-specialty/page.tsx line ~108) so linking
+            // unconditionally produced live 404s — caught in the
+            // 2026-05-22 audit pass on a Tampa PA job that linked
+            // /specialty/physician-assistant/florida which doesn't
+            // meet the ≥5-jobs floor.
             if (specialtyHub && stateHub) {
-              links.push({
-                href: `/specialty/${specialtyHub.slug}/${stateHub.slug}`,
-                label: `${specialtyHub.title.replace(/ Jobs$/, '')} in ${stateHub.name}`,
-              })
+              const cellExists = specialtyStateCells.some(
+                (c) => c.specialty.slug === specialtyHub.slug && c.state.slug === stateHub.slug
+              )
+              if (cellExists) {
+                links.push({
+                  href: `/specialty/${specialtyHub.slug}/${stateHub.slug}`,
+                  label: `${specialtyHub.title.replace(/ Jobs$/, '')} in ${stateHub.name}`,
+                })
+              }
+            }
+            if (specialtyHub && cityHub) {
+              const cellExists = citySpecialtyCells.some(
+                (c) => c.specialty.slug === specialtyHub.slug && c.city.slug === cityHub.slug
+              )
+              if (cellExists) {
+                links.push({
+                  href: `/city/${cityHub.slug}/${specialtyHub.slug}`,
+                  label: `${specialtyHub.title.replace(/ Jobs$/, '')} in ${cityHub.name.split(',')[0]}`,
+                })
+              }
             }
             // Federal source signal — usajobs:federal jobs link back to
             // /jobs/federal/<agency>. We can't infer the agency without the

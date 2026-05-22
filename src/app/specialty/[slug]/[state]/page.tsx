@@ -34,10 +34,21 @@ export const revalidate = 600
 type Params = { slug: string; state: string }
 
 function buildHubOrFilter(matchPatterns: readonly string[]): string {
+  // CRITICAL: do NOT URL-encode. supabase-js encodes the .or() filter
+  // string when assembling the request. Pre-encoding with
+  // encodeURIComponent('*pattern*') turns space → %20, then supabase-js
+  // encodes % → %25 → %2520 in the final URL. PostgREST decodes once
+  // back to %20 + runs ILIKE '%physician%20assistant%' which matches
+  // nothing real. Specialties with no spaces in matchPatterns
+  // (cardiology, hospitalist, dermatology, etc.) silently masked the
+  // bug; PA/RN/family-medicine/internal-medicine/hospital-medicine all
+  // returned 0 jobs. See the matching fix in
+  // src/app/specialty/[slug]/page.tsx buildHubOrFilter for the full
+  // write-up — discovered 2026-05-22.
   const orParts: string[] = []
   for (const p of matchPatterns) {
-    const enc = encodeURIComponent(`*${p}*`)
-    orParts.push(`specialty.ilike.${enc}`, `title.ilike.${enc}`, `role.ilike.${enc}`)
+    const pat = `%${p}%`
+    orParts.push(`specialty.ilike.${pat}`, `title.ilike.${pat}`, `role.ilike.${pat}`)
   }
   return orParts.join(',')
 }
