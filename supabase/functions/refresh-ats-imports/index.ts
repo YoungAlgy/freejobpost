@@ -72,6 +72,7 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { notifyGoogleIndexingApiBatch } from './_google-indexing.ts'
 
 // ── Seed boards (mirror of src/lib/ats-import/seed-boards.ts) ───────────────
 interface WorkdayCfg { tenantHost: string; tenant: string; site: string; defaultState: string }
@@ -608,6 +609,15 @@ Deno.serve(async (_req: Request) => {
   let grandFetched = 0, grandInserted = 0, grandUpdated = 0
   const errors: string[] = []
 
+  // Slugs that are NEW this cron tick (i.e. external_ref not in
+  // existingRefs before the upsert). Collected across all boards then
+  // batch-notified to Google's Indexing API at the end of the run.
+  // Caps at INDEXING_CAP per cron tick because Google's default quota is
+  // 200 URL notifications per project per day — we run 6 cycles/day, so
+  // ~30 new slugs per cycle keeps us under the cap with headroom.
+  const newSlugsToNotify: string[] = []
+  const INDEXING_CAP_PER_TICK = 30
+
   // Fetch USAJobs API key once from Supabase vault (SECURITY DEFINER RPC,
   // service-role only). Cached across all USAJobs board fetches in this run.
   let usaJobsKey: string | null = null
@@ -691,6 +701,22 @@ Deno.serve(async (_req: Request) => {
       })
       boardSummary.dedupedFromSlug = r.jobs.length - dedupedJobs.length
       boardSummary.dedupedCrossRun = droppedCrossRun
+
+      // Collect new-slug list for the Indexing API ping at the end of
+      // the run. "New" = external_ref not in the pre-query existingRefs
+      // Set, which is the same logic the upsert RPC uses to decide
+      // inserted vs updated. Capped globally per cron tick so the
+      // Indexing API quota stays in budget.
+      let boardNew = 0
+      for (const j of dedupedJobs) {
+        if (newSlugsToNotify.length >= INDEXING_CAP_PER_TICK) break
+        if (!existingRefs.has(j.external_ref)) {
+          newSlugsToNotify.push(j.slug)
+          boardNew += 1
+        }
+      }
+      boardSummary.indexingNewSlugs = boardNew
+
       for (let i = 0; i < dedupedJobs.length; i += CHUNK) {
         const chunk = dedupedJobs.slice(i, i + CHUNK)
         const { data, error } = await supabase.rpc('ats_import_upsert_jobs', {
@@ -731,11 +757,27 @@ Deno.serve(async (_req: Request) => {
     matchRefresh = { error: e instanceof Error ? e.message : String(e) }
   }
 
+  // Google Indexing API ping for newly-inserted jobs — drops Google for
+  // Jobs discovery latency from ~24h (sitemap crawl) to ~15min. No-op
+  // when GOOGLE_SERVICE_ACCOUNT_JSON env var is unset, so this is safe
+  // to ship before the GCP setup is complete (matches the pattern used
+  // by the Next.js side in src/app/post-job/verify/[token]/page.tsx).
+  // Concurrency 5 keeps wall time bounded (~6s for the 30-job cap).
+  let indexingPing: { ok: number; failed: number; attempted: number } = {
+    ok: 0, failed: 0, attempted: 0,
+  }
+  if (newSlugsToNotify.length > 0) {
+    const urls = newSlugsToNotify.map((s) => `https://freejobpost.co/jobs/${s}`)
+    const result = await notifyGoogleIndexingApiBatch(urls, { concurrency: 5 })
+    indexingPing = { ...result, attempted: urls.length }
+  }
+
   const body = {
     ok: errors.length === 0,
     boards: summary,
     totals: { fetched: grandFetched, inserted: grandInserted, updated: grandUpdated },
     matchRefresh,
+    indexingPing,
     errors,
     duration_ms: Date.now() - startedAt,
   }
