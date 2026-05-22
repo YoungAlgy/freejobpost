@@ -49,6 +49,7 @@ import {
   indeedJobType,
   descriptionHtml,
   rfc822,
+  hasUsableDescription,
 } from '@/lib/feed-builders'
 
 // Refresh the feed every 15 minutes — aggregators re-crawl on their own
@@ -105,18 +106,21 @@ export async function GET(req: NextRequest): Promise<Response> {
   const allJobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 
   // Thin-description filter. Indeed v2 / Google for Jobs / Talent.com /
-  // ZipRecruiter all penalize feeds with high percentages of empty-body
-  // listings — and our /jobs.xml is the ONE feed Indeed and Google read.
+  // Jooble / ZipRecruiter all penalize feeds with high percentages of
+  // empty-body listings — and our /jobs.xml is the ONE feed Indeed,
+  // Google, and (as of 5/22) Jooble all read.
+  //
   // Pre-2026-05-21 audit: ~24% of corpus has empty/<p></p>-only descriptions
-  // from the Workday shallow-refresh import path. See
-  // src/lib/feed-builders.ts hasUsableDescription() for the canonical rule.
-  const jobs = allJobs.filter((j) => {
-    const stripped = (j.description ?? '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    return stripped.length >= 50
-  })
+  // from the Workday shallow-refresh import path.
+  //
+  // 2026-05-22: switched from inline 50-char check to the shared
+  // hasUsableDescription() helper. Threshold there was bumped 50 → 250
+  // after Jooble (ticket #1774316) reviewed our feed and flagged "not all
+  // the vacancies are filled in correctly" — 50 chars passed one-liners,
+  // 250 chars is a floor for a description with responsibilities +
+  // requirements. The on-site /jobs browse is unaffected (still shows
+  // all active jobs); partner XML is the only thing filtered.
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
 
   // Resolve company names per employer in one batched query.
   // Reads from public_employers_directory (anon-safe view) — the underlying

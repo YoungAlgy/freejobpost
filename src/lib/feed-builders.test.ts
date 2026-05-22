@@ -168,18 +168,32 @@ describe('hasUsableDescription', () => {
 
   it('accepts content at or above the threshold (post-HTML-strip)', () => {
     expect(hasUsableDescription('a'.repeat(MIN_DESCRIPTION_CHARS))).toBe(true)
+    // Real-shaped RN job description with responsibilities + requirements.
+    // Sized to exceed MIN_DESCRIPTION_CHARS (250) so it represents a
+    // "full" description per the 2026-05-22 Jooble feedback that drove
+    // the threshold bump.
     expect(
       hasUsableDescription(
-        '<p>RN ICU role at a Level 1 trauma center. 12-hr shifts, weekends rotating.</p>'
+        '<p>RN ICU role at a Level 1 trauma center in Tampa, FL. 36-hour weeks ' +
+          'across 12-hour shifts, two weekends per month. Responsibilities: ' +
+          'monitor critically ill patients, titrate vasoactive drips, manage ' +
+          'ventilator settings, coordinate with the intensivist team on care ' +
+          'plans, escalate clinical changes promptly. Requirements: active ' +
+          'Florida RN license, BLS + ACLS, 2+ years ICU experience.</p>'
       )
     ).toBe(true)
   })
 
   it('counts text inside HTML tags, not the tags themselves', () => {
-    // 30 chars of text inside lots of HTML noise — should still measure to 30, not 100.
-    const text = 'Short body of about thirty chrs'
-    expect(text.length).toBeGreaterThanOrEqual(MIN_DESCRIPTION_CHARS - 20)
+    // Text sized so the visible content is below MIN_DESCRIPTION_CHARS
+    // but the raw HTML string with tags exceeds it. The function must
+    // strip HTML before measuring or this misses the regression.
+    const text = 'Short body — a sentence or two but no responsibilities or requirements section.'
     expect(text.length).toBeLessThan(MIN_DESCRIPTION_CHARS)
-    expect(hasUsableDescription(`<div><p><strong>${text}</strong></p></div>`)).toBe(false)
+    // Wrap in lots of HTML noise so the un-stripped string is well over
+    // the threshold (defends against a naive `description.length` check).
+    const noisy = `<div class="job-body"><p><strong>${text}</strong></p><br><br><br></div>`
+    expect(noisy.length).toBeGreaterThan(text.length + 20)
+    expect(hasUsableDescription(noisy)).toBe(false)
   })
 })

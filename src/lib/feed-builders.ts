@@ -240,7 +240,16 @@ ${jobsXml}
 // Long-term fix is to default-enrich descriptions in the importer +
 // backfill existing rows. Until then we keep these jobs on /jobs (users
 // can still browse) but exclude them from partner feeds.
-export const MIN_DESCRIPTION_CHARS = 50
+//
+// 2026-05-22: threshold raised 50 → 250 after Jooble (ticket #1774316)
+// reviewed the feed and flagged jobs without "a clear list of
+// responsibilities and requirements." 50 chars passed one-line "stub"
+// descriptions; 250 chars is a reasonable floor for a description that
+// includes at least a short responsibilities + requirements section.
+// Tradeoff: this drops more jobs from partner feeds (the on-site /jobs
+// browse still shows them — only partner XML is filtered) but matches
+// what publishers expect to ingest.
+export const MIN_DESCRIPTION_CHARS = 250
 
 export function hasUsableDescription(description: string | null | undefined): boolean {
   if (!description) return false
