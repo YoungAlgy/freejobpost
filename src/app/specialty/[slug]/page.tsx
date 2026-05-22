@@ -16,6 +16,7 @@ import {
 } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
+import { CAREER_PATHS } from '@/lib/career-paths'
 import { getViableCellsCached } from '@/lib/specialty-state-matrix'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 import {
@@ -372,6 +373,32 @@ export default async function SpecialtyHubPage(
               </Link>
             ))}
           </div>
+
+          {/* Career-path guide — cross-link from the specialty hub to
+             the matching /become/[slug] guide when one exists. Surfaces
+             the upstream "how to become a <role>" content cluster for
+             readers researching the path before applying. */}
+          {(() => {
+            const guide = CAREER_PATHS.find((p) => p.specialtySlug === hub.slug)
+            if (!guide) return null
+            return (
+              <aside className="mt-10 border-2 border-black bg-green-50 p-5">
+                <p className="text-xs font-bold tracking-widest text-gray-700 uppercase mb-2">
+                  New to this role?
+                </p>
+                <p className="text-sm text-gray-800 mb-3 leading-relaxed">
+                  Read our plain-English guide:{' '}
+                  <Link
+                    href={`/become/${guide.slug}`}
+                    className="font-bold underline hover:text-green-700"
+                  >
+                    {guide.title}
+                  </Link>{' '}
+                  — education, licensing, exam, timeline.
+                </p>
+              </aside>
+            )
+          })()}
 
           {/* By state — cross-link the state hubs */}
           <h2 className="text-2xl font-black tracking-tight mt-12 mb-4">{hub.title.replace(/ Jobs$/, '')} by state</h2>

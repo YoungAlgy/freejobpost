@@ -140,6 +140,8 @@ export default function RootLayout({
             <Link href="/state/california" className="hover:text-gray-900">California</Link>
             <span className="text-gray-300">·</span>
             <Link href="/jobs/federal" className="hover:text-gray-900">Federal</Link>
+            <span className="text-gray-300">·</span>
+            <Link href="/become" className="hover:text-gray-900">Career guides</Link>
           </nav>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

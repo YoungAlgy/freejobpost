@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
+import { CAREER_PATHS } from '@/lib/career-paths'
 import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
 import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
@@ -75,6 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/specialty`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/state`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/city`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
+    { url: `${base}/become`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/employers`, lastModified: maxJobUpdate, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${base}/post-job`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
@@ -110,6 +112,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: maxJobUpdate,
     changeFrequency: 'daily' as const,
     priority: 0.8,
+  }))
+
+  // Career-path guides — long-form factual content targeting the
+  // upstream "how to become a <role>" query family.
+  const careerPathRoutes: MetadataRoute.Sitemap = CAREER_PATHS.map((p) => ({
+    url: `${base}/become/${p.slug}`,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
   }))
 
   // Federal-agency landing pages — one per FEDERAL_AGENCIES entry. The /jobs/
@@ -190,6 +200,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...specialtyRoutes,
     ...stateRoutes,
     ...cityRoutes,
+    ...careerPathRoutes,
     ...federalRoutes,
     ...federalMatrixRoutes,
     ...matrixRoutes,
