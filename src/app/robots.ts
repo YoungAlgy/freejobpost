@@ -13,7 +13,12 @@ export default function robots(): MetadataRoute.Robots {
         //                             reserves future route handlers from
         //                             accidentally getting crawled
         //   /post-job/verify*         multi-step form intermediate state
-        //   /jobs/*/apply/success     post-apply success page (one-time view)
+        //   /jobs/*/apply              application form — the success state
+        //                              is inline in the form (no separate
+        //                              /apply/success route), so we just
+        //                              block the form path. Page also sets
+        //                              robots:noindex in its metadata and
+        //                              X-Robots-Tag:noindex in next.config.
         //   /click/*                  click-tracking redirect endpoint —
         //                             no SEO value, every URL is just a
         //                             302 to the employer ATS, indexing
@@ -24,7 +29,7 @@ export default function robots(): MetadataRoute.Robots {
           '/admin/',
           '/api/',
           '/post-job/verify',
-          '/jobs/*/apply/success',
+          '/jobs/*/apply',
           '/click/',
         ],
       },

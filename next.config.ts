@@ -111,8 +111,22 @@ const nextConfig: NextConfig = {
         // protect us, but conflicting signals look broken to humans
         // auditing the site + can confuse some bots that respect headers
         // over meta).
-        source: '/((?!_next|api|employer|admin|post-job/verify|click).*)',
+        // Note: the noindex routes listed in the negative-lookahead must
+        // stay in lockstep with the explicit noindex rules below. If you
+        // add a new noindex rule, also add the path fragment here so the
+        // catch-all does NOT emit a conflicting `index, follow` header
+        // that gets merged with the per-route `noindex, nofollow`. Apply
+        // pages are noindex via the page's own metadata; we exclude them
+        // here too so the header agrees with the meta tag.
+        source: '/((?!_next|api|employer|admin|post-job/verify|click|jobs/.*/apply).*)',
         headers: [{ key: 'X-Robots-Tag', value: 'index, follow' }],
+      },
+      {
+        // Apply pages are noindex via their page-level metadata. Mirror it
+        // at the header level so a recruiter or auditor reading curl -I
+        // sees the same signal as Google's bot reads from the meta tag.
+        source: '/jobs/:slug/apply',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, follow' }],
       },
       {
         source: '/employer/:path*',
