@@ -192,6 +192,7 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
               key={r || 'any'}
               type="button"
               onClick={() => setRemote(r)}
+              aria-pressed={remote === r}
               className={`px-3 py-1 border-2 transition-colors ${
                 remote === r
                   ? 'bg-black text-white border-black'
