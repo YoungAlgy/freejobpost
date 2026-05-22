@@ -4,6 +4,7 @@ import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
 import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
+import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
@@ -143,6 +144,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }))
 
+  // City × Specialty matrix pages — same ≥5-job threshold. Higher
+  // candidate intent than state×specialty (city queries carry more
+  // explicit "where I want to work" signal). Caps at ~250-300 cells.
+  const cityMatrixCells = await getViableCityCellsCached(supabase)
+  const cityMatrixRoutes: MetadataRoute.Sitemap = cityMatrixCells.map((c) => ({
+    url: `${base}/city/${c.city.slug}/${c.specialty.slug}`,
+    lastModified: maxJobUpdate,
+    changeFrequency: 'daily' as const,
+    priority: 0.75,
+  }))
+
   const jobRoutes: MetadataRoute.Sitemap = jobsData.map((j) => ({
     url: `${base}/jobs/${j.slug}`,
     lastModified: j.updated_at,
@@ -181,6 +193,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...federalRoutes,
     ...federalMatrixRoutes,
     ...matrixRoutes,
+    ...cityMatrixRoutes,
     ...jobRoutes,
     ...employerRoutes,
   ]

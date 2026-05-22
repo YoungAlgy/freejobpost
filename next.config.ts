@@ -27,6 +27,47 @@ const nextConfig: NextConfig = {
         destination: '/icon',
         permanent: true,
       },
+      {
+        // Common typo / miswired backlink: /job/<slug> (singular) instead
+        // of /jobs/<slug>. 301 preserves any link equity that accidentally
+        // built up against the wrong path.
+        source: '/job/:slug',
+        destination: '/jobs/:slug',
+        permanent: true,
+      },
+      {
+        // /cities/* → /city/* — singular form is the canonical convention
+        // on this site (matches /state, /specialty). Catches the obvious
+        // alternate guess + protects against future content drift.
+        source: '/cities',
+        destination: '/city',
+        permanent: true,
+      },
+      {
+        source: '/cities/:slug*',
+        destination: '/city/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/states',
+        destination: '/state',
+        permanent: true,
+      },
+      {
+        source: '/states/:slug*',
+        destination: '/state/:slug*',
+        permanent: true,
+      },
+      {
+        source: '/specialties',
+        destination: '/specialty',
+        permanent: true,
+      },
+      {
+        source: '/specialties/:slug*',
+        destination: '/specialty/:slug*',
+        permanent: true,
+      },
     ]
   },
   async headers() {

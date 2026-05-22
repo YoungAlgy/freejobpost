@@ -9,7 +9,6 @@ import {
   employmentLabel,
   remoteLabel,
   locationLabel,
-  mapToSchemaEmploymentType,
 } from '@/lib/public-jobs'
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { stripSalarySuffix } from '@/lib/clean-labels'
@@ -26,6 +25,7 @@ import { normalizePartner } from '@/lib/partner-attribution'
 import { findSpecialtyHub } from '@/lib/specialty-slugs'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { findCityHub } from '@/lib/city-slugs'
+import { buildJobPostingJsonLd } from '@/lib/job-posting-jsonld'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -238,91 +238,14 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   // bonus disclosure is banned. Description is left as-is — too risky to
   // mutate the body text; the DB-side cleanup is the right fix for that.
   const cleanJobTitle = stripSalarySuffix(job.title) || job.title
-  // Build the location block per Google's spec:
-  //
-  //   - REMOTE: omit jobLocation entirely; set jobLocationType:'TELECOMMUTE'
-  //     + applicantLocationRequirements (Country). Emitting jobLocation on
-  //     a remote role contradicts the TELECOMMUTE signal and can trip
-  //     Google's content-mismatch rejection.
-  //
-  //   - ONSITE / HYBRID: include jobLocation with whatever city/state we
-  //     have. Google's minimum is country, but city + state when available
-  //     improves placement in geo-targeted search.
-  //
-  // Reference: developers.google.com/search/docs/appearance/structured-data/job-posting
-  const isRemote = job.remote_hybrid === 'remote'
-  const locationBlock: Record<string, unknown> = isRemote
-    ? {
-        jobLocationType: 'TELECOMMUTE',
-        applicantLocationRequirements: {
-          '@type': 'Country',
-          name: 'USA',
-        },
-      }
-    : {
-        jobLocation: {
-          '@type': 'Place',
-          address: {
-            '@type': 'PostalAddress',
-            addressLocality: job.city || undefined,
-            addressRegion: job.state || undefined,
-            addressCountry: 'US',
-          },
-        },
-      }
-
-  const jobPostingJsonLd: Record<string, unknown> = {
-    '@context': 'https://schema.org',
-    '@type': 'JobPosting',
-    title: cleanJobTitle,
-    description: job.description,
-    datePosted,
-    validThrough,
-    identifier: {
-      '@type': 'PropertyValue',
-      name: 'freejobpost.co',
-      value: job.slug,
-    },
-    hiringOrganization: {
-      '@type': 'Organization',
-      name: employer.name,
-      ...(employer.isSeeded
-        ? { sameAs: 'https://avahealth.co', logo: 'https://avahealth.co/logo.png' }
-        : employer.slug
-        ? { sameAs: `https://freejobpost.co/employers/${employer.slug}` }
-        : {}),
-    },
-    ...locationBlock,
-    employmentType: mapToSchemaEmploymentType(job.employment_type),
-    url: `https://freejobpost.co/jobs/${job.slug}`,
-    directApply: false,
-    ...(job.salary_min || job.salary_max
-      ? {
-          baseSalary: {
-            '@type': 'MonetaryAmount',
-            currency: 'USD',
-            value: {
-              '@type': 'QuantitativeValue',
-              minValue: job.salary_min ?? undefined,
-              maxValue: job.salary_max ?? undefined,
-              unitText: 'YEAR',
-            },
-          },
-        }
-      : {}),
-    // experienceRequirements (BETA per Google spec). Emitted as
-    // OccupationalExperienceRequirements when we have a non-empty value.
-    // Numeric months only — free-text values (e.g. "2-3 years preferred")
-    // would risk content mismatch with the rendered page so we skip them.
-    ...(job.experience_required && /^\d+/.test(job.experience_required)
-      ? {
-          experienceRequirements: {
-            '@type': 'OccupationalExperienceRequirements',
-            monthsOfExperience: Number.parseInt(job.experience_required, 10) * 12,
-          },
-        }
-      : {}),
-  }
+  // Build the JobPosting JSON-LD via the extracted helper. The helper
+  // lives in src/lib/job-posting-jsonld.ts so it can be unit-tested
+  // against Google's required-property list — a future regression to the
+  // markup (e.g. accidentally dropping description, swapping the remote
+  // location-block shape) gets caught by validateJobPostingJsonLd in the
+  // build-time test suite instead of surfacing as a Search Console error
+  // 1-7 days after deploy.
+  const jobPostingJsonLd = buildJobPostingJsonLd({ job, employer })
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
