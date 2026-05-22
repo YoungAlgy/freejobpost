@@ -5,6 +5,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CAREER_PATHS, getCareerPath } from '@/lib/career-paths'
 import { CITY_HUBS } from '@/lib/city-slugs'
+import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
+import { supabase } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
 export const revalidate = 86400 // content is static — recheck daily
@@ -38,14 +40,28 @@ export default async function CareerPathPage({ params }: Props) {
   const guide = getCareerPath(slug)
   if (!guide) notFound()
 
-  // Surface 4 high-volume city links for the same specialty — gives the
-  // reader a "jump to current openings in <metro>" shortcut at the end of
-  // the guide. Lean on the same metros we already feature on /city.
-  const featuredCities = [
-    'tampa-fl', 'houston-tx', 'new-york-ny', 'los-angeles-ca',
+  // Surface up to 4 city links for the same specialty — gives the reader a
+  // "jump to current openings in <metro>" shortcut at the end of the
+  // guide. Filter against the city×specialty viable-cells set so we only
+  // link to /city/<slug>/<specialty> URLs that actually render (≥5 jobs).
+  // Falls back to the parent /city/<slug> link when the cell doesn't
+  // exist for this specialty in the target metro.
+  const cityCells = await getViableCityCellsCached(supabase)
+  const featuredCityCandidates = [
+    'houston-tx', 'new-york-ny', 'los-angeles-ca', 'tampa-fl',
+    'chicago-il', 'boston-ma', 'atlanta-ga', 'dallas-tx',
   ]
-    .map((s) => CITY_HUBS.find((c) => c.slug === s))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c))
+  const featuredCities = featuredCityCandidates
+    .map((slug) => {
+      const hub = CITY_HUBS.find((c) => c.slug === slug)
+      if (!hub) return null
+      const cellExists = cityCells.some(
+        (c) => c.city.slug === slug && c.specialty.slug === guide.specialtySlug,
+      )
+      return hub ? { hub, cellExists } : null
+    })
+    .filter((c): c is { hub: NonNullable<typeof CITY_HUBS[number]>; cellExists: boolean } => c !== null)
+    .slice(0, 4)
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -146,13 +162,18 @@ export default async function CareerPathPage({ params }: Props) {
               Current {guide.specialtyLabel.toLowerCase()} by metro
             </h2>
             <ul className="flex flex-wrap gap-2">
-              {featuredCities.map((city) => (
-                <li key={city.slug}>
+              {featuredCities.map(({ hub, cellExists }) => (
+                <li key={hub.slug}>
                   <Link
-                    href={`/city/${city.slug}/${guide.specialtySlug}`}
+                    // When the city×specialty cell exists, link deep so
+                    // readers land on the filtered list. When it doesn't
+                    // (cell has <5 active matching jobs for this
+                    // specialty), fall back to the city hub — never link
+                    // to a known-404 URL.
+                    href={cellExists ? `/city/${hub.slug}/${guide.specialtySlug}` : `/city/${hub.slug}`}
                     className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
                   >
-                    {city.name.split(',')[0]} →
+                    {hub.name.split(',')[0]} →
                   </Link>
                 </li>
               ))}
