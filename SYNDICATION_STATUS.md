@@ -1,6 +1,6 @@
 # Syndication submission status
 
-**Last updated:** 2026-05-08 (8 days elapsed since Adzuna qualification answer sent; no reply yet)
+**Last updated:** 2026-05-22 (post-Jooble feed-quality reply)
 
 ## Current state per network
 
@@ -8,51 +8,28 @@
 |---|---|---|
 | **Indeed** | ✅ Passive auto-crawl | Indeed retired public XML feed onboarding. Their crawler picks up `JobPosting` JSON-LD on `/jobs/[slug]` automatically. |
 | **Glassdoor** | ✅ Passive (Indeed-owned, same pipeline) | No submission needed. |
-| **Google for Jobs** | ✅ Passive | JSON-LD on `/jobs/[slug]` + sitemap submitted to GSC (verified 2026-04-29). |
-| **Bing / Yahoo / DuckDuckGo** | ✅ Indexed | Bing WMT verified via GSC import (2026-04-29). 503 URLs already crawled. |
+| **Google for Jobs** | ✅ Passive | JSON-LD on `/jobs/[slug]` + sitemap submitted to GSC. |
+| **Bing / Yahoo / DuckDuckGo** | ✅ Indexed | Bing WMT verified via GSC import. |
 | **RSS** | ✅ Passive auto-discover | `<link rel="alternate">` + robots.txt declaration. |
-| **Adzuna** | 🟡 **No reply in 8 days** | Sent 2026-04-29 to `content@adzuna.com` cc `support@adzuna.com`. Matt Woodbridge (Product Manager) replied 2026-04-30 with qualification questions. Algy sent qualification answer 2026-04-30 5:05 PM ET. **No reply as of 2026-05-08 — follow up if still nothing by 2026-05-12.** |
-| **Jooble** | 🟡 Retry email delivered to `support@jooble.com` 2026-04-30 | Original `partners@jooble.com` bounced 2026-04-29 (550 5.1.1). Retry to general support inbox 2026-04-30 6:03 PM ET landed (no bounce in 25+ seconds). Awaiting reply. Fallback: book a call at https://uk.jooble.org/partner/for-publishers if no response in 1 week. |
-| **ZipRecruiter** | 🟡 Retry email delivered to `support@ziprecruiter.com` 2026-04-30 | Original `partners@ziprecruiter.com` bounced 2026-04-29. Retry to general support inbox 2026-04-30 6:04 PM ET landed (no bounce in 25+ seconds). Awaiting reply. Fallback: ziprecruiter.com/publishers — requires Cloudflare-protected publisher signup that can't be driven via Chrome MCP. |
-| **Talent.com** | ❌ Email channel fully dead | Both `partner@talent.com` and `partners@talent.com` bounced. **No public email intake.** Action: signup at https://www.talent.com/publishers (no public sign-up form — invite-only) OR reach a Talent.com employee via LinkedIn / sales contact. Or skip — Talent.com is the lowest-volume of the four (~30M visits, smaller US footprint). |
-| **LinkedIn** | 🔒 Gated | Job Wrapping requires Talent Solutions rep + freejobpost.co Company Page (✅ created 2026-04-29 at linkedin.com/company/freejobpost id 113224630). Algy contacts his LinkedIn Recruiter rep when ready. |
+| **Jooble** | 🟡 **In review — replied to feed-quality feedback 2026-05-22** | Ticket #1774316. Olha B (Customer Support) approved feed receipt 2026-05-21, flagged thin descriptions 2026-05-22 12:31 UTC, we shipped MIN_DESCRIPTION_CHARS 50→250 (commit `690d48c`) + replied same day. Awaiting next review pass. |
+| **Adzuna** | 🟡 **In progress, slow channel** | sales@info.adzuna.com auto-confirmed 2026-05-20. Original contact bobbie@adzuna.com on maternity leave — alt contact `facilities@adzuna.com` per her auto-reply. Algy may need to nudge if no human reply in ~5 days. |
+| **Careerjet** | ✅ Added as 4th partner channel 2026-05-20 | Feed live at `/feeds/careerjet.xml`. Reach claim: ~20M monthly searches across 90+ countries. |
+| **ZipRecruiter** | ⚠️ Self-serve signup required | Original `partners@ziprecruiter.com` bounced. Public publisher intake at https://www.ziprecruiter.com/publishers requires Cloudflare-protected form (can't be driven via Chrome MCP). Deferred — passive Indeed crawl already covers most overlap. |
+| **Talent.com** | ❌ No working channel | Both `partner@talent.com` and `partners@talent.com` bounced. **No public email intake.** Self-serve at https://www.talent.com/publishers is invite-only — would need LinkedIn outreach to a Talent.com employee. Deferred — lowest-volume of the partner candidates. |
+| **LinkedIn** | 🔒 Gated | Job Wrapping requires Talent Solutions rep + freejobpost.co Company Page (created 2026-04-29 at linkedin.com/company/freejobpost). Algy contacts his LinkedIn Recruiter rep when ready. |
 
-## Why 3 of 4 emails bounced
+## Thin-description filter
 
-Yesterday's email drafts used the addresses documented in `feeds/page.tsx:17-27` — but those addresses are stale across the industry. Each of those programs has migrated from informal email intake to either:
-- Self-serve signup forms (ZipRecruiter, Talent.com)
-- Scheduled sales calls (Jooble)
+`/jobs.xml` (and every per-partner feed via `hasUsableDescription()`) now drops jobs with <250 chars of plain text after HTML strip. This was 50 chars pre-2026-05-22. Jooble's review of the 50-char version flagged it as too lenient; the 250-char version represents a real description (responsibilities + requirements, not just a one-liner). On-site `/jobs` browse is unaffected — only partner XML feeds filter.
 
-This is consistent with the broader industry pattern of partner programs gating intake to filter low-quality inbound. **The `feeds/page.tsx` SUBMIT_TO map needs another correction pass.**
+## Next action
 
-## Adzuna conversation status
+Wait for Jooble's response to the 5/22 reply. If they re-confirm the feed is publish-ready, that's the first paid distribution channel live end-to-end.
 
-**Sent 2026-04-29 11:04 PM ET** → Matt Woodbridge replied 2026-04-30 12:22 PM ET with:
+If Jooble re-flags more issues, the next iteration would be content-shape filters (require both "responsibilities" AND "requirements" sections, not just a length floor). Don't ship that until we know it's needed — many partners are fine with the 250-char floor.
 
-> Could you please confirm as a first step what the relationship is between your job board and the company https://www.avahealth.co/ and where/how do you source the jobs listed on your board?
+## Operational notes
 
-**Sent qualification answer 2026-04-30 5:05 PM ET** confirming:
-1. freejobpost.co is operated by Ava Health Partners LLC (parent), based in St. Petersburg, FL
-2. Two-track sourcing: direct employer signup (primary) + Ava's own placements ("Seeded Roles")
-3. No scraping; every listing has direct employer relationship + JobPosting JSON-LD landing page; 15-min TTL on removed listings
-4. ~425 active US healthcare roles
-5. Feed URL: https://freejobpost.co/feeds/adzuna.xml
-
-**Expected response:** approval (24-72h) OR one more clarifying question.
-**As of 2026-05-08 (8 days later):** No reply received. This is outside the normal reply window.
-If still no reply by 2026-05-12, send a brief follow-up: "Following up on the qualification details I sent on Apr 30 — happy to answer any additional questions or share the feed directly for review."
-
-## What Algy needs to do (when ready)
-
-| Task | Time | Where |
-|---|---|---|
-| **Watch Adzuna inbox** | passive | alex@avahealth.co inbox, thread "Re: Healthcare jobs feed for Adzuna ingestion" |
-| **Book Jooble call** | 5 min | https://uk.jooble.org/partner/for-publishers → "Book a call" |
-| **Sign up Talent.com Publisher** | 5-10 min | https://www.talent.com/publishers (create account) |
-| **Sign up ZipRecruiter Publisher** | 5-10 min | https://www.ziprecruiter.com/publishers |
-| **LinkedIn Job Wrapping** | when rep contact available | Email LinkedIn Talent Solutions rep with feed URL |
-| **Update feeds/page.tsx playbook** | 5 min code | Replace the SUBMIT_TO map in `src/app/feeds/page.tsx:17-27` with this doc's current paths. (Doc-only change; partner-facing internal page.) |
-
-## Memory correction
-
-Yesterday's session memory said "4 partner emails SENT (Adzuna/Jooble/ZipRecruiter/Talent)" — true that the messages were *sent from* alex@avahealth.co, but only 1 actually delivered. The bounce notifications arrived within seconds but went unnoticed until the 2026-04-30 inbox audit. session_20260429_freeapps_daytime.md has been updated to reflect this.
+- **Feed URL pattern:** `https://freejobpost.co/jobs.xml?ref=<partner>` for partner attribution; the `?ref=` param flows through every `<url>` and lands in `apply_clicks` for per-partner click data.
+- **Feed health check (deferred ops item):** `partnerContactsAreFresh()` exists in `partner-contacts.ts` but isn't wired into a cron yet. Worth wiring before paid placement traffic to know if a partner stops crawling.
+- **History:** historical state from the 2026-05-08 doc (Adzuna qualification questions, original partner-email bounces, the 4-partner email-channel diagnosis) is preserved in git history of this file if needed for context.
