@@ -64,6 +64,14 @@ interface WorkdayDetailResponse {
     timeType?: string
     remoteType?: string
     workShift?: string
+    // Workday only surfaces pay-range fields on the detail endpoint and only
+    // when the employer has opted into pay-transparency display. Most tenants
+    // leave these blank for confidentiality — extraction is best-effort.
+    // Shape per CXS payload: numeric strings + an ISO currency code.
+    payRangeMinimum?: string | number
+    payRangeMaximum?: string | number
+    payRangeFrequency?: string  // typically "Yearly" or "Hourly"
+    payRangeCurrency?: string   // "USD"
   }
 }
 
@@ -218,12 +226,37 @@ export async function fetchWorkdayBoard(
 
     let description = htmlToText(item.jobDescription ?? '')
     let detailLocation: string | undefined
+    let salaryMin: number | null = null
+    let salaryMax: number | null = null
 
     if (needsEnrich) {
       const detail = await fetchDetail(cfg, item.externalPath)
       if (detail?.jobPostingInfo) {
         description = htmlToText(detail.jobPostingInfo.jobDescription ?? '') || description
         detailLocation = detail.jobPostingInfo.location ?? undefined
+
+        // Pay-range extraction. Only USD jobs map cleanly to our schema
+        // (single-currency ExternalJob.salary_min/max). Yearly frequency is
+        // preserved as-is; hourly is annualized to a 2080-hour year so the
+        // downstream JobPosting JSON-LD can emit a consistent unitText. Any
+        // currency other than USD is ignored to avoid mixing.
+        const info = detail.jobPostingInfo
+        const currency = (info.payRangeCurrency ?? '').toUpperCase()
+        if (currency === '' || currency === 'USD') {
+          const rawMin = info.payRangeMinimum
+          const rawMax = info.payRangeMaximum
+          const min = typeof rawMin === 'number' ? rawMin : rawMin ? Number(rawMin) : NaN
+          const max = typeof rawMax === 'number' ? rawMax : rawMax ? Number(rawMax) : NaN
+          const freq = (info.payRangeFrequency ?? '').toLowerCase()
+          const annualize = freq === 'hourly' ? 2080 : 1
+          if (Number.isFinite(min) && min > 0) salaryMin = Math.round(min * annualize)
+          if (Number.isFinite(max) && max > 0) salaryMax = Math.round(max * annualize)
+          // Drop nonsensical ranges (min > max) to avoid bad JSON-LD downstream.
+          if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) {
+            salaryMin = null
+            salaryMax = null
+          }
+        }
       }
     }
 
@@ -243,8 +276,8 @@ export async function fetchWorkdayBoard(
       state: parsed.state,
       remote_hybrid,
       employment_type: TIME_MAP[item.timeType ?? ''] ?? 'full_time',
-      salary_min: null,
-      salary_max: null,
+      salary_min: salaryMin,
+      salary_max: salaryMax,
       source: `workday:${cfg.tenant}/${cfg.site}`,
       updated_at: new Date().toISOString(),
     })

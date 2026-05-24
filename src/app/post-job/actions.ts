@@ -109,7 +109,7 @@ export async function submitPostJob(
       if (quota.over_quota && quota.active_count != null && quota.quota != null) {
         return {
           success: false,
-          error: `You're at ${quota.active_count} of ${quota.quota} active posts on the free tier. Archive one before posting another, or email alex@avahealth.co and we'll uncap your account.`,
+          error: `You're at ${quota.active_count} of ${quota.quota} active posts on the free tier. Archive one before posting another, or email info@avahealth.co and we'll uncap your account.`,
         }
       }
     }

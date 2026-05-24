@@ -169,8 +169,8 @@ export default function ChangelogPage() {
         <div className="mt-16 pt-8 border-t-2 border-black">
           <p className="text-sm text-gray-700">
             Want to suggest a feature or report a bug? Email{' '}
-            <a href="mailto:alex@avahealth.co" className="underline hover:text-green-700 font-bold">
-              alex@avahealth.co
+            <a href="mailto:info@avahealth.co" className="underline hover:text-green-700 font-bold">
+              info@avahealth.co
             </a>
             .
           </p>

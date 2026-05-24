@@ -75,8 +75,8 @@ export default function Error({
         </h3>
         <p className="text-sm text-gray-700">
           Email{' '}
-          <a href="mailto:alex@avahealth.co" className="underline font-bold hover:text-green-700">
-            alex@avahealth.co
+          <a href="mailto:info@avahealth.co" className="underline font-bold hover:text-green-700">
+            info@avahealth.co
           </a>{' '}
           and include the error id above (if shown). We respond within 24
           hours during the weekday — usually faster.

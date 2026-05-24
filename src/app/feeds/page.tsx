@@ -39,7 +39,7 @@ export default function FeedsPage() {
         <p className="text-gray-700 mb-10 max-w-2xl">
           Each posted job has per-network opt-in checkboxes — you only see jobs the recruiter
           chose to share with your network. If you need a different format or fields, contact{' '}
-          <a href="mailto:alex@avahealth.co" className="underline">alex@avahealth.co</a>.
+          <a href="mailto:info@avahealth.co" className="underline">info@avahealth.co</a>.
         </p>
 
         <div className="space-y-5">

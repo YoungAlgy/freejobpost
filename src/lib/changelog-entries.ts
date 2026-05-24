@@ -19,6 +19,13 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
+    date: '2026-05-24',
+    title: 'Pay ranges + AI-discovery + EEO + canonical contact email',
+    body:
+      'Wired Workday-tenant pay ranges into the import pipeline so when an employer opts into pay-transparency on their job posting, that range now shows up in our JobPosting schema and is searchable by Google for Jobs. USD only; hourly rates are annualized to a 40-hour year. Most employers still hide salary, but the ones who don\'t get full credit for the disclosure. Added an llms.txt at the site root so ChatGPT, Claude, and Perplexity can discover the job board cleanly. Added a federal Equal Opportunity statement to the footer. Switched the customer-facing contact email to info@avahealth.co (more professional than a personal address; same mailbox underneath).',
+    tag: 'improved',
+  },
+  {
     date: '2026-05-22',
     title: 'Polish pass: link previews, error pages, page titles, a11y',
     body:

@@ -5,6 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { buildOrganizationGraph } from '@/lib/organization-schema'
+import { E_VERIFY } from '@/lib/e-verify-config'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 const inter = Inter({
@@ -55,6 +56,14 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  // Search-engine verification — same youngalgy@gmail.com token used across
+  // every Ava-owned property. Adding meta-tag verification on top of any
+  // DNS TXT verification gives Google + Bing a redundant ownership signal
+  // (belt-and-suspenders so verification doesn't silently lapse if DNS rotates).
+  verification: {
+    google: 'SFRvinmueg87J1kMFBhvpABzmM1c13pLPCTRYjrRlVI',
+    other: { 'msvalidate.01': 'AC806718B7170AF0A71011FC59BD9A88' },
   },
   category: 'business',
 }
@@ -191,15 +200,33 @@ export default function RootLayout({
               </Link>
             </div>
             <p className="text-xs text-gray-500 text-center md:text-right max-w-md">
-              Operated by{' '}
+              &copy; {new Date().getFullYear()} Operated by{' '}
               <Link href="https://avahealth.co" className="underline hover:text-gray-900">
                 Ava Health Partners LLC
               </Link>
               . A free-to-use job board for healthcare employers.
               <br />
-              4532 W Kennedy Blvd, Suite 125, Tampa, FL 33609 · (813) 531-8049 · alex@avahealth.co
+              4532 W Kennedy Blvd, Suite 125, Tampa, FL 33609 · (904) 343-9449 · info@avahealth.co
             </p>
           </div>
+          {/* EEO statement — broad federal-compliance language so candidates
+              and employers see the equal-opportunity commitment without a
+              recruiter-specific role context. */}
+          <p className="text-[11px] text-gray-400 text-center leading-relaxed mt-6 max-w-3xl mx-auto px-4">
+            Ava Health Partners LLC is an Equal Opportunity Employer. We do not discriminate in employment or recruitment on the basis of race, color, religion, sex (including pregnancy, sexual orientation, or gender identity), national origin, age, disability, genetic information, veteran status, or any other characteristic protected by applicable federal, state, or local law.
+          </p>
+          {/* E-Verify participation block — gated behind src/lib/e-verify-config.ts.
+              Renders nothing until Algy enrolls + pastes the Company ID.
+              Misrepresenting participation is a federal compliance issue. */}
+          {E_VERIFY.enrolled && E_VERIFY.companyId && (
+            <p className="text-[11px] text-gray-400 text-center leading-relaxed mt-3 max-w-3xl mx-auto px-4">
+              Ava Health Partners LLC participates in <a href="https://www.e-verify.gov" className="underline hover:text-gray-900">E-Verify</a>{' '}
+              (Company ID {E_VERIFY.companyId}{E_VERIFY.mouDate ? `, MOU effective ${E_VERIFY.mouDate}` : ''}).
+              We confirm work authorization for every new hire as required by Florida SB 1718.
+              See the <a href="https://www.e-verify.gov/sites/default/files/everify/posters/EVerifyParticipationPoster.pdf" className="underline hover:text-gray-900">E-Verify Participation</a> and{' '}
+              <a href="https://www.e-verify.gov/sites/default/files/everify/posters/IER_RighttoWorkPoster.pdf" className="underline hover:text-gray-900">Right to Work</a> posters.
+            </p>
+          )}
         </footer>
         <SpeedInsights />
         <Analytics />

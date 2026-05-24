@@ -22,9 +22,9 @@ export const ORG_PROFILE = {
   name: 'Ava Health',
   alternateName: ['Ava Health Partners', 'Ava Health Partners LLC'],
   url: 'https://avahealth.co',
-  logo: 'https://avahealth.co/logo.png',
-  telephone: '+1-813-531-8049',
-  email: 'alex@avahealth.co',
+  logo: 'https://static.wixstatic.com/media/91e3ba_b1850056c8a64df0a8bb1d2bebbb8f46~mv2.png/v1/fit/w_512,h_512/91e3ba_b1850056c8a64df0a8bb1d2bebbb8f46~mv2.png',
+  telephone: '+1-904-343-9449',
+  email: 'info@avahealth.co',
   address: {
     '@type': 'PostalAddress',
     streetAddress: '4532 W Kennedy Blvd Suite 125',
@@ -37,8 +37,8 @@ export const ORG_PROFILE = {
     {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      telephone: '+1-813-531-8049',
-      email: 'alex@avahealth.co',
+      telephone: '+1-904-343-9449',
+      email: 'info@avahealth.co',
       areaServed: 'US',
       availableLanguage: 'English',
     },

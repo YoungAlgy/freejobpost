@@ -37,7 +37,7 @@ export default function LoginForm() {
         <p className="text-xs text-gray-500 mt-4">
           Don&apos;t see it? Check your spam folder. Link stays active for 30 days.
           Still nothing after a few minutes?{' '}
-          <a href="mailto:alex@avahealth.co?subject=Employer+dashboard+login+help" className="underline hover:text-green-700">
+          <a href="mailto:info@avahealth.co?subject=Employer+dashboard+login+help" className="underline hover:text-green-700">
             Email us
           </a>{' '}
           and we&apos;ll sort it out.

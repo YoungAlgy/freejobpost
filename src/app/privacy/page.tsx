@@ -99,20 +99,20 @@ export default function PrivacyPage() {
             Transactional emails (post verification, applicant notifications) are sent via Resend.
             We honor unsubscribe requests immediately and add the email to a permanent suppression list.
             We do not run cold-email campaigns; if you receive unsolicited mail claiming to be from us,
-            forward it to <a href="mailto:alex@avahealth.co" className="underline hover:text-green-700">alex@avahealth.co</a>.
+            forward it to <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a>.
           </p>
 
           <h2 className="text-xl font-black mt-8 mb-2">Data retention + deletion</h2>
           <ul className="list-disc pl-5 space-y-1.5">
             <li>Job posts are retained for 90 days post-expiration, then soft-deleted.</li>
             <li>Applications are retained for 12 months for legal/audit reasons, then deleted.</li>
-            <li>You can request deletion of your data anytime by emailing <a href="mailto:alex@avahealth.co" className="underline hover:text-green-700">alex@avahealth.co</a>.</li>
+            <li>You can request deletion of your data anytime by emailing <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a>.</li>
           </ul>
 
           <h2 className="text-xl font-black mt-8 mb-2">Your rights (CCPA / GDPR)</h2>
           <p>
             California + EU residents: you have the right to access, correct, or delete your data.
-            Email <a href="mailto:alex@avahealth.co" className="underline hover:text-green-700">alex@avahealth.co</a> with the subject &quot;Privacy request&quot; — we&apos;ll respond within 30 days.
+            Email <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a> with the subject &quot;Privacy request&quot; — we&apos;ll respond within 30 days.
           </p>
 
           <h2 className="text-xl font-black mt-8 mb-2">Security</h2>
@@ -126,7 +126,7 @@ export default function PrivacyPage() {
             <strong>Ava Health Partners LLC</strong><br />
             4532 W Kennedy Blvd, Suite 125<br />
             Tampa, FL 33609<br />
-            <a href="mailto:alex@avahealth.co" className="underline hover:text-green-700">alex@avahealth.co</a>
+            <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a>
           </p>
 
           <p className="mt-10 text-sm text-gray-600">
