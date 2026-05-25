@@ -475,7 +475,23 @@ async function fetchUSAJobs(apiKey: string): Promise<{ fetched: number; jobs: No
             JobCategory?: Array<{ Name?: string; Code?: string }>
             PositionRemuneration?: Array<{ MinimumRange?: string; MaximumRange?: string; RateIntervalCode?: string; Description?: string }>
             PositionEndDate?: string
-            UserArea?: { Details?: { JobSummary?: string } }
+            // The USAJobs Search API returns these additional rich fields
+            // under UserArea.Details. JobSummary alone is typically 50-300
+            // chars (too short for Google for Jobs eligibility past our
+            // 250-char floor). MajorDuties + Qualifications add ~1000-3000
+            // chars each — concatenating them yields a real job description
+            // suitable for both on-site rendering and structured-data feeds.
+            UserArea?: {
+              Details?: {
+                JobSummary?: string
+                MajorDuties?: string[]
+                Qualifications?: string
+                Requirements?: string
+                KeyRequirements?: string[]
+                Education?: string
+                Evaluations?: string
+              }
+            }
           }
         }>
       }
@@ -534,10 +550,46 @@ async function fetchUSAJobs(apiKey: string): Promise<{ fetched: number; jobs: No
     const salary_max = isUsdAnnual && sal?.MaximumRange ? Math.round(Number(sal.MaximumRange)) || null : null
 
     const id = String(item.MatchedObjectId)
+
+    // Build a full-bodied description by concatenating the rich fields
+    // USAJobs returns in the Search response (MajorDuties + Qualifications
+    // + Requirements + JobSummary). Pre-2026-05-25 we only used JobSummary,
+    // which was typically 50-300 chars and silently failed our 250-char
+    // partner-feed filter for ~424 federal jobs. The concatenated form
+    // averages ~1500-3500 chars and gets these high-value federal roles
+    // back into Google for Jobs + every partner feed.
+    const details = md.UserArea?.Details ?? {}
+    const sections: string[] = []
+    if (details.JobSummary) {
+      sections.push(`<p>${details.JobSummary}</p>`)
+    }
+    const majorDuties = Array.isArray(details.MajorDuties) ? details.MajorDuties : []
+    if (majorDuties.length > 0) {
+      sections.push(
+        `<h3>Major Duties</h3>${majorDuties.map((d) => `<p>${d}</p>`).join('')}`
+      )
+    }
+    if (details.Qualifications) {
+      sections.push(`<h3>Qualifications</h3>${details.Qualifications}`)
+    }
+    if (details.Requirements) {
+      sections.push(`<h3>Requirements</h3>${details.Requirements}`)
+    }
+    const keyReqs = Array.isArray(details.KeyRequirements) ? details.KeyRequirements : []
+    if (keyReqs.length > 0) {
+      sections.push(
+        `<h3>Key Requirements</h3><ul>${keyReqs.map((r) => `<li>${r}</li>`).join('')}</ul>`
+      )
+    }
+    if (details.Education) {
+      sections.push(`<h3>Education</h3>${details.Education}`)
+    }
+    const fullDescription = sections.join('')
+
     out.push({
       slug: buildAtsSlug(title, 'usajobs', id),
       title,
-      description: md.UserArea?.Details?.JobSummary ?? '',
+      description: fullDescription,
       apply_url: md.ApplyURI?.[0] ?? md.PositionURI ?? `https://www.usajobs.gov/job/${id}`,
       city, state,
       remote_hybrid: 'onsite',
