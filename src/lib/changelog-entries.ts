@@ -20,9 +20,9 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
     date: '2026-05-26',
-    title: 'Banner Health added — +1,050 healthcare jobs across AZ/CO/NE/NV/WY',
+    title: '4 major health systems added — +5,100 healthcare openings',
     body:
-      'Banner Health, one of the largest non-profit health systems in the western US (28 hospitals), is now an integrated employer feed. About 1,050 active openings flow in via their Workday tenant — mostly nursing (RN/LPN/PCU/L&D/ED), allied health, and support roles across Arizona (HQ), Colorado, Nebraska, Nevada, and Wyoming. Imports refresh every 4 hours alongside the existing Cleveland Clinic / AdventHealth / Mass General Brigham / Stanford / Saint Luke\'s / Elevance feeds.',
+      'Four big-name non-profit hospital systems are now integrated employer feeds. Banner Health (~1,050 jobs across AZ/CO/NE/NV/WY, 28 hospitals), Ochsner Health (~1,933 jobs across LA + the Gulf South), Highmark Health / Allegheny Health Network (~1,802 jobs across PA/NY/DE/WV, including the AHN hospital arm and Highmark BCBS), and NewYork-Presbyterian (~364 jobs across Manhattan, Queens, and Westchester). Mostly nursing, allied health, and clinical support — auto-refreshed every 4 hours alongside the existing Cleveland Clinic / AdventHealth / Mass General Brigham / Stanford / Saint Luke\'s / Elevance feeds.',
     tag: 'new',
   },
   {

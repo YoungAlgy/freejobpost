@@ -110,6 +110,23 @@ const SEED_BOARDS: BoardConfig[] = [
   // /wday/cxs/{tenant}/{site}/jobs POST endpoint.
   { provider: 'workday', boardSlug: 'bannerhealth/Careers', companyName: 'Banner Health', companyUrl: 'https://www.bannerhealth.com', employerSlug: 'banner-health',
     workday: { tenantHost: 'bannerhealth.wd108.myworkdayjobs.com', tenant: 'bannerhealth', site: 'Careers', defaultState: 'AZ' } },
+  // Ochsner Health — ~1,933 jobs, Louisiana-centered, expanding into Gulf
+  // South. Discovered via careers.ochsner.org page-body URL scrape
+  // 2026-05-26. Verified live: predominantly clinical roles (Med Tech,
+  // RN, PA, etc.).
+  { provider: 'workday', boardSlug: 'ochsner/Ochsner', companyName: 'Ochsner Health', companyUrl: 'https://www.ochsner.org', employerSlug: 'ochsner-health',
+    workday: { tenantHost: 'ochsner.wd1.myworkdayjobs.com', tenant: 'ochsner', site: 'Ochsner', defaultState: 'LA' } },
+  // Highmark Health (parent of Allegheny Health Network) — ~1,802 jobs
+  // primarily in PA, NY, DE, WV. Discovered via ahn.org/careers redirect.
+  // Mix of clinical (RN, Pharm Tech, Patient Care Tech) and insurance-arm
+  // (Highmark BCBS / United Concordia) roles — HC_RE filter handles the
+  // separation.
+  { provider: 'workday', boardSlug: 'highmarkhealth/highmark', companyName: 'Highmark Health', companyUrl: 'https://www.highmarkhealth.org', employerSlug: 'highmark-health',
+    workday: { tenantHost: 'highmarkhealth.wd1.myworkdayjobs.com', tenant: 'highmarkhealth', site: 'highmark', defaultState: 'PA' } },
+  // NewYork-Presbyterian — ~364 jobs across Manhattan, Queens, Westchester.
+  // Discovered via nyp.org/careers page-body scrape 2026-05-26.
+  { provider: 'workday', boardSlug: 'nyp/nypcareers', companyName: 'NewYork-Presbyterian', companyUrl: 'https://www.nyp.org', employerSlug: 'newyork-presbyterian',
+    workday: { tenantHost: 'nyp.wd1.myworkdayjobs.com', tenant: 'nyp', site: 'nypcareers', defaultState: 'NY' } },
   // USAJobs: federal healthcare positions (VA, IHS, DoD military health, NIH, HHS).
   // Single logical board covering ~5,000 jobs across 40 Job Category Codes.
   { provider: 'usajobs', boardSlug: 'federal', companyName: 'U.S. Federal Government', companyUrl: 'https://www.usajobs.gov', employerSlug: 'us-federal-government' },
