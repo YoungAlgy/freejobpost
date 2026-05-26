@@ -104,6 +104,12 @@ const SEED_BOARDS: BoardConfig[] = [
     workday: { tenantHost: 'saintlukes.wd1.myworkdayjobs.com', tenant: 'saintlukes', site: 'saintlukeshealthcareers', defaultState: 'MO' } },
   { provider: 'workday', boardSlug: 'elevancehealth/ANT', companyName: 'Elevance Health', companyUrl: 'https://www.elevancehealth.com', employerSlug: 'elevance-health',
     workday: { tenantHost: 'elevancehealth.wd1.myworkdayjobs.com', tenant: 'elevancehealth', site: 'ANT', defaultState: 'IN' } },
+  // Banner Health — ~1,050 jobs across AZ, CO, NE, NV, WY. Discovered via
+  // careers landing redirect 2026-05-26. The wd108 host is unusual (most
+  // Workday tenants use wd1/wd5/wd12) but verified live via the standard
+  // /wday/cxs/{tenant}/{site}/jobs POST endpoint.
+  { provider: 'workday', boardSlug: 'bannerhealth/Careers', companyName: 'Banner Health', companyUrl: 'https://www.bannerhealth.com', employerSlug: 'banner-health',
+    workday: { tenantHost: 'bannerhealth.wd108.myworkdayjobs.com', tenant: 'bannerhealth', site: 'Careers', defaultState: 'AZ' } },
   // USAJobs: federal healthcare positions (VA, IHS, DoD military health, NIH, HHS).
   // Single logical board covering ~5,000 jobs across 40 Job Category Codes.
   { provider: 'usajobs', boardSlug: 'federal', companyName: 'U.S. Federal Government', companyUrl: 'https://www.usajobs.gov', employerSlug: 'us-federal-government' },

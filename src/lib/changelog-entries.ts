@@ -20,6 +20,13 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
     date: '2026-05-26',
+    title: 'Banner Health added — +1,050 healthcare jobs across AZ/CO/NE/NV/WY',
+    body:
+      'Banner Health, one of the largest non-profit health systems in the western US (28 hospitals), is now an integrated employer feed. About 1,050 active openings flow in via their Workday tenant — mostly nursing (RN/LPN/PCU/L&D/ED), allied health, and support roles across Arizona (HQ), Colorado, Nebraska, Nevada, and Wyoming. Imports refresh every 4 hours alongside the existing Cleveland Clinic / AdventHealth / Mass General Brigham / Stanford / Saint Luke\'s / Elevance feeds.',
+    tag: 'new',
+  },
+  {
+    date: '2026-05-26',
     title: 'Workday descriptions auto-recover + bot-filtered apply analytics',
     body:
       'Two reliability wins on the same day. (1) The 3,292 thin-description Workday jobs (AdventHealth, Cleveland Clinic, Mass General Brigham, Stanford, Saint Luke\'s, Elevance) that were stuck on the ~150-char listing preview now get backfilled with their full job descriptions via a new every-4-hour cron. About 50 jobs per tick, drains the backlog in ~15 days, no Workday throttle. Once a description is recovered, the listing reads as a real posting (instead of "see employer site for details") and becomes eligible for Google for Jobs indexing. (2) Cleaned the apply-click attribution dashboard. The May-26 audit caught crawler traffic inflating the daily "internal" partner count by ~830× (16,310 bot hits vs 12 real human applies in a single day). New writes now skip the apply_clicks insert on bot user-agents (Googlebot, AhrefsBot, SemrushBot, headless Chrome, curl/wget/python-requests, link previewers, etc.) and the partner_attribution_daily view filters historical bot rows out via an is_bot flag backfill. Real apply counts now show through to the employer dashboard.',
