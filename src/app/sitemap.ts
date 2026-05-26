@@ -86,6 +86,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/changelog/feed.xml`, changeFrequency: 'weekly', priority: 0.3 },
     { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+    // Federal-compliance disclosure page. Low priority (regulatory, not
+    // commercial) but must be crawler-discoverable for E-Verify trust signal.
+    { url: `${base}/e-verify`, changeFrequency: 'yearly', priority: 0.3 },
   ]
 
   // Specialty hub pages — one per common healthcare specialty so each
