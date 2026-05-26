@@ -22,17 +22,17 @@ export const E_VERIFY = {
    * issued by USCIS. Misrepresenting E-Verify participation is a federal
    * compliance violation, so default-false until you have the actual ID.
    */
-  enrolled: false,
+  enrolled: true,
 
   /**
    * E-Verify-issued Company ID (7 digits). Required by USCIS branding
    * guidance to display alongside the participation logo.
    */
-  companyId: '',
+  companyId: '3024987',
 
   /**
    * MOU effective date — also required on the badge per USCIS branding
    * guidelines. ISO 8601 (YYYY-MM-DD).
    */
-  mouDate: '',
+  mouDate: '2026-05-26',
 } as const
