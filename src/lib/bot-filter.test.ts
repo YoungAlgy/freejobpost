@@ -35,6 +35,41 @@ describe('looksLikeBot', () => {
     for (const ua of uas) expect(looksLikeBot(ua)).toBe(true)
   })
 
+  it('flags LLM training scrapers explicitly', () => {
+    // Critical: these must match by NAME, not by accidental "crawler"/
+    // "agent" substrings in their help URLs. If a vendor drops the help
+    // URL or changes format, our filter must still catch them.
+    const uas = [
+      'meta-externalagent/1.1 (+https://developers.facebook.com/docs/sharing/webmasters/crawler)',
+      'meta-externalagent/1.1', // bare form — no help URL
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.0',
+      'Mozilla/5.0 (compatible; ClaudeBot/1.0)',
+      'Mozilla/5.0 (compatible; anthropic-ai)',
+      'Mozilla/5.0 (compatible; Bytespider; spider-feedback@bytedance.com)',
+      'CCBot/2.0 (https://commoncrawl.org/faq/)',
+      'Mozilla/5.0 (Linux; Android 7.0;) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; Amazonbot/0.1)',
+      'Mozilla/5.0 (compatible) Applebot-Extended',
+      'Mozilla/5.0 PerplexityBot/1.0',
+      'Mozilla/5.0 YouBot',
+      'Mozilla/5.0 (compatible; cohere-ai)',
+      'Mozilla/5.0 (compatible; Diffbot/0.1)',
+    ]
+    for (const ua of uas) expect(looksLikeBot(ua)).toBe(true)
+  })
+
+  it('flags Node + Python + Go HTTP libraries used by scrapers', () => {
+    const uas = [
+      'Scrapy/2.11.1 (+https://scrapy.org)',
+      'node-fetch/3.3.2',
+      'got/13.0.0 (https://github.com/sindresorhus/got)',
+      'reqwest/0.11.27',
+      'aiohttp/3.9.5',
+      'undici/6.13.0',
+      'node-superagent/9.0',
+    ]
+    for (const ua of uas) expect(looksLikeBot(ua)).toBe(true)
+  })
+
   it('flags link previewers and chat clients', () => {
     const uas = [
       'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
