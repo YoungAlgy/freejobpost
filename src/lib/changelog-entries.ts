@@ -22,7 +22,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-26',
     title: 'Ava Health enrolled in E-Verify',
     body:
-      'Ava Health Partners LLC is now an enrolled participant in the federal E-Verify employment authorization system (Company ID 3024987, MOU effective 2026-05-26). The footer now links to the official DHS E-Verify Participation and DOJ Right to Work posters as required by USCIS. Florida SB 1718 requires E-Verify for FL employers with 25+ employees starting July 2024 — we enrolled proactively well below the threshold so the compliance ramp is already in place. Doesn\'t change anything for candidates or employers posting jobs here; it\'s confirmation that any future Ava Health hire goes through federal work-eligibility verification.',
+      'Ava Health Partners LLC is now an enrolled participant in the federal E-Verify employment authorization system (Company ID 3024987, MOU effective 2026-05-26). Added a small "E-Verify Participant" chip to the footer linking to a new /e-verify page with the full federal-compliance statement, official DHS Participation poster, DOJ Right to Work poster, and Florida SB 1718 context. We enrolled proactively below the FL SB 1718 25-employee threshold so the compliance ramp is in place as the team grows. Doesn\'t change anything for candidates or employers posting jobs here; it\'s confirmation that any future Ava Health hire goes through federal work-eligibility verification.',
     tag: 'improved',
   },
   {
