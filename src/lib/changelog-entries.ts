@@ -20,6 +20,13 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
     date: '2026-05-26',
+    title: 'Workday descriptions auto-recover + bot-filtered apply analytics',
+    body:
+      'Two reliability wins on the same day. (1) The 3,292 thin-description Workday jobs (AdventHealth, Cleveland Clinic, Mass General Brigham, Stanford, Saint Luke\'s, Elevance) that were stuck on the ~150-char listing preview now get backfilled with their full job descriptions via a new every-4-hour cron. About 50 jobs per tick, drains the backlog in ~15 days, no Workday throttle. Once a description is recovered, the listing reads as a real posting (instead of "see employer site for details") and becomes eligible for Google for Jobs indexing. (2) Cleaned the apply-click attribution dashboard. The May-26 audit caught crawler traffic inflating the daily "internal" partner count by ~830× (16,310 bot hits vs 12 real human applies in a single day). New writes now skip the apply_clicks insert on bot user-agents (Googlebot, AhrefsBot, SemrushBot, headless Chrome, curl/wget/python-requests, link previewers, etc.) and the partner_attribution_daily view filters historical bot rows out via an is_bot flag backfill. Real apply counts now show through to the employer dashboard.',
+    tag: 'reliability',
+  },
+  {
+    date: '2026-05-26',
     title: 'Ava Health enrolled in E-Verify',
     body:
       'Ava Health Partners LLC is now an enrolled participant in the federal E-Verify employment authorization system (Company ID 3024987, MOU effective 2026-05-26). Added a small "E-Verify Participant" chip to the footer linking to a new /e-verify page with the full federal-compliance statement, official DHS Participation poster, DOJ Right to Work poster, and Florida SB 1718 context. We enrolled proactively below the FL SB 1718 25-employee threshold so the compliance ramp is in place as the team grows. Doesn\'t change anything for candidates or employers posting jobs here; it\'s confirmation that any future Ava Health hire goes through federal work-eligibility verification.',

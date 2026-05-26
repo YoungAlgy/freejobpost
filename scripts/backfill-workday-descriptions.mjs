@@ -143,11 +143,31 @@ while (invocations < maxInvocations) {
     console.log('  backlog drained — done')
     break
   }
-  // Gentle pacing: 1s between invocations so we don't hammer Workday
-  // tenants. The edge function is parallel-8 internally, so true req/sec
-  // is ~8 per inv * 1 inv/sec = 8 r/s per tenant. Below WD's per-tenant
-  // ceilings as far as we've measured.
-  await new Promise((r) => setTimeout(r, 1000))
+
+  // Throttle abort: if Workday is hammering back with 4xx/5xx on >60% of
+  // candidates in a single invocation, additional invocations will just
+  // deepen the throttle. Stop and let the per-tenant token buckets refill
+  // before the next manual run (the every-4hr cron will continue to nibble
+  // away in the meantime). Threshold tuned from the 2026-05-26 manual
+  // drain where errors climbed 16% → 80% across 4 back-to-back invocations.
+  const errorRate = (body.fetch_errors ?? 0) / Math.max(body.candidates ?? 1, 1)
+  if (errorRate > 0.6) {
+    console.log(
+      `  high error rate (${(errorRate * 100).toFixed(0)}%) — Workday throttle active, aborting`
+    )
+    break
+  }
+  // Inter-invocation pacing: 30s.
+  //
+  // 2026-05-26 update: bumped from 1s after the manual-drain attempt that
+  // day blew through the Workday tenant throttle ceiling. The earlier 1s
+  // pacing assumed the edge function's internal parallel-8 was the
+  // bottleneck. In practice Workday tenants started returning 403s after
+  // ~4 consecutive invocations (error rate 16% → 38% → 62% → 80%). 30s
+  // between invocations lets each tenant's per-IP token bucket refill
+  // before the next batch. Drains the same volume of work — just
+  // sustainably, without burning future access.
+  await new Promise((r) => setTimeout(r, 30000))
 }
 
 console.log('')

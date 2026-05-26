@@ -1,18 +1,25 @@
 // /click/[slug] — per-partner apply-click redirect endpoint.
 //
-// Logs one row in apply_clicks (via the log_apply_click SECURITY DEFINER RPC)
-// then 302-redirects to the job's canonical apply_url. This is what makes
-// "Apply-click logging (per-job, per-partner)" real — partners send users
-// here with ?p=<partner-key>, and we keep verifiable attribution data.
+// For real human traffic: logs one row in apply_clicks (via the log_apply_click
+// SECURITY DEFINER RPC) then 302-redirects to the job's canonical apply_url.
+// This is what makes "Apply-click logging (per-job, per-partner)" real —
+// partners send users here with ?p=<partner-key>, and we keep verifiable
+// attribution data.
+//
+// For bot traffic (matched by src/lib/bot-filter.ts): the redirect still
+// happens (crawlers walking /click/ paths is normal and desired) but the
+// apply_clicks insert is skipped so partner-attribution dashboards aren't
+// inflated. See bot-filter.ts for the audit that motivated this.
 //
 // Cache: force-dynamic. The endpoint MUST log per request; caching would
 // kill attribution. The route does at most:
 //   1) 1 select on public_jobs (by slug, indexed)
-//   2) 1 RPC call writing one row + counter bump
+//   2) 1 RPC call writing one row + counter bump (skipped for bots)
 //   3) 1 SHA-256 hash of the client IP
 // Total wall time ~30-80ms — fine to run inline.
 
 import { type NextRequest, NextResponse } from 'next/server'
+import { looksLikeBot } from '@/lib/bot-filter'
 import { supabase } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
@@ -96,16 +103,21 @@ export async function GET(
   const referrer = req.headers.get('referer') || null
   const ipHash = await hashIp(ip)
 
-  try {
-    await supabase.rpc('log_apply_click', {
-      p_slug: slug,
-      p_partner: partner,
-      p_user_agent: userAgent?.slice(0, 500) ?? null,
-      p_ip_hash: ipHash,
-      p_referrer: referrer?.slice(0, 500) ?? null,
-    })
-  } catch {
-    // Swallow — log_apply_click is best-effort.
+  // Skip apply_clicks insert for bot traffic — see src/lib/bot-filter.ts.
+  // Redirect still happens below so crawlers walking /click/ paths don't
+  // hit a dead end.
+  if (!looksLikeBot(userAgent)) {
+    try {
+      await supabase.rpc('log_apply_click', {
+        p_slug: slug,
+        p_partner: partner,
+        p_user_agent: userAgent?.slice(0, 500) ?? null,
+        p_ip_hash: ipHash,
+        p_referrer: referrer?.slice(0, 500) ?? null,
+      })
+    } catch {
+      // Swallow — log_apply_click is best-effort.
+    }
   }
 
   // No applyURL on file → bounce back to the job detail page where the
