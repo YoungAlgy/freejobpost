@@ -19,13 +19,6 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
-    date: '2026-05-27',
-    title: 'Intermountain Health + Cigna added — +1,900 more healthcare openings',
-    body:
-      'Two more employer feeds went live this morning. Intermountain Health (~1,271 jobs across UT, ID, NV) brings their full clinical roster including physicians, imaging, RN/LPN, allied health, and clinic ops. Cigna (~630 jobs) adds the insurance side — utilization management, case managers, provider contracting clinicians, behavioral health clinicians, and Accredo specialty pharmacy. Auto-refreshed every 4 hours alongside the other 10 Workday boards.',
-    tag: 'new',
-  },
-  {
     date: '2026-05-26',
     title: '4 major health systems added — +5,100 healthcare openings',
     body:
