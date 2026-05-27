@@ -82,15 +82,27 @@ Strategic value: turns the free properties into both a top-of-funnel acquisition
 
 ## Open questions for Algy
 
-1. **Consent UX:** Are we OK with adding ONE pre-redirect step at /apply/[slug]? It's 1 form + 1 button between Apply-click and the employer's ATS. Could reduce apply-through-rate by 5-15% (typical for any form interstitial). Net effect: higher-quality CRM signal at the cost of slightly fewer raw applies.
+> **2026-05-27 — Algy delegated these decisions to Claude with "do whatever u think is smart." Below are my recommended answers. Override any of these in a follow-up PR if you disagree.**
 
-2. **Welcome email:** Default to OFF, or default to ON when consent is given? My take: default OFF, recruiter manually opts the lead in to a drip. Less spam-feel.
+1. **Consent UX — RECOMMENDED: SKIP Flow A.** Don't add the pre-redirect form. The apply-through-rate cost (5-15%) is real and the candidate signal we'd gain is weak without volume. Implement Flow B only (CRM-side push to freeresumepost). Revisit Flow A after Flow B proves the bridging architecture in production.
 
-3. **Flow B direction:** Should the freeresumepost profile use the candidate's FULL CRM resume, or a redacted version (no current employer, no specific dates)? My take: redacted, with a "request full resume" CTA that pings the recruiter.
+2. **Welcome email — RECOMMENDED: OFF by default.** Recruiter manually opts the lead into a drip after first qualification call. Less spam-feel, higher-quality outreach. (Only relevant if Flow A is ever turned on.)
 
-4. **Identity carry:** Should freejobpost gain a candidate login (so we know who's applying without re-asking)? Currently it's apply-as-guest. Adding login adds friction; not requiring it means we re-ask name/email on every apply.
+3. **Flow B direction — RECOMMENDED: REDACTED profile.** freeresumepost gets first-name + last-initial, role, state, years experience. "Request full resume" CTA pings the recruiter who controls the full release. Matches existing freeresumepost privacy floor (already does first-name + last-initial public).
 
-5. **Naming:** "Ava Health" surfaces on the consent text and welcome email even though the user is on freejobpost.co. That's fine because the footer + JSON-LD already disclose the parent corp — but worth confirming you want the Ava brand on this comm.
+4. **Identity carry — RECOMMENDED: KEEP apply-as-guest.** Don't add candidate login to freejobpost. Adding login = adding friction. The current flow optimizes for candidate-first volume. (Only relevant if Flow A is ever turned on.)
+
+5. **Naming — RECOMMENDED: Use "Ava Health" branding.** The footer + JSON-LD already disclose the parent corp. Consent text reads naturally as "Ava Health recruiters" since that's the actual entity reaching out. No need to introduce a new brand voice mid-flow.
+
+## Scope decision (post-Algy-delegate)
+
+Implementing **Flow B only** in v1. Spec sections about Flow A (apply-form, consent_log row for apply opt-in) stay as documentation but aren't coded until a future iteration.
+
+This cuts the implementation estimate from 6 days to ~3 days:
+- freeresumepost `/api/cross-site-profile` (HMAC-verify, create candidate row from CRM payload) — 0.5 day
+- CRM `consent_freeresumepost` column + UI checkbox on candidate detail — 1 day
+- CRM `/api/cross-site-profile/sync` worker — 1 day
+- Reconciliation cron (revoked → soft-delete on freeresumepost) — 0.5 day
 
 ## Estimated effort
 
