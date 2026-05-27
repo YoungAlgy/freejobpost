@@ -127,6 +127,18 @@ const SEED_BOARDS: BoardConfig[] = [
   // Discovered via nyp.org/careers page-body scrape 2026-05-26.
   { provider: 'workday', boardSlug: 'nyp/nypcareers', companyName: 'NewYork-Presbyterian', companyUrl: 'https://www.nyp.org', employerSlug: 'newyork-presbyterian',
     workday: { tenantHost: 'nyp.wd1.myworkdayjobs.com', tenant: 'nyp', site: 'nypcareers', defaultState: 'NY' } },
+  // Intermountain Health — ~1,271 jobs primarily in UT, ID, NV. Heavy clinical
+  // (physicians, imaging, RN, allied health). Discovered via deep sweep
+  // 2026-05-27. Uses uncommon `imh.wd108` tenant subdomain — same shape as
+  // bannerhealth.wd108, both have the wd108 sigil.
+  { provider: 'workday', boardSlug: 'imh/IntermountainCareers', companyName: 'Intermountain Health', companyUrl: 'https://intermountainhealthcare.org', employerSlug: 'intermountain-health',
+    workday: { tenantHost: 'imh.wd108.myworkdayjobs.com', tenant: 'imh', site: 'IntermountainCareers', defaultState: 'UT' } },
+  // Cigna — ~630 jobs. Predominantly insurance + corporate roles; the
+  // HC_RE filter captures the clinical subset (UM/case managers, provider
+  // contracting clinicians, behavioral-health clinicians, Accredo pharm).
+  // Discovered via deep sweep 2026-05-27.
+  { provider: 'workday', boardSlug: 'cigna/cignacareers', companyName: 'Cigna', companyUrl: 'https://www.cigna.com', employerSlug: 'cigna',
+    workday: { tenantHost: 'cigna.wd5.myworkdayjobs.com', tenant: 'cigna', site: 'cignacareers', defaultState: 'CT' } },
   // USAJobs: federal healthcare positions (VA, IHS, DoD military health, NIH, HHS).
   // Single logical board covering ~5,000 jobs across 40 Job Category Codes.
   { provider: 'usajobs', boardSlug: 'federal', companyName: 'U.S. Federal Government', companyUrl: 'https://www.usajobs.gov', employerSlug: 'us-federal-government' },

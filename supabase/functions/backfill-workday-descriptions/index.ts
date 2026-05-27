@@ -90,6 +90,17 @@ const WORKDAY_TENANTS: Record<string, { tenantHost: string; tenant: string; site
     tenant: 'nyp',
     site: 'nypcareers',
   },
+  // ── v6 additions (2026-05-27) ───────────────────────────────────────────
+  'workday:imh/IntermountainCareers': {
+    tenantHost: 'imh.wd108.myworkdayjobs.com',
+    tenant: 'imh',
+    site: 'IntermountainCareers',
+  },
+  'workday:cigna/cignacareers': {
+    tenantHost: 'cigna.wd5.myworkdayjobs.com',
+    tenant: 'cigna',
+    site: 'cignacareers',
+  },
 }
 
 function htmlToText(html: string): string {
