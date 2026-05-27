@@ -35,14 +35,25 @@ import { buildSpecialtyOrFilter as buildHubOrFilter } from '@/lib/specialty-filt
 
 export const revalidate = 600
 
+// Allow on-demand ISR for cells outside the top-N pre-built set. Build was
+// timing out (60s/page Vercel cap) on the biggest cells (PA pharmacist,
+// TX physician-assistant, VA registered-nurse, OH surgical-tech) because
+// the .or() ILIKE filter slowed down as public_jobs grew past ~50K rows.
+// Top-N pre-builds the SEO-most-important cells; the rest render on
+// first visit and cache for 600s. Build time drops from 60s+/page on
+// heavy cells to negligible (those just become ISR fallbacks).
+export const dynamicParams = true
+
+const MAX_SSG_CELLS = 150
+
 type Params = { slug: string; state: string }
 
 export async function generateStaticParams(): Promise<Params[]> {
-  // Per-cell SQL count via the shared helper. Keeps generateStaticParams,
-  // the runtime fetchCellJobs query, and the sitemap matrix entries all
-  // in lockstep — no more JS-substring overcounts producing 404 cells.
+  // Per-cell SQL count via the shared helper. Returns cells sorted by
+  // count DESC, so top-N = highest-traffic. The remaining ~380+ cells
+  // ISR-render on demand via dynamicParams=true above.
   const cells = await computeViableCellsViaSql(supabase)
-  return cells.map((c) => ({ slug: c.specialty.slug, state: c.state.slug }))
+  return cells.slice(0, MAX_SSG_CELLS).map((c) => ({ slug: c.specialty.slug, state: c.state.slug }))
 }
 
 async function fetchCellJobs(matchPatterns: readonly string[], stateAbbr: string): Promise<PublicJob[]> {

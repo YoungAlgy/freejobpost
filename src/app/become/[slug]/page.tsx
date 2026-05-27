@@ -53,7 +53,17 @@ export default async function CareerPathPage({ params }: Props) {
   // link to /city/<slug>/<specialty> URLs that actually render (≥5 jobs).
   // Falls back to the parent /city/<slug> link when the cell doesn't
   // exist for this specialty in the target metro.
-  const cityCells = await getViableCityCellsCached(supabase)
+  //
+  // 8s timeout: getViableCityCellsCached fires a 12-batch fetch and was
+  // the root cause of /become/[slug] builds timing out at the 60s Vercel
+  // cap when public_jobs grew past ~50K rows. On timeout we render the
+  // city links without the cellExists badge — the page still ships,
+  // and the next ISR revalidate will retry the lookup with fresh cache.
+  const cityCellsPromise = getViableCityCellsCached(supabase).catch(() => [] as Awaited<ReturnType<typeof getViableCityCellsCached>>)
+  const timeoutPromise = new Promise<Awaited<ReturnType<typeof getViableCityCellsCached>>>((resolve) =>
+    setTimeout(() => resolve([]), 8000),
+  )
+  const cityCells = await Promise.race([cityCellsPromise, timeoutPromise])
   const featuredCityCandidates = [
     'houston-tx', 'new-york-ny', 'los-angeles-ca', 'tampa-fl',
     'chicago-il', 'boston-ma', 'atlanta-ga', 'dallas-tx',

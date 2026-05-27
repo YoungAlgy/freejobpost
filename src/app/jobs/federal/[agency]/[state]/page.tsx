@@ -20,16 +20,22 @@ import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
 export const revalidate = 300
 
-// Pre-render only the (agency, state) cells with ≥5 active jobs. Anything
-// outside the prerendered set falls through to a 404 (dynamicParams: false).
-// Saves the build from rendering ~80 thin pages and protects the index
-// against the templated-thin-content classifier.
+// Pre-render the highest-volume cells only — the federal-state-matrix
+// helper sorts cells by count DESC so the top-N slice is the SEO-most-
+// important set. Build was timing out at 60s/page on /jobs/federal/va/*
+// pages (largest agency by inventory). Setting dynamicParams=true lets
+// smaller cells (or new ones added by future USAJobs refreshes) render
+// on-demand and cache via ISR for 300s.
+const MAX_SSG_FEDERAL_CELLS = 50
+
 export async function generateStaticParams() {
   const cells = await getViableFederalCellsCached(supabase)
-  return cells.map((c) => ({ agency: c.agency.slug, state: c.state.slug }))
+  return cells
+    .slice(0, MAX_SSG_FEDERAL_CELLS)
+    .map((c) => ({ agency: c.agency.slug, state: c.state.slug }))
 }
 
-export const dynamicParams = false
+export const dynamicParams = true
 
 function findStateBySlug(slug: string) {
   return STATE_HUBS.find((s) => s.slug === slug)
