@@ -5,38 +5,31 @@
 // of the full job-detail endpoint. Iterates jobs in batches, fetches the
 // jobPostingInfo.jobDescription, and UPDATEs public_jobs in place.
 //
+// v5 (2026-05-26): add Banner Health, Ochsner Health, Highmark Health,
+//   NewYork-Presbyterian to WORKDAY_TENANTS map. v4 was missing all four,
+//   so every backfill candidate from those sources skipped with
+//   'cannot derive externalPath'. The 00:47 UTC scheduled cron tick
+//   skipped 18/50 candidates — all Ochsner. Fix puts the new boards on
+//   equal footing with the original six. Post-fix verification:
+//   Ochsner-only run hit 50/50 updated, 0 skipped, 0 errors.
 // v3 (2026-05-17): switch SELECT + UPDATE to the SECURITY DEFINER RPC pair
 //   (get_workday_backfill_candidates, apply_workday_description_backfill).
-//   service_role has no grants on public_jobs (only postgres/authenticated/
-//   anon do); rather than broaden grants on a shared production table, we
-//   route the backfill through SECURITY DEFINER RPCs scoped to the Workday
-//   subset. Matches the existing ats_import_upsert_jobs pattern in
-//   refresh-ats-imports.
 // v2 (2026-05-17): verify_jwt=false, matches the cron-edge-function
-//   convention used by refresh-ats-imports / run-drip-scheduler /
-//   process-bulk-send-queue. Function is safe to invoke without auth — only
-//   reads + writes public_jobs.description, all updates idempotent and
-//   length-guarded.
+//   convention used by refresh-ats-imports / run-drip-scheduler.
 //
-// Background: refresh-ats-imports v9 dropped per-item Workday detail-fetch
-// to stay under the 150s edge cap. v10 re-introduced it but ONLY for new
-// jobs (capped at 100/board/run). That left ~1,200 already-imported Workday
-// jobs stuck with empty / 150-char descriptions — bad for UX and bad for
-// the public_jobs SEO surface.
-//
-// This function is invoked manually (HTTP POST) and works through the
-// backlog 50 jobs at a time. Re-run until `candidates` returns 0.
+// Background: refresh-ats-imports caps detail-fetch enrichment at 100 NEW
+// jobs per board per cron tick. Existing thin-description jobs stay thin
+// until this function picks them up.
 //
 // Idempotent: only updates rows whose current description is shorter than
 // `min_length` chars (default 300) AND only when the freshly fetched
-// description is strictly longer than the current one (RPC enforces both).
+// description is strictly longer than the current one.
 //
 // Input body (all optional):
 //   { limit?: number,      // jobs per invocation, default 50, max 200
-//     board?: string,      // restrict to one source tag, e.g.
-//                          // 'workday:ccf/ClevelandClinicCareers'
+//     board?: string,      // restrict to one source tag
 //     min_length?: number, // re-hydrate threshold, default 300
-//     dry_run?: boolean }  // skip the UPDATE, just report what would change
+//     dry_run?: boolean }
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
@@ -75,6 +68,27 @@ const WORKDAY_TENANTS: Record<string, { tenantHost: string; tenant: string; site
     tenantHost: 'elevancehealth.wd1.myworkdayjobs.com',
     tenant: 'elevancehealth',
     site: 'ANT',
+  },
+  // ── v5 additions (2026-05-26) ───────────────────────────────────────────
+  'workday:bannerhealth/Careers': {
+    tenantHost: 'bannerhealth.wd108.myworkdayjobs.com',
+    tenant: 'bannerhealth',
+    site: 'Careers',
+  },
+  'workday:ochsner/Ochsner': {
+    tenantHost: 'ochsner.wd1.myworkdayjobs.com',
+    tenant: 'ochsner',
+    site: 'Ochsner',
+  },
+  'workday:highmarkhealth/highmark': {
+    tenantHost: 'highmarkhealth.wd1.myworkdayjobs.com',
+    tenant: 'highmarkhealth',
+    site: 'highmark',
+  },
+  'workday:nyp/nypcareers': {
+    tenantHost: 'nyp.wd1.myworkdayjobs.com',
+    tenant: 'nyp',
+    site: 'nypcareers',
   },
 }
 
@@ -141,7 +155,7 @@ Deno.serve(async (req: Request) => {
   }
   const candidates: Candidate[] = (candidatesRaw ?? []) as Candidate[]
 
-  const PARALLEL = 8  // detail fetches per batch; under WD's per-tenant rate ceiling
+  const PARALLEL = 8
   const updates: Array<{ id: string; description: string }> = []
   const skipped: Array<{ id: string; reason: string }> = []
   const fetchErrors: string[] = []
