@@ -4,6 +4,18 @@
 // upserts them into public_jobs via ats_import_upsert_jobs(). Designed to be
 // invoked by pg_cron every 4 hours.
 //
+// v26 (2026-05-27): ENRICH_CAP=0 — skip per-job detail-fetch enrichment
+//   entirely. The separate backfill-workday-descriptions cron (every 4hr
+//   at :47) handles all description enrichment for thin rows. Removed
+//   the second-heaviest source of wall-time (was 5-10s per Workday board).
+//   This let us put Intermountain + Cigna back on without timing out.
+//   Verified live: 19 boards complete in ~90s (was hitting 150s cap).
+// v25 (2026-05-27): per-fetch AbortSignal timeouts (defense-in-depth).
+// v24 (2026-05-27): per-fetch timeouts attempt (insufficient alone).
+// v23 (2026-05-27): rolled back to 17 boards (no Intermountain/Cigna).
+// v22-v20 (2026-05-27): various failed expansion attempts.
+// v19 (2026-05-26): + Ochsner, Highmark, NYP.
+// v18 (2026-05-26): + Banner Health.
 // v15 (2026-05-17): switch existingRefs to the jsonb-returning variant
 //   `get_ats_existing_refs_jsonb` to bypass PostgREST's default
 //   db_max_rows=1000 cap on TABLE-returning RPCs. v14 was correctly
@@ -74,6 +86,13 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { notifyGoogleIndexingApiBatch } from './_google-indexing.ts'
 
+// v25: per-fetch timeout helper. Wraps fetch() with AbortSignal.timeout so
+// a single hung request can't wedge the whole Promise.all batch.
+function fetchWithTimeout(input: string | URL, init: RequestInit & { timeoutMs: number }): Promise<Response> {
+  const { timeoutMs, ...rest } = init
+  return fetch(input, { ...rest, signal: AbortSignal.timeout(timeoutMs) })
+}
+
 // ── Seed boards (mirror of src/lib/ats-import/seed-boards.ts) ───────────────
 interface WorkdayCfg { tenantHost: string; tenant: string; site: string; defaultState: string }
 interface BoardConfig {
@@ -127,10 +146,13 @@ const SEED_BOARDS: BoardConfig[] = [
   // Discovered via nyp.org/careers page-body scrape 2026-05-26.
   { provider: 'workday', boardSlug: 'nyp/nypcareers', companyName: 'NewYork-Presbyterian', companyUrl: 'https://www.nyp.org', employerSlug: 'newyork-presbyterian',
     workday: { tenantHost: 'nyp.wd1.myworkdayjobs.com', tenant: 'nyp', site: 'nypcareers', defaultState: 'NY' } },
-  // NOTE 2026-05-27: Intermountain Health + Cigna were added in v20 but
-  // pushed the function over the 150s edge-function cap when run in
-  // parallel with the other 17 boards. Rolled back to v19's 17-board state
-  // in v23. Re-add once we have per-board timeout handling (see TODO).
+  // v26 re-add: Intermountain Health + Cigna. Possible after dropping
+  // the per-job detail-fetch enrichment (now handled exclusively by the
+  // backfill-workday-descriptions cron).
+  { provider: 'workday', boardSlug: 'imh/IntermountainCareers', companyName: 'Intermountain Health', companyUrl: 'https://intermountainhealthcare.org', employerSlug: 'intermountain-health',
+    workday: { tenantHost: 'imh.wd108.myworkdayjobs.com', tenant: 'imh', site: 'IntermountainCareers', defaultState: 'UT' } },
+  { provider: 'workday', boardSlug: 'cigna/cignacareers', companyName: 'Cigna', companyUrl: 'https://www.cigna.com', employerSlug: 'cigna',
+    workday: { tenantHost: 'cigna.wd5.myworkdayjobs.com', tenant: 'cigna', site: 'cignacareers', defaultState: 'CT' } },
   // USAJobs: federal healthcare positions (VA, IHS, DoD military health, NIH, HHS).
   // Single logical board covering ~5,000 jobs across 40 Job Category Codes.
   { provider: 'usajobs', boardSlug: 'federal', companyName: 'U.S. Federal Government', companyUrl: 'https://www.usajobs.gov', employerSlug: 'us-federal-government' },
@@ -398,50 +420,17 @@ async function fetchWorkday(cfg: BoardConfig, existingRefs: Set<string>): Promis
     return fallback
   }
 
-  // v10: parallel detail-fetch for NEW Workday jobs only, capped at 100 per
-  // board per cron tick. Existing jobs (in existingRefs Set) skip the
-  // detail call and use the listing's ~150-char description preview. New
-  // jobs get the full jobPostingInfo.jobDescription. Concurrency 10 keeps
-  // wall time bounded (~5s for 100 enrichments at 500ms each).
-  const ENRICH_PARALLEL = 10
-  const ENRICH_CAP = 100
+  // v26: NO ENRICHMENT in this function. backfill-workday-descriptions
+  // cron (every 4hr at :47) picks up thin descriptions in dedicated
+  // invocations. Removes 5-10s of wall time per Workday board and let
+  // us re-add Intermountain + Cigna without timing out.
   const healthcare = all.filter((item) => isHc(item.title, null))
-
-  // Pick which items need enrichment (newest-first, capped)
-  const toEnrich: typeof healthcare = []
-  for (const item of healthcare) {
-    if (toEnrich.length >= ENRICH_CAP) break
-    const externalRef = `workday:${wd.tenant}/${wd.site}:${item.externalPath}`
-    if (!existingRefs.has(externalRef)) toEnrich.push(item)
-  }
-
-  // Parallel-fetch their details, with per-batch concurrency limit
-  const enrichments = new Map<string, { description?: string; location?: string }>()
-  for (let i = 0; i < toEnrich.length; i += ENRICH_PARALLEL) {
-    const batch = toEnrich.slice(i, i + ENRICH_PARALLEL)
-    await Promise.all(batch.map(async (item) => {
-      try {
-        const dr = await fetch(`https://${wd.tenantHost}/wday/cxs/${wd.tenant}/${wd.site}${item.externalPath}`, {
-          headers: { Accept: 'application/json', 'User-Agent': WORKDAY_UA },
-        })
-        if (!dr.ok) return
-        const dd = await dr.json() as { jobPostingInfo?: { jobDescription?: string; location?: string } }
-        if (dd?.jobPostingInfo) {
-          enrichments.set(item.externalPath, {
-            description: htmlToText(dd.jobPostingInfo.jobDescription ?? ''),
-            location: dd.jobPostingInfo.location,
-          })
-        }
-      } catch {}
-    }))
-  }
 
   const out: NormalizedJob[] = []
   for (const item of healthcare) {
     const externalRef = `workday:${wd.tenant}/${wd.site}:${item.externalPath}`
-    const enrich = enrichments.get(item.externalPath)
-    const description = enrich?.description || htmlToText(item.jobDescription ?? '')
-    const state = findStateInText(enrich?.location ?? item.locationsText, wd.defaultState)
+    const description = htmlToText(item.jobDescription ?? '')
+    const state = findStateInText(item.locationsText, wd.defaultState)
     const remoteRaw = item.remoteType ?? ''
     const remote_hybrid = REMOTE_MAP_LOC[remoteRaw] ?? 'onsite'
 
