@@ -36,9 +36,19 @@ function fetchWithTimeout(input: string | URL, init: RequestInit & { timeoutMs: 
 
 // Adzuna's category slugs that map to our healthcare bucket. Each gets a
 // separate API call and a distinct source tag.
+//
+// 2026-05-27: corrected `social-care-jobs` → `social-work-jobs`. The
+// social-care label is Adzuna's UK taxonomy; the US instance uses
+// social-work-jobs. The wrong slug returned nginx 400 silently — the
+// function caught the error in errors[] but the cron output showed
+// 0 social-care rows for 8+ hours before we noticed. Verified against
+// GET /v1/api/jobs/us/categories: US has {healthcare-nursing-jobs,
+// social-work-jobs, scientific-qa-jobs, ...} and social-work covers
+// counselors, case managers, behavioral-health aides, and licensed
+// clinical social workers — all healthcare-relevant.
 const ADZUNA_CATEGORIES = [
   { slug: 'healthcare-nursing-jobs',     label: 'Healthcare & Nursing' },
-  { slug: 'social-care-jobs',            label: 'Social Care' },
+  { slug: 'social-work-jobs',            label: 'Social Work' },
 ] as const
 
 // US states map — keep in sync with the same dict in refresh-ats-imports.
