@@ -12,7 +12,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm } from '@/lib/feed-builders'
+import { jobUrlWithUtm, isBuildPhase } from '@/lib/feed-builders'
 
 export const revalidate = 900
 
@@ -59,10 +59,10 @@ export async function GET(): Promise<Response> {
 
   type RssJob = PublicJob & { updated_at: string }
   const allJobs = (data ?? []) as unknown as RssJob[]
-  // FAIL CLOSED — see jobs.xml/route.ts. 0 fetched = DB failure (always
-  // thousands of active jobs), so throw rather than cache + serve an empty
-  // RSS feed. Next.js ISR keeps serving the last-good cached feed.
-  if (allJobs.length === 0) {
+  // FAIL CLOSED, RUNTIME ONLY — see feed-builders.ts isBuildPhase. 0 fetched
+  // = DB failure (always thousands of active jobs). Throw at runtime so ISR
+  // serves the last-good cache; never throw at build (aborts the deploy).
+  if (allJobs.length === 0 && !isBuildPhase()) {
     throw new Error('rss.xml: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).')
   }
   // Skip thin-description jobs — RSS readers (Feedly / Inoreader / Apple

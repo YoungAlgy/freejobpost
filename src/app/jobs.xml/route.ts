@@ -50,6 +50,7 @@ import {
   descriptionHtml,
   rfc822,
   hasUsableDescription,
+  isBuildPhase,
 } from '@/lib/feed-builders'
 
 // Refresh the feed every 15 minutes — aggregators re-crawl on their own
@@ -119,8 +120,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   // a partner trusts a 200-with-0-jobs and drops us). Root cause this date:
   // providers.avahealth.co directory RPCs (directory_providers, ~14-22s each)
   // saturating the shared Postgres → freejobpost feed queries time out.
+  // RUNTIME-ONLY fail-closed (see feed-builders.ts isBuildPhase). At build,
+  // a throw aborts the deploy with no stale cache to fall back to; at runtime
+  // it correctly makes Next serve the last-good cached feed. So only throw
+  // when NOT building.
   const anyBatchErrored = batches.some((b) => b.error)
-  if (allJobs.length === 0) {
+  if (allJobs.length === 0 && !isBuildPhase()) {
     throw new Error(
       `jobs.xml: 0 jobs fetched (anyBatchErrored=${anyBatchErrored}) — ` +
       `refusing to cache an empty feed. Serving last-good ISR cache instead.`,

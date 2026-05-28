@@ -19,6 +19,17 @@ export type FeedJob = PublicJob & {
   syndication_targets: SyndicationTargetId[]
 }
 
+// True during `next build` (Next sets NEXT_PHASE=phase-production-build).
+// Used to make feed routes' fail-closed throw RUNTIME-ONLY: at build time a
+// throw aborts the whole deploy (and there's no stale cache to fall back to
+// anyway), so we let the build emit a possibly-empty feed that the first
+// runtime ISR revalidation replaces. At runtime the throw correctly serves
+// the last-good cached feed. Exported so the standalone feed route handlers
+// (jobs.xml, rss.xml) share the exact same guard.
+export function isBuildPhase(): boolean {
+  return process.env.NEXT_PHASE === 'phase-production-build'
+}
+
 export function cdata(s: string | null | undefined): string {
   const v = (s ?? '').replace(/]]>/g, ']]]]><![CDATA[>')
   return `<![CDATA[${v}]]>`
@@ -270,11 +281,16 @@ export async function buildIndeedFormatFeed(
   networkLabel: string,
 ): Promise<Response> {
   const allJobs = await fetchJobsForTarget(target)
-  // FAIL CLOSED — see jobs.xml/route.ts for full rationale. 0 fetched always
-  // means DB failure (we always have thousands of active jobs), so throw
-  // rather than cache + ship an empty feed to a partner. Next.js ISR keeps
-  // serving the last-good cached feed instead of overwriting with emptiness.
-  if (allJobs.length === 0) {
+  // FAIL CLOSED — but RUNTIME ONLY. 0 fetched means DB failure (we always
+  // have thousands of active jobs). At RUNTIME (ISR revalidation) we throw so
+  // Next serves the last-good cached feed instead of caching emptiness. But
+  // these route handlers ALSO pre-render at BUILD time, and a throw there
+  // aborts the whole deploy (observed 2026-05-28: a transient build-time DB
+  // timeout on /feeds/talent.xml killed the build). At build there's no stale
+  // cache to fall back to, so throwing is pointless + harmful — let it emit a
+  // (possibly empty) feed that the first runtime revalidation replaces within
+  // `revalidate` seconds against a healthy DB.
+  if (allJobs.length === 0 && !isBuildPhase()) {
     throw new Error(`feed[${target}]: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).`)
   }
   const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
