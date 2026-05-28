@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   type PublicJob,
@@ -12,7 +12,10 @@ import {
 } from '@/lib/public-jobs'
 
 type Props = {
-  jobs: PublicJob[]
+  /** First page (50) of jobs, server-rendered for SEO + instant first paint. */
+  initialJobs: PublicJob[]
+  /** Total active jobs (unfiltered) — drives the "of N" count. */
+  totalActive: number
   roles: string[]
   states: string[]
   /** Employer IDs whose verified_at is non-null. Empty array when none. */
@@ -32,7 +35,7 @@ const VALID_EMP_TYPE: ReadonlySet<string> = new Set([
   'internship',
 ])
 
-export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }: Props) {
+export default function JobsFilter({ initialJobs, totalActive, roles, states, verifiedEmployerIds }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const verifiedSet = useMemo(() => new Set(verifiedEmployerIds), [verifiedEmployerIds])
@@ -89,43 +92,102 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
     router.replace(qs ? `/jobs?${qs}` : '/jobs', { scroll: false })
   }, [debouncedQ, role, state, remote, empType, verifiedOnly, router])
 
-  const filtered = useMemo(() => {
-    const qLower = debouncedQ.trim().toLowerCase()
-    return jobs.filter((j) => {
-      if (role && j.role !== role) return false
-      if (state && j.state !== state) return false
-      if (remote && j.remote_hybrid !== remote) return false
-      if (empType && j.employment_type !== empType) return false
-      if (verifiedOnly && (!j.employer_id || !verifiedSet.has(j.employer_id))) return false
-      if (qLower) {
-        const hay = [j.title, j.role, j.city, j.state, j.specialty]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-        if (!hay.includes(qLower)) return false
-      }
-      return true
-    })
-    // Depend on debouncedQ (the 300ms-trailing copy) — depending on `q`
-    // here would re-filter on every keystroke and defeat the debounce.
-  }, [jobs, debouncedQ, role, state, remote, empType, verifiedOnly, verifiedSet])
-
-  const activeFilterCount = [role, state, remote, empType].filter(Boolean).length + (verifiedOnly ? 1 : 0)
-
-  // Cap visible results to avoid rendering hundreds of DOM nodes at once.
-  // When unfiltered, 50 cards is plenty above the fold; a "Show more" row
-  // lets users page through without a full virtual list.
+  // ── Server-side results ──────────────────────────────────────────────
+  // Was: in-memory filtering over the entire ~12K-job corpus (the 5.5MB
+  // payload). Now the page SSRs only the first 50 jobs; every filter change +
+  // "show more" hits /api/jobs/search. `results` accumulates across pages;
+  // `total` is the server's filtered count.
   const PAGE_SIZE = 50
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  // Reset display window when filters change. React 19 flags setState-in-effect;
-  // the recommended pattern is to compare against a tracked key during render.
-  const filterKey = `${debouncedQ}|${role}|${state}|${remote}|${empType}|${verifiedOnly}`
-  const [activeFilterKey, setActiveFilterKey] = useState(filterKey)
-  if (filterKey !== activeFilterKey) {
-    setActiveFilterKey(filterKey)
-    setVisibleCount(PAGE_SIZE)
+  const [results, setResults] = useState<PublicJob[]>(initialJobs)
+  const [total, setTotal] = useState<number>(totalActive)
+  const [loading, setLoading] = useState(false)
+  const [errored, setErrored] = useState(false)
+  const pageRef = useRef(0)
+  // Monotonic request token: a response only applies if it's still current, so
+  // a debounced filter change can't be clobbered by a slower in-flight "show
+  // more" (or vice-versa).
+  const reqTokenRef = useRef(0)
+
+  // Did the page load WITH filters in the URL (a deep link)? If so we must
+  // fetch on mount — the SSR'd initialJobs reflects the UNFILTERED first page.
+  const initialHadFilters = useRef(
+    !!(
+      searchParams.get('q') ||
+      searchParams.get('role') ||
+      searchParams.get('state') ||
+      searchParams.get('remote') ||
+      searchParams.get('type') ||
+      searchParams.get('verified')
+    )
+  )
+
+  const buildParams = useCallback(
+    (pageNum: number) => {
+      const params = new URLSearchParams()
+      if (debouncedQ.trim()) params.set('q', debouncedQ.trim())
+      if (role) params.set('role', role)
+      if (state) params.set('state', state)
+      if (remote) params.set('remote', remote)
+      if (empType) params.set('type', empType)
+      if (verifiedOnly) params.set('verified', '1')
+      if (pageNum > 0) params.set('page', String(pageNum))
+      return params
+    },
+    [debouncedQ, role, state, remote, empType, verifiedOnly],
+  )
+
+  // Re-fetch page 0 on any (debounced) filter change. Skip on the very first
+  // render unless the URL already carried filters (initialJobs covers the
+  // unfiltered case, so no fetch flash on a clean load).
+  const didMount = useRef(false)
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true
+      if (!initialHadFilters.current) return
+    }
+    const token = ++reqTokenRef.current
+    setLoading(true)
+    setErrored(false)
+    fetch(`/api/jobs/search?${buildParams(0).toString()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (token !== reqTokenRef.current) return
+        setResults((data.jobs ?? []) as PublicJob[])
+        setTotal(typeof data.total === 'number' ? data.total : 0)
+        pageRef.current = 0
+      })
+      .catch(() => {
+        if (token === reqTokenRef.current) setErrored(true)
+      })
+      .finally(() => {
+        if (token === reqTokenRef.current) setLoading(false)
+      })
+  }, [buildParams])
+
+  const showMore = () => {
+    const next = pageRef.current + 1
+    const token = ++reqTokenRef.current
+    setLoading(true)
+    setErrored(false)
+    fetch(`/api/jobs/search?${buildParams(next).toString()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (token !== reqTokenRef.current) return
+        setResults((prev) => [...prev, ...((data.jobs ?? []) as PublicJob[])])
+        if (typeof data.total === 'number') setTotal(data.total)
+        pageRef.current = next
+      })
+      .catch(() => {
+        if (token === reqTokenRef.current) setErrored(true)
+      })
+      .finally(() => {
+        if (token === reqTokenRef.current) setLoading(false)
+      })
   }
-  const displayed = filtered.slice(0, visibleCount)
+
+  const activeFilterCount =
+    [role, state, remote, empType].filter(Boolean).length + (verifiedOnly ? 1 : 0)
+  const hasMore = results.length < total
 
   return (
     <>
@@ -240,17 +302,18 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
 
       {/* Results count */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-bold">
-          {filtered.length} {filtered.length === 1 ? 'role' : 'roles'}
-          {filtered.length !== jobs.length && ` of ${jobs.length}`}
-          {displayed.length < filtered.length && ` · showing ${displayed.length}`}
+        <p className="text-sm font-bold" aria-live="polite">
+          {total} {total === 1 ? 'role' : 'roles'}
+          {total !== totalActive && ` of ${totalActive}`}
+          {results.length < total && ` · showing ${results.length}`}
+          {loading && <span className="text-gray-500 font-normal ml-2">· searching…</span>}
         </p>
       </div>
 
       {/* Results list */}
-      {filtered.length > 0 ? (
+      {results.length > 0 ? (
         <ul className="divide-y-2 divide-black border-y-2 border-black">
-          {displayed.map((job) => {
+          {results.map((job) => {
             const loc = locationLabel(job)
             const sal = formatSalary(job.salary_min, job.salary_max)
             const rem = remoteLabel(job.remote_hybrid)
@@ -310,23 +373,38 @@ export default function JobsFilter({ jobs, roles, states, verifiedEmployerIds }:
         <></>
       )}
 
-      {/* Load more — only shown when there are more results beyond the display cap */}
-      {displayed.length < filtered.length && (
+      {/* Load more — fetches the next server page and appends. */}
+      {hasMore && !errored && (
         <div className="text-center mt-6">
           <button
             type="button"
-            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="border-2 border-black px-6 py-3 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+            onClick={showMore}
+            disabled={loading}
+            className="border-2 border-black px-6 py-3 text-sm font-bold hover:bg-black hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Show {Math.min(PAGE_SIZE, filtered.length - displayed.length)} more
-            <span className="text-gray-500 font-normal ml-2">
-              ({filtered.length - displayed.length} remaining)
-            </span>
+            {loading ? (
+              'Loading…'
+            ) : (
+              <>
+                Show {Math.min(PAGE_SIZE, total - results.length)} more
+                <span className="text-gray-500 font-normal ml-2">
+                  ({total - results.length} remaining)
+                </span>
+              </>
+            )}
           </button>
         </div>
       )}
 
-      {filtered.length === 0 && (
+      {errored && (
+        <div className="text-center mt-6">
+          <p className="text-sm font-bold text-red-700">
+            Couldn&apos;t reach the server — check your connection and try again.
+          </p>
+        </div>
+      )}
+
+      {total === 0 && !loading && (
         <div className="py-12 text-center border-2 border-black bg-gray-50">
           <p className="font-bold mb-2">No matches.</p>
           <p className="text-gray-600 text-sm">Try widening your filters.</p>

@@ -45,75 +45,79 @@ export const metadata: Metadata = {
 export const revalidate = 14400
 
 export default async function JobsIndexPage() {
-  // Fetch jobs, the total count, and the verified-employer ID set in parallel.
-  //
-  // - jobsBatches: the actual rendered list. Ordering by updated_at (not
-  //   created_at) keeps any single big ingest (e.g. the +2,361 USAJobs federal
-  //   jobs from the 2026-05-16 v12 deploy) from monopolising the top — every
-  //   4h cron tick re-touches Workday/Greenhouse/Lever rows, bubbling them
-  //   back into the top window. Fetched as N parallel .range() batches of
-  //   1,000 because Supabase's anon-role PostgREST hard-caps single queries
-  //   at 1,000 rows (`pgrst.db_max_rows=1000`); a single .limit(N) silently
-  //   clamps. NUM_BATCHES=12 gives us 12,000 rows — covers current inventory
-  //   (~9,616 active jobs as of 2026-05-21) with headroom for growth. Bumped
-  //   from 9 → 12 on 2026-05-21 once /jobs.xml hit the 9-batch ceiling
-  //   (commit 94997ca region); keeping the constants aligned across the
-  //   feeds and the on-site listing prevents drift. All batches fire in
-  //   parallel so wall time stays ~200ms regardless.
-  // - countRes: gives the honest total for the "OPEN ROLES" badge, decoupled
-  //   from how many we actually rendered. Without this the badge said "500"
-  //   even when the DB had 8,000+ active jobs.
-  // - verifiedRes: surfaces the verified pool as a filter pill in JobsFilter.
-  const NUM_BATCHES = 12
-  const BATCH_SIZE = 1000
+  // 2026-05-28 payload refactor. This page used to fetch the ENTIRE active
+  // corpus (12 × 1,000-row batches ≈ 12K jobs) and hand it all to JobsFilter
+  // for in-memory filtering — ~5.5MB / 803KB gzip on every visit, of which
+  // only 50 cards ever rendered. Now the page is a slim ISR-static shell that
+  // ships just the first 50 jobs; all subsequent filtering + "show more" hits
+  // /api/jobs/search, which is only invoked on real human interaction (bots
+  // crawl the cached shell and never touch the filter UI). See that route +
+  // jobs-filter.tsx for the client side.
+  const INITIAL_PAGE_SIZE = 50
+  // role/state are low-cardinality (~dozens of roles, ≤51 states), so a single
+  // 1,000-row sample of the newest jobs contains every distinct value in
+  // practice — enough to populate the dropdowns without re-fetching the corpus.
+  // Anything rarer than that is still reachable via the (server-side) search box.
+  const OPTIONS_SAMPLE = 1000
   const nowIso = new Date().toISOString()
-  const baseJobs = () => supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', nowIso)
-    .order('updated_at', { ascending: false })
-  const jobsBatchPromises = Array.from({ length: NUM_BATCHES }, (_, i) =>
-    baseJobs().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-  )
-  const [countRes, verifiedRes, ...jobsBatches] = await Promise.all([
+
+  const [initialRes, optionsRes, countRes, verifiedRes] = await Promise.all([
+    // First page of jobs — SSR'd for SEO + instant paint. updated_at DESC so
+    // each 4h ingest tick bubbles re-touched ATS rows to the top (keeps the
+    // listing lively without one big ingest monopolising the front page).
+    supabase
+      .from('public_jobs')
+      .select(JOB_LIST_FIELDS)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', nowIso)
+      .order('updated_at', { ascending: false })
+      .range(0, INITIAL_PAGE_SIZE - 1),
+    // role + state only → derive the filter dropdown options.
+    supabase
+      .from('public_jobs')
+      .select('role, state')
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', nowIso)
+      .order('updated_at', { ascending: false })
+      .range(0, OPTIONS_SAMPLE - 1),
+    // Honest total for the "OPEN ROLES" badge — decoupled from how many we render.
     supabase
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', nowIso),
+    // Verified employer pool → the "VERIFIED ONLY" pill + per-card ✓.
+    // Exclude seeded Ava inventory + ATS imports — "verified" should only mean
+    // a real third-party employer confirmed via domain email. Seeded jobs are
+    // cold-start placeholders; ATS imports are Greenhouse/Lever public-feed
+    // pulls with no employer relationship. company_name guard is defence-in-
+    // depth in case verified_via gets reset (S7 honesty).
     supabase
       .from('public_employers_directory')
       .select('id')
       .not('verified_at', 'is', null)
-      // Exclude seeded Ava inventory + ATS imports — "verified" should only
-      // mean a real third-party employer confirmed via domain email. Seeded
-      // jobs are placeholders during cold-start; ATS imports are Greenhouse/
-      // Lever public-feed pulls where we don't have an employer relationship.
-      // Without these filters, the "VERIFIED ONLY" pill + green checks would
-      // appear on jobs that don't carry that trust signal (S7 honesty).
-      // company_name guard is defence-in-depth in case verified_via gets reset.
       .not('verified_via', 'in', '(seeded,ats_import)')
       .not('company_name', 'ilike', 'Ava Health%'),
-    ...jobsBatchPromises,
   ])
 
-  const jobs: PublicJob[] = jobsBatches.flatMap(
-    (b) => (b.data ?? []) as PublicJob[]
-  )
-  const totalActive: number = countRes.count ?? jobs.length
+  const initialJobs: PublicJob[] = (initialRes.data ?? []) as PublicJob[]
+  const totalActive: number = countRes.count ?? initialJobs.length
   const verifiedEmployerIds: string[] = (
     (verifiedRes.data ?? []) as Array<{ id: string }>
   ).map((row) => row.id)
 
-  // Unique filter values derived from the result set
+  const optionRows = (optionsRes.data ?? []) as Array<{
+    role: string | null
+    state: string | null
+  }>
   const roles = Array.from(
-    new Set(jobs.map((j) => j.role?.trim()).filter((r): r is string => !!r))
+    new Set(optionRows.map((j) => j.role?.trim()).filter((r): r is string => !!r))
   ).sort()
   const states = Array.from(
-    new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
+    new Set(optionRows.map((j) => j.state?.trim()).filter((s): s is string => !!s))
   ).sort()
 
   // NOTE: JobPosting JSON-LD is intentionally NOT emitted here.
@@ -138,12 +142,12 @@ export default async function JobsIndexPage() {
   // numbered list. URL + name only — no employer/salary, mirroring the
   // per-hub policy on /specialty + /state. Capped at 30 items (Google
   // ignores past ~30).
-  const itemListJsonLd = jobs.length > 0 ? {
+  const itemListJsonLd = initialJobs.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: 'Healthcare jobs on freejobpost.co',
-    numberOfItems: Math.min(jobs.length, 30),
-    itemListElement: jobs.slice(0, 30).map((j, i) => ({
+    numberOfItems: Math.min(initialJobs.length, 30),
+    itemListElement: initialJobs.slice(0, 30).map((j, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       url: `https://freejobpost.co/jobs/${j.slug}`,
@@ -216,7 +220,8 @@ export default async function JobsIndexPage() {
         <section className="max-w-6xl mx-auto px-6 py-10">
           <Suspense fallback={<div className="h-32" aria-hidden="true" />}>
             <JobsFilter
-              jobs={jobs}
+              initialJobs={initialJobs}
+              totalActive={totalActive}
               roles={roles}
               states={states}
               verifiedEmployerIds={verifiedEmployerIds}
@@ -225,7 +230,7 @@ export default async function JobsIndexPage() {
         </section>
 
         {/* Empty-state safeguard */}
-        {jobs.length === 0 && (
+        {initialJobs.length === 0 && (
           <section className="max-w-6xl mx-auto px-6 py-20 text-center">
             <p className="text-2xl font-bold mb-3">No open jobs yet.</p>
             <p className="text-gray-600 mb-6">
