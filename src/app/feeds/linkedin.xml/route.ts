@@ -28,7 +28,9 @@ import {
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm } from '@/lib/feed-builders'
 
-export const revalidate = 900
+// 6h ISR: LinkedIn polls every 4–24h (see header), so sub-hour regen was
+// pure Vercel invocation cost (2026-05-28 cost pass). See jobs.xml rationale.
+export const revalidate = 21600
 
 function cdata(s: string | null | undefined): string {
   const v = (s ?? '').replace(/]]>/g, ']]]]><![CDATA[>')

@@ -53,17 +53,22 @@ import {
   isBuildPhase,
 } from '@/lib/feed-builders'
 
-// Refresh the feed every 15 minutes — aggregators re-crawl on their own
-// schedule (Indeed ~4h, Google ~24h) so sub-hour ISR is overkill, but we
-// keep it moving.
+// Refresh every 6 hours. This is the heaviest feed (12-batch query +
+// ~35MB serialization per regen), and its consumers re-crawl on their own
+// far-slower schedules: Indeed ~4h, Google for Jobs ~24h, the rest daily+.
+// At the old 900s (96 regens/day) we paid that heavy regen ~96×/day to
+// serve crawlers who poll a handful of times/day — pure Vercel-invocation
+// waste (2026-05-28 cost pass). 21600s (4 regens/day) keeps the feed well
+// within every consumer's freshness tolerance (a job stale by ≤6h is
+// invisible — listings are valid for weeks) while cutting regen cost 24×.
 //
 // IMPORTANT: do NOT add `export const dynamic = 'force-static'` here. The
 // previous version had it (May 16 deploy), which contradicted `revalidate`
 // and pinned the response to whatever inventory existed at build time.
 // Without force-static, Next.js generates this route at ISR cadence,
-// honoring the 900s revalidate window. The route reads no per-request
-// inputs so it's still cacheable at the CDN edge.
-export const revalidate = 900
+// honoring the revalidate window. The route reads no per-request inputs
+// so it's still cacheable at the CDN edge.
+export const revalidate = 21600
 
 export async function GET(req: NextRequest): Promise<Response> {
   // Per-partner attribution: every <url> in the body becomes

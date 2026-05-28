@@ -14,7 +14,10 @@ import {
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, isBuildPhase } from '@/lib/feed-builders'
 
-export const revalidate = 900
+// 1h ISR: RSS readers (Feedly/Inoreader) poll ~hourly, so keep this one
+// fresher than the 6h partner feeds, but 900s was still 4× over-regen
+// (2026-05-28 cost pass).
+export const revalidate = 3600
 
 function escapeXml(s: string | null | undefined): string {
   return (s ?? '')

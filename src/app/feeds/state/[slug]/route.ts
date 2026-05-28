@@ -12,7 +12,9 @@ import {
 import { jobUrlWithUtm } from '@/lib/feed-builders'
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 
-export const revalidate = 900
+// 6h ISR: niche RSS/aggregator consumers poll hourly+ at most, so sub-hour
+// regen was pure Vercel invocation cost (2026-05-28 cost pass).
+export const revalidate = 21600
 
 export async function generateStaticParams() {
   return STATE_HUBS.map((s) => ({ slug: s.slug }))

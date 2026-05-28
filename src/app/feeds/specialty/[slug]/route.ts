@@ -19,7 +19,9 @@ import { jobUrlWithUtm } from '@/lib/feed-builders'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 
-export const revalidate = 900
+// 6h ISR: niche RSS/aggregator consumers poll hourly+ at most, so sub-hour
+// regen was pure Vercel invocation cost (2026-05-28 cost pass).
+export const revalidate = 21600
 
 export async function generateStaticParams() {
   return SPECIALTY_HUBS.map((s) => ({ slug: s.slug }))
