@@ -11,6 +11,41 @@ import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
 export const revalidate = 3600
 
+// DB-independent fallback sitemap. Returned only when the job query comes
+// back empty (DB saturation) so we never emit a 0-URL sitemap or fail the
+// build. Includes the homepage + the static hub roots + the per-hub index
+// pages built from in-memory config (SPECIALTY_HUBS/STATE_HUBS/CITY_HUBS) —
+// none of which touch the DB. The full job-detail + matrix URL set returns
+// on the next healthy revalidate.
+function STATIC_FALLBACK_ROUTES(): MetadataRoute.Sitemap {
+  const base = 'https://freejobpost.co'
+  const now = new Date()
+  const core: MetadataRoute.Sitemap = [
+    { url: `${base}/`, changeFrequency: 'daily', priority: 1.0, lastModified: now },
+    { url: `${base}/jobs`, changeFrequency: 'hourly', priority: 0.9, lastModified: now },
+    { url: `${base}/jobs/federal`, changeFrequency: 'daily', priority: 0.85, lastModified: now },
+    { url: `${base}/employers`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${base}/post-job`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/for-employers`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/how-it-works`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${base}/changelog`, changeFrequency: 'weekly', priority: 0.4 },
+    { url: `${base}/e-verify`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
+  ]
+  const specialtyRoots: MetadataRoute.Sitemap = SPECIALTY_HUBS.map((s) => ({
+    url: `${base}/specialty/${s.slug}`, changeFrequency: 'daily' as const, priority: 0.8,
+  }))
+  const stateRoots: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
+    url: `${base}/state/${s.slug}`, changeFrequency: 'daily' as const, priority: 0.8,
+  }))
+  const cityRoots: MetadataRoute.Sitemap = CITY_HUBS.map((c) => ({
+    url: `${base}/city/${c.slug}`, changeFrequency: 'daily' as const, priority: 0.75,
+  }))
+  return [...core, ...specialtyRoots, ...stateRoots, ...cityRoots]
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = 'https://freejobpost.co'
 
@@ -56,14 +91,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const jobsData = jobsBatches.flatMap(
     (b) => (b.data ?? []) as { slug: string; updated_at: string }[]
   )
-  // FAIL CLOSED (2026-05-28): an empty sitemap is the WORST cache-poison —
-  // it tells Google "this site has zero pages," which can drop the whole
-  // domain from the index. We always have thousands of active jobs, so 0
-  // fetched = DB failure (e.g. providers directory RPCs saturating the
-  // shared Postgres). Throw so Next.js serves the last-good cached sitemap
-  // (revalidate=3600) instead of overwriting it with an empty one.
+  // FAIL SOFT (2026-05-28): an empty sitemap is the worst cache-poison — it
+  // tells Google "this site has zero pages," which can drop the whole domain
+  // from the index. We always have thousands of active jobs, so 0 fetched =
+  // DB failure (e.g. providers directory RPCs saturating the shared Postgres,
+  // observed 2026-05-28). But sitemap.ts is pre-rendered at BUILD time, so
+  // THROWING here would abort the whole deploy if the DB is down during a
+  // build. Instead, degrade to a static-routes-only sitemap: never empty,
+  // never 0 pages, never a build failure. The full job/hub URL set returns on
+  // the next revalidate (3600s) once the DB is healthy. Static routes don't
+  // touch the DB, so this branch is always safe.
   if (jobsData.length === 0) {
-    throw new Error('sitemap: 0 jobs fetched — refusing to emit an empty sitemap (likely DB saturation).')
+    return STATIC_FALLBACK_ROUTES()
   }
   const maxJobUpdate = jobsData[0]?.updated_at
     ? new Date(jobsData[0].updated_at)
