@@ -13,11 +13,11 @@ import {
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
-// Partner-attribution allowlist + normalizer live in
-// src/lib/partner-attribution.ts (shared with /jobs.xml). Anything outside
-// the known set collapses to 'internal' so a malicious ?ref doesn't
-// pollute apply_clicks.
-import { normalizePartner } from '@/lib/partner-attribution'
+// The "Apply on employer site" CTA is a client component so it can read the
+// ?ref=<partner> attribution param client-side. Keeping that read OUT of this
+// server component is what lets /jobs/[slug] render as static ISR rather than
+// dynamic-per-request — see ApplyExternalLink + the revalidate note below.
+import ApplyExternalLink from '@/components/ApplyExternalLink'
 // Hub-link helpers — drive the BROWSE MORE internal-linking section so
 // per-job pages route PageRank back to the matching specialty / state
 // hubs + employer page. Without these, /jobs/[slug] had zero links
@@ -38,25 +38,34 @@ import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 
 type Props = {
   params: Promise<{ slug: string }>
-  // ?ref=<partner> attribution carried from publisher feeds (Indeed,
-  // Talent.com, Adzuna, etc.) lets us tag the apply-click that follows.
-  // Defaults to 'internal' when absent (visitors who land via Google / SEO).
-  searchParams?: Promise<{ ref?: string }>
 }
 
-// 2026-05-28: 600s → 86400s (24h). ISR cost audit found /jobs/[slug]
-// regeneration was the dominant Vercel invocation driver — 13.8K job
-// pages × revalidate-on-crawl, with Googlebot + Bing + the 14 partner
-// feeds we publish all walking the surface continuously. At 600s every
-// crawler revisit past 10 min forced a background regen (invocation +
-// 3-6 DB queries). Job content is STATIC after the 4h ingest cron writes
-// it — the body never changes in place; jobs only get added (new slug =
-// fresh first-render regardless of this window) or expire (filtered by
-// the getJob query). So a 24h window is plenty fresh. Cuts per-page regen
-// frequency 144× (86400/600). A backfilled thin→rich description now flips
-// noindex→index within 24h instead of 10 min, which is irrelevant given
-// Google's own recrawl cadence is multi-day.
+// ISR window: 24h. Job content is STATIC after the 4h ingest cron writes it
+// (the body never changes in place; jobs only get added — new slug = fresh
+// first-render — or expire, filtered by getJob), so 24h is plenty fresh;
+// Google's own recrawl cadence is multi-day anyway.
+//
+// 2026-05-28, two passes:
+//   1. 600s → 86400s in the first ISR cost audit.
+//   2. CRITICAL follow-up: that revalidate was a NO-OP. This page read
+//      `searchParams` (?ref attribution) — a Next dynamic API — which forced
+//      the entire 13.8K-page surface into DYNAMIC rendering. Every crawler hit
+//      (Googlebot + Bing + the 14 partner feeds, walking the surface
+//      continuously) re-rendered server-side with 3-6 DB queries, and the page
+//      never entered the ISR cache. THAT was the dominant Vercel-invocation
+//      cost. Fixed by moving the ?ref read into <ApplyExternalLink>
+//      (client-side) so this page is static ISR again and 86400 takes effect.
+//      (NB: the shared supabase client still pins a 300s fetch-revalidate that
+//      caps this at 5m until raised — see lib/supabase.ts.)
 export const revalidate = 86400
+// A dynamic-param route ([slug]) with NO generateStaticParams defaults to
+// per-request DYNAMIC rendering in Next 16 — which is what kept /jobs/[slug]
+// uncached (Cache-Control: no-store) even after the searchParams removal, so
+// the revalidate above did nothing and every crawler hit re-rendered. The page
+// is now purely a function of the slug (no per-request inputs), so force it
+// static: on-demand slugs render once and ISR-cache (dynamicParams stays true
+// by default, so newly-ingested slugs still resolve + cache on first hit).
+export const dynamic = 'force-static'
 
 // Tight slug guard — lowercase, digits, hyphens only. Matches the DB slugify()
 // output shape; anything else is a scraper/garbage URL and gets 404'd without
@@ -253,10 +262,8 @@ function renderDescription(md: string): string {
     .join('')
 }
 
-export default async function JobDetailPage({ params, searchParams }: Props) {
+export default async function JobDetailPage({ params }: Props) {
   const { slug } = await params
-  const sp = searchParams ? await searchParams : {}
-  const partner = normalizePartner(sp.ref)
   const job = await getJob(slug)
   if (!job) notFound()
 
@@ -435,14 +442,12 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
                 // can log per-partner attribution. The endpoint logs + 302s
                 // to the real apply_url; failure modes still bounce the user
                 // to a usable destination.
-                <a
-                  href={`/click/${job.slug}?p=${encodeURIComponent(partner)}`}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
+                <ApplyExternalLink
+                  slug={job.slug}
                   className="inline-flex items-center justify-center bg-black text-white px-6 py-4 text-base font-bold hover:bg-green-700 transition-colors"
                 >
                   Apply on employer site →
-                </a>
+                </ApplyExternalLink>
               ) : (
                 <Link
                   href={`/jobs/${job.slug}/apply`}
