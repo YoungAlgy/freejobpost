@@ -183,10 +183,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .replace(/\n+/g, ' ')
     .slice(0, 157)
     .trim()
+
+  // 2026-05-27: thin-description noindex gate. ~6,085 Workday jobs (69% of
+  // the Workday source) carry only the listing-endpoint preview (~150 chars)
+  // until the backfill-workday-descriptions cron rehydrates them from the
+  // detail endpoint. Serving those as indexable pages is thin content —
+  // Google for Jobs rejects them and they drag the domain's quality signal.
+  //
+  // Gate on length < 300 (matches the backfill's min_length threshold). The
+  // page still renders + serves 200 + follows internal links, so it stays
+  // in the crawl graph. Once the backfill rehydrates the description past
+  // 300 chars, the next revalidate (600s) flips it back to indexable
+  // automatically — no manual re-submission needed. Self-healing.
+  const descLen = (job.description || '').trim().length
+  const isThin = descLen < 300
+
   return {
     title,
     description: desc.length > 0 ? desc + (desc.length === 157 ? '...' : '') : title,
     alternates: { canonical: `https://freejobpost.co/jobs/${slug}` },
+    ...(isThin ? { robots: { index: false, follow: true, googleBot: { index: false, follow: true } } } : {}),
     openGraph: {
       title,
       description: desc,
@@ -291,11 +307,16 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   // Google for Jobs rejects (and penalizes the whole feed for) JobPosting
   // entries with empty/thin descriptions. Some ATS-imported rows arrive
   // with no description body (provider returns only a title + apply URL).
-  // Guard: require >=50 chars of non-whitespace description before
-  // emitting JobPosting JSON-LD. Page still renders for humans; we just
-  // don't ship a known-invalid markup blob to the indexer.
+  //
+  // 2026-05-27: raised the threshold from 50 → 300 to align with the
+  // thin-page noindex gate in generateMetadata() above. A page that's
+  // noindex'd (desc < 300) shouldn't also ship JobPosting markup — that's
+  // a contradictory signal (page says "don't index", markup says "index me
+  // for Jobs"). Now both gates agree: < 300 chars = noindex + no JobPosting
+  // JSON-LD; >= 300 = indexable + full markup. Self-heals when the Workday
+  // backfill rehydrates the description (next 600s revalidate flips both).
   const descLen = (job.description ?? '').replace(/\s+/g, ' ').trim().length
-  const hasUsableDescription = descLen >= 50
+  const hasUsableDescription = descLen >= 300
   const optedIntoGoogle = optedIntoGoogleByTargets && hasUsableDescription
 
   return (
