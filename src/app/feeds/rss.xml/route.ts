@@ -58,11 +58,17 @@ export async function GET(): Promise<Response> {
   }
 
   type RssJob = PublicJob & { updated_at: string }
+  const allJobs = (data ?? []) as unknown as RssJob[]
+  // FAIL CLOSED — see jobs.xml/route.ts. 0 fetched = DB failure (always
+  // thousands of active jobs), so throw rather than cache + serve an empty
+  // RSS feed. Next.js ISR keeps serving the last-good cached feed.
+  if (allJobs.length === 0) {
+    throw new Error('rss.xml: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).')
+  }
   // Skip thin-description jobs — RSS readers (Feedly / Inoreader / Apple
   // News) treat empty <description> as a render bug and de-prioritize the
   // entire feed. Same ≥50-char rule used across all per-partner feeds;
   // see src/lib/feed-builders.ts hasUsableDescription().
-  const allJobs = (data ?? []) as unknown as RssJob[]
   const jobs = allJobs.filter((j) => {
     const stripped = (j.description ?? '')
       .replace(/<[^>]+>/g, ' ')

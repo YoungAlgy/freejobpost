@@ -270,6 +270,13 @@ export async function buildIndeedFormatFeed(
   networkLabel: string,
 ): Promise<Response> {
   const allJobs = await fetchJobsForTarget(target)
+  // FAIL CLOSED — see jobs.xml/route.ts for full rationale. 0 fetched always
+  // means DB failure (we always have thousands of active jobs), so throw
+  // rather than cache + ship an empty feed to a partner. Next.js ISR keeps
+  // serving the last-good cached feed instead of overwriting with emptiness.
+  if (allJobs.length === 0) {
+    throw new Error(`feed[${target}]: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).`)
+  }
   const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
   const employerNames = await resolveEmployerNames(jobs)
   const jobsXml = jobs
@@ -326,6 +333,13 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
 // crawl anyway.
 export async function buildOriginatedFeed(networkLabel: string): Promise<Response> {
   const allJobs = await fetchOriginatedJobs()
+  // NOTE: no fail-closed 0-guard here. Unlike the volume/strict feeds,
+  // "originated" (employer-posted, is_ats_import=false) inventory is
+  // legitimately small (~422 today) and CAN genuinely reach 0 if all
+  // employer posts expire — that's a real state, not necessarily DB
+  // failure, so throwing would risk masking the real empty case. The
+  // strict partners that consume this feed tolerate an occasional empty
+  // originated feed. (If this grows into a core partner surface, revisit.)
   // Same thin-description filter as buildIndeedFormatFeed — strict
   // partners are even more sensitive to thin content than volume
   // partners. See hasUsableDescription() for context.

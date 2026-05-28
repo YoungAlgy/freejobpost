@@ -105,6 +105,28 @@ export async function GET(req: NextRequest): Promise<Response> {
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   const allJobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 
+  // FAIL CLOSED (2026-05-28): if the DB query failed/timed out, every batch
+  // returns { data: null, error } and allJobs is []. Without this guard the
+  // route would build a valid-looking but EMPTY <source> feed and ISR would
+  // cache it for 900s — shipping "0 open positions" to Indeed / Google for
+  // Jobs / Jooble, who then de-list us. We have thousands of active jobs at
+  // all times, so 0 fetched ALWAYS means infrastructure failure, never a
+  // real empty inventory.
+  //
+  // Throwing here makes Next.js ISR keep serving the LAST GOOD cached feed
+  // (stale-while-revalidate) instead of overwriting it with emptiness; on a
+  // cold cache it 500s, which is still correct (a partner retries a 500;
+  // a partner trusts a 200-with-0-jobs and drops us). Root cause this date:
+  // providers.avahealth.co directory RPCs (directory_providers, ~14-22s each)
+  // saturating the shared Postgres → freejobpost feed queries time out.
+  const anyBatchErrored = batches.some((b) => b.error)
+  if (allJobs.length === 0) {
+    throw new Error(
+      `jobs.xml: 0 jobs fetched (anyBatchErrored=${anyBatchErrored}) — ` +
+      `refusing to cache an empty feed. Serving last-good ISR cache instead.`,
+    )
+  }
+
   // Thin-description filter. Indeed v2 / Google for Jobs / Talent.com /
   // Jooble / ZipRecruiter all penalize feeds with high percentages of
   // empty-body listings — and our /jobs.xml is the ONE feed Indeed,

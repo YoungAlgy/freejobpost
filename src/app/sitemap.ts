@@ -56,6 +56,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const jobsData = jobsBatches.flatMap(
     (b) => (b.data ?? []) as { slug: string; updated_at: string }[]
   )
+  // FAIL CLOSED (2026-05-28): an empty sitemap is the WORST cache-poison —
+  // it tells Google "this site has zero pages," which can drop the whole
+  // domain from the index. We always have thousands of active jobs, so 0
+  // fetched = DB failure (e.g. providers directory RPCs saturating the
+  // shared Postgres). Throw so Next.js serves the last-good cached sitemap
+  // (revalidate=3600) instead of overwriting it with an empty one.
+  if (jobsData.length === 0) {
+    throw new Error('sitemap: 0 jobs fetched — refusing to emit an empty sitemap (likely DB saturation).')
+  }
   const maxJobUpdate = jobsData[0]?.updated_at
     ? new Date(jobsData[0].updated_at)
     : new Date()
