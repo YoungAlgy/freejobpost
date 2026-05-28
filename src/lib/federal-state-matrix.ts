@@ -26,10 +26,14 @@ const MIN_JOBS_PER_CELL = 5
  * Pull every active federal job once, run agency-match in JS, group by
  * (agency, state). Returns cells with ≥5 jobs in deterministic order.
  *
- * Single query rather than per-cell .count() — there are at most ~2,500
- * federal rows in inventory, well under the PostgREST anon-role 1,000-cap
- * threshold IF we cap one batch... but we expect to grow. Fetch in two
- * .range() batches like /jobs/page.tsx does, then process JS-side.
+ * 2026-05-27: switched from a raw `select state,title,description` (which
+ * had grown to 6.4MB — over the Next.js 2MB data-cache cap, forcing a
+ * re-fetch on every page and spiking SSG build time enough to time out
+ * /jobs/federal builds) to the `federal_jobs_for_match()` RPC which
+ * truncates description to 250 chars server-side. The agency keyword
+ * lands in the first sentence of every USAJobs body, so the truncated
+ * text preserves the JS-side match signal while dropping the payload to
+ * ~950KB — back under the cache cap.
  *
  * Used by:
  *   - generateStaticParams on /jobs/federal/[agency]/[state]
@@ -40,28 +44,14 @@ const MIN_JOBS_PER_CELL = 5
 export async function computeViableFederalCells(
   supabase: SupabaseClient,
 ): Promise<FederalMatrixCell[]> {
-  const nowIso = new Date().toISOString()
-  const baseFed = () => supabase
-    .from('public_jobs')
-    .select('state, title, description')
-    .eq('source', 'usajobs:federal')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', nowIso)
-
-  // Two .range() batches to bypass the PostgREST 1,000-row cap. Current
-  // federal inventory is ~2,361 rows; two batches covers it with headroom.
-  // If federal grows past 2,000, add a third batch.
-  const [batch1, batch2] = await Promise.all([
-    baseFed().range(0, 999),
-    baseFed().range(1000, 1999),
-  ])
+  const { data, error } = await supabase.rpc('federal_jobs_for_match')
+  if (error) {
+    console.error('federal_jobs_for_match RPC error:', error)
+    return []
+  }
 
   type JobRow = { state: string | null; title: string | null; description: string | null }
-  const jobs: JobRow[] = [
-    ...((batch1.data ?? []) as JobRow[]),
-    ...((batch2.data ?? []) as JobRow[]),
-  ]
+  const jobs: JobRow[] = (data ?? []) as JobRow[]
 
   const byAbbr = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.abbr, s]))
   const counts = new Map<string, FederalMatrixCell>()
