@@ -12,15 +12,33 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Single anon client shared across RSC renders.
-// The custom fetch wrapper opts into Next's ISR cache — without it supabase-js
-// sets no-store which forces every render dynamic. Per-page `export const
-// revalidate` overrides the 300s default when a page needs fresher data.
+//
+// The custom fetch wrapper opts into Next's Data Cache — without it supabase-js
+// sets cache:'no-store', which forces every page dynamic.
+//
+// IMPORTANT (2026-05-28 cost pass): this fetch revalidate is a FLOOR on how
+// often every DB-backed page regenerates. Next uses the LOWEST of (segment
+// `export const revalidate`, all fetch revalidates) — so a page's *longer*
+// revalidate (jobs/[slug]=24h, the specialty/state/city matrix=6h, /jobs=4h)
+// CANNOT take effect while this is shorter. At the old 300s, every content
+// page — thousands of SSG matrix pages plus the job surface — regenerated
+// every 5 minutes on crawl regardless of its own config. That was a major
+// Vercel-invocation driver, and the earlier per-page revalidate bumps were
+// silently capped to 5m by this line.
+//
+// Raised to 3600 (1h): 12x fewer regens. 1h is also the SHORTEST page
+// revalidate (homepage), so regen-frequency == this fetch cache — meaning
+// data is never staler than 1h (no multi-hour staleness from a longer floor).
+// Job content is immutable post-ingest and the ingest cron runs every 4h, so
+// 1h freshness is plenty. (Honoring the longer per-page tiers EXACTLY would
+// need per-page clients; 1h is the safe global sweet spot. Feeds use
+// supabaseFresh below + their own s-maxage, so they're unaffected.)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     fetch: (url, options = {}) => {
       return fetch(url, {
         ...options,
-        next: { revalidate: 300 },
+        next: { revalidate: 3600 },
       } as RequestInit)
     },
   },

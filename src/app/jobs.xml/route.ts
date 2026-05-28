@@ -220,7 +220,11 @@ ${jobsXml}
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+      // 6h CDN cache (was 15m). This route is DYNAMIC (supabaseFresh = no-store),
+      // so `export const revalidate` is moot — THIS header is the real cache
+      // lever. Partners re-crawl every 4-24h; swr=24h serves stale instantly
+      // during regen. 2026-05-28 cost pass (24x fewer origin renders).
+      'Cache-Control': 'public, s-maxage=21600, stale-while-revalidate=86400',
     },
   })
 }

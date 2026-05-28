@@ -128,7 +128,10 @@ ${items}
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/rss+xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+      // 6h CDN cache (was 15m) — the real lever for this dynamic (no-store)
+      // route; export const revalidate is moot. swr=24h serves stale during
+      // regen. 2026-05-28 cost pass.
+      'Cache-Control': 'public, s-maxage=21600, stale-while-revalidate=86400',
     },
   })
 }

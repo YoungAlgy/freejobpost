@@ -305,7 +305,11 @@ export async function buildIndeedFormatFeed(
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+      // 6h CDN cache (was 15m). These builders power the dynamic (no-store)
+      // per-partner feed routes, so the route's export const revalidate is
+      // moot — THIS header governs origin-render frequency. Partners re-crawl
+      // every 4-24h; swr=24h serves stale instantly. 2026-05-28 cost pass.
+      'Cache-Control': 'public, s-maxage=21600, stale-while-revalidate=86400',
     },
   })
 }
@@ -406,7 +410,11 @@ export async function buildOriginatedFeed(networkLabel: string): Promise<Respons
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=3600',
+      // 6h CDN cache (was 15m). These builders power the dynamic (no-store)
+      // per-partner feed routes, so the route's export const revalidate is
+      // moot — THIS header governs origin-render frequency. Partners re-crawl
+      // every 4-24h; swr=24h serves stale instantly. 2026-05-28 cost pass.
+      'Cache-Control': 'public, s-maxage=21600, stale-while-revalidate=86400',
     },
   })
 }
