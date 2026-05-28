@@ -71,6 +71,27 @@ async function fetchCellJobs(matchPatterns: readonly string[], stateAbbr: string
   return (data ?? []) as PublicJob[]
 }
 
+// Count-only query for the thin-cell noindex gate in generateMetadata.
+// head:true → no rows transferred, just the count.
+async function fetchCellCount(matchPatterns: readonly string[], stateAbbr: string): Promise<number> {
+  const { count } = await supabase
+    .from('public_jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .eq('state', stateAbbr)
+    .or(buildHubOrFilter(matchPatterns))
+  return count ?? 0
+}
+
+// SEO viability floor — matches the city×specialty sibling's ≥5 gate. A
+// specialty×state cell with 1-4 jobs renders (good UX + internal links +
+// the sparse-inventory message) but is noindex'd so Google doesn't index
+// thin pages. dynamicParams=true means ANY cell URL with ≥1 job would
+// otherwise be served indexable on a crawler's first hit.
+const MIN_CELL_JOBS_FOR_INDEX = 5
+
 export async function generateMetadata(
   { params }: { params: Promise<Params> },
 ): Promise<Metadata> {
@@ -81,12 +102,18 @@ export async function generateMetadata(
   const cleanTitle = specialty.title.replace(/ Jobs$/, '')
   const title = `${cleanTitle} jobs in ${stateHub.name}`
   const description = `Free ${cleanTitle.toLowerCase()} job listings in ${stateHub.name} — salary ranges, apply directly, no recruiter spam. Real openings on freejobpost.co.`
+  // Thin-cell noindex gate (see MIN_CELL_JOBS_FOR_INDEX). Cells with 1-4
+  // jobs render but aren't indexed; ≥5 index normally. Self-heals as
+  // inventory grows (6h revalidate re-evaluates).
+  const cellCount = await fetchCellCount(specialty.matchPatterns, stateHub.abbr)
+  const isThinCell = cellCount > 0 && cellCount < MIN_CELL_JOBS_FOR_INDEX
   return {
     title,
     description,
     alternates: {
       canonical: `https://freejobpost.co/specialty/${specialty.slug}/${stateHub.slug}`,
     },
+    ...(isThinCell ? { robots: { index: false, follow: true, googleBot: { index: false, follow: true } } } : {}),
     openGraph: {
       title: `${title} | freejobpost.co`,
       description,
