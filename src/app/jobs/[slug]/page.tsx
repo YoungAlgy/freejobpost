@@ -26,6 +26,13 @@ import { findSpecialtyHub } from '@/lib/specialty-slugs'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { findCityHub } from '@/lib/city-slugs'
 import { buildJobPostingJsonLd } from '@/lib/job-posting-jsonld'
+// Shared "is this description rich enough to index / syndicate?" check.
+// Single source of truth (MIN_DESCRIPTION_CHARS=250, HTML-stripped) so the
+// /jobs/[slug] noindex gate + JobPosting JSON-LD gate stay aligned with the
+// /jobs.xml + per-partner feed filters. Avoids the split where a 250-299
+// char job appears in the Google-for-Jobs feed but is noindex'd on its
+// own landing page.
+import { hasUsableDescription } from '@/lib/feed-builders'
 import { getViableCellsCached } from '@/lib/specialty-state-matrix'
 import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 
@@ -190,13 +197,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // detail endpoint. Serving those as indexable pages is thin content —
   // Google for Jobs rejects them and they drag the domain's quality signal.
   //
-  // Gate on length < 300 (matches the backfill's min_length threshold). The
-  // page still renders + serves 200 + follows internal links, so it stays
-  // in the crawl graph. Once the backfill rehydrates the description past
-  // 300 chars, the next revalidate (600s) flips it back to indexable
-  // automatically — no manual re-submission needed. Self-healing.
-  const descLen = (job.description || '').trim().length
-  const isThin = descLen < 300
+  // 2026-05-28: use the shared hasUsableDescription() helper (250-char,
+  // HTML-stripped) so this gate matches the /jobs.xml + per-partner feed
+  // filters exactly. Previously a raw `length < 300` check, which could
+  // disagree with the feed's 250-char filter — a 250-299 char job would
+  // ship in the Google-for-Jobs feed but be noindex'd on its landing page.
+  // The page still serves 200 + follows internal links, so it stays in the
+  // crawl graph; once the backfill rehydrates the description the next
+  // revalidate (600s) flips it back to indexable. Self-healing.
+  const isThin = !hasUsableDescription(job.description)
 
   return {
     title,
@@ -308,16 +317,14 @@ export default async function JobDetailPage({ params, searchParams }: Props) {
   // entries with empty/thin descriptions. Some ATS-imported rows arrive
   // with no description body (provider returns only a title + apply URL).
   //
-  // 2026-05-27: raised the threshold from 50 → 300 to align with the
-  // thin-page noindex gate in generateMetadata() above. A page that's
-  // noindex'd (desc < 300) shouldn't also ship JobPosting markup — that's
-  // a contradictory signal (page says "don't index", markup says "index me
-  // for Jobs"). Now both gates agree: < 300 chars = noindex + no JobPosting
-  // JSON-LD; >= 300 = indexable + full markup. Self-heals when the Workday
-  // backfill rehydrates the description (next 600s revalidate flips both).
-  const descLen = (job.description ?? '').replace(/\s+/g, ' ').trim().length
-  const hasUsableDescription = descLen >= 300
-  const optedIntoGoogle = optedIntoGoogleByTargets && hasUsableDescription
+  // 2026-05-28: use the shared hasUsableDescription() helper (250-char,
+  // HTML-stripped) — the same gate as the noindex check above and the
+  // /jobs.xml feed filter. All three now agree exactly: thin = noindex +
+  // no JobPosting JSON-LD + excluded from partner feeds; usable = indexable
+  // + full markup + syndicated. Self-heals when the Workday backfill
+  // rehydrates the description (next 600s revalidate flips all three).
+  const descUsable = hasUsableDescription(job.description)
+  const optedIntoGoogle = optedIntoGoogleByTargets && descUsable
 
   return (
     <>
