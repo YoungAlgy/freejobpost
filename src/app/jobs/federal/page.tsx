@@ -4,11 +4,11 @@ import { supabase } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import { FEDERAL_AGENCIES, agencyOrFilter } from '@/lib/federal-agencies'
 
-// 5-min revalidate matches /jobs index. The federal page's content is mostly
-// aggregate counts + agency overview blurbs. 2026-05-28: bumped 300s →
-// 3600s (1h) in the ISR cost audit — federal inventory changes only on the
-// 4h ingest cron, so 1h is plenty fresh. See jobs/[slug] for rationale.
-export const revalidate = 3600
+// Federal content is aggregate counts + agency blurbs, refreshed only by the
+// 4h ingest cron. 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling
+// specialty/state/city hubs (all 21600s) — consistent + 6× fewer regens than
+// 1h, still well inside the 4h data cadence. See jobs/[slug] for rationale.
+export const revalidate = 21600
 
 export const metadata: Metadata = {
   // The root layout adds " | Free Job Post" via title.template — don't repeat it here.

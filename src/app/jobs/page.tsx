@@ -38,8 +38,11 @@ export const metadata: Metadata = {
   },
 }
 
-// 2026-05-28: 300s → 3600s (1h). ISR cost audit — see jobs/[slug].
-export const revalidate = 3600
+// 2026-05-28 cost pass: 300s → 1h, then → 4h. This is the heaviest page
+// (12×1000-row query + ~5.5MB render per regen); the homepage stays 1h for
+// "latest jobs" freshness, so /jobs can align to the 4h ingest cron without
+// hurting discovery. See jobs/[slug] for the broader ISR-cost rationale.
+export const revalidate = 14400
 
 export default async function JobsIndexPage() {
   // Fetch jobs, the total count, and the verified-employer ID set in parallel.

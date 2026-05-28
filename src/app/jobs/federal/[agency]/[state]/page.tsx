@@ -18,8 +18,10 @@ import {
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
-// 2026-05-28: 300s → 3600s (1h). ISR cost audit — see jobs/[slug].
-export const revalidate = 3600
+// 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling specialty/
+// state/city hubs (21600s). Federal inventory changes on the 4h ingest cron,
+// so 6h is plenty fresh. See jobs/[slug] for rationale.
+export const revalidate = 21600
 
 // Pre-render the highest-volume cells only — the federal-state-matrix
 // helper sorts cells by count DESC so the top-N slice is the SEO-most-
