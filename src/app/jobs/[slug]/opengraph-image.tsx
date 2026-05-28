@@ -9,12 +9,22 @@
 
 import { ImageResponse } from 'next/og'
 import { supabase } from '@/lib/supabase'
-import { JOB_DETAIL_FIELDS, formatSalary, employmentLabel, locationLabel } from '@/lib/public-jobs'
+import { formatSalary, employmentLabel, locationLabel } from '@/lib/public-jobs'
 
 export const runtime = 'edge'
 export const alt = 'Job posting on freejobpost.co'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
+// 2026-05-28 cost audit: the route's header comment claimed slug-level CDN
+// caching but there was no revalidate, so each scraper/crawler fetch
+// re-ran a Supabase query + re-rendered the PNG on the edge — across 13.8K
+// jobs. OG content is static per job (title/location/salary baked in once),
+// so cache for 7 days. Repeat unfurls (LinkedIn/Twitter/Slack) + crawler
+// og:image fetches now serve from cache. Self-heals on the rare edit.
+export const revalidate = 604800
+// Only the columns the card renders — dropping the full description from
+// the select (JOB_DETAIL_FIELDS pulled it) shrinks the per-miss query.
+const OG_FIELDS = 'title, city, state, salary_min, salary_max, employment_type, specialty'
 
 const BRAND = '#003D5C'
 const ACCENT = '#7FBC00'
@@ -42,7 +52,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   if (SLUG_RE.test(slug)) {
     const { data } = await supabase
       .from('public_jobs')
-      .select(JOB_DETAIL_FIELDS)
+      .select(OG_FIELDS)
       .eq('slug', slug)
       .eq('status', 'active')
       .is('deleted_at', null)
