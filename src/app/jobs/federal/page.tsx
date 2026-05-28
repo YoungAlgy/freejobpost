@@ -5,9 +5,10 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 import { FEDERAL_AGENCIES, agencyOrFilter } from '@/lib/federal-agencies'
 
 // 5-min revalidate matches /jobs index. The federal page's content is mostly
-// aggregate counts + agency overview blurbs, so a longer TTL would also be
-// defensible, but 5 min keeps it in lockstep with the rest of the listing UI.
-export const revalidate = 300
+// aggregate counts + agency overview blurbs. 2026-05-28: bumped 300s →
+// 3600s (1h) in the ISR cost audit — federal inventory changes only on the
+// 4h ingest cron, so 1h is plenty fresh. See jobs/[slug] for rationale.
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   // The root layout adds " | Free Job Post" via title.template — don't repeat it here.

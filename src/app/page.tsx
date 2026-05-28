@@ -23,8 +23,11 @@ export const metadata: Metadata = {
   },
 }
 
-// ISR: page rebuilds every 5 minutes so live job count + recent posts stay fresh
-export const revalidate = 300
+// ISR: 2026-05-28 bumped 300s → 3600s (1h). Cost audit — new jobs arrive
+// only on the 4h ingest cron, so a 1h window keeps the live count + recent
+// list fresh while cutting homepage regen 12×. See jobs/[slug] for the full
+// ISR cost rationale.
+export const revalidate = 3600
 
 type RecentJob = Pick<PublicJob, 'id' | 'slug' | 'title' | 'city' | 'state' | 'salary_min' | 'salary_max'>
 

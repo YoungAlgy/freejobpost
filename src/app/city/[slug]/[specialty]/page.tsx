@@ -25,7 +25,8 @@ import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 
-export const revalidate = 600
+// 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
+export const revalidate = 21600
 // Cells we haven't pre-rendered (i.e. specialty patterns added after
 // build, or cells that grew from <5 → ≥5 jobs between builds) should
 // 404 rather than rendering an empty page.

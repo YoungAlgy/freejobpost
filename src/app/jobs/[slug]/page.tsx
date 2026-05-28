@@ -44,7 +44,19 @@ type Props = {
   searchParams?: Promise<{ ref?: string }>
 }
 
-export const revalidate = 600
+// 2026-05-28: 600s → 86400s (24h). ISR cost audit found /jobs/[slug]
+// regeneration was the dominant Vercel invocation driver — 13.8K job
+// pages × revalidate-on-crawl, with Googlebot + Bing + the 14 partner
+// feeds we publish all walking the surface continuously. At 600s every
+// crawler revisit past 10 min forced a background regen (invocation +
+// 3-6 DB queries). Job content is STATIC after the 4h ingest cron writes
+// it — the body never changes in place; jobs only get added (new slug =
+// fresh first-render regardless of this window) or expire (filtered by
+// the getJob query). So a 24h window is plenty fresh. Cuts per-page regen
+// frequency 144× (86400/600). A backfilled thin→rich description now flips
+// noindex→index within 24h instead of 10 min, which is irrelevant given
+// Google's own recrawl cadence is multi-day.
+export const revalidate = 86400
 
 // Tight slug guard — lowercase, digits, hyphens only. Matches the DB slugify()
 // output shape; anything else is a scraper/garbage URL and gets 404'd without

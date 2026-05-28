@@ -33,7 +33,8 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 // 2026-05-22 critical PostgREST .or() double-encoding fix).
 import { buildSpecialtyOrFilter as buildHubOrFilter } from '@/lib/specialty-filter'
 
-export const revalidate = 600
+// 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
+export const revalidate = 21600
 
 // Allow on-demand ISR for cells outside the top-N pre-built set. Build was
 // timing out (60s/page Vercel cap) on the biggest cells (PA pharmacist,

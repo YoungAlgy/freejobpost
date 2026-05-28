@@ -38,7 +38,8 @@ export const metadata: Metadata = {
   },
 }
 
-export const revalidate = 300
+// 2026-05-28: 300s → 3600s (1h). ISR cost audit — see jobs/[slug].
+export const revalidate = 3600
 
 export default async function JobsIndexPage() {
   // Fetch jobs, the total count, and the verified-employer ID set in parallel.

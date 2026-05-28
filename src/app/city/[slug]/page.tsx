@@ -25,7 +25,8 @@ import { stripSalarySuffix } from '@/lib/clean-labels'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
-export const revalidate = 600
+// 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
+export const revalidate = 21600
 
 export async function generateStaticParams() {
   return CITY_HUBS.map((c) => ({ slug: c.slug }))
