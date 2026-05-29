@@ -15,7 +15,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm } from '@/lib/feed-builders'
+import { jobUrlWithUtm, hasUsableDescription } from '@/lib/feed-builders'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 
@@ -67,7 +67,12 @@ export async function GET(
     .limit(200)
 
   type RssJob = PublicJob & { updated_at: string }
-  const jobs = (data ?? []) as unknown as RssJob[]
+  // Filter thin-description jobs, matching jobs.xml + the Indeed-format feeds
+  // (a job syndicates everywhere or nowhere — on-site browse still shows them).
+  // Unifies this RSS surface with the pass-1 thin-gate work. 2026-05-28 audit.
+  const jobs = ((data ?? []) as unknown as RssJob[]).filter((j) =>
+    hasUsableDescription(j.description),
+  )
   const now = new Date().toUTCString()
   const feedTitle = `${hub.title} — freejobpost.co`
   const feedUrl = `https://freejobpost.co/feeds/specialty/${hub.slug}`

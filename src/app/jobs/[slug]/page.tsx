@@ -182,9 +182,16 @@ async function getRelated(job: PublicJob): Promise<PublicJob[]> {
     .gt('expires_at', new Date().toISOString())
     .neq('id', job.id)
     .or(
+      // Double-quote the values: role is free-text from /post-job, so a comma
+      // ("Nurse, RN") or paren would otherwise break PostgREST's .or() grammar
+      // — the comma is the term separator — silently erroring the query into an
+      // empty Related list. Quoting lets the value contain commas/parens; strip
+      // any embedded " or \ so the quoting itself stays intact. (Can't reuse
+      // sanitizeQ here — this is an exact .eq match, so stripping chars would
+      // stop it matching the stored row.) 2026-05-28 audit.
       [
-        job.role ? `role.eq.${job.role}` : null,
-        job.state ? `state.eq.${job.state}` : null,
+        job.role ? `role.eq."${job.role.replace(/["\\]/g, '')}"` : null,
+        job.state ? `state.eq."${job.state.replace(/["\\]/g, '')}"` : null,
       ]
         .filter(Boolean)
         .join(',') || 'id.neq.00000000-0000-0000-0000-000000000000'
@@ -486,6 +493,10 @@ export default async function JobDetailPage({ params }: Props) {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
+                      // datePosted is a UTC date (YYYY-MM-DD); format in UTC so
+                      // the visible date can't drift a day behind the JSON-LD
+                      // datePosted on a non-UTC runtime. 2026-05-28 audit.
+                      timeZone: 'UTC',
                     })
                   : '—'}
               </time>
@@ -497,6 +508,10 @@ export default async function JobDetailPage({ params }: Props) {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
+                  // Format in UTC so the visible "Expires" date matches the
+                  // JSON-LD validThrough (job.expires_at) regardless of the
+                  // server runtime's timezone. 2026-05-28 audit.
+                  timeZone: 'UTC',
                 })}
               </time>
             </span>

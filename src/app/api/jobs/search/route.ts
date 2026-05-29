@@ -110,17 +110,23 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const { data, count, error } = await query
   if (error) {
-    return NextResponse.json(
-      { jobs: [], total: 0, error: error.message },
-      { status: 500 },
-    )
+    // Log server-side; don't echo the raw PostgREST/DB message to the client
+    // (low-risk info leak — 2026-05-28 audit).
+    console.error('[/api/jobs/search] query error:', error.message)
+    return NextResponse.json({ jobs: [], total: 0 }, { status: 500 })
   }
 
   return NextResponse.json(
     { jobs: (data ?? []) as PublicJob[], total: count ?? 0 },
-    // Tiny private cache so a user toggling the same filter twice in quick
-    // succession doesn't re-hit the DB, without serving stale results across
-    // users. Filter combos vary, so this rarely even applies — it's just hygiene.
-    { headers: { 'Cache-Control': 'private, max-age=15' } },
+    // CDN-cache at the edge (2026-05-28 audit). The response is 100% public
+    // job-listing data — no per-user/PII content — and is keyed by the full
+    // query string, so the Vercel edge can safely serve repeated identical
+    // filter combos (the common case: everyone clicking "registered-nurse + FL",
+    // or a script/attacker looping one URL) WITHOUT re-running the exact count +
+    // 5-way ILIKE against the SHARED Postgres each time. This is the real
+    // cost/DoS lever for the only uncached public DB-hitting GET. 60s keeps it
+    // fresh vs the 4h-ISR /jobs page; SWR serves stale instantly while one
+    // request refreshes in the background.
+    { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } },
   )
 }

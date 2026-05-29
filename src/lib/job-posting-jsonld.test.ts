@@ -160,6 +160,12 @@ describe('buildJobPostingJsonLd — edge cases', () => {
     expect(out.baseSalary).toBeUndefined()
   })
 
+  it('omits baseSalary when salary is a sub-floor placeholder ($1 GS-grade)', () => {
+    const placeholder: PublicJob = { ...baseJob, salary_min: 1, salary_max: null }
+    const out = buildJobPostingJsonLd({ job: placeholder, employer: baseEmployer })
+    expect(out.baseSalary).toBeUndefined()
+  })
+
   it('omits experienceRequirements when experience_required is null', () => {
     const noExp: PublicJob = { ...baseJob, experience_required: null }
     const out = buildJobPostingJsonLd({ job: noExp, employer: baseEmployer })

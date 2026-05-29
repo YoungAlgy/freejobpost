@@ -25,6 +25,7 @@ import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
   locationLabel,
+  usableSalary,
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, hasUsableDescription } from '@/lib/feed-builders'
 
@@ -54,7 +55,10 @@ function linkedinJobType(t: PublicJob['employment_type']): string {
 // LinkedIn salary format: "CURRENCY MIN MAX PERIOD"
 //   periods: YEAR, MONTH, BIWEEKLY, WEEK, DAY, HOUR
 // All Ava jobs are stored as annual salaries today.
-function linkedinSalary(min: number | null, max: number | null): string {
+function linkedinSalary(minRaw: number | null, maxRaw: number | null): string {
+  // Floor placeholder/sub-$10K salaries (e.g. USAJobs GS-grade $1) to "" so we
+  // never ship "USD 1.00 1.00 YEAR" to LinkedIn. See usableSalary(). 2026-05-28.
+  const { min, max } = usableSalary(minRaw, maxRaw)
   if (!min && !max) return ''
   const lo = min ?? max ?? 0
   const hi = max ?? min ?? 0

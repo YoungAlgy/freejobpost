@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatSalary,
+  usableSalary,
   employmentLabel,
   remoteLabel,
   locationLabel,
@@ -21,9 +22,29 @@ describe('formatSalary', () => {
     expect(formatSalary(150000, 150000)).toBe('$150K')
   })
 
-  it('uses K-shorthand only when amount >= 1000', () => {
+  it('uses K-shorthand for amounts >= 1000', () => {
     expect(formatSalary(80000, null)).toBe('$80K')
-    expect(formatSalary(500, null)).toBe('$500')
+    expect(formatSalary(10000, null)).toBe('$10K')
+  })
+
+  it('drops sub-floor placeholder salaries to null (USAJobs $1 GS-grade etc.)', () => {
+    expect(formatSalary(1, null)).toBe(null)
+    expect(formatSalary(500, null)).toBe(null)
+    expect(formatSalary(9999, null)).toBe(null)
+    // a real value paired with a placeholder keeps the real one
+    expect(formatSalary(1, 120000)).toBe('$120K')
+  })
+})
+
+describe('usableSalary', () => {
+  it('nulls sub-floor values and keeps real ones', () => {
+    expect(usableSalary(1, null)).toEqual({ min: null, max: null })
+    expect(usableSalary(180000, 240000)).toEqual({ min: 180000, max: 240000 })
+    expect(usableSalary(1, 90000)).toEqual({ min: null, max: 90000 })
+  })
+
+  it('nulls an inverted range (max < min)', () => {
+    expect(usableSalary(200000, 100000)).toEqual({ min: 200000, max: null })
   })
 })
 

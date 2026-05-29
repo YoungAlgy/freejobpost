@@ -26,7 +26,33 @@ export const JOB_LIST_FIELDS =
 export const JOB_DETAIL_FIELDS =
   'id, slug, title, description, role, specialty, vertical, city, state, remote_hybrid, employment_type, salary_min, salary_max, experience_required, apply_url, source, created_at, expires_at, employer_id' as const
 
-export function formatSalary(min: number | null, max: number | null): string | null {
+// Lowest salary we treat as real. USAJobs GS-grade rows store a placeholder $1
+// (34 live jobs as of the 2026-05-28 audit) where pay is "set by the GS table";
+// a few other sources emit sub-$10K artifacts. Left raw, a $1 renders as a "$1"
+// pill, ships as <salary>$1</salary> to Indeed/Jooble/Talent, and emits
+// baseSalary.minValue:1 in Google-for-Jobs JSON-LD — all of which trip
+// implausible-salary / feed-quality penalties. 10K is well under the lowest
+// realistic full-time healthcare wage and well above the placeholders (mirrors
+// freeresumepost's bucketize floor).
+export const SALARY_FLOOR = 10_000
+
+// Normalize a salary pair for OUTPUT: drop sub-floor placeholder values to null
+// and null an inverted range. Every output surface (cards, the /jobs/[slug]
+// pill, JobPosting JSON-LD, every partner feed) routes through this — directly
+// or via formatSalary — so a $1 is treated as "no salary stated" rather than a
+// real number. 2026-05-28 audit.
+export function usableSalary(
+  min: number | null,
+  max: number | null,
+): { min: number | null; max: number | null } {
+  const lo = min != null && min >= SALARY_FLOOR ? min : null
+  let hi = max != null && max >= SALARY_FLOOR ? max : null
+  if (lo != null && hi != null && hi < lo) hi = null
+  return { min: lo, max: hi }
+}
+
+export function formatSalary(minRaw: number | null, maxRaw: number | null): string | null {
+  const { min, max } = usableSalary(minRaw, maxRaw)
   if (!min && !max) return null
   const fmt = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}K` : `$${n}`)
   if (min && max && min !== max) return `${fmt(min)}–${fmt(max)}`

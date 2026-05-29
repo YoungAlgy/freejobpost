@@ -17,7 +17,7 @@
 //   jobLocationType (remote only), validThrough, experienceRequirements
 //   (numeric leading char only).
 
-import { mapToSchemaEmploymentType, type PublicJob } from './public-jobs'
+import { mapToSchemaEmploymentType, usableSalary, type PublicJob } from './public-jobs'
 import { stripSalarySuffix } from './clean-labels'
 
 export interface EmployerSummary {
@@ -43,6 +43,9 @@ export function buildJobPostingJsonLd(args: BuildJobPostingArgs): Record<string,
   const cleanJobTitle = stripSalarySuffix(job.title) || job.title
   const datePosted = job.created_at?.split('T')[0]
   const validThrough = job.expires_at
+  // Floor placeholder/sub-$10K salaries (e.g. USAJobs GS-grade $1) so we never
+  // emit baseSalary.minValue:1 to Google for Jobs. See usableSalary(). 2026-05-28.
+  const salary = usableSalary(job.salary_min, job.salary_max)
 
   // Remote jobs: omit jobLocation; emit jobLocationType + applicantLocationRequirements.
   // Onsite/hybrid: emit jobLocation with city + state + country.
@@ -92,15 +95,15 @@ export function buildJobPostingJsonLd(args: BuildJobPostingArgs): Record<string,
     employmentType: mapToSchemaEmploymentType(job.employment_type),
     url: `https://freejobpost.co/jobs/${job.slug}`,
     directApply: false,
-    ...(job.salary_min || job.salary_max
+    ...(salary.min || salary.max
       ? {
           baseSalary: {
             '@type': 'MonetaryAmount',
             currency: 'USD',
             value: {
               '@type': 'QuantitativeValue',
-              minValue: job.salary_min ?? undefined,
-              maxValue: job.salary_max ?? undefined,
+              minValue: salary.min ?? undefined,
+              maxValue: salary.max ?? undefined,
               unitText: 'YEAR',
             },
           },
