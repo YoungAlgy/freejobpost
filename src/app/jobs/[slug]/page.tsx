@@ -249,11 +249,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-// Render a minimal markdown-like description → HTML. The seed script writes
-// **Label:** value lines and plain paragraphs separated by blank lines.
-// Keeping this in-file (no DOMPurify dep) because the content comes from our
-// own seed script, not user submissions. When /post-job ships with user-
-// provided descriptions, we'll switch to isomorphic-dompurify.
+// Render a minimal markdown-like description → HTML. Inputs come from the seed
+// script, the ATS ingest, AND user-submitted /post-job descriptions. This is
+// XSS-safe WITHOUT DOMPurify because it HTML-escapes & < > BEFORE applying the
+// **bold** transform, so no raw user HTML can survive (a <script> becomes
+// &lt;script&gt;). Switch to isomorphic-dompurify only if richer markup is ever
+// allowed. (2026-05-29 audit: corrected the stale "seed-only" premise.)
 function renderDescription(md: string): string {
   return md
     .split(/\n\n+/)

@@ -2,14 +2,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
-import {
-  JOB_LIST_FIELDS,
-  type PublicJob,
-  formatSalary,
-  employmentLabel,
-  remoteLabel,
-  locationLabel,
-} from '@/lib/public-jobs'
+import { JOB_LIST_FIELDS, type PublicJob } from '@/lib/public-jobs'
 import JobsFilter from './jobs-filter'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
@@ -249,9 +242,6 @@ export default async function JobsIndexPage() {
   )
 }
 
-// Re-export for internal reference — not actually used here, but guarantees
-// the type stays in sync with the filter client component.
-export type { PublicJob }
-
-// Helpers used by JobsFilter via props — re-exported to satisfy the client/server split
-export { formatSalary, employmentLabel, remoteLabel, locationLabel }
+// (Removed dead re-exports of PublicJob + label helpers — 2026-05-29 audit.
+// JobsFilter and every other consumer import these straight from
+// @/lib/public-jobs; the re-exports here were never imported.)

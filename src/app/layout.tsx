@@ -212,7 +212,7 @@ export default function RootLayout({
           {/* EEO statement — broad federal-compliance language so candidates
               and employers see the equal-opportunity commitment without a
               recruiter-specific role context. */}
-          <p className="text-[11px] text-gray-400 text-center leading-relaxed mt-6 max-w-3xl mx-auto px-4">
+          <p className="text-[11px] text-gray-600 text-center leading-relaxed mt-6 max-w-3xl mx-auto px-4">
             Ava Health Partners LLC is an Equal Opportunity Employer. We do not discriminate in employment or recruitment on the basis of race, color, religion, sex (including pregnancy, sexual orientation, or gender identity), national origin, age, disability, genetic information, veteran status, or any other characteristic protected by applicable federal, state, or local law.
           </p>
           {/* E-Verify participation chip — short footer link to /e-verify
@@ -220,7 +220,7 @@ export default function RootLayout({
               Gated behind src/lib/e-verify-config.ts; renders nothing until
               E_VERIFY.enrolled with a real Company ID. */}
           {E_VERIFY.enrolled && E_VERIFY.companyId && (
-            <p className="text-[11px] text-gray-400 text-center leading-relaxed mt-3">
+            <p className="text-[11px] text-gray-600 text-center leading-relaxed mt-3">
               <Link href="/e-verify" className="underline hover:text-gray-900">
                 E-Verify Participant
               </Link>{' '}

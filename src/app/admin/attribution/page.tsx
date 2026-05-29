@@ -88,7 +88,6 @@ export default async function AttributionDashboard({ searchParams }: Props) {
     .map(([partner, partnerRows]) => ({
       partner,
       totalClicks: partnerRows.reduce((s, r) => s + r.click_count, 0),
-      totalJobs: new Set(partnerRows.flatMap((r) => Array(r.unique_jobs).fill(r.day))).size,
       totalIps: partnerRows.reduce((s, r) => s + r.unique_ips, 0),
       days: partnerRows.length,
     }))

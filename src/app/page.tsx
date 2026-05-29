@@ -36,8 +36,8 @@ export default async function Home() {
   // verified-employer count in parallel.
   //
   // Date.now() in a Server Component looks "impure" to React 19's strict
-  // rule but is intentional here: this page revalidates every 5 minutes
-  // (see `revalidate = 300` above) so the "7 days ago" cutoff stays fresh
+  // rule but is intentional here: this page revalidates hourly
+  // (see `revalidate = 3600` above) so the "7 days ago" cutoff stays fresh
   // — it's not memoizable. Calling Date.now() inside the request scope of
   // an async Server Component is the documented way to get a real
   // wall-clock timestamp for ISR-sensitive queries.
