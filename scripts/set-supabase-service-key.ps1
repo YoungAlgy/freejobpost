@@ -2,7 +2,7 @@
 # fighting VS Code paste-formatting. Asks for the key as hidden input,
 # strips any whitespace/newlines that snuck in, appends to .env.local.
 #
-# Usage:  cd C:\Users\Algernon\freejobpost
+# Usage:  cd C:\Users\Algy\freejobpost
 #         .\scripts\set-supabase-service-key.ps1
 #
 # Safe to re-run: removes any existing SUPABASE_SERVICE_ROLE_KEY line first.
@@ -13,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 # Make sure we're in the freejobpost dir
 $repoFile = Join-Path -Path $PSScriptRoot -ChildPath '..\package.json'
 if (-not (Test-Path $repoFile)) {
-  Write-Host "Run this from C:\Users\Algernon\freejobpost" -ForegroundColor Red
+  Write-Host "Run this from C:\Users\Algy\freejobpost" -ForegroundColor Red
   exit 1
 }
 Set-Location (Resolve-Path (Join-Path -Path $PSScriptRoot -ChildPath '..'))
