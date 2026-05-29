@@ -49,7 +49,9 @@ export async function computeViableCityCellsViaSql(
   // 12-batch range to bypass PostgREST's anon db_max_rows=1000 cap.
   // Matches the rest of the codebase (jobs.xml, sitemap, specialty-state
   // matrix all use 12 × 1000 = 12k row ceiling).
-  const NUM_BATCHES = 12
+  // 2026-05-28 audit: 12→30. The 12K ceiling under-counted city×specialty cells
+  // at 14.6K active inventory. Bump (or switch to count-based paging) before 30K.
+  const NUM_BATCHES = 30
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQ = () => supabase

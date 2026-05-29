@@ -97,7 +97,10 @@ export function descriptionHtml(job: PublicJob): string {
 // batch was a full 1k) which means total inventory had already crossed
 // 9,000 and we were under-serving the tail. 12 batches gives 12,000-row
 // headroom for the next federal-pipeline + ATS-onboarding additions.
-const NUM_BATCHES = 12
+// 2026-05-28 audit: 12→30. At 14.6K active inventory the 12K ceiling silently
+// dropped ~2.6K oldest jobs from every Indeed-format partner feed. Bump (or
+// switch to count-based paging — count active, fetch ceil(count/1000)) before 30K.
+const NUM_BATCHES = 30
 const BATCH_SIZE = 1000
 
 // Strict partners require an EXPLICIT opt-in in syndication_targets — no

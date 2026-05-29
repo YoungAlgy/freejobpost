@@ -136,7 +136,10 @@ export async function computeViableCellsViaSql(
   // /sitemap.ts; one canonical batch count across every full-inventory
   // fetch in the codebase prevents the matrix from drifting out of sync
   // with feeds as inventory grows past 9k.
-  const NUM_BATCHES = 12
+  // 2026-05-28 audit: 12→30. The 12K ceiling under-counted specialty×state cells
+  // at 14.6K active inventory (some viable cells missed). Bump (or switch to
+  // count-based paging) before 30K.
+  const NUM_BATCHES = 30
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQ = () => supabase

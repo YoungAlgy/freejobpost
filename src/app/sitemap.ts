@@ -64,7 +64,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Bumped from 9 → 12 on 2026-05-21 to match /jobs.xml + feed-builders;
   // keeps the sitemap ahead of inventory growth and avoids the 9-batch
   // ceiling that hit /jobs.xml on 2026-05-20.
-  const SITEMAP_NUM_BATCHES = 12
+  // 2026-05-28 audit: 12→30. The 12K ceiling silently dropped ~2.6K oldest jobs
+  // from the sitemap at 14.6K active inventory (deindex risk — same failure mode
+  // as the 9-batch ceiling noted above, re-armed by growth). Bump (or switch to
+  // count-based paging) before 30K.
+  const SITEMAP_NUM_BATCHES = 30
   const SITEMAP_BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseJobs = () => supabase

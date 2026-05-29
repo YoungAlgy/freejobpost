@@ -84,7 +84,9 @@ function iso8601Date(d: Date): string {
 // .limit(N>1000). Same 12-batch pattern as the other partner feeds and
 // /jobs.xml — see src/lib/feed-builders.ts. Pre-fix 2026-05-21 audit:
 // /feeds/linkedin.xml was returning 1,000 of ~9,600 active jobs.
-const NUM_BATCHES = 12
+// 2026-05-28 audit: 12→30. The 12K ceiling silently dropped ~2.6K jobs at 14.6K
+// active inventory. Bump (or switch to count-based paging) before 30K.
+const NUM_BATCHES = 30
 const BATCH_SIZE = 1000
 
 export async function GET(): Promise<Response> {

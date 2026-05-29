@@ -92,7 +92,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   // 12 × 1000 headroom — /jobs.xml hit the 9-batch ceiling on 2026-05-20
   // once total active inventory crossed 9,000. See same constant in
   // src/lib/feed-builders.ts for the matching rationale.
-  const NUM_BATCHES = 12
+  // 2026-05-28 audit: 12→30. At 14.6K active inventory the 12K ceiling silently
+  // dropped ~2.6K oldest jobs from this feed. Bump (or switch to count-based
+  // paging — count active rows, fetch ceil(count/1000) batches) before 30K.
+  const NUM_BATCHES = 30
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQuery = () => supabase
