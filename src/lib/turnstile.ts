@@ -82,7 +82,20 @@ export async function verifyTurnstileToken(
 
   if (!cfResponse.ok) {
     console.error('Turnstile siteverify HTTP error:', cfResponse.status)
-    return { ok: true, configured: true }
+    // FAIL CLOSED on a non-200. Distinct from the network-exception above (CF
+    // unreachable -> fail OPEN, since blocking everyone during a real CF outage
+    // is too harsh). A non-200 means CF RESPONDED but rejected the request —
+    // essentially a transient CF 5xx, recoverable by the user retrying with a
+    // fresh token. A WRONG/missing secret does NOT land here (CF returns 200 +
+    // success:false + invalid-input-secret, handled by the failure path below),
+    // so failing closed here cannot lock out all forms on a secret misconfig.
+    // Closes the silent bot-bypass window the prior fail-open left. 2026-05-28 audit.
+    return {
+      ok: false,
+      configured: true,
+      errorCodes: ['cf-http-' + cfResponse.status],
+      reason: 'Bot verification is temporarily unavailable. Please try again in a moment.',
+    }
   }
 
   type CfBody = {

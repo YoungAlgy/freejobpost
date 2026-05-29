@@ -20,63 +20,7 @@ export type MatrixCell = {
   count: number
 }
 
-type JobRow = {
-  state: string | null
-  specialty: string | null
-  role: string | null
-  title: string | null
-}
-
 const MIN_JOBS_PER_CELL = 5
-
-function specialtyMatches(job: JobRow, patterns: readonly string[]): boolean {
-  const haystack = [
-    job.specialty?.toLowerCase() ?? '',
-    job.role?.toLowerCase() ?? '',
-    job.title?.toLowerCase() ?? '',
-  ].join(' | ')
-  for (const p of patterns) {
-    if (haystack.includes(p.toLowerCase())) return true
-  }
-  return false
-}
-
-/**
- * From the full active-job list, returns every (specialty, state) cell
- * that has at least MIN_JOBS_PER_CELL matching jobs. Order: descending
- * by count, then specialty slug, then state slug.
- */
-export function computeViableCells(jobs: JobRow[]): MatrixCell[] {
-  const byAbbr = new Map<string, StateHub>(
-    STATE_HUBS.map((s) => [s.abbr, s])
-  )
-  const counts = new Map<string, MatrixCell>()
-
-  for (const job of jobs) {
-    const stateHub = job.state ? byAbbr.get(job.state) : null
-    if (!stateHub) continue
-    for (const specialty of SPECIALTY_HUBS) {
-      if (!specialtyMatches(job, specialty.matchPatterns)) continue
-      const key = `${specialty.slug}|${stateHub.slug}`
-      const existing = counts.get(key)
-      if (existing) {
-        existing.count += 1
-      } else {
-        counts.set(key, { specialty, state: stateHub, count: 1 })
-      }
-    }
-  }
-
-  return Array.from(counts.values())
-    .filter((c) => c.count >= MIN_JOBS_PER_CELL)
-    .sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count
-      if (a.specialty.slug !== b.specialty.slug) {
-        return a.specialty.slug.localeCompare(b.specialty.slug)
-      }
-      return a.state.slug.localeCompare(b.state.slug)
-    })
-}
 
 export { MIN_JOBS_PER_CELL }
 
@@ -105,8 +49,9 @@ export async function getViableCellsCached(
 }
 
 /**
- * The SQL-counted version of computeViableCells. Issues one count query
- * per (specialty, state) pair (~900 total) using the SAME `.or()` filter
+ * Builds the viable (specialty, state) cell list from the live job table.
+ * Equivalent to one count query per (specialty, state) pair (~900 total)
+ * collapsed into a single pull, using the SAME `.or()` match logic
  * the runtime page uses, so the build-time list matches what's actually
  * renderable. Returns the cells in deterministic order.
  *

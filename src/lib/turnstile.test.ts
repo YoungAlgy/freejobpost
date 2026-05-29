@@ -180,23 +180,26 @@ describe('verifyTurnstileToken — Cloudflare failure paths', () => {
   })
 })
 
-describe('verifyTurnstileToken — network failure paths (fail-open posture)', () => {
-  it('returns ok:true on fetch network error (CF infra down → forms still work)', async () => {
+describe('verifyTurnstileToken — infra failure paths (network=fail-open, non-2xx=fail-closed)', () => {
+  it('returns ok:true on fetch network error (CF unreachable → forms still work)', async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('ECONNRESET'))
     const r = await verifyTurnstileToken('a'.repeat(50))
-    // Same posture as SES sandbox guard — transient infra failure shouldn't
-    // lock all submissions.
+    // CF unreachable (no response at all) → fail OPEN: blocking every submission
+    // during a real CF outage is too harsh. Same posture as the SES sandbox guard.
     expect(r.ok).toBe(true)
     expect((r as { configured: boolean }).configured).toBe(true)
   })
 
-  it('returns ok:true on non-2xx HTTP response (CF returning 5xx etc.)', async () => {
+  it('FAILS CLOSED on a non-2xx HTTP response (CF 5xx) — closes the silent bypass window', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 503,
       json: async () => ({}),
     } as Response)
     const r = await verifyTurnstileToken('a'.repeat(50))
-    expect(r.ok).toBe(true)
+    // A non-200 means CF RESPONDED but rejected — fail CLOSED (user retries with
+    // a fresh token). 2026-05-28 audit. Distinct from the network-exception above.
+    expect(r.ok).toBe(false)
+    expect((r as { configured: boolean }).configured).toBe(true)
   })
 })
