@@ -9,7 +9,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, hasUsableDescription } from '@/lib/feed-builders'
+import { jobUrlWithUtm, hasUsableDescription, escapeXml, cdata } from '@/lib/feed-builders'
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 
 // 6h ISR: niche RSS/aggregator consumers poll hourly+ at most, so sub-hour
@@ -20,19 +20,8 @@ export async function generateStaticParams() {
   return STATE_HUBS.map((s) => ({ slug: s.slug }))
 }
 
-function escapeXml(s: string | null | undefined): string {
-  return (s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
-function cdata(s: string | null | undefined): string {
-  const v = (s ?? '').replace(/]]>/g, ']]]]><![CDATA[>')
-  return `<![CDATA[${v}]]>`
-}
+// escapeXml + cdata are imported from @/lib/feed-builders (shared across the
+// RSS-spec feed routes).
 
 export async function GET(
   _req: Request,

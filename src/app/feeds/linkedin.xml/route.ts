@@ -27,16 +27,13 @@ import {
   locationLabel,
   usableSalary,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, hasUsableDescription } from '@/lib/feed-builders'
+import { jobUrlWithUtm, hasUsableDescription, cdata } from '@/lib/feed-builders'
 
 // 6h ISR: LinkedIn polls every 4–24h (see header), so sub-hour regen was
 // pure Vercel invocation cost (2026-05-28 cost pass). See jobs.xml rationale.
 export const revalidate = 21600
 
-function cdata(s: string | null | undefined): string {
-  const v = (s ?? '').replace(/]]>/g, ']]]]><![CDATA[>')
-  return `<![CDATA[${v}]]>`
-}
+// cdata is imported from @/lib/feed-builders (shared helper).
 
 // LinkedIn enum: FULL_TIME, PART_TIME, CONTRACT, TEMPORARY, INTERNSHIP,
 // VOLUNTEER, OTHER. We map locum + per_diem to TEMPORARY.

@@ -35,6 +35,18 @@ export function cdata(s: string | null | undefined): string {
   return `<![CDATA[${v}]]>`
 }
 
+// XML text-node escaping for the RSS-spec feeds (rss.xml, /feeds/state,
+// /feeds/specialty). Indeed-format feeds use cdata() instead. Centralized here
+// so those routes don't each carry a byte-identical copy (2026-05-29 DRY pass).
+export function escapeXml(s: string | null | undefined): string {
+  return (s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 // Per-network attribution. Aggregators rewrite the URL when they crawl,
 // but enough networks pass through query params that this still gives us
 // trackable referrer signal in Vercel Analytics + downstream tooling.

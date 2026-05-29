@@ -12,26 +12,15 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, isBuildPhase, hasUsableDescription } from '@/lib/feed-builders'
+import { jobUrlWithUtm, isBuildPhase, hasUsableDescription, escapeXml, cdata } from '@/lib/feed-builders'
 
 // 1h ISR: RSS readers (Feedly/Inoreader) poll ~hourly, so keep this one
 // fresher than the 6h partner feeds, but 900s was still 4× over-regen
 // (2026-05-28 cost pass).
 export const revalidate = 3600
 
-function escapeXml(s: string | null | undefined): string {
-  return (s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
-function cdata(s: string | null | undefined): string {
-  const v = (s ?? '').replace(/]]>/g, ']]]]><![CDATA[>')
-  return `<![CDATA[${v}]]>`
-}
+// escapeXml + cdata are imported from @/lib/feed-builders (shared across the
+// RSS-spec feed routes — rss.xml, /feeds/state, /feeds/specialty).
 
 export async function GET(): Promise<Response> {
   // Defensive: pre-migration fallback to unfiltered. Empty-array semantics
