@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { supabase } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
+  JOB_LIST_FIELDS,
   type PublicJob,
   formatSalary,
   employmentLabel,
@@ -176,7 +177,11 @@ async function resolveEmployer(employerId: string | null | undefined): Promise<{
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
   const { data } = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS)
+    // The Related list only renders title / location / salary (see the render
+    // below) — never the body. Select the lighter JOB_LIST_FIELDS instead of
+    // JOB_DETAIL_FIELDS so we don't pull 6 full job descriptions per detail
+    // page. 2026-05-29 over-fetch audit.
+    .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
