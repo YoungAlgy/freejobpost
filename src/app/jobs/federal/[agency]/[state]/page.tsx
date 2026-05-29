@@ -31,6 +31,11 @@ export const revalidate = 21600
 // on-demand and cache via ISR for 300s.
 const MAX_SSG_FEDERAL_CELLS = 50
 
+// Thin-cell SEO gate: an agency×state cell with fewer than this many active
+// jobs is noindex'd (a thin doorway page). Mirrors /specialty/[slug]/[state]'s
+// MIN_CELL_JOBS_FOR_INDEX=5 and /city/[slug]/[specialty]'s <5 policy.
+const MIN_CELL_JOBS_FOR_INDEX = 5
+
 export async function generateStaticParams() {
   const cells = await getViableFederalCellsCached(supabase)
   return cells
@@ -53,11 +58,28 @@ export async function generateMetadata(
   if (!agency || !state) {
     return { title: 'Federal healthcare jobs' }
   }
+  // Thin-cell noindex: a cell with <5 active jobs is a thin doorway page. It
+  // still renders (good UX + onward internal links) but stays out of Google's
+  // index — consistent with the sibling /specialty/[slug]/[state] (noindex <5)
+  // + /city/[slug]/[specialty] (404 <5) hubs. dynamicParams=true makes these
+  // cells crawler-reachable, so the gate matters. Self-heals past 5 on the next
+  // 6h revalidate. (Head-only count; deduped with the body's count via the
+  // supabase fetch cache within a render.)
+  const { count } = await supabase
+    .from('public_jobs')
+    .select('id', { count: 'exact', head: true })
+    .eq('source', 'usajobs:federal')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .eq('state', state.abbr)
+    .or(agencyOrFilter(agency))
   const canonical = `https://freejobpost.co/jobs/federal/${agency.slug}/${state.slug}`
   return {
     title: `${agency.fullName} healthcare jobs in ${state.name}`,
     description: `Open ${agency.name} healthcare positions in ${state.name} — sourced from USAJobs, refreshed every 4 hours. Apply directly via the federal application portal.`,
     alternates: { canonical },
+    ...((count ?? 0) < MIN_CELL_JOBS_FOR_INDEX ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
       title: `${agency.fullName} healthcare jobs — ${state.name}`,
       description: `${agency.blurb}`,

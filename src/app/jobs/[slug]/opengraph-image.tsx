@@ -3,8 +3,8 @@
 // shareable than a generic "freejobpost.co" banner — recruiters posting
 // jobs to LinkedIn/Twitter get a card that actually advertises the role.
 //
-// Generated on-demand and CDN-cached at the slug level (matches page's
-// revalidate=600). Next.js 16 auto-discovers opengraph-image.tsx and
+// Generated on-demand and ISR-cached at the slug level (7-day revalidate — see
+// the export below). Next.js 16 auto-discovers opengraph-image.tsx and
 // registers it as og:image + twitter:image.
 
 import { ImageResponse } from 'next/og'

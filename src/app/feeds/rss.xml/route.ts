@@ -12,7 +12,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, isBuildPhase } from '@/lib/feed-builders'
+import { jobUrlWithUtm, isBuildPhase, hasUsableDescription } from '@/lib/feed-builders'
 
 // 1h ISR: RSS readers (Feedly/Inoreader) poll ~hourly, so keep this one
 // fresher than the 6h partner feeds, but 900s was still 4× over-regen
@@ -68,17 +68,13 @@ export async function GET(): Promise<Response> {
   if (allJobs.length === 0 && !isBuildPhase()) {
     throw new Error('rss.xml: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).')
   }
-  // Skip thin-description jobs — RSS readers (Feedly / Inoreader / Apple
-  // News) treat empty <description> as a render bug and de-prioritize the
-  // entire feed. Same ≥50-char rule used across all per-partner feeds;
-  // see src/lib/feed-builders.ts hasUsableDescription().
-  const jobs = allJobs.filter((j) => {
-    const stripped = (j.description ?? '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    return stripped.length >= 50
-  })
+  // Skip thin-description jobs — RSS readers (Feedly / Inoreader / Apple News)
+  // de-prioritize feeds full of empty/thin <description>. Use the SHARED
+  // hasUsableDescription() (250-char, HTML-stripped) so a job appears in every
+  // feed + its own page or nowhere — consistent with jobs.xml, the per-partner
+  // feeds, and the /jobs/[slug] noindex gate. (Was an inline 50-char check that
+  // drifted from the 250 unification; fixed 2026-05-28.)
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
   const now = new Date().toUTCString()
 
   const items = jobs
@@ -117,10 +113,10 @@ export async function GET(): Promise<Response> {
     <title>freejobpost.co — Healthcare jobs</title>
     <link>https://freejobpost.co</link>
     <atom:link href="https://freejobpost.co/feeds/rss.xml" rel="self" type="application/rss+xml" />
-    <description>Open healthcare roles posted on freejobpost.co — physicians, nurses, therapists, and allied health. Updated every 15 minutes.</description>
+    <description>Open healthcare roles posted on freejobpost.co — physicians, nurses, therapists, and allied health. Updated hourly.</description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
-    <ttl>15</ttl>
+    <ttl>60</ttl>
 ${items}
   </channel>
 </rss>`

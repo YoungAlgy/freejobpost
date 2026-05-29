@@ -26,7 +26,7 @@ import {
   type PublicJob,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm } from '@/lib/feed-builders'
+import { jobUrlWithUtm, hasUsableDescription } from '@/lib/feed-builders'
 
 // 6h ISR: LinkedIn polls every 4–24h (see header), so sub-hour regen was
 // pure Vercel invocation cost (2026-05-28 cost pass). See jobs.xml rationale.
@@ -135,19 +135,14 @@ export async function GET(): Promise<Response> {
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   // Filter thin descriptions before publishing to LinkedIn. LinkedIn Job
-  // Wrapping quality scoring penalizes thin-content feeds; see
-  // src/lib/feed-builders.ts hasUsableDescription() for the canonical
-  // ≥50-char rule (post-strip-HTML, post-whitespace-collapse). Pre-2026-05-21
-  // audit: 24% of corpus has empty/<p></p>-only descriptions from
-  // Workday-shallow-refresh imports.
+  // LinkedIn Job Wrapping quality-scores thin-content feeds HARD (strict
+  // partner). Use the SHARED hasUsableDescription() (250-char, HTML-stripped) —
+  // the same gate jobs.xml, the per-partner feeds, and the /jobs/[slug] noindex
+  // use. (Was an inline 50-char check — backwards: the strictest partner had
+  // the loosest filter. Unified 2026-05-28.) Pre-2026-05-21 audit: ~24% of
+  // corpus had empty/<p></p>-only descriptions from Workday shallow-refresh.
   const allJobs = (data ?? []) as unknown as FeedJob[]
-  const jobs = allJobs.filter((j) => {
-    const stripped = (j.description ?? '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    return stripped.length >= 50
-  })
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
 
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }

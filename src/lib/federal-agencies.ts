@@ -110,9 +110,6 @@ export function agencyOrFilter(agency: FederalAgency): string {
   return clauses.join(',')
 }
 
-/** @deprecated kept for any pre-rename imports; new code should call agencyOrFilter. */
-export const agencyTitleOrFilter = agencyOrFilter
-
 /**
  * Returns true when the given job is attributable to `agency` — matches
  * any of the agency's titleKeywords against job.title or job.description
