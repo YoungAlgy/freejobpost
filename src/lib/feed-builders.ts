@@ -154,7 +154,7 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .or(filterClause)
-    .order('updated_at', { ascending: false })
+    .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
   const filteredBatches = await Promise.all(
     Array.from({ length: NUM_BATCHES }, (_, i) =>
@@ -174,7 +174,7 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
-    .order('updated_at', { ascending: false })
+    .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const fallbackBatches = await Promise.all(
     Array.from({ length: NUM_BATCHES }, (_, i) =>
       baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
@@ -346,7 +346,7 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .eq('is_ats_import', false)
-    .order('updated_at', { ascending: false })
+    .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const batches = await Promise.all(
     Array.from({ length: NUM_BATCHES }, (_, i) =>
       baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)

@@ -104,7 +104,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
-    .order('updated_at', { ascending: false })
+    .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const batches = await Promise.all(
     Array.from({ length: NUM_BATCHES }, (_, i) =>
       baseQuery().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)

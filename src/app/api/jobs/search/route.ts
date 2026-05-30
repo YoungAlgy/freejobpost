@@ -105,7 +105,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // to the top each ingest tick; keeps the listing lively without a big
   // single-source ingest monopolising the front page).
   query = query
-    .order('updated_at', { ascending: false })
+    .order('updated_at', { ascending: false }).order('id', { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
 
   const { data, count, error } = await query

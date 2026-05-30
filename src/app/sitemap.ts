@@ -77,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
-    .order('updated_at', { ascending: false })
+    .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const jobsBatchPromises = Array.from({ length: SITEMAP_NUM_BATCHES }, (_, i) =>
     baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)
   )

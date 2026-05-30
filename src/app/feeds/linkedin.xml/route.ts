@@ -106,7 +106,7 @@ export async function GET(): Promise<Response> {
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .contains('syndication_targets', ['linkedin'])
-    .order('updated_at', { ascending: false })
+    .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
   const filteredBatches = await Promise.all(
     Array.from({ length: NUM_BATCHES }, (_, i) =>
@@ -125,7 +125,7 @@ export async function GET(): Promise<Response> {
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
-      .order('updated_at', { ascending: false })
+      .order('updated_at', { ascending: false }).order('id', { ascending: false })
     const fallbackBatches = await Promise.all(
       Array.from({ length: NUM_BATCHES }, (_, i) =>
         baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
