@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { supabase } from '@/lib/supabase'
+import { activeJobBatchCount } from '@/lib/active-batch-count'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
@@ -68,7 +69,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // from the sitemap at 14.6K active inventory (deindex risk — same failure mode
   // as the 9-batch ceiling noted above, re-armed by growth). Bump (or switch to
   // count-based paging) before 30K.
-  const SITEMAP_NUM_BATCHES = 30
+  const numBatches = await activeJobBatchCount(supabase)
   const SITEMAP_BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseJobs = () => supabase
@@ -78,7 +79,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const jobsBatchPromises = Array.from({ length: SITEMAP_NUM_BATCHES }, (_, i) =>
+  const jobsBatchPromises = Array.from({ length: numBatches }, (_, i) =>
     baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)
   )
   const [employersRes, ...jobsBatches] = await Promise.all([

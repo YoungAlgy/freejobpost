@@ -251,6 +251,17 @@ export async function fetchWorkdayBoard(
           const annualize = freq === 'hourly' ? 2080 : 1
           if (Number.isFinite(min) && min > 0) salaryMin = Math.round(min * annualize)
           if (Number.isFinite(max) && max > 0) salaryMax = Math.round(max * annualize)
+          // Clamp absurd annualized values to null. public_jobs.salary_min/max
+          // are int4 (max ~2.147B); a Workday tenant mislabeling an already-
+          // annual figure as "hourly" (× 2080) can exceed int4 and abort the
+          // entire upsert chunk on write (silently dropping ~50 jobs). No real
+          // healthcare salary exceeds ~$2M/yr, so treat anything above that as
+          // bad data and null it (= "no salary published") rather than overflow.
+          // 2026-05-30 hardening (the live edge-fn ingest already gates on
+          // isUsdAnnual + never ×2080, so this protects the Node-lib/script path).
+          const SALARY_CEILING = 2_000_000
+          if (salaryMin !== null && salaryMin > SALARY_CEILING) salaryMin = null
+          if (salaryMax !== null && salaryMax > SALARY_CEILING) salaryMax = null
           // Drop nonsensical ranges (min > max) to avoid bad JSON-LD downstream.
           if (salaryMin !== null && salaryMax !== null && salaryMin > salaryMax) {
             salaryMin = null

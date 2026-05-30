@@ -12,6 +12,7 @@ import { JOB_DETAIL_FIELDS, formatSalary, locationLabel } from './public-jobs'
 // why feed routes need a 30s fetch window vs the page-default 300s.
 import { supabaseFresh as supabase } from './supabase'
 import type { SyndicationTargetId } from './syndication-targets'
+import { activeJobBatchCount } from './active-batch-count'
 
 export type FeedJob = PublicJob & {
   updated_at: string
@@ -112,7 +113,6 @@ export function descriptionHtml(job: PublicJob): string {
 // 2026-05-28 audit: 12→30. At 14.6K active inventory the 12K ceiling silently
 // dropped ~2.6K oldest jobs from every Indeed-format partner feed. Bump (or
 // switch to count-based paging — count active, fetch ceil(count/1000)) before 30K.
-const NUM_BATCHES = 30
 const BATCH_SIZE = 1000
 
 // Strict partners require an EXPLICIT opt-in in syndication_targets — no
@@ -156,8 +156,10 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .or(filterClause)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
+  const numBatches = await activeJobBatchCount(supabase)
+
   const filteredBatches = await Promise.all(
-    Array.from({ length: NUM_BATCHES }, (_, i) =>
+    Array.from({ length: numBatches }, (_, i) =>
       baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )
@@ -176,7 +178,7 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const fallbackBatches = await Promise.all(
-    Array.from({ length: NUM_BATCHES }, (_, i) =>
+    Array.from({ length: numBatches }, (_, i) =>
       baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )
@@ -347,8 +349,9 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
     .gt('expires_at', nowIso)
     .eq('is_ats_import', false)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
+  const numBatches = await activeJobBatchCount(supabase)
   const batches = await Promise.all(
-    Array.from({ length: NUM_BATCHES }, (_, i) =>
+    Array.from({ length: numBatches }, (_, i) =>
       baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )

@@ -28,6 +28,7 @@ import {
   usableSalary,
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, hasUsableDescription, cdata } from '@/lib/feed-builders'
+import { activeJobBatchCount } from '@/lib/active-batch-count'
 
 // 6h ISR: LinkedIn polls every 4–24h (see header), so sub-hour regen was
 // pure Vercel invocation cost (2026-05-28 cost pass). See jobs.xml rationale.
@@ -87,7 +88,6 @@ function iso8601Date(d: Date): string {
 // /feeds/linkedin.xml was returning 1,000 of ~9,600 active jobs.
 // 2026-05-28 audit: 12→30. The 12K ceiling silently dropped ~2.6K jobs at 14.6K
 // active inventory. Bump (or switch to count-based paging) before 30K.
-const NUM_BATCHES = 30
 const BATCH_SIZE = 1000
 
 export async function GET(): Promise<Response> {
@@ -108,8 +108,10 @@ export async function GET(): Promise<Response> {
     .contains('syndication_targets', ['linkedin'])
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
+  const numBatches = await activeJobBatchCount(supabase)
+
   const filteredBatches = await Promise.all(
-    Array.from({ length: NUM_BATCHES }, (_, i) =>
+    Array.from({ length: numBatches }, (_, i) =>
       baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )
@@ -127,7 +129,7 @@ export async function GET(): Promise<Response> {
       .gt('expires_at', nowIso)
       .order('updated_at', { ascending: false }).order('id', { ascending: false })
     const fallbackBatches = await Promise.all(
-      Array.from({ length: NUM_BATCHES }, (_, i) =>
+      Array.from({ length: numBatches }, (_, i) =>
         baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
       )
     )

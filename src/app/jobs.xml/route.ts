@@ -31,6 +31,7 @@ import { type NextRequest } from 'next/server'
 // after data-shape migrations (e.g. the 2026-05-20 syndication_targets
 // backfill stuck this route at 425 jobs for 6+ hours).
 import { supabaseFresh as supabase } from '@/lib/supabase'
+import { activeJobBatchCount } from '@/lib/active-batch-count'
 import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // 2026-05-28 audit: 12→30. At 14.6K active inventory the 12K ceiling silently
   // dropped ~2.6K oldest jobs from this feed. Bump (or switch to count-based
   // paging — count active rows, fetch ceil(count/1000) batches) before 30K.
-  const NUM_BATCHES = 30
+  const numBatches = await activeJobBatchCount(supabase)
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQuery = () => supabase
@@ -106,7 +107,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const batches = await Promise.all(
-    Array.from({ length: NUM_BATCHES }, (_, i) =>
+    Array.from({ length: numBatches }, (_, i) =>
       baseQuery().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )

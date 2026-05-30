@@ -12,6 +12,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { CITY_HUBS, type CityHub } from './city-slugs'
+import { activeJobBatchCount } from './active-batch-count'
 
 export type CityMatrixCell = {
   city: CityHub
@@ -51,7 +52,7 @@ export async function computeViableCityCellsViaSql(
   // matrix all use 12 × 1000 = 12k row ceiling).
   // 2026-05-28 audit: 12→30. The 12K ceiling under-counted city×specialty cells
   // at 14.6K active inventory. Bump (or switch to count-based paging) before 30K.
-  const NUM_BATCHES = 30
+  const numBatches = await activeJobBatchCount(supabase)
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQ = () => supabase
@@ -62,7 +63,7 @@ export async function computeViableCityCellsViaSql(
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const batches = await Promise.all(
-    Array.from({ length: NUM_BATCHES }, (_, i) =>
+    Array.from({ length: numBatches }, (_, i) =>
       baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )

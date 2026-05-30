@@ -13,6 +13,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { STATE_HUBS, type StateHub } from './state-slugs'
+import { activeJobBatchCount } from './active-batch-count'
 
 export type MatrixCell = {
   specialty: SpecialtyHub
@@ -84,7 +85,7 @@ export async function computeViableCellsViaSql(
   // 2026-05-28 audit: 12→30. The 12K ceiling under-counted specialty×state cells
   // at 14.6K active inventory (some viable cells missed). Bump (or switch to
   // count-based paging) before 30K.
-  const NUM_BATCHES = 30
+  const numBatches = await activeJobBatchCount(supabase)
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
   const baseQ = () => supabase
@@ -95,7 +96,7 @@ export async function computeViableCellsViaSql(
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const batches = await Promise.all(
-    Array.from({ length: NUM_BATCHES }, (_, i) =>
+    Array.from({ length: numBatches }, (_, i) =>
       baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )
