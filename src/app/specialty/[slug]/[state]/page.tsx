@@ -20,7 +20,7 @@ import {
 } from '@/lib/public-jobs'
 import { getSpecialtyHub } from '@/lib/specialty-slugs'
 import { getStateHub } from '@/lib/state-slugs'
-import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
+import { computeViableCellsViaSql, getViableCellsCached } from '@/lib/specialty-state-matrix'
 import {
   aggregateSalariesByGroup,
   aggregateSalariesOverall,
@@ -195,11 +195,23 @@ export default async function SpecialtyStateMatrixPage(
     })),
   } : null
 
-  // Peer-cell cross-links DEFERRED to a follow-up commit. The fully-correct
-  // version requires the SQL-counted helper (50 + 18 = 68 narrow queries per
-  // matrix page) — measured under Next's 60s build worker timeout for some
-  // cells, so v1 ships without them. Back-links to /specialty and /state
-  // parent hubs still cover the internal-linking baseline.
+  // Peer-cell cross-links. Derived from the SHARED, process-memoized viable-
+  // cell list (getViableCellsCached — one pull per ISR window, reused across
+  // every matrix/hub render), NOT a 68-query-per-page fan-out — which is what
+  // made this deferrable until now. Every cell in the list has ≥5 active jobs,
+  // so every peer link resolves 200 (same source generateStaticParams uses).
+  // Two axes densify the matrix link graph so Google discovers + indexes more
+  // long-tail cells: same specialty in other states, and other specialties in
+  // this state. The list is pre-sorted count-desc, so .filter keeps the
+  // highest-inventory peers first. Cap 12 each to stay tasteful.
+  const PEER_LIMIT = 12
+  const allCells = await getViableCellsCached(supabase)
+  const sameSpecialtyOtherStates = allCells
+    .filter((c) => c.specialty.slug === specialty.slug && c.state.slug !== stateHub.slug)
+    .slice(0, PEER_LIMIT)
+  const sameStateOtherSpecialties = allCells
+    .filter((c) => c.state.slug === stateHub.slug && c.specialty.slug !== specialty.slug)
+    .slice(0, PEER_LIMIT)
 
   return (
     <>
@@ -323,6 +335,54 @@ export default async function SpecialtyStateMatrixPage(
               </li>
             ))}
           </ul>
+
+          {/* Peer-cell cross-links — same specialty in other states + other
+              specialties in this state. Every target is a viable (≥5-job) cell
+              from the shared cached list, so all links resolve 200. This is the
+              internal-link density that helps Google discover + index the
+              long-tail matrix surface. */}
+          {(sameSpecialtyOtherStates.length > 0 || sameStateOtherSpecialties.length > 0) && (
+            <section className="mt-12 border-t-2 border-black pt-8 space-y-8">
+              {sameSpecialtyOtherStates.length > 0 && (
+                <div>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">
+                    {cleanSpecialtyTitle} jobs in other states
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {sameSpecialtyOtherStates.map((c) => (
+                      <Link
+                        key={c.state.slug}
+                        href={`/specialty/${specialty.slug}/${c.state.slug}`}
+                        className="text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors"
+                      >
+                        {c.state.name}{' '}
+                        <span className="text-gray-500">({c.count})</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {sameStateOtherSpecialties.length > 0 && (
+                <div>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">
+                    Other healthcare jobs in {stateHub.name}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {sameStateOtherSpecialties.map((c) => (
+                      <Link
+                        key={c.specialty.slug}
+                        href={`/specialty/${c.specialty.slug}/${stateHub.slug}`}
+                        className="text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors"
+                      >
+                        {c.specialty.title.replace(/ Jobs$/, '')}{' '}
+                        <span className="text-gray-500">({c.count})</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Back-links to the parent hubs */}
           <section className="mt-12 border-t-2 border-black pt-8 flex flex-wrap gap-4">
