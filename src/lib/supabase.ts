@@ -44,37 +44,26 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 })
 
-// Separate anon client that bypasses the Next.js fetch cache. Used by
-// /jobs.xml + /feeds/*.xml.
+// supabaseFresh — historically a `cache: 'no-store'` client for /jobs.xml +
+// /feeds/*.xml, to dodge a cross-deploy stale-cache bug (the Next fetch cache
+// persists across deploys keyed on URL+headers; in 2026-05 a syndication_targets
+// backfill left /feeds/talent.xml serving 425 stale jobs for ~7h).
 //
-// Why bypass the fetch cache? The Next.js fetch cache PERSISTS ACROSS
-// DEPLOYMENTS (per Next docs). After the 2026-05-20 syndication_targets
-// backfill changed which rows match a fetched query, the cached PostgREST
-// batch responses on the main `supabase` client (which has
-// `revalidate: 300`) kept returning the pre-backfill row counts even
-// after multiple redeploys — the fetch cache is keyed on URL+headers, not
-// on which Supabase client object initiated the request, so a new client
-// with shorter revalidate would still HIT the same stale entries.
+// ⚠️ 2026-05-30 PRODUCTION INCIDENT — no-store was REMOVED (now aliases the
+// cached client). The no-store path re-ran ALL 40 PostgREST batch queries on
+// EVERY feed render. Under crawler concurrency (amplified by rapid deploys + a
+// missing (updated_at,id) index → 14-17s full sorts) this exhausted PostgREST's
+// connection pool and drove jobs.xml/talent/glassdoor/adzuna to HTTP 000 for an
+// extended window. Crucially, the feeds that STAYED UP the whole time —
+// /sitemap.xml and /feeds/linkedin.xml — both use the cached `supabase` client:
+// it caches the batch results for 1h, so each feed touches the DB at most once
+// an hour instead of on every render, and CONVERGES (one regen → cached → no
+// repeated load) instead of flooding.
 //
-// Result: /feeds/talent.xml stuck at 425 jobs for ~7 hours after the DB
-// went to 8,961. Multiple background SWR cycles kept serving the same
-// stale body, extending the de-facto cache lifetime indefinitely.
-//
-// Fix: `cache: 'no-store'` skips the shared fetch cache entirely. Feed
-// routes still benefit from outer ISR (revalidate=900 on each route)
-// which caches the final rendered XML response — but the underlying
-// PostgREST queries are fresh on every render. Wall-time cost is
-// negligible (PostgREST batch queries take <500ms).
-//
-// Page-rendering paths still use the 300s `supabase` export; this only
-// affects feeds.
-export const supabaseFresh = createClient(supabaseUrl, supabaseAnonKey, {
-  global: {
-    fetch: (url, options = {}) => {
-      return fetch(url, {
-        ...options,
-        cache: 'no-store',
-      } as RequestInit)
-    },
-  },
-})
+// So supabaseFresh now === supabase. Trade-off: feed data can lag up to ~1h vs
+// the old per-render freshness — an acceptable price for staying UP. Jobs are
+// immutable post-ingest and the ingest cron runs every 4h, so 1h is plenty. The
+// (updated_at,id) partial index added the same day keeps the hourly regen fast.
+// (If the cross-deploy 425-stuck bug ever resurfaces, prefer a SHORT explicit
+// per-feed revalidate over reinstating no-store.)
+export const supabaseFresh = supabase
