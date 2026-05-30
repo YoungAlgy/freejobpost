@@ -20,6 +20,13 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
     date: '2026-05-29',
+    title: 'Closed jobs now point you to similar open roles',
+    body:
+      'When a listing comes down — filled, or its posting window ended — its page used to dead-end on a 404. Now it shows a clear "position closed" notice plus a list of similar open roles in the same specialty and state, with quick links into the relevant job hubs. A stale search result or a saved link still lands you somewhere useful instead of on a dead page.',
+    tag: 'improved',
+  },
+  {
+    date: '2026-05-29',
     title: 'Browse related jobs across specialties + states',
     body:
       'Every "[specialty] jobs in [state]" page now links to its closest neighbors — the same specialty in other states, plus other in-demand specialties in the same state — each tagged with a live open-job count. Jump straight from, say, RN jobs in Texas to RN jobs in Florida, or to PA / NP / family-medicine jobs in Texas, without back-tracking through search. Every link points to a page with real open inventory (5+ jobs), so you never land on an empty result.',

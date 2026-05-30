@@ -115,6 +115,26 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
   return (fallback.data as JobWithTargets | null) ?? null
 }
 
+// Fetch a retired-but-not-deleted job by slug. When a listing comes down, the
+// pipeline sets status='expired' and PRESERVES the row (deleted_at stays NULL;
+// ~1,550 such rows live in the table) — getJob's `.eq('status','active')`
+// filter then 404's it. Used ONLY as a fallback when getJob() returns null, to
+// render a "position closed → see similar open jobs" recovery page (200,
+// noindex) instead of a hard 404. deleted_at IS NULL is required so we never
+// resurrect hard-removed rows (spam / employer takedown) — only legitimately
+// retired listings that were once live and indexed.
+async function getClosedJob(slug: string): Promise<JobWithTargets | null> {
+  if (!SLUG_RE.test(slug)) return null
+  const { data } = await supabase
+    .from('public_jobs')
+    .select(JOB_DETAIL_FIELDS + ', employer_id')
+    .eq('slug', slug)
+    .eq('status', 'expired')
+    .is('deleted_at', null)
+    .maybeSingle()
+  return (data as JobWithTargets | null) ?? null
+}
+
 // Lookup the hiring employer's display name + verification status. When the
 // job has no employer_id (or the row is missing), fall back to the staffing-
 // firm parent — those are the seeded roles placed by Ava Health Partners
@@ -210,6 +230,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const job = await getJob(slug)
   if (!job) {
+    // Active listing gone — but if it's a legitimately-expired job (row still
+    // present), serve closed-state metadata: noindex (drop the stale URL) but
+    // follow (let Google walk the similar-job + hub links on the recovery page).
+    const closed = await getClosedJob(slug)
+    if (closed) {
+      const cLoc = locationLabel(closed)
+      const cTitle = stripSalarySuffix(closed.title) || closed.title
+      return {
+        title: `${cLoc ? `${cTitle} — ${cLoc}` : cTitle} (position closed)`,
+        description: `This ${cTitle} position is no longer accepting applications. Browse similar open healthcare jobs on freejobpost.co.`,
+        robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
+      }
+    }
     return {
       title: 'Job not found',
       robots: { index: false, follow: false },
@@ -278,7 +311,26 @@ function renderDescription(md: string): string {
 export default async function JobDetailPage({ params }: Props) {
   const { slug } = await params
   const job = await getJob(slug)
-  if (!job) notFound()
+  if (!job) {
+    // Recovery path: a hard 404 on an expired-but-previously-live job throws
+    // away the inbound link equity AND dead-ends the visitor. If the row still
+    // exists (expired, not deleted), render a noindex "position closed → see
+    // similar open jobs" page (200) instead. The active-job render below is
+    // completely untouched; this only changes what used to be a notFound().
+    const closed = await getClosedJob(slug)
+    if (!closed) notFound()
+    const [closedRelated, closedEmployer] = await Promise.all([
+      getRelated(closed),
+      resolveEmployer(closed.employer_id),
+    ])
+    return (
+      <ClosedJobView
+        job={closed}
+        related={closedRelated}
+        employerName={closedEmployer.name}
+      />
+    )
+  }
 
   const [related, employer, specialtyStateCells, citySpecialtyCells] = await Promise.all([
     getRelated(job),
@@ -692,5 +744,170 @@ export default async function JobDetailPage({ params }: Props) {
         </div>
       </main>
     </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Closed-job recovery view — rendered (HTTP 200, noindex via generateMetadata)
+// when a slug resolves to an expired-but-not-deleted listing, instead of a hard
+// 404. Keeps the visitor on-site (similar OPEN jobs + hub links) and lets
+// Google drain the stale URL cleanly through the noindex while still following
+// the internal links. Emits NO JobPosting JSON-LD on purpose — a closed role
+// must never appear in the Google for Jobs feed.
+// ---------------------------------------------------------------------------
+function ClosedJobView({
+  job,
+  related,
+  employerName,
+}: {
+  job: JobWithTargets
+  related: PublicJob[]
+  employerName: string
+}) {
+  const loc = locationLabel(job)
+  const cleanJobTitle = stripSalarySuffix(job.title) || job.title
+  const specialtyHub = findSpecialtyHub(job.specialty, job.role, job.title)
+  const stateHub = findStateHubByAbbr(job.state)
+
+  return (
+    <main className="min-h-screen bg-white text-black">
+      {/* Nav — identical to the active job page for visual continuity */}
+      <nav className="border-b-2 border-black">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="font-black text-xl tracking-tight">
+              freejobpost<span className="text-green-700">.co</span>
+            </span>
+            <span className="text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+              BETA
+            </span>
+          </Link>
+          <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
+            <Link href="/jobs" className="hover:text-green-700">
+              Browse jobs
+            </Link>
+            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">
+              For candidates
+            </a>
+            <Link
+              href="/post-job"
+              className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+            >
+              Post a job →
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
+          <Link href="/" className="hover:text-green-700">
+            Home
+          </Link>
+          <span className="mx-2">/</span>
+          <Link href="/jobs" className="hover:text-green-700">
+            Jobs
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="text-black">{cleanJobTitle}</span>
+        </nav>
+
+        {/* Closed banner */}
+        <div className="border-2 border-black p-6 md:p-8 mb-8">
+          <span className="inline-block text-xs font-bold tracking-wider bg-black text-white px-2.5 py-1 mb-4">
+            POSITION CLOSED
+          </span>
+          <h1 className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-3">
+            {cleanJobTitle}
+          </h1>
+          {loc && <p className="text-lg text-gray-700 mb-1">{loc}</p>}
+          {employerName && <p className="text-sm text-gray-500 mb-4">{employerName}</p>}
+          <p className="text-gray-700 leading-relaxed mb-6 max-w-2xl">
+            This role is no longer accepting applications — it&apos;s been filled or
+            its posting window has ended. There are similar open healthcare jobs
+            below, refreshed every few hours.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {specialtyHub && (
+              <Link
+                href={`/specialty/${specialtyHub.slug}`}
+                className="inline-flex items-center justify-center bg-black text-white px-6 py-4 text-base font-bold hover:bg-green-700 transition-colors"
+              >
+                Browse {specialtyHub.title.replace(/ Jobs$/, '')} jobs →
+              </Link>
+            )}
+            <Link
+              href="/jobs"
+              className="inline-flex items-center justify-center border-2 border-black px-6 py-4 text-base font-bold hover:bg-black hover:text-white transition-colors"
+            >
+              Browse all jobs
+            </Link>
+          </div>
+        </div>
+
+        {/* Similar open roles */}
+        {related.length > 0 && (
+          <section className="border-t-2 border-black pt-10 mb-10">
+            <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
+              SIMILAR OPEN ROLES
+            </h2>
+            <ul className="divide-y-2 divide-black border-y-2 border-black">
+              {related.map((r) => {
+                const rLoc = locationLabel(r)
+                const rSal = formatSalary(r.salary_min, r.salary_max)
+                return (
+                  <li key={r.id}>
+                    <Link
+                      href={`/jobs/${r.slug}`}
+                      className="grid grid-cols-12 gap-4 py-4 hover:bg-green-50 transition-colors"
+                    >
+                      <div className="col-span-12 md:col-span-6 font-bold">{stripSalarySuffix(r.title) || r.title}</div>
+                      <div className="col-span-6 md:col-span-4 text-gray-700 text-sm self-center">
+                        {rLoc || '—'}
+                      </div>
+                      <div className="col-span-6 md:col-span-2 font-bold text-right text-sm self-center">
+                        {rSal || ''}
+                      </div>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
+
+        {/* Hub links — route the visitor (and any equity) into the live hub graph */}
+        {(specialtyHub || stateHub) && (
+          <section className="border-t-2 border-black pt-10">
+            <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
+              BROWSE MORE
+            </h2>
+            <ul className="flex flex-wrap gap-3">
+              {specialtyHub && (
+                <li>
+                  <Link
+                    href={`/specialty/${specialtyHub.slug}`}
+                    className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                  >
+                    More {specialtyHub.title.replace(/ Jobs$/, '')} jobs →
+                  </Link>
+                </li>
+              )}
+              {stateHub && (
+                <li>
+                  <Link
+                    href={`/state/${stateHub.slug}`}
+                    className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                  >
+                    Healthcare jobs in {stateHub.name} →
+                  </Link>
+                </li>
+              )}
+            </ul>
+          </section>
+        )}
+      </div>
+    </main>
   )
 }
