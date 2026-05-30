@@ -66,4 +66,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // (updated_at,id) partial index added the same day keeps the hourly regen fast.
 // (If the cross-deploy 425-stuck bug ever resurfaces, prefer a SHORT explicit
 // per-feed revalidate over reinstating no-store.)
-export const supabaseFresh = supabase
+// ⚠️ 2026-05-30 (later same day): aliasing supabaseFresh to the 1h `supabase`
+// client made an EMPTY cold-start fetch get cached → talent/glassdoor/adzuna/
+// jooble/careerjet served 200-but-EMPTY (340B, 0 jobs). An empty feed can make
+// aggregators CLEAR listings, so that's worse than a 500. Fix = a DEDICATED
+// SHORT-revalidate (2min) client: still dedupes the per-render flood + keeps the
+// pool relieved (so it never re-floods like no-store did), but an empty/cold
+// fetch self-corrects in ~2min instead of being stuck for an hour. This is the
+// "SHORT explicit per-feed revalidate" the note above recommends.
+export const supabaseFresh = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: (url, options = {}) =>
+      fetch(url, { ...options, next: { revalidate: 120 } } as RequestInit),
+  },
+})
