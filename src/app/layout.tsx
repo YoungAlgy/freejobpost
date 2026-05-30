@@ -62,7 +62,15 @@ export const metadata: Metadata = {
   // DNS TXT verification gives Google + Bing a redundant ownership signal
   // (belt-and-suspenders so verification doesn't silently lapse if DNS rotates).
   verification: {
-    google: 'SFRvinmueg87J1kMFBhvpABzmM1c13pLPCTRYjrRlVI',
+    // 2026-05-29: the original token (1st) is NOT youngalgy@gmail.com's working
+    // token — it never verified freejobpost.co in GSC. Added youngalgy's actual
+    // URL-prefix token (2nd) via the homepage HTML-tag method, because the
+    // HTML-FILE method (public/google…html) repeatedly failed to verify even
+    // though the file is served 200 to Googlebot. An array renders both metas.
+    google: [
+      'SFRvinmueg87J1kMFBhvpABzmM1c13pLPCTRYjrRlVI',
+      'YCQkKHLaNBXGsPqVDsAZJlJoKm1zARs9_acvOQgw0pw',
+    ],
     other: { 'msvalidate.01': 'AC806718B7170AF0A71011FC59BD9A88' },
   },
   category: 'business',
