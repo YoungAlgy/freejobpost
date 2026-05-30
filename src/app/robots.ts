@@ -34,14 +34,18 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    // Sitemap points to both the human-facing sitemap and the job-feed XML.
-    // Indeed / Google for Jobs / ZipRecruiter will follow /jobs.xml for the
-    // structured inventory; /sitemap.xml covers the rest (landing, detail
-    // pages). Both URLs listed so either crawler type finds the right one.
-    sitemap: [
-      'https://freejobpost.co/sitemap.xml',
-      'https://freejobpost.co/jobs.xml',
-    ],
+    // Sitemap: ONLY the real XML sitemap goes here. /sitemap.xml is a proper
+    // <urlset> (17K+ URLs incl every /jobs/<slug>), so Google discovers all job
+    // detail pages — and their JobPosting structured data — straight from it.
+    //
+    // /jobs.xml is deliberately NOT listed: it's an Indeed-format syndication
+    // FEED (<source><job>…), not a <urlset> sitemap. Aggregators (Indeed,
+    // ZipRecruiter, etc.) are pointed at it via direct publisher-feed config,
+    // never via a robots Sitemap: line — and Google for Jobs reads the
+    // JobPosting schema on the detail pages, not this feed. Listing it here
+    // only made GSC try to parse a job feed as a sitemap and log a read error.
+    // The feed stays fully fetchable for aggregators via the allow: '/' above.
+    sitemap: 'https://freejobpost.co/sitemap.xml',
     host: 'https://freejobpost.co',
   }
 }
