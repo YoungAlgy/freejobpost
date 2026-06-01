@@ -24,6 +24,7 @@ import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
+import JobAlertCapture from '@/components/JobAlertCapture'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 21600
@@ -229,6 +230,16 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
               })}
             </ul>
           </section>
+
+          {/* Job-alert capture — highest-intent surface (city × specialty). */}
+          <div className="mt-12 max-w-3xl">
+            <JobAlertCapture
+              defaultSpecialty={cleanSpecialty}
+              defaultCity={cityShort}
+              defaultState={cityHub.state}
+              source="city_specialty_matrix"
+            />
+          </div>
 
           <section className="mt-12 border-t-2 border-black pt-8">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">

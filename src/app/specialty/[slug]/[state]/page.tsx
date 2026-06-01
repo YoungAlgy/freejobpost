@@ -28,6 +28,7 @@ import {
 } from '@/lib/salary-aggregates'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import JobAlertCapture from '@/components/JobAlertCapture'
 // Filter-build moved to src/lib/specialty-filter.ts + unit-tested. See
 // the shared helper for the full bug write-up (commit 6e2b839,
 // 2026-05-22 critical PostgREST .or() double-encoding fix).
@@ -335,6 +336,16 @@ export default async function SpecialtyStateMatrixPage(
               </li>
             ))}
           </ul>
+
+          {/* Job-alert capture — highest-intent surface (specialty × state),
+              so a strong place to convert lookers into a tagged CRM lead. */}
+          <div className="mb-12 max-w-3xl">
+            <JobAlertCapture
+              defaultSpecialty={cleanSpecialtyTitle}
+              defaultState={stateHub.name}
+              source="specialty_state_matrix"
+            />
+          </div>
 
           {/* Peer-cell cross-links — same specialty in other states + other
               specialties in this state. Every target is a viable (≥5-job) cell

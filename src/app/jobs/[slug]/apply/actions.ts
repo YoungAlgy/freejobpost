@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { verifyTurnstileToken } from '@/lib/turnstile'
+import { track } from '@vercel/analytics/server'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -107,6 +108,14 @@ export async function submitApplication(
     }
   } catch (e) {
     console.error('apply-notify fetch error:', e instanceof Error ? e.message : 'unknown')
+  }
+
+  // Conversion event (board→CRM): a native application reached the CRM.
+  // Low-cardinality, PII-free. Wrapped so analytics never breaks a submit.
+  try {
+    await track('apply_submitted', { apply_type: 'native' })
+  } catch {
+    /* analytics is best-effort */
   }
 
   return {

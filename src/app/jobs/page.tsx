@@ -6,6 +6,7 @@ import { JOB_LIST_FIELDS, type PublicJob } from '@/lib/public-jobs'
 import JobsFilter from './jobs-filter'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import JobAlertCapture from '@/components/JobAlertCapture'
 export const metadata: Metadata = {
   title: 'Healthcare jobs — free to browse, free to apply',
   description:
@@ -220,6 +221,14 @@ export default async function JobsIndexPage() {
               verifiedEmployerIds={verifiedEmployerIds}
             />
           </Suspense>
+        </section>
+
+        {/* Job-alert capture — converts passive browse traffic into a
+            re-contactable CRM lead (general intent: no specialty/state hook). */}
+        <section className="max-w-6xl mx-auto px-6 pb-12">
+          <div className="max-w-3xl">
+            <JobAlertCapture source="jobs_browse" />
+          </div>
         </section>
 
         {/* Empty-state safeguard */}

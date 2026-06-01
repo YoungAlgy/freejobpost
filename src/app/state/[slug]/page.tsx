@@ -26,6 +26,7 @@ import {
 import { stripSalarySuffix } from '@/lib/clean-labels'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import JobAlertCapture from '@/components/JobAlertCapture'
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 21600
 
@@ -513,6 +514,12 @@ export default async function StateHubPage(
               </ul>
             </>
           )}
+
+          {/* Job-alert capture — turns passive state-hub traffic into a
+              re-contactable CRM lead tagged with this state's intent. */}
+          <div className="mt-12 max-w-3xl">
+            <JobAlertCapture defaultState={hub.name} source="state_hub" />
+          </div>
 
           {/* Other states — internal linking */}
           <h2 className="text-2xl font-black tracking-tight mt-16 mb-4">Healthcare jobs in other states</h2>

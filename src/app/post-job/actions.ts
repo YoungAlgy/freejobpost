@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { validatePayTransparency } from '@/lib/pay-transparency'
+import { track } from '@vercel/analytics/server'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -199,6 +200,20 @@ export async function submitPostJob(
     }
   } catch (e) {
     console.error('post-job-send-verify fetch error:', e instanceof Error ? e.message : 'unknown')
+  }
+
+  // Conversion event (board→CRM): an employer posted a job (pending verify).
+  // Low-cardinality, PII-free segments — no contact email/name/company.
+  try {
+    await track('post_job_submitted', {
+      state: normalized.state || 'unknown',
+      employment_type: normalized.employment_type,
+      remote: normalized.remote_hybrid,
+      has_external_apply: Boolean(normalized.apply_url),
+      syndication_targets: targetsToWrite.length,
+    })
+  } catch {
+    /* analytics is best-effort */
   }
 
   return {

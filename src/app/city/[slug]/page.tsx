@@ -24,6 +24,7 @@ import { CITY_HUBS, getCityHub } from '@/lib/city-slugs'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import JobAlertCapture from '@/components/JobAlertCapture'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 21600
@@ -283,6 +284,12 @@ export default async function CityHubPage(
               )}
             </section>
           )}
+
+          {/* Job-alert capture — converts passive metro-hub traffic into a
+              re-contactable CRM lead tagged with this city's intent. */}
+          <div className="mt-12 max-w-3xl">
+            <JobAlertCapture defaultCity={cityName} defaultState={hub.state} source="city_hub" />
+          </div>
 
           <section className="mt-12 border-t-2 border-black pt-8">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">

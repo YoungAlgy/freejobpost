@@ -19,6 +19,8 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 // server component is what lets /jobs/[slug] render as static ISR rather than
 // dynamic-per-request — see ApplyExternalLink + the revalidate note below.
 import ApplyExternalLink from '@/components/ApplyExternalLink'
+import JobAlertCapture from '@/components/JobAlertCapture'
+import ShareButtons from '@/components/ShareButtons'
 // Hub-link helpers — drive the BROWSE MORE internal-linking section so
 // per-job pages route PageRank back to the matching specialty / state
 // hubs + employer page. Without these, /jobs/[slug] had zero links
@@ -528,6 +530,11 @@ export default async function JobDetailPage({ params }: Props) {
                 Browse all jobs
               </Link>
             </div>
+
+            {/* Share — cheap distribution; the page already ships OG/Twitter cards. */}
+            <div className="mt-4">
+              <ShareButtons url={`https://freejobpost.co/jobs/${job.slug}`} title={cleanJobTitle} />
+            </div>
           </div>
 
           {/* Description */}
@@ -621,6 +628,19 @@ export default async function JobDetailPage({ params }: Props) {
               </p>
             </aside>
           )}
+
+          {/* Job-alert capture — last-chance conversion for the apply-leak:
+              a visitor who read this role but won't click through to the
+              employer ATS can still become a re-contactable CRM lead, tagged
+              with this role's specialty + location. */}
+          <div className="mb-10 max-w-3xl">
+            <JobAlertCapture
+              defaultSpecialty={stripSalarySuffix(job.specialty || '') || undefined}
+              defaultState={job.state || undefined}
+              defaultCity={job.city || undefined}
+              source="job_page"
+            />
+          </div>
 
           {/* Browse more — internal links back to specialty / state hubs.
              Critical for SEO link-graph: per-job pages parented to the

@@ -28,6 +28,7 @@ import {
 import { stripSalarySuffix } from '@/lib/clean-labels'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import JobAlertCapture from '@/components/JobAlertCapture'
 
 // Slugs that exist on BOTH freejobpost and freeresumepost specialty hubs.
 // When the current hub is in this set, the cross-link points to the matching
@@ -369,6 +370,17 @@ export default async function SpecialtyHubPage(
               </ul>
             </>
           )}
+
+          {/* Job-alert capture — converts the passive majority (visitors who
+              won't apply on visit 1) into a re-contactable CRM lead tagged with
+              this specialty's intent. Shown for both populated and empty
+              inventory (empty = the highest-value moment to capture). */}
+          <div className="mt-12 max-w-3xl">
+            <JobAlertCapture
+              defaultSpecialty={hub.title.replace(/ Jobs$/, '')}
+              source="specialty_hub"
+            />
+          </div>
 
           {/* Other specialties — internal linking */}
           <h2 className="text-2xl font-black tracking-tight mt-16 mb-4">Browse other specialties</h2>
