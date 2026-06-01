@@ -78,8 +78,36 @@ export function indeedJobType(t: PublicJob['employment_type']): string {
   }
 }
 
+// Per-job description length cap for syndication feeds.
+//
+// 2026-06: every Indeed-format feed (jobs.xml + adzuna/talent/glassdoor/
+// careerjet/jooble/indeed/ziprecruiter/originated) serialized the FULL job
+// description via descriptionHtml(). With ~8,091 feed-eligible jobs averaging
+// ~3.4K chars (heavy tail to 21K), the rendered feeds reached ~35MB — past
+// Vercel's 19.07MB ISR static-fallback limit, which FAILS the production build
+// at "Deploying outputs" (FALLBACK_BODY_TOO_LARGE). Truncating each description
+// to 1,500 chars (word-boundary cut, still well above the 250-char
+// hasUsableDescription floor publishers expect — a full responsibilities +
+// requirements body) roughly halves the feeds to ~14MB. Every <job> still
+// carries the <url> to the complete posting. (rss.xml already slices to 600,
+// so this single change covers all the oversized feeds.)
+//
+// NOTE: feed size still scales with active-job count — re-tune this cap (or
+// paginate the feeds) when feed-eligible inventory approaches ~11K.
+export const FEED_DESCRIPTION_MAX_CHARS = 1500
+
+function truncateForFeed(text: string): string {
+  if (text.length <= FEED_DESCRIPTION_MAX_CHARS) return text
+  const cut = text.slice(0, FEED_DESCRIPTION_MAX_CHARS)
+  // Back up to the last whitespace so a word isn't sliced mid-token — unless
+  // that boundary is implausibly far back, in which case hard-cut.
+  const lastSpace = cut.lastIndexOf(' ')
+  const body = lastSpace > FEED_DESCRIPTION_MAX_CHARS * 0.6 ? cut.slice(0, lastSpace) : cut
+  return body.trimEnd() + '…'
+}
+
 export function descriptionHtml(job: PublicJob): string {
-  const src = (job.description ?? '')
+  const src = truncateForFeed(job.description ?? '')
   const blocks = src.split(/\n\n+/).map((b) => {
     const html = b
       .replace(/&/g, '&amp;')
@@ -90,6 +118,25 @@ export function descriptionHtml(job: PublicJob): string {
     return `<p>${html}</p>`
   })
   return blocks.join('')
+}
+
+// avaCategoryHashtag — maps a job to Ava Health's Indeed category code, appended to
+// ORIGINATED job descriptions in the partner feed (see buildOriginatedFeed). Mirrors how
+// MASC Medical stamps #MASC1xx at the bottom of each posting: the code rides into Indeed
+// (which indexes the description text), so you can search/filter Indeed by category and
+// group sponsored campaigns by bucket. Buckets: 101 Nurses · 102 Primary Care / Advanced
+// Practice · 103 Specialties · 104 Allied Health. Returns null when a role doesn't classify
+// (we don't mislabel). Keyword lists are intentionally simple — tune them with the recruiting team.
+export function avaCategoryHashtag(job: PublicJob): string | null {
+  const hay = `${job.role ?? ''} ${job.specialty ?? ''} ${job.title ?? ''}`.toLowerCase()
+  const has = (re: RegExp) => re.test(hay)
+  // Advanced-practice providers first (their titles contain "nurse"/"physician" substrings).
+  if (has(/nurse practitioner|\bnp\b|physician assistant|\bpa-c\b|\baprn\b/)) return '#AVA102'
+  if (has(/\bnurse\b|registered nurse|\brn\b|\blpn\b|\blvn\b|\bcna\b|crna/)) return '#AVA101'
+  if (has(/therap(ist|y)|pharmac(ist|y)|technolog(ist|y)|technician|sonograph|radiograph|imaging|x-ray|laborator|phlebotom|respiratory|dietit|nutrition|medical assistant|paramedic|\bemt\b|surgical tech/)) return '#AVA104'
+  if (has(/primary care|family (medicine|practice)|internal medicine|general practi|\bpcp\b|hospitalist|pediatrician/)) return '#AVA102'
+  if (has(/physician|surgeon|cardiolog|oncolog|neurolog|radiolog|anesthesiolog|psychiatr|dermatolog|orthopedic|gastroenterolog|\w+ologist|physiatr|dentist|dental|orthodont|endodont|periodont|\bpain\b|ob\/?gyn|obstetric|gynecolog|specialist/)) return '#AVA103'
+  return null
 }
 
 // Fetch active jobs that opt-in to a particular network.
@@ -390,6 +437,7 @@ export async function buildOriginatedFeed(networkLabel: string): Promise<Respons
       // jobUrlWithUtm SyndicationTargetId constraint. URL is the bare
       // canonical /jobs/[slug] — no ?ref, no utm_* — since strict
       // partners append their own attribution.
+      const catTag = avaCategoryHashtag(job)
       const loc = locationLabel(job)
       const sal = formatSalary(job.salary_min, job.salary_max)
       const title = job.title || job.role || 'Healthcare Role'
@@ -408,7 +456,7 @@ export async function buildOriginatedFeed(networkLabel: string): Promise<Respons
     <city>${cdata(job.city ?? '')}</city>
     <state>${cdata(job.state ?? '')}</state>
     <country>${cdata('US')}</country>
-    <description>${cdata(descriptionHtml(job))}</description>
+    <description>${cdata(descriptionHtml(job) + (catTag ? `<p>${catTag}</p>` : ''))}</description>
     <salary>${cdata(sal ?? '')}</salary>
     <jobtype>${cdata(indeedJobType(job.employment_type))}</jobtype>
     <category>${cdata(job.specialty ?? job.role ?? 'Healthcare')}</category>
