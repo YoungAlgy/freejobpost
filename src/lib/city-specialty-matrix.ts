@@ -10,6 +10,8 @@
 // at the expense of the other.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
+import { supabase as _moduleSupabase } from './supabase'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { CITY_HUBS, type CityHub } from './city-slugs'
 import { activeJobBatchCount } from './active-batch-count'
@@ -24,38 +26,42 @@ const MIN_JOBS_PER_CELL = 5
 
 export { MIN_JOBS_PER_CELL }
 
-let _cellCache: { at: number; value: CityMatrixCell[] } | null = null
-const CELL_CACHE_TTL_MS = 10 * 60 * 1000
+/**
+ * 🔴 2026-06 INCIDENT FIX (same root cause as specialty-state-matrix). The
+ * per-process `_cellCache` did NOT survive cold serverless instances, so every
+ * city-matrix / sitemap render re-ran the full 40-batch corpus scan → shared
+ * pool exhaustion. Now wrapped in Next's data cache: ≤ one scan per 10min
+ * globally, across all instances.
+ */
+const _cachedViableCityCells = unstable_cache(
+  _computeViableCityCellsUncached,
+  ['viable-city-matrix-cells-v2'],
+  { revalidate: 600 },
+)
 
 export async function getViableCityCellsCached(
-  supabase: SupabaseClient,
+  _supabase?: SupabaseClient,
 ): Promise<CityMatrixCell[]> {
-  const now = Date.now()
-  if (_cellCache && now - _cellCache.at < CELL_CACHE_TTL_MS) {
-    return _cellCache.value
-  }
-  const value = await computeViableCityCellsViaSql(supabase)
-  _cellCache = { at: now, value }
-  return value
+  void _supabase // call-site compat; the cached scan uses the shared module client
+  return _cachedViableCityCells()
 }
 
 /**
- * The SQL-counted version. One big pull of active rows, JS-side per-field
- * matching. Returns cells in deterministic order (desc by count → city
- * slug → specialty slug).
+ * Thin wrapper over the globally-cached scan (kept for existing callers —
+ * generateStaticParams, sitemap). No longer scans per render.
  */
 export async function computeViableCityCellsViaSql(
-  supabase: SupabaseClient,
+  _supabase?: SupabaseClient,
 ): Promise<CityMatrixCell[]> {
-  // 12-batch range to bypass PostgREST's anon db_max_rows=1000 cap.
-  // Matches the rest of the codebase (jobs.xml, sitemap, specialty-state
-  // matrix all use 12 × 1000 = 12k row ceiling).
-  // 2026-05-28 audit: 12→30. The 12K ceiling under-counted city×specialty cells
-  // at 14.6K active inventory. Bump (or switch to count-based paging) before 30K.
-  const numBatches = await activeJobBatchCount(supabase)
+  void _supabase
+  return _cachedViableCityCells()
+}
+
+async function _computeViableCityCellsUncached(): Promise<CityMatrixCell[]> {
+  const numBatches = await activeJobBatchCount(_moduleSupabase)
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
-  const baseQ = () => supabase
+  const baseQ = () => _moduleSupabase
     .from('public_jobs')
     .select('city, state, specialty, role, title')
     .eq('status', 'active')

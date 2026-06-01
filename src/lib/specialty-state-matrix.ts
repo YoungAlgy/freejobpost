@@ -11,6 +11,8 @@
 // useful in its own right.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
+import { supabase as _moduleSupabase } from './supabase'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { STATE_HUBS, type StateHub } from './state-slugs'
 import { activeJobBatchCount } from './active-batch-count'
@@ -26,69 +28,66 @@ const MIN_JOBS_PER_CELL = 5
 export { MIN_JOBS_PER_CELL }
 
 /**
- * Process-scoped memoization of `computeViableCellsViaSql`. Without it,
- * every /state/[slug] and /specialty/[slug] page (~80 routes) re-issues
- * the same 5K-row Supabase query on ISR revalidate.
+ * 🔴 2026-06 INCIDENT FIX (CRM-wide pool exhaustion).
  *
- * The cache key is just "all" because the underlying query has no
- * parameters. TTL of 10 min matches the page revalidate windows so
- * stale data stays in step with the rest of the surface.
+ * The viable-cells scan reads the ENTIRE active corpus in ~40 `.range()`
+ * batches. It was only memoized PER PROCESS (a module-level `_cellCache`), so on
+ * Vercel — where each cold serverless invocation is a fresh process — every
+ * matrix peer-links render, sitemap render, and generateStaticParams re-ran the
+ * full 40-batch scan. Under crawler-driven ISR revalidation across hundreds of
+ * stale matrix pages × cold instances, that became hundreds of concurrent
+ * 40-batch scans → PostgREST connection-pool exhaustion that wedged the entire
+ * SHARED database (CRM + providers + every app) for days, with thousands of
+ * `522`s in the API logs.
+ *
+ * Fix: wrap the scan in Next's **data cache** (`unstable_cache`) so it runs at
+ * most once per 10 minutes GLOBALLY — shared across every serverless instance —
+ * no matter how many pages render. ALL callers (matrix peer-links via
+ * getViableCellsCached, sitemap, and generateStaticParams via
+ * computeViableCellsViaSql) now route through this single cached entry, so the
+ * corpus is scanned ~once/10min total instead of once per render.
  */
-let _cellCache: { at: number; value: MatrixCell[] } | null = null
-const CELL_CACHE_TTL_MS = 10 * 60 * 1000
+const _cachedViableCells = unstable_cache(
+  _computeViableCellsUncached,
+  ['viable-matrix-cells-v2'],
+  { revalidate: 600 },
+)
 
 export async function getViableCellsCached(
-  supabase: SupabaseClient,
+  _supabase?: SupabaseClient,
 ): Promise<MatrixCell[]> {
-  const now = Date.now()
-  if (_cellCache && now - _cellCache.at < CELL_CACHE_TTL_MS) {
-    return _cellCache.value
-  }
-  const value = await computeViableCellsViaSql(supabase)
-  _cellCache = { at: now, value }
-  return value
+  void _supabase // call-site compat; the cached scan uses the shared module client
+  return _cachedViableCells()
 }
 
 /**
  * Builds the viable (specialty, state) cell list from the live job table.
- * Equivalent to one count query per (specialty, state) pair (~900 total)
- * collapsed into a single pull, using the SAME `.or()` match logic
- * the runtime page uses, so the build-time list matches what's actually
- * renderable. Returns the cells in deterministic order.
- *
- * Used by both `generateStaticParams` on /specialty/[slug]/[state] and
- * by `sitemap.ts` so the sitemap, the prerendered routes, and the
- * runtime renderable URLs all stay in lockstep.
+ * Now a thin wrapper over the globally-cached scan (see above) so existing
+ * callers (generateStaticParams on /specialty/[slug]/[state], sitemap.ts) no
+ * longer trigger a per-render full-corpus scan. The `_supabase` param is kept
+ * for call-site compatibility but ignored — the cached scan uses the shared
+ * module client.
  */
 export async function computeViableCellsViaSql(
-  supabase: SupabaseClient,
-): Promise<{ specialty: SpecialtyHub; state: StateHub; count: number }[]> {
-  // Single big SQL pull, JS-side per-column matching. This is structurally
-  // equivalent to the SQL `or=(specialty.ilike.*p*, ...)` approach but
-  // collapses 900 round-trips into one. ~425 active rows fit easily in one
-  // response.
-  //
-  // The earlier (broken) JS version concatenated specialty + role + title
-  // into a single haystack with " | " — that LET a pattern straddle field
-  // boundaries (e.g. "rn " could match the literal " | " separator
-  // adjacent to a non-RN role). This version checks each field separately,
-  // which is exactly what SQL ILIKE does, so cell counts match the runtime
-  // `fetchCellJobs` query.
-  // 12-batch range — PostgREST silently caps `.limit(>1000)` for anon role,
-  // so the prior `.limit(5000)` was returning 1,000 rows. With ~9,616 active
-  // jobs that's 88% under-coverage, and the matrix-cell counts that drive
-  // /specialty/[specialty]/[state] page generation were silently truncated.
-  // Bumped from 9 → 12 on 2026-05-21 to match /jobs.xml + feed-builders +
-  // /sitemap.ts; one canonical batch count across every full-inventory
-  // fetch in the codebase prevents the matrix from drifting out of sync
-  // with feeds as inventory grows past 9k.
-  // 2026-05-28 audit: 12→30. The 12K ceiling under-counted specialty×state cells
-  // at 14.6K active inventory (some viable cells missed). Bump (or switch to
-  // count-based paging) before 30K.
-  const numBatches = await activeJobBatchCount(supabase)
+  _supabase?: SupabaseClient,
+): Promise<MatrixCell[]> {
+  void _supabase
+  return _cachedViableCells()
+}
+
+/**
+ * The actual scan. Equivalent to one count query per (specialty, state) pair
+ * (~900 total) collapsed into a single full-corpus pull + JS-side per-column
+ * matching, so the build-time list matches what the runtime `fetchCellJobs`
+ * query would render. Returns the cells in deterministic order.
+ *
+ * Only ever invoked by `_cachedViableCells` (≤ once / 10 min globally).
+ */
+async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
+  const numBatches = await activeJobBatchCount(_moduleSupabase)
   const BATCH_SIZE = 1000
   const nowIso = new Date().toISOString()
-  const baseQ = () => supabase
+  const baseQ = () => _moduleSupabase
     .from('public_jobs')
     .select('state, specialty, role, title')
     .eq('status', 'active')

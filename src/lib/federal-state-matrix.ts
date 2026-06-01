@@ -11,6 +11,8 @@
 // has a meaningful job list, low enough that we don't suppress real demand.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { unstable_cache } from 'next/cache'
+import { supabase as _moduleSupabase } from './supabase'
 import { FEDERAL_AGENCIES, type FederalAgency, jobMatchesAgency } from './federal-agencies'
 import { STATE_HUBS, type StateHub } from './state-slugs'
 
@@ -23,28 +25,47 @@ export type FederalMatrixCell = {
 const MIN_JOBS_PER_CELL = 5
 
 /**
- * Pull every active federal job once, run agency-match in JS, group by
- * (agency, state). Returns cells with ≥5 jobs in deterministic order.
- *
- * 2026-05-27: switched from a raw `select state,title,description` (which
- * had grown to 6.4MB — over the Next.js 2MB data-cache cap, forcing a
- * re-fetch on every page and spiking SSG build time enough to time out
- * /jobs/federal builds) to the `federal_jobs_for_match()` RPC which
- * truncates description to 250 chars server-side. The agency keyword
- * lands in the first sentence of every USAJobs body, so the truncated
- * text preserves the JS-side match signal while dropping the payload to
- * ~950KB — back under the cache cap.
- *
- * Used by:
- *   - generateStaticParams on /jobs/federal/[agency]/[state]
- *   - sitemap.ts to enumerate the federal-matrix URLs
- *   - the runtime page renderer (to seed the count badge before fetching
- *     the actual listing slice)
+ * 🔴 2026-06 INCIDENT FIX (same root cause as specialty-state-matrix). The
+ * per-process `_cellCache` did NOT survive cold serverless instances, so every
+ * federal-matrix / sitemap render re-ran the `federal_jobs_for_match` RPC →
+ * piling onto the shared-pool exhaustion. Now wrapped in Next's data cache:
+ * ≤ one RPC call per 10min globally, across all instances.
+ */
+const _cachedViableFederalCells = unstable_cache(
+  _computeViableFederalCellsUncached,
+  ['viable-federal-matrix-cells-v2'],
+  { revalidate: 600 },
+)
+
+export async function getViableFederalCellsCached(
+  _supabase?: SupabaseClient,
+): Promise<FederalMatrixCell[]> {
+  void _supabase // call-site compat; the cached scan uses the shared module client
+  return _cachedViableFederalCells()
+}
+
+/**
+ * Thin wrapper over the globally-cached scan (kept for existing callers —
+ * generateStaticParams on /jobs/federal/[agency]/[state], sitemap.ts, the
+ * runtime page renderer). No longer calls the RPC per render.
  */
 export async function computeViableFederalCells(
-  supabase: SupabaseClient,
+  _supabase?: SupabaseClient,
 ): Promise<FederalMatrixCell[]> {
-  const { data, error } = await supabase.rpc('federal_jobs_for_match')
+  void _supabase
+  return _cachedViableFederalCells()
+}
+
+/**
+ * The actual scan. Pulls every active federal job once via the
+ * `federal_jobs_for_match()` RPC (truncates description to 250 chars
+ * server-side so the payload stays under the Next 2MB data-cache cap), runs
+ * agency-match in JS, groups by (agency, state). Returns cells with ≥5 jobs in
+ * deterministic order. Only ever invoked by `_cachedViableFederalCells`
+ * (≤ once / 10 min globally).
+ */
+async function _computeViableFederalCellsUncached(): Promise<FederalMatrixCell[]> {
+  const { data, error } = await _moduleSupabase.rpc('federal_jobs_for_match')
   if (error) {
     console.error('federal_jobs_for_match RPC error:', error)
     return []
@@ -86,27 +107,6 @@ export async function computeViableFederalCells(
       }
       return a.state.slug.localeCompare(b.state.slug)
     })
-}
-
-/**
- * Process-scoped memoization mirroring getViableCellsCached for the
- * specialty matrix. The sitemap + every /jobs/federal/[agency]/[state]
- * page hits this; the underlying query is parameter-free, so a single
- * cache slot is enough.
- */
-let _cellCache: { at: number; value: FederalMatrixCell[] } | null = null
-const CELL_CACHE_TTL_MS = 10 * 60 * 1000
-
-export async function getViableFederalCellsCached(
-  supabase: SupabaseClient,
-): Promise<FederalMatrixCell[]> {
-  const now = Date.now()
-  if (_cellCache && now - _cellCache.at < CELL_CACHE_TTL_MS) {
-    return _cellCache.value
-  }
-  const value = await computeViableFederalCells(supabase)
-  _cellCache = { at: now, value }
-  return value
 }
 
 export { MIN_JOBS_PER_CELL }
