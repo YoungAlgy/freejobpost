@@ -98,6 +98,28 @@ export default async function JobsIndexPage() {
   ])
 
   const initialJobs: PublicJob[] = (initialRes.data ?? []) as PublicJob[]
+
+  // FAIL CLOSED (2026-06-02): never cache an empty "no open roles" shell. If the
+  // initial job-list query errored (e.g. the 2026-06-02 company_name anon-grant
+  // 42501 incident) or returned 0 rows, that ALWAYS means infrastructure failure
+  // — the board carries thousands of active jobs at all times. Rendering the
+  // empty shell lets ISR cache "0 jobs" for the whole revalidate window (4h),
+  // which is exactly what silently emptied this page during that incident.
+  // Throwing makes Next serve the last-good ISR cache (stale-while-revalidate);
+  // a cold cache 500s, which a crawler retries — vs trusting a 200 "no jobs" and
+  // treating the site as dead. Build-phase guarded (NEXT_PHASE) so a DB hiccup
+  // during prerender degrades to an empty shell that self-heals on the next
+  // runtime revalidate instead of failing the deploy. Mirrors /jobs.xml.
+  if (
+    (initialRes.error || initialJobs.length === 0) &&
+    process.env.NEXT_PHASE !== 'phase-production-build'
+  ) {
+    throw new Error(
+      `/jobs: initial fetch failed (error=${initialRes.error?.message ?? 'none'}, ` +
+        `rows=${initialJobs.length}) — refusing to cache an empty board.`,
+    )
+  }
+
   const totalActive: number = countRes.count ?? initialJobs.length
   const verifiedEmployerIds: string[] = (
     (verifiedRes.data ?? []) as Array<{ id: string }>
