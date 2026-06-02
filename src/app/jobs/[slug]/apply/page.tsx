@@ -19,11 +19,16 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   // Fetch the job title for a readable title tag (best-effort, empty fallback).
+  // Mirror getJob()'s filters so a soft-deleted/expired job's title can't leak
+  // into the <title> tag (status='active' alone doesn't exclude soft-deletes,
+  // which set deleted_at, not status).
   const { data } = await supabase
     .from('public_jobs')
     .select('title')
     .eq('slug', slug)
     .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
     .maybeSingle()
   const title = data?.title ?? slug
   return {
