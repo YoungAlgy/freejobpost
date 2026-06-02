@@ -106,6 +106,7 @@ interface NormalizedJob {
   salary_max: number | null
   source: string
   external_ref: string
+  company_name: string | null
 }
 
 async function fetchAdzunaCategory(appId: string, appKey: string, category: string): Promise<{ fetched: number; jobs: NormalizedJob[] }> {
@@ -147,6 +148,12 @@ async function fetchAdzunaCategory(appId: string, appKey: string, category: stri
     // model-predicted ranges could mislead candidates.
     const trustSalary = j.salary_is_predicted !== '1'
 
+    // Adzuna's company.display_name is the REAL hiring company. It's sometimes
+    // empty or a generic "Unknown" — keep only real names; NULL falls back to
+    // the joined "Adzuna (aggregator)" employer downstream (display/JSON-LD/feeds).
+    const rawCompany = (j.company?.display_name ?? '').trim()
+    const company_name = rawCompany && !/^unknown$/i.test(rawCompany) ? rawCompany : null
+
     out.push({
       slug: buildSlug(j.title, j.id),
       title: j.title,
@@ -160,6 +167,7 @@ async function fetchAdzunaCategory(appId: string, appKey: string, category: stri
       salary_max: trustSalary && typeof j.salary_max === 'number' ? Math.round(j.salary_max) : null,
       source: `adzuna:${category}`,
       external_ref: `adzuna:${category}:${j.id}`,
+      company_name,
     })
   }
   return { fetched: raw.length, jobs: out }
@@ -241,6 +249,25 @@ Deno.serve(async (_req: Request) => {
         boardSummary.updated = (boardSummary.updated as number) + upd
         grandInserted += ins
         grandUpdated += upd
+
+        // Promote the REAL per-job company name (Adzuna company.display_name)
+        // via a direct UPDATE keyed by the unique external_ref — NOT through the
+        // shared ats_import_upsert_jobs RPC, so the rest of the ATS pipeline is
+        // untouched. The RPC's upsert never writes company_name, so this value
+        // persists across re-ingests.
+        const withCompany = chunk.filter((c) => c.company_name)
+        if (withCompany.length > 0) {
+          const upRes = await Promise.all(
+            withCompany.map((c) =>
+              supabase.from('public_jobs')
+                .update({ company_name: c.company_name })
+                .eq('external_ref', c.external_ref),
+            ),
+          )
+          const failed = upRes.filter((x) => x.error).length
+          if (failed > 0) errors.push(`${cat.slug} company_name: ${failed}/${withCompany.length} update failed`)
+          boardSummary.company_named = ((boardSummary.company_named as number) ?? 0) + (withCompany.length - failed)
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
