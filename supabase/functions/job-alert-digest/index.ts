@@ -92,15 +92,19 @@ function fmtSalary(min: number | null, max: number | null): string {
   return "";
 }
 
-function whatLine(sub: Subscriber): string {
+function whatLine(sub: Subscriber, count?: number): string {
   const loc = sub.city ? ` in ${sub.city}` : sub.state ? ` in ${sub.state}` : "";
   const spec = sub.specialty ? sub.specialty : "healthcare";
-  return `${spec} jobs${loc}`;
+  // Count-aware noun: "1 … job" vs "N … jobs". Omit `count` for the generic
+  // subscription label in the footer (always plural).
+  const noun = count === 1 ? "job" : "jobs";
+  return `${spec} ${noun}${loc}`;
 }
 
-function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: string; text: string } {
-  const what = whatLine(sub);
-  const subject = `${jobs.length} new ${what}`;
+function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: string; text: string; unsubUrl: string } {
+  const whatN = whatLine(sub, jobs.length); // count-aware ("1 … job" / "8 … jobs")
+  const whatGeneric = whatLine(sub);        // always plural — subscription/footer label
+  const subject = `${jobs.length} new ${whatN}`;
   const unsubUrl = `${SITE}/unsubscribe?token=${sub.unsubscribe_token}`;
 
   const rows = jobs.map((j) => {
@@ -113,28 +117,32 @@ function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: str
       </td></tr>`;
   }).join("");
 
-  const text = `New ${what} on freejobpost.co:\n\n` +
+  const text = `New ${whatN} on freejobpost.co:\n\n` +
     jobs.map((j) => `• ${j.title} — ${[j.city, j.state].filter(Boolean).join(", ")} — ${SITE}/jobs/${j.slug}`).join("\n") +
-    `\n\nBrowse all: ${SITE}/jobs\nUnsubscribe: ${unsubUrl}\n\n${ADDRESS}`;
+    `\n\nBrowse all: ${SITE}/jobs` +
+    `\n\nNot seeing the right roles? Reply to this email and tell us what you're after — a real person reads every one.` +
+    `\n\nUnsubscribe: ${unsubUrl}\n\n${ADDRESS}`;
 
   const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f5f5;padding:24px 0"><tr><td align="center">
   <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="background:#fff;border:2px solid #111;max-width:600px">
     <tr><td style="padding:28px 28px 0">
       <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#15803d">freejobpost.co job alert</p>
-      <h1 style="margin:8px 0 4px;font-size:24px;font-weight:900;color:#111;letter-spacing:-0.5px">${jobs.length} new ${esc(what)}</h1>
+      <h1 style="margin:8px 0 4px;font-size:24px;font-weight:900;color:#111;letter-spacing:-0.5px">${jobs.length} new ${esc(whatN)}</h1>
       <p style="margin:0 0 8px;color:#555;font-size:14px">Fresh matches since your last alert. Free to apply, no account needed.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${rows}</table>
       <p style="margin:24px 0 0"><a href="${SITE}/jobs" style="display:inline-block;background:#111;color:#fff;font-weight:700;text-decoration:none;padding:12px 22px">Browse all jobs →</a></p>
+      <!-- Feedback CTA — routes replies to the monitored alex@avahealth.co inbox; this is the "feedback drives updates" loop. Copy is Algy/Ally brand-voice tweakable. -->
+      <p style="margin:18px 0 0;color:#555;font-size:13px;line-height:1.6">Not seeing the right roles? <a href="mailto:${FROM_EMAIL}?subject=Job%20alert%20feedback" style="color:#15803d;font-weight:700;text-decoration:none">Reply and tell us what you&rsquo;re after</a> — a real person reads every one.</p>
     </td></tr>
     <tr><td style="padding:24px 28px;border-top:1px solid #e5e5e5">
-      <p style="margin:0;color:#999;font-size:12px;line-height:1.6">You&rsquo;re getting this because you subscribed to ${esc(what)} alerts on freejobpost.co. <a href="${unsubUrl}" style="color:#666">Unsubscribe</a>.<br/>${esc(ADDRESS)}</p>
+      <p style="margin:0;color:#999;font-size:12px;line-height:1.6">You&rsquo;re getting this because you subscribed to ${esc(whatGeneric)} alerts on freejobpost.co. <a href="${unsubUrl}" style="color:#666">Unsubscribe</a>.<br/>${esc(ADDRESS)}</p>
     </td></tr>
   </table>
 </td></tr></table>
 </body></html>`;
 
-  return { subject, html, text };
+  return { subject, html, text, unsubUrl };
 }
 
 serve(async (req: Request) => {
@@ -197,7 +205,7 @@ serve(async (req: Request) => {
 
         const list = (jobs ?? []) as Job[];
         if (list.length > 0) {
-          const { subject, html, text } = renderEmail(sub, list);
+          const { subject, html, text, unsubUrl } = renderEmail(sub, list);
           const resp = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
@@ -205,6 +213,14 @@ serve(async (req: Request) => {
               from: `${FROM_NAME} <${FROM_EMAIL}>`,
               to: [sub.email],
               subject, html, text,
+              // RFC 2369 List-Unsubscribe header — Gmail/Yahoo bulk-sender best
+              // practice; materially improves inbox placement for recurring alert
+              // mail. Targets the /unsubscribe confirm page (GET). One-click (RFC
+              // 8058 List-Unsubscribe-Post) is omitted: it would POST to this URL,
+              // but /unsubscribe is a prefetch-safe GET confirm page. Add a POST
+              // handler + the One-Click header if daily volume nears Gmail's 5k
+              // one-click threshold.
+              headers: { "List-Unsubscribe": `<${unsubUrl}>` },
               tags: [{ name: "kind", value: "job_alert" }],
             }),
           });
