@@ -8,6 +8,7 @@ import { CITY_HUBS } from '@/lib/city-slugs'
 import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { supabase } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import JobAlertCapture from '@/components/JobAlertCapture'
 
 export const revalidate = 86400 // content is static — recheck daily
 
@@ -204,6 +205,21 @@ export default async function CareerPathPage({ params }: Props) {
               </li>
             </ul>
           </section>
+
+          {/* Job-alert capture — converts high-intent guide readers (people
+              actively researching how to enter this role) into a re-contactable
+              CRM lead tagged to this career path. The guide previously offered
+              only outbound links (specialty hub + metros); this is the first
+              email-capture on the upstream-funnel surface. Parity with the
+              hub/matrix/job pages. source='career_guide' (free-text column, no
+              CHECK). Strip a trailing "jobs" so the widget's "<X> jobs" template
+              doesn't double it. */}
+          <div className="mt-12">
+            <JobAlertCapture
+              defaultSpecialty={guide.specialtyLabel.replace(/ jobs$/i, '')}
+              source="career_guide"
+            />
+          </div>
 
           <section className="mt-10 border-t-2 border-black pt-8">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
