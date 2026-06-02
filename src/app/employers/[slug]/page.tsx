@@ -25,6 +25,7 @@ import {
 } from '@/lib/public-jobs'
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import JobAlertCapture from '@/components/JobAlertCapture'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 21600
@@ -154,11 +155,34 @@ export default async function EmployerPage({ params }: Props) {
     ],
   }
 
+  // ItemList JSON-LD — same pattern as /city/[slug] + /state/[slug] +
+  // /specialty/[slug]/[state]. Types the employer page as a job-list/category
+  // surface for Google (URL + name only — no salary/org, so no JobPosting
+  // misattribution; the per-job /jobs/[slug] pages carry the real JobPosting).
+  // Capped at 30 (Google ignores past ~30). jobs.length is always ≥1 here
+  // (the page notFound()s on 0 above), so this always emits.
+  const itemListJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Open healthcare jobs at ${employer.company_name}`,
+    numberOfItems: Math.min(jobs.length, 30),
+    itemListElement: jobs.slice(0, 30).map((j, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://freejobpost.co/jobs/${j.slug}`,
+      name: j.title,
+    })),
+  }
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
       />
 
       <main className="min-h-screen bg-white text-gray-900 font-sans">
@@ -288,6 +312,20 @@ export default async function EmployerPage({ params }: Props) {
               })}
             </ul>
           </section>
+
+          {/* Candidate job-alert capture — the job-list reader here is
+              candidate-side (job seekers browse employer pages to find roles).
+              Convert them into a re-contactable CRM lead before the
+              employer-facing CTA below. Defaults to the single dominant state
+              when this employer's roles are concentrated there; otherwise a
+              generic healthcare alert. source='employer_page' (free-text
+              subscribers.source column, no CHECK — confirmed). */}
+          <div className="mt-12">
+            <JobAlertCapture
+              defaultState={states.length === 1 ? (states[0] ?? undefined) : undefined}
+              source="employer_page"
+            />
+          </div>
 
           {/* Post-job CTA */}
           <div className="mt-16 border-2 border-black p-8">
