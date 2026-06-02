@@ -17,6 +17,7 @@ import {
 } from '@/lib/federal-agencies'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
+import JobAlertCapture from '@/components/JobAlertCapture'
 
 // 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling specialty/
 // state/city hubs (21600s). Federal inventory changes on the 4h ingest cron,
@@ -334,6 +335,19 @@ export default async function FederalAgencyStatePage(
               )}
             </>
           )}
+        </section>
+
+        {/* Job-alert capture — federal roles apply out via the USAJobs portal,
+            so capture the high-intent agency×state browser as a re-contactable
+            CRM lead. defaultState = the cell's state ABBR (matches jobs.state so
+            the digest's state matching works; consistent with the city hub). No
+            defaultSpecialty (federal spans specialties — a non-specialty string
+            would pollute matching). source='federal_agency_state' (free-text
+            subscribers.source, no CHECK). */}
+        <section className="max-w-6xl mx-auto px-6 pb-12">
+          <div className="max-w-3xl">
+            <JobAlertCapture defaultState={state.abbr} source="federal_agency_state" />
+          </div>
         </section>
 
         {/* Sibling-state navigation — link back up and out so this isn't a dead-end leaf */}

@@ -17,6 +17,7 @@ import {
   agencyOrFilter,
 } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
+import JobAlertCapture from '@/components/JobAlertCapture'
 
 // 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling specialty/
 // state/city hubs (21600s). Federal inventory changes on the 4h ingest cron,
@@ -307,6 +308,18 @@ export default async function AgencyJobsPage(
               )}
             </>
           )}
+        </section>
+
+        {/* Job-alert capture — federal roles apply out via the USAJobs portal,
+            so the on-site funnel otherwise dead-ends here. Convert the browser
+            into a re-contactable CRM lead. Generic healthcare alert (no
+            defaultSpecialty — agency hubs span every specialty/state, and a
+            non-specialty string would pollute the digest's specialty matching).
+            source='federal_agency' (free-text subscribers.source, no CHECK). */}
+        <section className="max-w-6xl mx-auto px-6 pb-12">
+          <div className="max-w-3xl">
+            <JobAlertCapture source="federal_agency" />
+          </div>
         </section>
       </main>
     </>
