@@ -183,7 +183,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       const validThrough = job.expires_at
         ? rfc822(new Date(job.expires_at))
         : rfc822(new Date(Date.now() + 60 * 86400_000))
-      const employerName = employerNameMap.get(job.employer_id) || 'Ava Health Partners'
+      const employerName = job.company_name || employerNameMap.get(job.employer_id) || 'Ava Health Partners'
       return `  <job>
     <title>${cdata(title)}</title>
     <date>${cdata(posted)}</date>

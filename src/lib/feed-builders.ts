@@ -369,7 +369,9 @@ export async function buildIndeedFormatFeed(
   const employerNames = await resolveEmployerNames(jobs)
   const jobsXml = jobs
     .map((job) => {
-      const name = employerNames.get(job.employer_id) || 'Ava Health Partners'
+      // Prefer the real per-job company (Adzuna's company.display_name) over the
+      // joined meta-employer ("Adzuna (aggregator)") — partners ingest <company>.
+      const name = job.company_name || employerNames.get(job.employer_id) || 'Ava Health Partners'
       return indeedFormatJobElement(job, name, 'freejobpost.co', target)
     })
     .join('\n')
