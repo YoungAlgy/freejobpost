@@ -18,13 +18,18 @@ export type PublicJob = {
   created_at: string
   expires_at: string
   employer_id: string | null
+  // Real per-job hiring company (e.g. Adzuna's company.display_name). NULL/absent
+  // => fall back to the joined employer's name. Optional so existing PublicJob
+  // fixtures/literals don't all need updating; always present at runtime when
+  // selected via JOB_LIST_FIELDS / JOB_DETAIL_FIELDS.
+  company_name?: string | null
 }
 
 export const JOB_LIST_FIELDS =
-  'id, slug, title, role, specialty, city, state, remote_hybrid, employment_type, salary_min, salary_max, created_at, employer_id' as const
+  'id, slug, title, role, specialty, city, state, remote_hybrid, employment_type, salary_min, salary_max, created_at, employer_id, company_name' as const
 
 export const JOB_DETAIL_FIELDS =
-  'id, slug, title, description, role, specialty, vertical, city, state, remote_hybrid, employment_type, salary_min, salary_max, experience_required, apply_url, source, created_at, expires_at, employer_id' as const
+  'id, slug, title, description, role, specialty, vertical, city, state, remote_hybrid, employment_type, salary_min, salary_max, experience_required, apply_url, source, created_at, expires_at, employer_id, company_name' as const
 
 // Lowest salary we treat as real. USAJobs GS-grade rows store a placeholder $1
 // (34 live jobs as of the 2026-05-28 audit) where pay is "set by the GS table";

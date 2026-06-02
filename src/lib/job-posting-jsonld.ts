@@ -84,8 +84,14 @@ export function buildJobPostingJsonLd(args: BuildJobPostingArgs): Record<string,
     },
     hiringOrganization: {
       '@type': 'Organization',
-      name: employer.name,
-      ...(employer.isSeeded
+      // Prefer the real per-job company (e.g. Adzuna's company.display_name) over
+      // the joined meta-employer ("Adzuna (aggregator)"). When company_name
+      // overrides, omit sameAs/logo — they describe the joined employer entity,
+      // not the real hiring company, so linking them would be a content mismatch.
+      name: job.company_name || employer.name,
+      ...(job.company_name
+        ? {}
+        : employer.isSeeded
         ? { sameAs: 'https://avahealth.co', logo: 'https://avahealth.co/logo.png' }
         : employer.slug
         ? { sameAs: `https://freejobpost.co/employers/${employer.slug}` }

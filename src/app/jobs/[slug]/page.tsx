@@ -582,7 +582,12 @@ export default async function JobDetailPage({ params }: Props) {
             </span>
             <span>
               Employer:{' '}
-              {employer.slug ? (
+              {job.company_name ? (
+                // Real per-job company (e.g. Adzuna's company.display_name): plain
+                // text — no per-company page exists, and the joined employer
+                // ("Adzuna (aggregator)") page wouldn't match this name.
+                <span className="text-black font-medium">{job.company_name}</span>
+              ) : employer.slug ? (
                 <Link
                   href={`/employers/${employer.slug}`}
                   className="text-black font-medium underline underline-offset-2 hover:text-green-700"
