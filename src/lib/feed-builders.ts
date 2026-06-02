@@ -82,19 +82,27 @@ export function indeedJobType(t: PublicJob['employment_type']): string {
 //
 // 2026-06: every Indeed-format feed (jobs.xml + adzuna/talent/glassdoor/
 // careerjet/jooble/indeed/ziprecruiter/originated) serialized the FULL job
-// description via descriptionHtml(). With ~8,091 feed-eligible jobs averaging
-// ~3.4K chars (heavy tail to 21K), the rendered feeds reached ~35MB — past
-// Vercel's 19.07MB ISR static-fallback limit, which FAILS the production build
-// at "Deploying outputs" (FALLBACK_BODY_TOO_LARGE). Truncating each description
-// to 1,500 chars (word-boundary cut, still well above the 250-char
-// hasUsableDescription floor publishers expect — a full responsibilities +
-// requirements body) roughly halves the feeds to ~14MB. Every <job> still
-// carries the <url> to the complete posting. (rss.xml already slices to 600,
-// so this single change covers all the oversized feeds.)
+// description via descriptionHtml(). With ~8,085 feed-eligible jobs averaging
+// ~3.3K chars (heavy tail), the rendered feeds reached ~35MB at full length —
+// past Vercel's 19.07MB ISR static-fallback limit, which FAILS the production
+// build at "Deploying outputs" (FALLBACK_BODY_TOO_LARGE). Truncating each
+// description (word-boundary cut, still well above the 250-char
+// hasUsableDescription floor publishers expect) bounds the feed; every <job>
+// still carries the <url> to the complete posting, so the full description is
+// one click away. (rss.xml already slices to 600, so this single change covers
+// all the oversized feeds.)
 //
-// NOTE: feed size still scales with active-job count — re-tune this cap (or
-// paginate the feeds) when feed-eligible inventory approaches ~11K.
-export const FEED_DESCRIPTION_MAX_CHARS = 1500
+// SIZE NOTE (measured 2026-06-02): at a 1,500-char cap the LIVE adzuna.xml was
+// 17.64MB — only ~8% under the 19.07MB limit, crossing it at just ~8,740
+// feed-eligible jobs (NOT ~11K as previously assumed; non-description per-job
+// XML overhead is ~950B and dominates). Lowered to 1,000 chars (~15MB, ~22%
+// headroom, crosses ~10.7K jobs) for a safe margin as inventory grows. The
+// DURABLE fix when inventory nears ~10K is per-feed pagination / a job-COUNT
+// cap (bounds size regardless of corpus growth) rather than shortening
+// descriptions further. The restored build-time FALLBACK_BODY_TOO_LARGE check
+// (the VERCEL_BYPASS_FALLBACK_OVERSIZED_ERROR band-aid was removed) will fail
+// the build LOUDLY if a feed crosses again — it won't silently ship broken.
+export const FEED_DESCRIPTION_MAX_CHARS = 1000
 
 function truncateForFeed(text: string): string {
   if (text.length <= FEED_DESCRIPTION_MAX_CHARS) return text
