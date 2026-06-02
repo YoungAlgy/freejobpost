@@ -23,6 +23,11 @@ import {
 import { CITY_HUBS, getCityHub } from '@/lib/city-slugs'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
+import {
+  aggregateSalariesByGroup,
+  aggregateSalariesOverall,
+  fmtUsdCompact,
+} from '@/lib/salary-aggregates'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import JobAlertCapture from '@/components/JobAlertCapture'
 
@@ -116,6 +121,21 @@ export default async function CityHubPage(
 
   const cityName = hub.name.split(',')[0]
   const stateHub = findStateHubByAbbr(hub.state)
+
+  // Salary aggregates for this metro — computed from the already-fetched job
+  // rows (zero extra query). Grouped by specialty/role since the city is fixed,
+  // mirroring the /state/[slug] + /specialty/[slug]/[state] panels. Gives the
+  // page unique, data-driven content (a "[city] healthcare salaries" table —
+  // AI-Overview citable; NO Occupation/EstimatedSalary schema, per the locked
+  // rule in salary-aggregates.ts). Honest by construction: the lib floors
+  // placeholder/outlier rows ($20K–$1M band) and returns null below 3 ranges.
+  const salaryOverall = aggregateSalariesOverall(jobs)
+  const salaryByBucket = aggregateSalariesByGroup(
+    jobs,
+    (j) => stripSalarySuffix(j.specialty || j.role) || null,
+  )
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -212,6 +232,48 @@ export default async function CityHubPage(
                   </li>
                 ))}
               </ul>
+            </section>
+          )}
+
+          {/* Computed salary panel for this metro — unique, data-driven content
+              built from the active inventory (zero extra query). Parity with the
+              /state/[slug] + /specialty/[slug]/[state] salary panels. */}
+          {salaryOverall && (
+            <section className="mb-10 max-w-3xl">
+              <h2 className="text-2xl font-black tracking-tight mb-2">
+                {cityName} healthcare salaries
+              </h2>
+              <p className="text-sm text-gray-700 leading-relaxed mb-4">
+                Based on {salaryOverall.count} active role{salaryOverall.count === 1 ? '' : 's'} in {hub.name} with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}&ndash;{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
+              </p>
+              {salaryByBucket.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-2 border-black">
+                    <thead className="bg-gray-100 text-left">
+                      <tr>
+                        <th scope="col" className="px-3 py-2 font-bold">Role / specialty</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Roles</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Typical pay</th>
+                        <th scope="col" className="px-3 py-2 font-bold text-right">Median</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/10">
+                      {salaryByBucket.map((row) => (
+                        <tr key={row.label}>
+                          <td className="px-3 py-2">{row.label}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">{row.count}</td>
+                          <td className="px-3 py-2 text-right tabular-nums">
+                            {fmtUsdCompact(row.low)}&ndash;{fmtUsdCompact(row.high)}
+                          </td>
+                          <td className="px-3 py-2 text-right tabular-nums font-medium">
+                            {fmtUsdCompact(row.avg)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
           )}
 
