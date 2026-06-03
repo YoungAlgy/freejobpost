@@ -30,7 +30,7 @@ export default function StateIndexPage() {
     <main className="min-h-screen bg-white text-black">
       <nav className="border-b-2 border-black">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-xl tracking-tight">
+          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
             freejobpost<span className="text-green-700">.co</span>
           </Link>
           <div className="flex items-center gap-6 text-sm font-medium">

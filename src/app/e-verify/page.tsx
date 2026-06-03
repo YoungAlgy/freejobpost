@@ -15,7 +15,7 @@ export default function EVerifyPage() {
     <main className="min-h-screen bg-white text-black">
       <nav className="border-b-2 border-black">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-xl tracking-tight">
+          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
             freejobpost<span className="text-green-700">.co</span>
           </Link>
           <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-green-700">Browse jobs</Link>

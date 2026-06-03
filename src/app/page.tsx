@@ -89,7 +89,7 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2 min-w-0">
             <span className="font-black text-lg sm:text-xl tracking-tight">freejobpost<span className="text-green-700">.co</span></span>
-            <span className="text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5 shrink-0">BETA</span>
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5 shrink-0">BETA</span>
           </Link>
           <div className="flex items-center gap-4 md:gap-8 text-sm font-medium">
             <Link href="/jobs" className="hidden sm:inline hover:text-green-700 whitespace-nowrap">Browse</Link>
