@@ -233,7 +233,7 @@ Deno.serve(async (_req: Request) => {
         const chunk = r.jobs.slice(i, i + CHUNK)
         const { data, error } = await supabase.rpc('ats_import_upsert_jobs', {
           p_employer_slug: 'adzuna-aggregator',
-          p_company_name: 'Adzuna (aggregator)',
+          p_company_name: 'Healthcare Employer (via Adzuna)',
           p_company_url: 'https://www.adzuna.com',
           p_provider: 'adzuna',
           p_board_slug: cat.slug,
@@ -250,24 +250,12 @@ Deno.serve(async (_req: Request) => {
         grandInserted += ins
         grandUpdated += upd
 
-        // Promote the REAL per-job company name (Adzuna company.display_name)
-        // via a direct UPDATE keyed by the unique external_ref — NOT through the
-        // shared ats_import_upsert_jobs RPC, so the rest of the ATS pipeline is
-        // untouched. The RPC's upsert never writes company_name, so this value
-        // persists across re-ingests.
-        const withCompany = chunk.filter((c) => c.company_name)
-        if (withCompany.length > 0) {
-          const upRes = await Promise.all(
-            withCompany.map((c) =>
-              supabase.from('public_jobs')
-                .update({ company_name: c.company_name })
-                .eq('external_ref', c.external_ref),
-            ),
-          )
-          const failed = upRes.filter((x) => x.error).length
-          if (failed > 0) errors.push(`${cat.slug} company_name: ${failed}/${withCompany.length} update failed`)
-          boardSummary.company_named = ((boardSummary.company_named as number) ?? 0) + (withCompany.length - failed)
-        }
+        // company_name (Adzuna's company.display_name) is written by the
+        // extended ats_import_upsert_jobs RPC itself (it maps company_name from
+        // p_jobs, added 2026-06-02). The old direct .update() loop that used to
+        // live here was both redundant AND failing every run — service_role has
+        // no column-level UPDATE on public_jobs.company_name — so it's removed.
+        // The RPC is now the single, working write path for the real company.
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
