@@ -18,7 +18,7 @@ export default function EVerifyPage() {
           <Link href="/" className="font-black text-xl tracking-tight">
             freejobpost<span className="text-green-700">.co</span>
           </Link>
-          <Link href="/jobs" className="text-sm font-bold hover:text-green-700">Browse jobs</Link>
+          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-green-700">Browse jobs</Link>
         </div>
       </nav>
 

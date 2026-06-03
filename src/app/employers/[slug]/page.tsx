@@ -193,7 +193,7 @@ export default async function EmployerPage({ params }: Props) {
               freejobpost<span className="text-gray-400">.co</span>
             </Link>
             <div className="flex items-center gap-4 text-sm">
-              <Link href="/jobs" className="hover:text-green-700">
+              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">
                 Browse jobs
               </Link>
               <Link

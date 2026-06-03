@@ -107,7 +107,7 @@ export default function ForEmployersPage() {
             </span>
           </Link>
           <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hover:text-green-700">Browse jobs</Link>
+            <Link href="/jobs" className="hidden sm:inline hover:text-green-700">Browse jobs</Link>
             <Link href="/how-it-works" className="hover:text-green-700">How it works</Link>
             <Link
               href="/post-job"

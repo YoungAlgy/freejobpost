@@ -182,7 +182,7 @@ export default async function CityHubPage(
               freejobpost<span className="text-green-700">.co</span>
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hover:text-green-700">All jobs</Link>
+              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">All jobs</Link>
               <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
             </div>
           </div>
