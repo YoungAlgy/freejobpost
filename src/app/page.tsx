@@ -91,8 +91,8 @@ export default async function Home() {
             <span className="font-black text-lg sm:text-xl tracking-tight">freejobpost<span className="text-green-700">.co</span></span>
             <span className="text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5 shrink-0">BETA</span>
           </Link>
-          <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hover:text-green-700 whitespace-nowrap">Browse</Link>
+          <div className="flex items-center gap-4 md:gap-8 text-sm font-medium">
+            <Link href="/jobs" className="hidden sm:inline hover:text-green-700 whitespace-nowrap">Browse</Link>
             <Link href="/how-it-works" className="hidden md:inline hover:text-green-700">How it works</Link>
             <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">For candidates</a>
             <Link href="/post-job" className="bg-black text-white px-3 md:px-4 py-2 font-bold hover:bg-green-700 transition-colors text-xs md:text-sm whitespace-nowrap">
