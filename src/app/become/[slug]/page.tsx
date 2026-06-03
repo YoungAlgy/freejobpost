@@ -9,6 +9,7 @@ import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { supabase } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import JobAlertCapture from '@/components/JobAlertCapture'
+import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 export const revalidate = 86400 // content is static — recheck daily
 
@@ -215,6 +216,9 @@ export default async function CareerPathPage({ params }: Props) {
               CHECK). Strip a trailing "jobs" so the widget's "<X> jobs" template
               doesn't double it. */}
           <div className="mt-12">
+            <div className="mb-8">
+              <ResumeMatchCTA specialtyLabel={guide.specialtyLabel.replace(/ jobs$/i, '')} />
+            </div>
             <JobAlertCapture
               defaultSpecialty={guide.specialtyLabel.replace(/ jobs$/i, '')}
               source="career_guide"

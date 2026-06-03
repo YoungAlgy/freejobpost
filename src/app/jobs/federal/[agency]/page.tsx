@@ -18,6 +18,7 @@ import {
 } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 import JobAlertCapture from '@/components/JobAlertCapture'
+import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling specialty/
 // state/city hubs (21600s). Federal inventory changes on the 4h ingest cron,
@@ -318,6 +319,9 @@ export default async function AgencyJobsPage(
             source='federal_agency' (free-text subscribers.source, no CHECK). */}
         <section className="max-w-6xl mx-auto px-6 pb-12">
           <div className="max-w-3xl">
+            <div className="mb-8">
+              <ResumeMatchCTA />
+            </div>
             <JobAlertCapture source="federal_agency" />
           </div>
         </section>

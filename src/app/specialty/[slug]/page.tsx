@@ -29,6 +29,7 @@ import { stripSalarySuffix } from '@/lib/clean-labels'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import JobAlertCapture from '@/components/JobAlertCapture'
+import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // Slugs that exist on BOTH freejobpost and freeresumepost specialty hubs.
 // When the current hub is in this set, the cross-link points to the matching
@@ -233,6 +234,13 @@ export default async function SpecialtyHubPage(
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
             {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers — every listing has a real apply link.
           </p>
+
+          {/* Conversion bridge → freeresumepost.co, contextual to this
+              specialty. High-intent browse page (they searched this specialty),
+              so it's the natural place to offer "upload once → get matched". */}
+          <div className="mb-10 max-w-3xl">
+            <ResumeMatchCTA specialtyLabel={hub.title.replace(/ Jobs$/, '')} />
+          </div>
 
           {/* By-state linkbar for internal linking density */}
           {states.length > 0 && (

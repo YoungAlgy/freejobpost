@@ -21,6 +21,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 import ApplyExternalLink from '@/components/ApplyExternalLink'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ShareButtons from '@/components/ShareButtons'
+import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 // Hub-link helpers — drive the BROWSE MORE internal-linking section so
 // per-job pages route PageRank back to the matching specialty / state
 // hubs + employer page. Without these, /jobs/[slug] had zero links
@@ -562,6 +563,15 @@ export default async function JobDetailPage({ params }: Props) {
             />
           </div>
 
+          {/* Conversion bridge → freeresumepost.co. Placed right after the
+              reader consumes the role — peak intent to "get matched to more
+              like this" without re-applying. This is the candidate-supply
+              funnel: freejob has the (growing) search traffic, freeresume
+              needs the uploads. See ResumeMatchCTA. */}
+          <div className="mb-6">
+            <ResumeMatchCTA specialtyLabel={job.specialty || job.role} />
+          </div>
+
           {/* Meta */}
           <div className="text-xs text-gray-500 mb-6 flex flex-wrap gap-x-6 gap-y-1">
             <span>
@@ -883,6 +893,13 @@ function ClosedJobView({
               Browse all jobs
             </Link>
           </div>
+        </div>
+
+        {/* Closed-job recovery bridge → freeresumepost.co — a dead listing is
+            peak intent to "upload once, get matched to live roles" instead of
+            chasing expired postings. */}
+        <div className="mb-8">
+          <ResumeMatchCTA specialtyLabel={job.specialty || job.role} />
         </div>
 
         {/* Similar open roles */}

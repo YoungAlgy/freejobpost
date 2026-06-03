@@ -7,6 +7,7 @@ import JobsFilter from './jobs-filter'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import JobAlertCapture from '@/components/JobAlertCapture'
+import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 export const metadata: Metadata = {
   title: 'Healthcare jobs — free to browse, free to apply',
   description:
@@ -249,6 +250,9 @@ export default async function JobsIndexPage() {
             re-contactable CRM lead (general intent: no specialty/state hook). */}
         <section className="max-w-6xl mx-auto px-6 pb-12">
           <div className="max-w-3xl">
+            <div className="mb-8">
+              <ResumeMatchCTA />
+            </div>
             <JobAlertCapture source="jobs_browse" />
           </div>
         </section>

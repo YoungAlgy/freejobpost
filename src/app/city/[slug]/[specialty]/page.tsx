@@ -25,6 +25,7 @@ import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 import JobAlertCapture from '@/components/JobAlertCapture'
+import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 21600
@@ -233,6 +234,9 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
 
           {/* Job-alert capture — highest-intent surface (city × specialty). */}
           <div className="mt-12 max-w-3xl">
+            <div className="mb-8">
+              <ResumeMatchCTA specialtyLabel={cleanSpecialty} locationLabel={cityShort} />
+            </div>
             <JobAlertCapture
               defaultSpecialty={cleanSpecialty}
               defaultCity={cityShort}

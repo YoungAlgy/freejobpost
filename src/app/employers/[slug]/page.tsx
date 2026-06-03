@@ -26,6 +26,7 @@ import {
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import JobAlertCapture from '@/components/JobAlertCapture'
+import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 21600
@@ -321,6 +322,9 @@ export default async function EmployerPage({ params }: Props) {
               generic healthcare alert. source='employer_page' (free-text
               subscribers.source column, no CHECK — confirmed). */}
           <div className="mt-12">
+            <div className="mb-8">
+              <ResumeMatchCTA />
+            </div>
             <JobAlertCapture
               defaultState={states.length === 1 ? (states[0] ?? undefined) : undefined}
               source="employer_page"
