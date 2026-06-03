@@ -114,6 +114,20 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())
     .maybeSingle()
+  // FAIL CLOSED (2026-06-02): if BOTH the targeted + fallback selects errored,
+  // this is an infrastructure failure (bad grant / DB outage), NOT a missing row
+  // — e.g. the company_name anon-grant incident, where every anon job query
+  // 42501'd, getJob returned null → notFound() → a 404-storm across all ~16.8K
+  // job pages. Throw so Next serves the last-good ISR cache (or 500s on a cold
+  // cache, which a crawler retries) instead of 404'ing a real, live job. The
+  // benign withTargets error (syndication_targets column missing) is recovered
+  // by the fallback above; only a DOUBLE error reaches here. Build-phase guarded
+  // so a prerender DB hiccup degrades gracefully. Mirrors /jobs + jobs.xml.
+  if (fallback.error && process.env.NEXT_PHASE !== 'phase-production-build') {
+    throw new Error(
+      `getJob(${slug}): both selects failed (${fallback.error.message}) — refusing to 404 a real job`,
+    )
+  }
   return (fallback.data as JobWithTargets | null) ?? null
 }
 
