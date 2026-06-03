@@ -75,7 +75,7 @@ export default async function VerifyTokenPage({ params }: Props) {
               BETA
             </span>
           </Link>
-          <Link href="/jobs" className="text-sm font-medium hover:text-green-700">
+          <Link href="/jobs" className="hidden sm:inline text-sm font-medium hover:text-green-700">
             Browse jobs
           </Link>
         </div>

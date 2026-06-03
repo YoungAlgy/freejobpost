@@ -196,7 +196,7 @@ export default async function JobsIndexPage() {
               </span>
             </Link>
             <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-              <Link href="/jobs" className="hover:text-green-700 border-b-2 border-black">
+              <Link href="/jobs" className="hidden sm:inline hover:text-green-700 border-b-2 border-black">
                 Browse jobs
               </Link>
               <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">
