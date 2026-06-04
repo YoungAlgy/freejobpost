@@ -10,7 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendSesEmail } from "../_shared/ses.ts";
+import { sendSesEmail, type SendEmailParams, type SendEmailResult } from "../_shared/ses.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,6 +20,18 @@ const corsHeaders = {
 
 const FROM_NAME = "Free Job Post";
 const FROM_EMAIL = "hello@freejobpost.co"; // SES-verified per-app sender
+
+// #15: wrap sendSesEmail so a network-level THROW in one send can't abort the others.
+// This fn sends 2 emails; previously a fetch throw on the employer send fell through to
+// the outer catch and dropped the candidate's confirmation. Convert a throw to a
+// {ok:false} result so each send is isolated.
+async function safeSes(params: SendEmailParams): Promise<SendEmailResult> {
+  try {
+    return await sendSesEmail(params);
+  } catch (e) {
+    return { ok: false, status: 0, error: e instanceof Error ? e.message : "send threw" };
+  }
+}
 
 function escHtml(s: string): string {
   return (s || '')
@@ -358,7 +370,7 @@ Reply to this email to contact ${candidate.first_name} directly.
 
 freejobpost.co -- operated by Ava Health Partners LLC`;
 
-      const empSendResult = await sendSesEmail({
+      const empSendResult = await safeSes({
         from: `${FROM_NAME} <${FROM_EMAIL}>`,
         to: employerEmail,
         replyTo: candidate.email,
@@ -368,6 +380,25 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
       });
       sentResults.push({ to: employerEmail, ok: empSendResult.ok });
       if (!empSendResult.ok) console.error("employer notify failed:", empSendResult.status, empSendResult.error.slice(0, 200));
+
+      // #15: durable audit record for the employer notify (success OR failure) via a
+      // DEFINER RPC — apply-notify is anon-scoped + can't write the RLS-locked email_sends
+      // directly. Lets a failed employer notify be detected + manually re-sent. Best-effort.
+      try {
+        await sb.rpc("record_apply_notify_send", {
+          p_application_id: application_id,
+          p_to_email: employerEmail,
+          p_from_email: FROM_EMAIL,
+          p_from_name: FROM_NAME,
+          p_subject: empSubject,
+          p_status: empSendResult.ok ? "sent" : "failed",
+          p_error: empSendResult.ok ? null : (empSendResult.error ?? null),
+          p_resend_id: empSendResult.ok ? (empSendResult.messageId ?? null) : null,
+          p_candidate_id: candidate.id,
+        });
+      } catch (recErr) {
+        console.error("record_apply_notify_send failed:", recErr instanceof Error ? recErr.message : "unknown");
+      }
     }
 
     // === 2. Candidate confirmation =========================================
@@ -397,7 +428,7 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
     // across the candidate journey (upload -> apply -> confirmation).
     const candFromName = "Free Resume Post";
     const candFromEmail = "hello@freeresumepost.co";
-    const candSendResult = await sendSesEmail({
+    const candSendResult = await safeSes({
       from: `${candFromName} <${candFromEmail}>`,
       to: candidate.email,
       subject: candSubject,
