@@ -2,6 +2,16 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   trailingSlash: false,
+  // Build-time static generation can prerender the heavy partner-feed routes
+  // (/feeds/*.xml) and the largest /specialty/[slug]/[state] hubs, each of which
+  // pulls the full ~20K active-job corpus and serializes a multi-MB XML. As the
+  // corpus + per-job payload grew (company_name + syndication_targets columns),
+  // these crossed Next's DEFAULT 60s per-page static-generation timeout, failing
+  // the production build after its 3 retries (2026-06-04). Raise the ceiling so
+  // the slow-but-bounded feed prerenders complete. Additive + reversible; runtime
+  // behavior is unchanged (feeds stay 6h ISR). If a feed ever needs >240s, that's
+  // a real perf regression to investigate, not something to keep bumping.
+  staticPageGenerationTimeout: 240,
   // Suppress the default `X-Powered-By: Next.js` response header. It's a
   // minor information leak — it tells attackers (and fingerprinting
   // services) exactly which framework + version-class we're on, which
