@@ -178,11 +178,33 @@ serve(async (req: Request) => {
       .limit(DAILY_CAP);
     if (subErr) throw new Error(`subscribers query: ${subErr.message}`);
 
-    let processed = 0, sent = 0, skipped_no_match = 0;
+    let processed = 0, sent = 0, skipped_no_match = 0, skipped_claimed = 0;
     const errors: Array<{ email: string; error: string }> = [];
 
     for (const sub of (subs ?? []) as Subscriber[]) {
       processed++;
+
+      // #10 fix (claim-then-send): atomically advance the cursor BEFORE any work,
+      // gated on the row still being due. A concurrent run (a manual call overlapping
+      // the daily cron, or a cron retry) that loses the race updates 0 rows -> we skip
+      // it -> no double digest. Replaces the old advance-cursor-AFTER-send, which let
+      // two runs both see the subscriber as due and both send.
+      // Trade: a send that fails after this claim won't retry until next week — fine
+      // for a teaser digest (the old code also advanced the cursor regardless of send).
+      const claim = await sb.from("public_job_alert_subscribers")
+        .update({ last_alert_sent_at: nowIso })
+        .eq("id", sub.id)
+        .or(`last_alert_sent_at.is.null,last_alert_sent_at.lt.${sevenDaysAgo}`)
+        .select("id");
+      if (claim.error) {
+        errors.push({ email: sub.email, error: `claim: ${claim.error.message}` });
+        continue;
+      }
+      if (!claim.data || claim.data.length === 0) {
+        skipped_claimed++; // another concurrent run already claimed this subscriber
+        continue;
+      }
+
       const since = sub.last_alert_sent_at ?? firstRunSince;
       try {
         let q = sb.from("public_jobs")
@@ -244,19 +266,15 @@ serve(async (req: Request) => {
           skipped_no_match++;
         }
 
-        // Advance the cursor regardless of send — keeps the per-subscriber weekly
-        // cadence and means the next run's window starts here, so no new jobs are
-        // missed across a quiet week.
-        const upd = await sb.from("public_job_alert_subscribers")
-          .update({ last_alert_sent_at: nowIso })
-          .eq("id", sub.id);
-        if (upd.error) console.error("cursor update:", upd.error.message);
+        // Cursor was already advanced atomically by the claim at the top of this
+        // iteration (claim-then-send, #10) — keeps the per-subscriber weekly cadence
+        // and moves the next run's window forward even on a quiet (no-match) week.
       } catch (err) {
         errors.push({ email: sub.email, error: err instanceof Error ? err.message : "unknown" });
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, processed, sent, skipped_no_match, errors }),
+    return new Response(JSON.stringify({ ok: true, processed, sent, skipped_no_match, skipped_claimed, errors }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     const msg = err instanceof Error ? err.message : (typeof err === "string" ? err : JSON.stringify(err));
