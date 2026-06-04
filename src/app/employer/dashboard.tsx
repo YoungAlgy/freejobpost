@@ -243,7 +243,7 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
           )}
         </div>
       </div>
-      {err && <p className="text-xs text-red-700 pb-3 pl-1">{err}</p>}
+      {err && <p role="alert" className="text-xs text-red-700 pb-3 pl-1">{err}</p>}
     </li>
   )
 }
