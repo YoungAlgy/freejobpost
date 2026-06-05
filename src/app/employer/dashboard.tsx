@@ -181,12 +181,20 @@ function Section({
 function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean }) {
   const [pending, startTransition] = useTransition()
   const [err, setErr] = useState<string | null>(null)
+  const [confirmArchive, setConfirmArchive] = useState(false)
   const loc = locationLabel(job as { city: string | null; state: string | null })
   const sal = formatSalary(job.salary_min, job.salary_max)
   const emp = employmentLabel(job.employment_type as never)
   const rem = remoteLabel(job.remote_hybrid as never)
 
   function onArchive() {
+    // L123: archiving a live post on a single misclick is too easy. Require a
+    // confirm — first click arms, second click archives.
+    if (!confirmArchive) {
+      setConfirmArchive(true)
+      return
+    }
+    setConfirmArchive(false)
     setErr(null)
     startTransition(async () => {
       const r = await archiveJob(job.id, 'filled')
@@ -238,7 +246,7 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
               disabled={pending}
               className="text-xs font-bold underline hover:text-green-700 disabled:opacity-50"
             >
-              {pending ? 'Archiving…' : 'Mark filled'}
+              {pending ? 'Archiving…' : confirmArchive ? 'Click again to confirm' : 'Mark filled'}
             </button>
           )}
         </div>
@@ -334,6 +342,7 @@ function ApplicationsSection({ applications }: { applications: Application[] }) 
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
+          aria-expanded={expanded}
           className="mt-3 text-xs font-bold underline hover:text-green-700"
         >
           {expanded
@@ -401,6 +410,7 @@ function ApplicationRow({ app }: { app: Application }) {
             <button
               type="button"
               onClick={() => setNoteOpen((o) => !o)}
+              aria-expanded={noteOpen}
               className="text-xs font-bold underline hover:text-green-700 mt-1"
             >
               {noteOpen ? 'Hide note' : 'Cover note'}

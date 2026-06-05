@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, isValidElement, cloneElement, type ReactElement } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
 import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
@@ -602,7 +602,13 @@ function Field({
         </span>
         {hint && <span className="text-xs text-gray-500">{hint}</span>}
       </div>
-      {children}
+      {/* L126: propagate `required` to the input as aria-required so screen readers
+          announce it (the visual red * isn't announced). Guarded to a valid element. */}
+      {required && isValidElement(children)
+        ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+            'aria-required': true,
+          })
+        : children}
     </label>
   )
 }
