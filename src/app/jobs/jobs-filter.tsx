@@ -280,7 +280,10 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
               VERIFIED ONLY ({verifiedSet.size})
             </button>
           )}
-          {activeFilterCount > 0 && (
+          {/* L124 fix: also show Clear when the ONLY input is a search query `q`
+              (activeFilterCount counts the dropdown filters but not `q`), so a
+              search-with-no-matches isn't a dead-end with no one-click reset. */}
+          {(activeFilterCount > 0 || q) && (
             <button
               type="button"
               onClick={() => {
