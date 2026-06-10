@@ -68,7 +68,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Who applies — real people or scraped profiles?',
-    a: "Real candidates. Candidates apply directly from the job page — name, email, phone, optional cover note, optional resume URL. Some candidates also come through the freeresumepost.co matching engine, which notifies them when a 70%+ fit opens in their specialty and state. We do not scrape profiles or auto-submit applications on anyone's behalf.",
+    a: "Real candidates. Candidates apply directly from the job page — name, email, phone, optional cover note, optional resume URL. Some candidates also come through the freeresumepost.co matching engine, which shows them new roles that fit their specialty and state. We do not scrape profiles or auto-submit applications on anyone's behalf.",
   },
   {
     q: 'Do I have to create an account or set a password?',
@@ -212,7 +212,7 @@ export default function ForEmployersPage() {
               {
                 n: '03',
                 h: 'Candidates find you',
-                p: 'Via the job board, the matching engine (which emails candidates a 70%+ fit match), and feed-based aggregators.',
+                p: 'Via the job board, the freeresumepost.co matching engine (which surfaces fitting roles to candidates), and feed-based aggregators.',
               },
               {
                 n: '04',

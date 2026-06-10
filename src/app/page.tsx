@@ -168,7 +168,7 @@ export default async function Home() {
             <p className="text-gray-700 leading-relaxed">
               10 active posts free, forever — no trial expiring, no per-applicant charges,
               no &ldquo;unlock this resume&rdquo; fees. Archived roles don&apos;t count.
-              If we ever charge, it&apos;s for optional boosts only.
+              Posting stays free through beta, and beta employers keep free unlimited posts.
             </p>
           </div>
           <div className="px-0 md:px-10 pb-10 md:pb-0 border-b-2 md:border-b-0 border-black">
@@ -399,7 +399,7 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">How long does a job stay live?</h3>
-              <p className="text-gray-700 leading-relaxed">60 days by default. You can repost any expired job in one click. Filled roles can be marked &quot;closed&quot; manually.</p>
+              <p className="text-gray-700 leading-relaxed">60 days by default. If a job expires and you still need it filled, posting it again takes about two minutes. Filled roles come off the board when you tell us.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">Where else does my job get distributed?</h3>
@@ -419,7 +419,7 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">How do candidates find my job?</h3>
-              <p className="text-gray-700 leading-relaxed">Three paths: (1) the freejobpost.co listing pages that rank in search, (2) the matching engine that emails candidates a 70%+ fit, (3) the syndication feeds (Indeed, ZipRecruiter, etc.) — so your listing gets search visibility, direct candidate notification, and aggregator reach without any extra steps.</p>
+              <p className="text-gray-700 leading-relaxed">Three paths. The freejobpost.co listing pages rank in search. The freeresumepost.co matching engine shows your role to candidates whose profile fits. And the syndication feeds carry your listing to aggregators. No extra steps on your end.</p>
             </div>
           </div>
         </div>

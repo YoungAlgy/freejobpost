@@ -32,12 +32,12 @@ export default function ResumeMatchCTA({ specialtyLabel, locationLabel }: Props)
         Stop applying one by one
       </p>
       <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight mb-2">
-        Upload your resume once — get matched to {what}
+        Upload your resume once. Get matched to {what}
         {where}.
       </h3>
       <p className="text-sm text-gray-800 mb-4 leading-relaxed max-w-xl">
         Drop your resume and we&rsquo;ll match you to new {what} as employers post
-        them — no re-applying to each one. Free, no recruiter spam, delete anytime.
+        them. No re-applying to each one. Free, no recruiter spam, delete anytime.
       </p>
       <a
         href={UPLOAD_URL}

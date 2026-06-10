@@ -10,14 +10,22 @@ import { unsubscribeJobAlert } from '@/lib/actions/job-alert'
 export default function UnsubscribeClient() {
   const token = useSearchParams().get('token') ?? ''
   const [done, setDone] = useState(false)
+  const [failed, setFailed] = useState(false)
   const [pending, startTransition] = useTransition()
 
   const valid = /^[0-9a-fA-F-]{36}$/.test(token)
 
   function onConfirm() {
     startTransition(async () => {
-      await unsubscribeJobAlert(token)
-      setDone(true) // RPC is idempotent — always confirm
+      // 2026-06 audit (F96): the old version confirmed unconditionally, so an
+      // RPC failure showed "You're unsubscribed" while the emails kept coming.
+      const res = await unsubscribeJobAlert(token)
+      if (res.success) {
+        setDone(true)
+        setFailed(false)
+      } else {
+        setFailed(true)
+      }
     })
   }
 
@@ -67,6 +75,12 @@ export default function UnsubscribeClient() {
       <p className="text-gray-700 mb-6">
         Click below to stop receiving job-alert emails from freejobpost.co.
       </p>
+      {failed && (
+        <p className="border-2 border-red-600 bg-red-50 text-red-700 text-sm font-medium p-3 mb-4">
+          That didn&rsquo;t go through. Try again in a minute, or reply to any alert
+          email and we&rsquo;ll remove you by hand.
+        </p>
+      )}
       <button
         type="button"
         onClick={onConfirm}

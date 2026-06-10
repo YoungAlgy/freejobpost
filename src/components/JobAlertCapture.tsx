@@ -90,7 +90,7 @@ export default function JobAlertCapture({
         <p className="font-black text-lg leading-tight">You&rsquo;re on the list.</p>
         <p className="text-sm text-gray-700 mt-1">
           We&rsquo;ll email <strong>{email}</strong> when new {what} get posted. Unsubscribe
-          anytime — one click, no questions.
+          anytime with one click, no questions.
         </p>
       </div>
     )
@@ -100,7 +100,7 @@ export default function JobAlertCapture({
     <form onSubmit={onSubmit} className={`border-2 border-black p-5 ${className}`}>
       <h3 className="text-lg font-black leading-tight mb-1">Get new {what} by email</h3>
       <p className="text-sm text-gray-600 mb-4">
-        Free job alerts — new matching roles straight to your inbox. No spam, unsubscribe anytime.
+        Free job alerts. New matching roles straight to your inbox. No spam, unsubscribe anytime.
       </p>
       <div className="flex flex-col sm:flex-row gap-2">
         <input

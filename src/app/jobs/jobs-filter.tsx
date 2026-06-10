@@ -149,7 +149,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
     setLoading(true)
     setErrored(false)
     fetch(`/api/jobs/search?${buildParams(0).toString()}`)
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error('search ' + r.status); return r.json() })
       .then((data) => {
         if (token !== reqTokenRef.current) return
         setResults((data.jobs ?? []) as PublicJob[])
@@ -170,7 +170,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
     setLoading(true)
     setErrored(false)
     fetch(`/api/jobs/search?${buildParams(next).toString()}`)
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error('search ' + r.status); return r.json() })
       .then((data) => {
         if (token !== reqTokenRef.current) return
         setResults((prev) => [...prev, ...((data.jobs ?? []) as PublicJob[])])

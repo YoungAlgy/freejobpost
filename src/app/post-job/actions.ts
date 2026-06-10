@@ -31,7 +31,7 @@ export type PostJobInput = {
 }
 
 export type PostJobResult =
-  | { success: true; job_slug: string; already_submitted?: boolean }
+  | { success: true; job_slug: string; already_submitted?: boolean; verify_email_sent?: boolean }
   | { success: false; error: string }
 
 // Server action — receives the form data, submits via RPC, triggers verify email.
@@ -175,9 +175,11 @@ export async function submitPostJob(
     }
   }
 
-  // Fire-and-block on the verify email — the user should see the same
-  // confirmation regardless of whether email send succeeded (follow-up
-  // UX can resend via a self-service flow later).
+  // Verify email send. 2026-06 audit (F97): the outcome is now threaded to
+  // the UI — the old version showed the same 'check your inbox' confirmation
+  // even when the send failed, leaving the employer waiting on an email that
+  // never existed.
+  let verifyEmailSent = false
   try {
     const verifyRes = await fetch(`${SUPABASE_URL}/functions/v1/post-job-send-verify`, {
       method: 'POST',
@@ -197,6 +199,8 @@ export async function submitPostJob(
     if (!verifyRes.ok) {
       const txt = await verifyRes.text()
       console.error('post-job-send-verify failed:', verifyRes.status, txt.slice(0, 200))
+    } else {
+      verifyEmailSent = true
     }
   } catch (e) {
     console.error('post-job-send-verify fetch error:', e instanceof Error ? e.message : 'unknown')
@@ -219,5 +223,6 @@ export async function submitPostJob(
   return {
     success: true,
     job_slug: result.job_slug!,
+    verify_email_sent: verifyEmailSent,
   }
 }

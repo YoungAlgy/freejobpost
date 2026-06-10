@@ -11,7 +11,7 @@ import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 export const metadata: Metadata = {
   title: 'Healthcare jobs — free to browse, free to apply',
   description:
-    'Browse hundreds of healthcare jobs — physicians, nurses, therapists, locum, per-diem roles. Free to browse, free to apply. No account required.',
+    'Browse 10,000+ healthcare jobs — physicians, nurses, therapists, locum, per-diem roles. Free to browse, free to apply. No account required.',
   alternates: { canonical: 'https://freejobpost.co/jobs' },
   openGraph: {
     title: 'Healthcare jobs — freejobpost.co',

@@ -140,17 +140,31 @@ export default function PostJobForm() {
           SUBMITTED
         </div>
         <h2 className="text-3xl md:text-4xl font-black leading-tight mb-4">
-          Check your email.
+          {result.verify_email_sent === false ? 'One more step.' : 'Check your email.'}
         </h2>
-        <p className="text-lg text-gray-800 mb-6">
-          We sent a one-click verification link to{' '}
-          <strong className="font-bold">{values.contact_email}</strong>. The moment you
-          click it, your job goes live at{' '}
-          <code className="bg-white px-1.5 py-0.5 text-sm font-mono">
-            /jobs/{result.job_slug}
-          </code>
-          .
-        </p>
+        {result.verify_email_sent === false ? (
+          // 2026-06 audit (F97): the send failed and we know it — say so
+          // instead of pointing the employer at an inbox that stays empty.
+          <p className="text-lg text-gray-800 mb-6">
+            Your job is saved, but the verification email to{' '}
+            <strong className="font-bold">{values.contact_email}</strong> did not go
+            out. Email{' '}
+            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-green-700">
+              info@avahealth.co
+            </a>{' '}
+            and we will verify your listing by hand.
+          </p>
+        ) : (
+          <p className="text-lg text-gray-800 mb-6">
+            We sent a one-click verification link to{' '}
+            <strong className="font-bold">{values.contact_email}</strong>. The moment you
+            click it, your job goes live at{' '}
+            <code className="bg-white px-1.5 py-0.5 text-sm font-mono">
+              /jobs/{result.job_slug}
+            </code>
+            .
+          </p>
+        )}
         <p className="text-sm text-gray-600 mb-6">
           Link expires in 48 hours. Check your spam folder if you don&apos;t see it in a few minutes.
           Still nothing? Email{' '}

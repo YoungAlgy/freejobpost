@@ -652,8 +652,8 @@ export default async function JobDetailPage({ params }: Props) {
                 </a>
                 , the healthcare staffing firm that operates freejobpost.co. We
                 seed real placements from our recruiter book while we onboard
-                direct employer postings — every listing has a real apply link
-                and goes off the board within 15 minutes of being filled.
+                direct employer postings. Every listing has a real apply link
+                and comes off the board once it is filled.
               </p>
             </aside>
           )}
