@@ -109,28 +109,12 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        // Catch-all X-Robots-Tag for public pages. Explicitly excludes
-        // private surfaces (/employer/* recruiter dashboard, /admin/*
-        // internal-only attribution dashboard, /post-job/verify one-shot
-        // consume path) and Next.js internals.
-        // Without these exclusions, the private rules below would emit a
-        // SECOND conflicting X-Robots-Tag header — Next.js merges headers
-        // from multiple matching rules, so duplicates with opposing values
-        // would ship to crawlers (the meta-robots noindex would still
-        // protect us, but conflicting signals look broken to humans
-        // auditing the site + can confuse some bots that respect headers
-        // over meta).
-        // Note: the noindex routes listed in the negative-lookahead must
-        // stay in lockstep with the explicit noindex rules below. If you
-        // add a new noindex rule, also add the path fragment here so the
-        // catch-all does NOT emit a conflicting `index, follow` header
-        // that gets merged with the per-route `noindex, nofollow`. Apply
-        // pages are noindex via the page's own metadata; we exclude them
-        // here too so the header agrees with the meta tag.
-        source: '/((?!_next|api|employer|admin|post-job/verify|click|jobs/.*/apply).*)',
-        headers: [{ key: 'X-Robots-Tag', value: 'index, follow' }],
-      },
+      // NOTE (2026-06 audit): the old catch-all `X-Robots-Tag: index, follow`
+      // header was REMOVED. index,follow is the crawler default, so the header
+      // added nothing — but it shipped on every DYNAMICALLY noindexed page
+      // (closed jobs, thin matrix cells set noindex via page metadata at
+      // runtime, which a static header rule can't know about), sending Google
+      // conflicting signals. Explicit noindex headers below stay.
       {
         // Apply pages are noindex via their page-level metadata. Mirror it
         // at the header level so a recruiter or auditor reading curl -I
