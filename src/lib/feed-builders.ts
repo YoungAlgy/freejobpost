@@ -372,15 +372,36 @@ export async function buildIndeedFormatFeed(
   }
   const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
   const employerNames = await resolveEmployerNames(jobs)
-  const jobsXml = jobs
-    .map((job) => {
-      // Prefer the real per-job company (Adzuna's company.display_name) over the
-      // joined meta-employer ("Adzuna (aggregator)") — partners ingest <company>.
-      const name = job.company_name || employerNames.get(job.employer_id) || 'Ava Health Partners'
-      return indeedFormatJobElement(job, name, 'freejobpost.co', target)
-    })
-    .join('\n')
-  const xml = wrapIndeedFormat(jobsXml, jobs.length, networkLabel)
+  // HARD BYTE BUDGET (2026-06-10): /feeds/adzuna.xml's prerendered ISR
+  // fallback hit 23.19MB and FAILED the deploy at Vercel's 19.07MB
+  // FALLBACK_BODY_TOO_LARGE guardrail — the exact re-arming the 1500-char
+  // description cap's SIZE NOTE predicted once inventory grew. Caps below
+  // re-arm with growth; a byte budget cannot. Jobs are ordered
+  // updated_at DESC, so we keep the freshest and drop the tail once the
+  // serialized feed reaches ~16MB (3MB headroom under the limit for the
+  // XML wrapper + future per-row growth). Partners re-crawl every 4-24h,
+  // so the tail (oldest inventory) is the right thing to shed.
+  const MAX_FEED_BYTES = 16_000_000
+  const rows: string[] = []
+  let feedBytes = 0
+  let included = 0
+  for (const job of jobs) {
+    // Prefer the real per-job company (Adzuna's company.display_name) over the
+    // joined meta-employer ("Adzuna (aggregator)") — partners ingest <company>.
+    const name = job.company_name || employerNames.get(job.employer_id) || 'Ava Health Partners'
+    const row = indeedFormatJobElement(job, name, 'freejobpost.co', target)
+    feedBytes += Buffer.byteLength(row, 'utf8')
+    if (feedBytes > MAX_FEED_BYTES) {
+      console.warn(
+        `feed[${target}]: byte budget hit — serialized ${included}/${jobs.length} jobs (~${Math.round(feedBytes / 1_000_000)}MB)`,
+      )
+      break
+    }
+    rows.push(row)
+    included++
+  }
+  const jobsXml = rows.join('\n')
+  const xml = wrapIndeedFormat(jobsXml, included, networkLabel)
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
