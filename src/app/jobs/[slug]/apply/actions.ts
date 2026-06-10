@@ -32,6 +32,10 @@ function sanitizeResumeUrl(raw: string | null | undefined): string | null {
   try {
     const u = new URL(v)
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
+    // Reject userinfo URLs (https://docs.google.com@evil.tld/cv.pdf) — the
+    // classic lookalike-host phishing shape; the employer email renders this
+    // as a clickable link. Round-3 audit catch.
+    if (u.username || u.password) return null
     return u.toString()
   } catch {
     return null

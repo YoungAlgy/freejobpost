@@ -124,10 +124,10 @@ export default function HowItWorksPage() {
           <div className="border-2 border-green-700 bg-green-50 p-5">
             <div className="text-xs font-bold tracking-wider text-green-700 uppercase mb-2">freejobpost.co</div>
             <ul className="space-y-1.5 text-sm text-gray-800 font-medium">
-              <li>$0. No fees, ever</li>
+              <li>· $0. No fees, ever</li>
               <li>· Same indexing, no demotion</li>
               <li>· Candidate emails go to you only</li>
-              <li>10 active posts free. No auction, no upgrade required</li>
+              <li>· 10 active posts free. No auction, no upgrade required</li>
             </ul>
           </div>
         </div>
