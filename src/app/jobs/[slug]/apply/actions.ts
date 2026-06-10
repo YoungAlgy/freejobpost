@@ -3,6 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { verifyTurnstileToken } from '@/lib/turnstile'
+import { sanitizeResumeUrl } from '@/lib/sanitize-resume-url'
 import { track } from '@vercel/analytics/server'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -21,26 +22,6 @@ export type ApplyInput = {
 export type ApplyResult =
   | { success: true; job_slug: string; job_title: string; emails_sent: number }
   | { success: false; error: string }
-
-// Round-2 audit: resume_url was passed to the RPC unvalidated, and the
-// employer notification renders it as a link. Accept only http(s) URLs of
-// sane length; anything else degrades to null (the field is optional)
-// rather than failing the application.
-function sanitizeResumeUrl(raw: string | null | undefined): string | null {
-  const v = (raw ?? '').trim()
-  if (!v || v.length > 500) return null
-  try {
-    const u = new URL(v)
-    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
-    // Reject userinfo URLs (https://docs.google.com@evil.tld/cv.pdf) — the
-    // classic lookalike-host phishing shape; the employer email renders this
-    // as a clickable link. Round-3 audit catch.
-    if (u.username || u.password) return null
-    return u.toString()
-  } catch {
-    return null
-  }
-}
 
 export async function submitApplication(
   _prev: ApplyResult | null,

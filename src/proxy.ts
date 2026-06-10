@@ -7,9 +7,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 // corpus pull). A 308 to the bare path collapses every variant onto the one
 // cached entry. Crawlers follow 308s and consolidate signals.
 //
-// Matcher scope is EXACTLY these routes — middleware runs on nothing else,
+// Matcher scope is EXACTLY these routes — the proxy runs on nothing else,
 // so the per-request overhead for normal pages is zero.
-export function middleware(req: NextRequest) {
+//
+// Next 16 renamed the "middleware" file convention to "proxy" (same
+// functionality; the old name warned at every build). Named `proxy` export
+// per node_modules/next/dist/docs/01-app/01-getting-started/16-proxy.md.
+export function proxy(req: NextRequest) {
   const { nextUrl } = req
   if (nextUrl.search) {
     const clean = nextUrl.clone()
