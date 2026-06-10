@@ -1,5 +1,11 @@
 // AWS SES SendEmail helper for Deno edge functions.
 //
+// ⚠️ UNUSED since 2026-06-10. The SES account never left sandbox (production
+// access DENIED, case 177814045700922), so every send to a non-verified
+// recipient was rejected — real employers never got verify/login/applicant
+// emails. All callers moved to _shared/resend-send.ts. Kept in case SES
+// production access is granted later (re-appeal in the AWS console).
+//
 // Replaces the Resend integration we used 2026-04-24 → 2026-05-02. Reasons
 // for the migration are documented in the strategic plan; the short version:
 // SES is free for multiple custom domains, scales cheaper, and matches the

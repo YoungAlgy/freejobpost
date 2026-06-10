@@ -10,7 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendSesEmail, type SendEmailParams, type SendEmailResult } from "../_shared/ses.ts";
+import { sendTransactionalEmail, type SendEmailParams, type SendEmailResult } from "../_shared/resend-send.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,15 +19,16 @@ const corsHeaders = {
 };
 
 const FROM_NAME = "Free Job Post";
-const FROM_EMAIL = "hello@freejobpost.co"; // SES-verified per-app sender
+// Resend sender — only avahealth.co is verified in this workspace.
+const FROM_EMAIL = "jobs@avahealth.co";
 
-// #15: wrap sendSesEmail so a network-level THROW in one send can't abort the others.
+// #15: wrap the send so a network-level THROW in one send can't abort the others.
 // This fn sends 2 emails; previously a fetch throw on the employer send fell through to
 // the outer catch and dropped the candidate's confirmation. Convert a throw to a
 // {ok:false} result so each send is isolated.
-async function safeSes(params: SendEmailParams): Promise<SendEmailResult> {
+async function safeSend(params: SendEmailParams): Promise<SendEmailResult> {
   try {
-    return await sendSesEmail(params);
+    return await sendTransactionalEmail(params);
   } catch (e) {
     return { ok: false, status: 0, error: e instanceof Error ? e.message : "send threw" };
   }
@@ -332,9 +333,9 @@ serve(async (req) => {
     const loc = titleAlreadyHasLoc ? '' : rawLoc;
     const candidateName = `${candidate.first_name} ${candidate.last_name}`;
 
-    if (!Deno.env.get("AWS_ACCESS_KEY_ID") || !Deno.env.get("AWS_SECRET_ACCESS_KEY")) {
-      console.error("apply-notify: AWS credentials not configured");
-      return new Response(JSON.stringify({ success: true, emails_sent: 0, note: "ses_not_configured" }), {
+    if (!Deno.env.get("RESEND_API_KEY")) {
+      console.error("apply-notify: RESEND_API_KEY not configured");
+      return new Response(JSON.stringify({ success: true, emails_sent: 0, note: "email_not_configured" }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -370,7 +371,7 @@ Reply to this email to contact ${candidate.first_name} directly.
 
 freejobpost.co -- operated by Ava Health Partners LLC`;
 
-      const empSendResult = await safeSes({
+      const empSendResult = await safeSend({
         from: `${FROM_NAME} <${FROM_EMAIL}>`,
         to: employerEmail,
         replyTo: candidate.email,
@@ -423,14 +424,15 @@ What happens next:
 
 freejobpost.co -- operated by Ava Health Partners LLC`;
 
-    // Candidate confirmation comes from the freeresumepost-branded sender
-    // since candidates uploaded their resume there. Helps brand consistency
-    // across the candidate journey (upload -> apply -> confirmation).
+    // Candidate confirmation keeps the freeresumepost display name since
+    // candidates uploaded their resume there; the address must live on
+    // avahealth.co (the only Resend-verified domain in this workspace).
     const candFromName = "Free Resume Post";
-    const candFromEmail = "hello@freeresumepost.co";
-    const candSendResult = await safeSes({
+    const candFromEmail = "resumes@avahealth.co";
+    const candSendResult = await safeSend({
       from: `${candFromName} <${candFromEmail}>`,
       to: candidate.email,
+      replyTo: "alex@avahealth.co",
       subject: candSubject,
       html: candHtml,
       text: candText,
