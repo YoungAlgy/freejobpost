@@ -165,14 +165,16 @@ export default function PostJobForm() {
             .
           </p>
         )}
-        <p className="text-sm text-gray-600 mb-6">
-          Link expires in 48 hours. Check your spam folder if you don&apos;t see it in a few minutes.
-          Still nothing? Email{' '}
-          <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-green-700">
-            info@avahealth.co
-          </a>{' '}
-          with the subject line &ldquo;Job verification email not received&rdquo; and we&apos;ll activate your listing manually.
-        </p>
+        {result.verify_email_sent !== false && (
+          <p className="text-sm text-gray-600 mb-6">
+            Link expires in 48 hours. Check your spam folder if you don&apos;t see it in a few minutes.
+            Still nothing? Email{' '}
+            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-green-700">
+              info@avahealth.co
+            </a>{' '}
+            with the subject line &ldquo;Job verification email not received&rdquo; and we&apos;ll activate your listing manually.
+          </p>
+        )}
         <div className="flex flex-wrap gap-3">
           <Link
             href="/jobs"

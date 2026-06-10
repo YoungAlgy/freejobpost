@@ -20,5 +20,8 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/jobs.xml', '/sitemap.xml', '/feeds/:path*'],
+  // :path+ (one or more segments) NOT :path* — the bare /feeds is a
+  // human-facing HTML page whose inbound links may carry UTM params we want
+  // to keep (round-2 audit catch). Only the XML feed leaves get stripped.
+  matcher: ['/jobs.xml', '/sitemap.xml', '/feeds/:path+'],
 }

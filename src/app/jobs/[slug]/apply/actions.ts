@@ -22,6 +22,22 @@ export type ApplyResult =
   | { success: true; job_slug: string; job_title: string; emails_sent: number }
   | { success: false; error: string }
 
+// Round-2 audit: resume_url was passed to the RPC unvalidated, and the
+// employer notification renders it as a link. Accept only http(s) URLs of
+// sane length; anything else degrades to null (the field is optional)
+// rather than failing the application.
+function sanitizeResumeUrl(raw: string | null | undefined): string | null {
+  const v = (raw ?? '').trim()
+  if (!v || v.length > 500) return null
+  try {
+    const u = new URL(v)
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
+    return u.toString()
+  } catch {
+    return null
+  }
+}
+
 export async function submitApplication(
   _prev: ApplyResult | null,
   input: ApplyInput,
@@ -60,7 +76,7 @@ export async function submitApplication(
     p_email: email,
     p_phone: input.phone || null,
     p_cover_note: input.cover_note || null,
-    p_resume_url: input.resume_url || null,
+    p_resume_url: sanitizeResumeUrl(input.resume_url),
   })
 
   if (error) {
