@@ -5,7 +5,7 @@
 // ecosystems that re-post via RSS. Includes the freejobpost custom
 // extension for salary + location, plus standard atom:link for self-id.
 
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
@@ -31,7 +31,7 @@ export async function GET(): Promise<Response> {
     .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .or('syndication_targets.cs.{rss},syndication_targets.eq.{}')
     .order('created_at', { ascending: false })
     .limit(500)
@@ -43,7 +43,7 @@ export async function GET(): Promise<Response> {
       .select(JOB_DETAIL_FIELDS + ', updated_at')
       .eq('status', 'active')
       .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
+      .gt('expires_at', hourIso())
       .order('created_at', { ascending: false })
       .limit(500)
     data = fallback.data

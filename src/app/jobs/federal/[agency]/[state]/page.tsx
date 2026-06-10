@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import {
   JOB_LIST_FIELDS,
@@ -73,7 +73,7 @@ export async function generateMetadata(
     .eq('source', 'usajobs:federal')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .eq('state', state.abbr)
     .or(agencyOrFilter(agency))
   const canonical = `https://freejobpost.co/jobs/federal/${agency.slug}/${state.slug}`
@@ -106,7 +106,7 @@ export default async function FederalAgencyStatePage(
   const state = findStateBySlug(stateSlug)
   if (!agency || !state) notFound()
 
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   // Same agency-keyword filter as the parent /jobs/federal/[agency] page,
   // intersected with state. Two parallel queries: the rendered list (capped
   // at 200 — agency × state pages are narrower than the global federal hub)

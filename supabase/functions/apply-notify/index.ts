@@ -140,7 +140,7 @@ function buildEmployerHtml(params: {
   <tr>
     <td style="padding:0 32px 28px;border-top:0;">
       <p style="margin:0;font-size:13px;color:#6b7280;">
-        Reply to this email to contact ${escHtml(firstName)} directly &mdash; their address is in Reply-To.
+        Reply to this email to contact ${escHtml(firstName)} directly. Their address is in Reply-To.
       </p>
     </td>
   </tr>
@@ -167,10 +167,17 @@ function buildCandidateHtml(params: {
   loc: string;
   email: string;
   phone: string | null;
+  // F93 (2026-06 audit): the old copy claimed "sent to the employer"
+  // unconditionally, even when the employer send failed or no employer email
+  // existed. Thread the real outcome in so the email never lies.
+  employerDelivered: boolean;
 }): string {
-  const { firstName, jobTitle, loc, email, phone } = params;
-  const titleLine = escHtml(jobTitle) + (loc ? ' &mdash; ' + escHtml(loc) : '');
+  const { firstName, jobTitle, loc, email, phone, employerDelivered } = params;
+  const titleLine = escHtml(jobTitle) + (loc ? ' &middot; ' + escHtml(loc) : '');
   const contactLine = `<strong>${escHtml(email)}</strong>${phone ? ' or ' + escHtml(phone) : ''}`;
+  const statusBody = employerDelivered
+    ? `Hi ${escHtml(firstName)}. Your application went to the employer. They&apos;ll reach you directly at ${contactLine} if they want to move forward.`
+    : `Hi ${escHtml(firstName)}. Your application is in and we&apos;re getting it to the employer. They&apos;ll reach you directly at ${contactLine} if they want to move forward.`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -216,8 +223,7 @@ function buildCandidateHtml(params: {
   <tr>
     <td style="padding:0 32px 24px;">
       <p style="margin:0;font-size:15px;color:#374151;line-height:1.5;">
-        Hi ${escHtml(firstName)} &mdash; your application has been sent to the employer.
-        They&apos;ll reach you directly at ${contactLine} if they want to move forward.
+        ${statusBody}
       </p>
     </td>
   </tr>
@@ -229,7 +235,7 @@ function buildCandidateHtml(params: {
       <ul style="margin:0;padding-left:18px;font-size:13px;color:#374151;line-height:1.7;">
         <li>Most healthcare employers respond within a few days of reviewing applications.</li>
         <li>If you don&apos;t hear back within a week, you can safely apply to other roles.</li>
-        <li>No account needed &mdash; keep browsing at <a href="https://freejobpost.co/jobs" style="color:#000;font-weight:600;">freejobpost.co/jobs</a>.</li>
+        <li>No account needed. Keep browsing at <a href="https://freejobpost.co/jobs" style="color:#000;font-weight:600;">freejobpost.co/jobs</a>.</li>
       </ul>
     </td>
   </tr>
@@ -256,7 +262,13 @@ serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    // Service key (2026-06 audit): this fn used the ANON key, which forced
+    // get_apply_notify_context_rpc + record_apply_notify_send to stay
+    // anon-EXECUTABLE — meaning anyone with an application UUID could pull
+    // candidate PII via PostgREST. Switching to the service key lets those
+    // RPCs be revoked from anon/authenticated entirely (done in migration
+    // lockdown_apply_notify_rpcs).
+    const ANON_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const {
       application_id,
@@ -345,7 +357,7 @@ serve(async (req) => {
     // === 1. Employer notification ==========================================
     if (employerEmail) {
       const publicProfileUrl = candidate.is_public
-        ? `https://freeresumepost.co/profile/${candidate.slug}`
+        ? `https://www.freeresumepost.co/profile/${candidate.slug}`
         : null;
 
       const empSubject = `New applicant: ${candidateName} for ${job.title}`;
@@ -382,9 +394,9 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
       sentResults.push({ to: employerEmail, ok: empSendResult.ok });
       if (!empSendResult.ok) console.error("employer notify failed:", empSendResult.status, empSendResult.error.slice(0, 200));
 
-      // #15: durable audit record for the employer notify (success OR failure) via a
-      // DEFINER RPC — apply-notify is anon-scoped + can't write the RLS-locked email_sends
-      // directly. Lets a failed employer notify be detected + manually re-sent. Best-effort.
+      // #15: durable audit record for the employer notify (success OR failure)
+      // via a DEFINER RPC into the RLS-locked email_sends. Lets a failed
+      // employer notify be detected + manually re-sent. Best-effort.
       try {
         await sb.rpc("record_apply_notify_send", {
           p_application_id: application_id,
@@ -403,6 +415,8 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
     }
 
     // === 2. Candidate confirmation =========================================
+    // F93: only claim delivery when the employer notification actually sent.
+    const employerDelivered = !!employerEmail && sentResults.some((r) => r.to === employerEmail && r.ok);
     const candSubject = `Your application to ${job.title} is in`;
     const candHtml = buildCandidateHtml({
       firstName: candidate.first_name,
@@ -410,10 +424,13 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
       loc,
       email: candidate.email,
       phone: candidate.phone,
+      employerDelivered,
     });
     const candText = `Hi ${candidate.first_name},
 
-Your application to ${job.title}${loc ? ' -- ' + loc : ''} has been sent to the employer.
+${employerDelivered
+  ? `Your application to ${job.title}${loc ? ' -- ' + loc : ''} went to the employer.`
+  : `Your application to ${job.title}${loc ? ' -- ' + loc : ''} is in and we're getting it to the employer.`}
 
 They'll reach you directly at ${candidate.email}${candidate.phone ? ' or ' + candidate.phone : ''} if they want to move forward.
 

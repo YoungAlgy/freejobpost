@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   JOB_LIST_FIELDS,
@@ -102,7 +102,7 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
     .eq('slug', slug)
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .maybeSingle()
   if (!withTargets.error) {
     return (withTargets.data as JobWithTargets | null) ?? null
@@ -113,7 +113,7 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
     .eq('slug', slug)
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .maybeSingle()
   // FAIL CLOSED (2026-06-02): if BOTH the targeted + fallback selects errored,
   // this is an infrastructure failure (bad grant / DB outage), NOT a missing row
@@ -221,7 +221,7 @@ async function getRelated(job: PublicJob): Promise<PublicJob[]> {
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .neq('id', job.id)
     .or(
       // Double-quote the values: role is free-text from /post-job, so a comma

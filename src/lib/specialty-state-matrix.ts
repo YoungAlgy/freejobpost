@@ -12,7 +12,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import { supabase as _moduleSupabase } from './supabase'
+import { supabase as _moduleSupabase, hourIso } from './supabase'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { STATE_HUBS, type StateHub } from './state-slugs'
 import { activeJobBatchCount } from './active-batch-count'
@@ -86,7 +86,7 @@ export async function computeViableCellsViaSql(
 async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
   const numBatches = await activeJobBatchCount(_moduleSupabase)
   const BATCH_SIZE = 1000
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   const baseQ = () => _moduleSupabase
     .from('public_jobs')
     .select('state, specialty, role, title')

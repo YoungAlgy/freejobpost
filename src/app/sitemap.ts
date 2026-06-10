@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { activeJobBatchCount } from '@/lib/active-batch-count'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
@@ -11,6 +11,12 @@ import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
 export const revalidate = 3600
+// The live sitemap froze for ~75h (Age: 272597, content stuck at the Jun 5
+// deploy) because background ISR regeneration silently exceeded the default
+// function duration — Vercel then serves the last good copy forever. This
+// route runs 40 batch queries + 3 matrix helpers; give it real headroom.
+// 2026-06 audit (F60).
+export const maxDuration = 60
 
 // DB-independent fallback sitemap. Returned only when the job query comes
 // back empty (DB saturation) so we never emit a 0-URL sitemap or fail the
@@ -71,13 +77,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // count-based paging) before 30K.
   const numBatches = await activeJobBatchCount(supabase)
   const SITEMAP_BATCH_SIZE = 1000
-  const nowIso = new Date().toISOString()
+  // hourIso (not a raw new Date()) keeps the PostgREST URL stable within the
+  // hour so these batch fetches actually hit the Next Data Cache (F52).
+  const nowIso = hourIso()
+  // description_usable_chars >= 250 mirrors hasUsableDescription() — the same
+  // gate that noindexes thin job pages. A sitemap must not submit URLs that
+  // declare noindex (F62: 11.5K thin jobs were being submitted). Generated
+  // column + partial index added 2026-06 (migration
+  // add_description_usable_chars_to_public_jobs).
   const baseJobs = () => supabase
     .from('public_jobs')
     .select('slug, updated_at')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
+    .gte('description_usable_chars', 250)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const jobsBatchPromises = Array.from({ length: numBatches }, (_, i) =>
     baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)
@@ -136,7 +150,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/how-it-works`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/for-employers`, changeFrequency: 'monthly', priority: 0.65 },
     { url: `${base}/changelog`, changeFrequency: 'weekly', priority: 0.4 },
-    { url: `${base}/changelog/feed.xml`, changeFrequency: 'weekly', priority: 0.3 },
     { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
     // Federal-compliance disclosure page. Low priority (regulatory, not
@@ -153,14 +166,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  // Per-specialty RSS feeds — pre-filtered streams for niche aggregators
-  // + RSS readers. Lower priority than the human-facing hub page.
-  const specialtyFeedRoutes: MetadataRoute.Sitemap = SPECIALTY_HUBS.map((s) => ({
-    url: `${base}/feeds/specialty/${s.slug}`,
-    lastModified: maxJobUpdate,
-    changeFrequency: 'hourly' as const,
-    priority: 0.4,
-  }))
+  // NOTE (2026-06 audit, F65): the per-specialty + per-state RSS feed URLs
+  // were REMOVED from the sitemap. XML feeds are not indexable web pages —
+  // 83 of them in the sitemap just diluted crawl budget. Aggregators get the
+  // feed URLs directly (/feeds page + partner outreach), not via sitemap.
 
   // State hub pages — one per top US state for healthcare-job density
   const stateRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
@@ -168,15 +177,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: maxJobUpdate,
     changeFrequency: 'daily' as const,
     priority: 0.8,
-  }))
-
-  // Per-state RSS feeds — pre-filtered streams for state-specific
-  // aggregators + RSS readers.
-  const stateFeedRoutes: MetadataRoute.Sitemap = STATE_HUBS.map((s) => ({
-    url: `${base}/feeds/state/${s.slug}`,
-    lastModified: maxJobUpdate,
-    changeFrequency: 'hourly' as const,
-    priority: 0.4,
   }))
 
   // City hub pages — one per curated US healthcare metro. Closes the
@@ -272,9 +272,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticRoutes,
     ...specialtyRoutes,
-    ...specialtyFeedRoutes,
     ...stateRoutes,
-    ...stateFeedRoutes,
     ...cityRoutes,
     ...careerPathRoutes,
     ...federalRoutes,

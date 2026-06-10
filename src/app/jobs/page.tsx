@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { JOB_LIST_FIELDS, type PublicJob } from '@/lib/public-jobs'
 import JobsFilter from './jobs-filter'
 
@@ -54,7 +54,7 @@ export default async function JobsIndexPage() {
   // practice — enough to populate the dropdowns without re-fetching the corpus.
   // Anything rarer than that is still reachable via the (server-side) search box.
   const OPTIONS_SAMPLE = 1000
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
 
   const [initialRes, optionsRes, countRes, verifiedRes] = await Promise.all([
     // First page of jobs — SSR'd for SEO + instant paint. updated_at DESC so

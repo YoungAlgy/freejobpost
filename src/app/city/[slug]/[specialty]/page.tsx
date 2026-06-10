@@ -8,7 +8,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -29,16 +29,22 @@ import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 21600
-// Cells we haven't pre-rendered (i.e. specialty patterns added after
-// build, or cells that grew from <5 → ≥5 jobs between builds) should
-// 404 rather than rendering an empty page.
-export const dynamicParams = false
+// 2026-06 audit (F53): was dynamicParams=false with an UNCAPPED
+// generateStaticParams — every viable cell pre-rendered at build (unbounded
+// build-time fan-out as inventory grows), and any cell that crossed the
+// ≥5-job threshold AFTER a build 404'd until the next deploy. Now: pre-render
+// only the top cells, render the rest on demand via ISR. The runtime
+// <5-jobs notFound() guard below still 404s thin cells.
+export const dynamicParams = true
+const MAX_SSG_CITY_CELLS = 150
 
 type Props = { params: Promise<{ slug: string; specialty: string }> }
 
 export async function generateStaticParams() {
   const cells = await getViableCityCellsCached(supabase)
-  return cells.map((c) => ({ slug: c.city.slug, specialty: c.specialty.slug }))
+  return cells
+    .slice(0, MAX_SSG_CITY_CELLS)
+    .map((c) => ({ slug: c.city.slug, specialty: c.specialty.slug }))
 }
 
 // Build PostgREST .or() filter for the city's match patterns.
@@ -65,7 +71,7 @@ async function fetchCellJobs(
     .eq('status', 'active')
     .eq('state', state)
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .or(cityOrFilter(cityPatterns))
     .or(buildSpecialtyOrFilter(specialtyPatterns))
     .order('created_at', { ascending: false })

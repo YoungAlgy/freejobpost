@@ -10,7 +10,7 @@ import type { PublicJob } from './public-jobs'
 import { JOB_DETAIL_FIELDS, formatSalary, locationLabel } from './public-jobs'
 // Use the short-revalidate supabase client — see src/lib/supabase.ts for
 // why feed routes need a 30s fetch window vs the page-default 300s.
-import { supabaseFresh as supabase } from './supabase'
+import { supabaseFresh as supabase, hourIso } from './supabase'
 import type { SyndicationTargetId } from './syndication-targets'
 import { activeJobBatchCount } from './active-batch-count'
 
@@ -184,7 +184,7 @@ const STRICT_PARTNERS: ReadonlySet<SyndicationTargetId> = new Set([
 ])
 
 async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   // Volume partners: match jobs where syndication_targets either contains the
   // partner OR is empty (empty array semantically means "no preference set" —
   // usually ATS-imported rows that ats_import_upsert_jobs inserts with
@@ -208,6 +208,11 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
+    // DB-side mirror of hasUsableDescription() (generated column, 2026-06
+    // audit): the JS post-filter below discarded ~46% of fetched rows.
+    // Filtering here cuts the batch fetch volume nearly in half with
+    // byte-identical feed output.
+    .gte('description_usable_chars', 250)
     .or(filterClause)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
@@ -397,13 +402,14 @@ export async function buildIndeedFormatFeed(
 // ~422 originated jobs but the pattern future-proofs us as employers
 // onboard via /post-job.
 async function fetchOriginatedJobs(): Promise<FeedJob[]> {
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   const baseQ = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
+    .gte('description_usable_chars', 250) // mirrors hasUsableDescription (2026-06)
     .eq('is_ats_import', false)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const numBatches = await activeJobBatchCount(supabase)

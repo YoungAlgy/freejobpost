@@ -5,7 +5,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -42,7 +42,7 @@ async function fetchJobCountForState(abbr: string): Promise<number> {
     .eq('status', 'active')
     .eq('state', abbr)
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
   return count ?? 0
 }
 
@@ -87,7 +87,7 @@ async function fetchJobsForState(abbr: string): Promise<PublicJob[]> {
     .eq('status', 'active')
     .eq('state', abbr)
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .order('created_at', { ascending: false })
     .limit(300)
   return (data ?? []) as PublicJob[]

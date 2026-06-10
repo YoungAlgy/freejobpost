@@ -9,7 +9,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -65,7 +65,7 @@ async function fetchCellJobs(matchPatterns: readonly string[], stateAbbr: string
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .eq('state', stateAbbr)
     .or(buildHubOrFilter(matchPatterns))
     .order('created_at', { ascending: false })
@@ -81,7 +81,7 @@ async function fetchCellCount(matchPatterns: readonly string[], stateAbbr: strin
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .eq('state', stateAbbr)
     .or(buildHubOrFilter(matchPatterns))
   return count ?? 0

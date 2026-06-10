@@ -20,7 +20,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server'
 import { looksLikeBot } from '@/lib/bot-filter'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
 // Don't statically generate this; every hit must run the handler.
@@ -88,7 +88,7 @@ export async function GET(
     .eq('slug', slug)
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .maybeSingle()
 
   const applyUrl = safeApplyUrl(job?.apply_url)

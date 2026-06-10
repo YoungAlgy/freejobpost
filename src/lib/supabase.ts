@@ -34,6 +34,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // need per-page clients; 1h is the safe global sweet spot. Feeds use
 // supabaseFresh below + their own s-maxage, so they're unaffected.)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  // Server-side anon client: no session to persist. Without this supabase-js
+  // assumes a browser, touches storage, and logs auth warnings in RSC renders
+  // (freeresumepost's clients already set it — keep the pair in lockstep).
+  auth: { persistSession: false },
   global: {
     fetch: (url, options = {}) => {
       return fetch(url, {
@@ -75,8 +79,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // fetch self-corrects in ~2min instead of being stuck for an hour. This is the
 // "SHORT explicit per-feed revalidate" the note above recommends.
 export const supabaseFresh = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: false },
   global: {
     fetch: (url, options = {}) =>
       fetch(url, { ...options, next: { revalidate: 120 } } as RequestInit),
   },
 })
+
+// Hour-truncated "now" for PostgREST time filters (e.g. expires_at.gt).
+// A raw new-Date ISO string changes on EVERY render, which changes the
+// PostgREST request URL, which changes the Next Data Cache key — so the 1h
+// fetch cache above NEVER hit for any query embedding it (2026-06 audit).
+// Truncating to the hour keeps the URL stable across renders within an hour,
+// letting the cache actually converge. Cost: a job expiring mid-hour shows
+// for up to 59 extra minutes — invisible in practice (expiry windows are
+// 30-60 days, and the page-level noindex/closed gates re-check live).
+export function hourIso(): string {
+  const d = new Date()
+  d.setMinutes(0, 0, 0)
+  return d.toISOString()
+}

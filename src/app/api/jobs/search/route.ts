@@ -18,7 +18,7 @@
 // directory that saturated the shared DB; no MV needed here.
 
 import { type NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { JOB_LIST_FIELDS, type PublicJob } from '@/lib/public-jobs'
 
 // Per-filter, human-triggered — never statically cached.
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const verifiedOnly = sp.get('verified') === '1'
   const page = Math.max(0, Math.min(500, Number.parseInt(sp.get('page') ?? '0', 10) || 0))
 
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
 
   let query = supabase
     .from('public_jobs')

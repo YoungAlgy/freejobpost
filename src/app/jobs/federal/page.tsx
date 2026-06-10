@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import { FEDERAL_AGENCIES, agencyOrFilter } from '@/lib/federal-agencies'
 
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export default async function FederalJobsHubPage() {
   // Total active federal headcount (status=active, future expires_at).
   // Per-agency counts run in parallel via the agency's title-ILIKE filter.
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   const [totalRes, ...agencyResults] = await Promise.all([
     supabase
       .from('public_jobs')

@@ -11,7 +11,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -56,7 +56,7 @@ async function fetchJobCountForCity(
     .eq('status', 'active')
     .eq('state', state)
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .or(cityOrFilter(cityMatchPatterns))
   return count ?? 0
 }
@@ -71,7 +71,7 @@ async function fetchJobsForCity(
     .eq('status', 'active')
     .eq('state', state)
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .or(cityOrFilter(cityMatchPatterns))
     .order('created_at', { ascending: false })
     .limit(200)

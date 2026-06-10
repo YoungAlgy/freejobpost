@@ -6,7 +6,7 @@
 
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
@@ -73,7 +73,7 @@ export default async function EmployersPage() {
       .in('employer_id', ids)
       .eq('status', 'active')
       .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
+      .gt('expires_at', hourIso())
     for (const row of (jobData ?? []) as Array<{ employer_id: string }>) {
       counts[row.employer_id] = (counts[row.employer_id] ?? 0) + 1
     }

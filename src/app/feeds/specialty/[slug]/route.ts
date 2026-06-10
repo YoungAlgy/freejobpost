@@ -8,7 +8,7 @@
 // keep the feed payload bounded for the long-tail reader ecosystem
 // (Inoreader, Feedly, niche Reddit RSS bots).
 
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
@@ -50,7 +50,7 @@ export async function GET(
     .select(JOB_DETAIL_FIELDS + ', updated_at')
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .or(buildSpecialtyOrFilter(hub.matchPatterns))
     .order('created_at', { ascending: false })
     .limit(200)

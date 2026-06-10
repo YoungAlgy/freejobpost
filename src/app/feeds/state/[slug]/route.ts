@@ -2,7 +2,7 @@
 // Sibling of /feeds/specialty/<slug>.xml. Used by RSS readers + niche
 // aggregators that want jobs filtered to a single state's market.
 
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
@@ -39,7 +39,7 @@ export async function GET(
     .eq('status', 'active')
     .eq('state', hub.abbr)
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .order('created_at', { ascending: false })
     .limit(200)
 

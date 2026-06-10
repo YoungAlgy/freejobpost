@@ -24,8 +24,12 @@ export const metadata: Metadata = {
   description:
     'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Free Job Post is where growing employers hire.',
   metadataBase: new URL('https://freejobpost.co'),
+  // NO root-level `canonical` here. With metadataBase set, a root canonical
+  // of '/' is inherited by every page that doesn't declare its own
+  // alternates — making closed-job pages, error states, and any future
+  // canonical-less page tell Google "I am a copy of the homepage"
+  // (live-verified during the 2026-06 audit). Pages declare their own.
   alternates: {
-    canonical: '/',
     types: {
       'application/rss+xml': [
         { url: '/feeds/rss.xml', title: 'freejobpost.co — Healthcare jobs (RSS)' },

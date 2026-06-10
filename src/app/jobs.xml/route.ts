@@ -30,7 +30,7 @@ import { type NextRequest } from 'next/server'
 // src/lib/supabase.ts for why feed routes specifically need a short window
 // after data-shape migrations (e.g. the 2026-05-20 syndication_targets
 // backfill stuck this route at 425 jobs for 6+ hours).
-import { supabaseFresh as supabase } from '@/lib/supabase'
+import { supabaseFresh as supabase, hourIso } from '@/lib/supabase'
 import { activeJobBatchCount } from '@/lib/active-batch-count'
 import {
   JOB_DETAIL_FIELDS,
@@ -98,13 +98,16 @@ export async function GET(req: NextRequest): Promise<Response> {
   // paging — count active rows, fetch ceil(count/1000) batches) before 30K.
   const numBatches = await activeJobBatchCount(supabase)
   const BATCH_SIZE = 1000
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   const baseQuery = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
+    // DB-side mirror of hasUsableDescription() (2026-06 audit): the route
+    // discarded thin rows in JS after fetching them — ~46% wasted fetch.
+    .gte('description_usable_chars', 250)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const batches = await Promise.all(
     Array.from({ length: numBatches }, (_, i) =>

@@ -20,7 +20,7 @@
 // Spec reference: LinkedIn Talent Solutions — Job Wrapping XML Specification
 // (current as of 2026; obtain the latest from your LinkedIn account team).
 
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
@@ -98,7 +98,7 @@ export async function GET(): Promise<Response> {
   // Job Wrapping quality scoring penalizes feeds heavy on republished
   // content. Pre-2026-05-20 audit confirmed 425 explicitly-opted-in jobs
   // is the correct number for this surface.
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   const baseFiltered = () => supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')

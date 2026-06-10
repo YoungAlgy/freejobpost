@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
@@ -49,13 +49,13 @@ export default async function Home() {
       .select('id', { count: 'exact', head: true })
       .eq('status', 'active')
       .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString()),
+      .gt('expires_at', hourIso()),
     supabase
       .from('public_jobs')
       .select('id, slug, title, city, state, salary_min, salary_max')
       .eq('status', 'active')
       .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
+      .gt('expires_at', hourIso())
       .order('created_at', { ascending: false })
       .limit(6),
     supabase
@@ -63,7 +63,7 @@ export default async function Home() {
       .select('id', { count: 'exact', head: true })
       .eq('status', 'active')
       .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
+      .gt('expires_at', hourIso())
       .gte('created_at', sevenDaysAgo),
     // Exclude seeded inventory + ATS-imported employers (Greenhouse/Lever
     // public-feed pulls — we don't have an employer relationship) + any Ava

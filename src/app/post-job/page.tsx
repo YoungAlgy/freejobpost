@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import PostJobForm from './post-job-form'
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ export default async function PostJobPage() {
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
   const activeJobs = count ?? 0
 
   return (

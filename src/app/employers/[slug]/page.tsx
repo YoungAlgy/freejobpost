@@ -14,7 +14,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -79,7 +79,7 @@ async function getEmployerJobs(employerId: string): Promise<PublicJob[]> {
     .eq('employer_id', employerId)
     .eq('status', 'active')
     .is('deleted_at', null)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', hourIso())
     .order('created_at', { ascending: false })
     .limit(100)
   return (data ?? []) as PublicJob[]

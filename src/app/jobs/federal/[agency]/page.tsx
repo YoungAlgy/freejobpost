@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import {
   JOB_LIST_FIELDS,
@@ -69,7 +69,7 @@ export default async function AgencyJobsPage(
   const agency = findAgencyBySlug(slug)
   if (!agency) notFound()
 
-  const nowIso = new Date().toISOString()
+  const nowIso = hourIso()
   // Three parallel queries:
   //  - rendered list of agency-matching jobs (capped at 500 — agency hubs are
   //    narrower than the global /jobs index so a smaller cap is fine)
