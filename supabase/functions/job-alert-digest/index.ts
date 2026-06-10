@@ -121,7 +121,7 @@ function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: str
   const text = `New ${whatN} on freejobpost.co:\n\n` +
     jobs.map((j) => `• ${j.title} — ${[j.city, j.state].filter(Boolean).join(", ")} — ${SITE}/jobs/${j.slug}`).join("\n") +
     `\n\nBrowse all: ${SITE}/jobs` +
-    `\n\nNot seeing the right roles? Reply to this email and tell us what you're after — a real person reads every one.` +
+    `\n\nNot seeing the right roles? Reply to this email and tell us what you're after. A real person reads every one.` +
     `\n\nUnsubscribe: ${unsubUrl}\n\n${ADDRESS}`;
 
   const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">
@@ -133,8 +133,8 @@ function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: str
       <p style="margin:0 0 8px;color:#555;font-size:14px">Fresh matches since your last alert. Free to apply, no account needed.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${rows}</table>
       <p style="margin:24px 0 0"><a href="${SITE}/jobs" style="display:inline-block;background:#111;color:#fff;font-weight:700;text-decoration:none;padding:12px 22px">Browse all jobs →</a></p>
-      <!-- Feedback CTA — routes replies to the monitored alex@avahealth.co inbox; this is the "feedback drives updates" loop. Copy is Algy/Ally brand-voice tweakable. -->
-      <p style="margin:18px 0 0;color:#555;font-size:13px;line-height:1.6">Not seeing the right roles? <a href="mailto:${FEEDBACK_EMAIL}?subject=Job%20alert%20feedback" style="color:#15803d;font-weight:700;text-decoration:none">Reply and tell us what you&rsquo;re after</a> — a real person reads every one.</p>
+      <!-- Feedback CTA — routes replies to the monitored alex@avahealth.co inbox; this is the "feedback drives updates" loop. -->
+      <p style="margin:18px 0 0;color:#555;font-size:13px;line-height:1.6">Not seeing the right roles? <a href="mailto:${FEEDBACK_EMAIL}?subject=Job%20alert%20feedback" style="color:#15803d;font-weight:700;text-decoration:none">Reply and tell us what you&rsquo;re after</a>. A real person reads every one.</p>
     </td></tr>
     <tr><td style="padding:24px 28px;border-top:1px solid #e5e5e5">
       <p style="margin:0;color:#999;font-size:12px;line-height:1.6">You&rsquo;re getting this because you subscribed to ${esc(whatGeneric)} alerts on freejobpost.co. <a href="${unsubUrl}" style="color:#666">Unsubscribe</a>.<br/>${esc(ADDRESS)}</p>
@@ -143,8 +143,7 @@ function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: str
 </td></tr></table>
 </body></html>`;
 
-  return { subject, html, text,
-              reply_to: FEEDBACK_EMAIL, unsubUrl };
+  return { subject, html, text, unsubUrl };
 }
 
 serve(async (req: Request) => {
@@ -229,8 +228,7 @@ serve(async (req: Request) => {
 
         const list = (jobs ?? []) as Job[];
         if (list.length > 0) {
-          const { subject, html, text,
-              reply_to: FEEDBACK_EMAIL, unsubUrl } = renderEmail(sub, list);
+          const { subject, html, text, unsubUrl } = renderEmail(sub, list);
           const resp = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
