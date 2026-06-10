@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'How it works',
-  description: 'How freejobpost.co works — free healthcare job posts, no auction, no paywall, no recruiter spam. The 60-second post flow + everything that happens after.',
+  description: 'How freejobpost.co works: free healthcare job posts, no auction, no paywall, no recruiter spam. The 60-second post flow + everything that happens after.',
   alternates: { canonical: 'https://freejobpost.co/how-it-works' },
   robots: { index: true, follow: true },
   openGraph: {
@@ -49,7 +49,7 @@ export default function HowItWorksPage() {
           <span className="text-green-700">Without the Indeed tax.</span>
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-12">
-          freejobpost.co is a utility, not a SaaS. We don&apos;t charge employers, we don&apos;t auction
+          freejobpost.co is a plain utility. We don&apos;t charge employers, we don&apos;t auction
           visibility, we don&apos;t sell candidate emails. Here&apos;s how it actually works.
         </p>
 
@@ -66,7 +66,7 @@ export default function HowItWorksPage() {
             <div className="shrink-0 w-8 h-8 bg-black text-white text-sm font-black flex items-center justify-center">2</div>
             <div>
               <div className="font-black text-lg mb-1">Verify your email (one click)</div>
-              <div className="text-gray-700">We email you a magic link. Click it; your job is live. No password to remember.</div>
+              <div className="text-gray-700">We email you a magic link. Click it and your job is live. No password to remember.</div>
             </div>
           </li>
           <li className="flex gap-4">
@@ -80,7 +80,7 @@ export default function HowItWorksPage() {
             <div className="shrink-0 w-8 h-8 bg-black text-white text-sm font-black flex items-center justify-center">4</div>
             <div>
               <div className="font-black text-lg mb-1">Manage from your free dashboard</div>
-              <div className="text-gray-700">All your posts, applicant counts, and status — at <Link href="/employer" className="underline hover:text-green-700">/employer</Link>. Magic-link login, no password.</div>
+              <div className="text-gray-700">All your posts, applicant counts, and status, all at <Link href="/employer" className="underline hover:text-green-700">/employer</Link>. Magic-link login, no password.</div>
             </div>
           </li>
         </ol>
@@ -105,7 +105,7 @@ export default function HowItWorksPage() {
             <div className="shrink-0 w-8 h-8 bg-green-700 text-white text-sm font-black flex items-center justify-center">3</div>
             <div>
               <div className="font-black text-lg mb-1">Want a profile that auto-matches?</div>
-              <div className="text-gray-700">Upload your resume at <a href="https://www.freeresumepost.co/upload" className="underline hover:text-green-700">freeresumepost.co</a> — we&apos;ll email you when a 70%+ match opens that fits your specialty + state.</div>
+              <div className="text-gray-700">Upload your resume at <a href="https://www.freeresumepost.co/upload" className="underline hover:text-green-700">freeresumepost.co</a>. We&apos;ll email you when a 70%+ match opens that fits your specialty + state.</div>
             </div>
           </li>
         </ol>
@@ -124,10 +124,10 @@ export default function HowItWorksPage() {
           <div className="border-2 border-green-700 bg-green-50 p-5">
             <div className="text-xs font-bold tracking-wider text-green-700 uppercase mb-2">freejobpost.co</div>
             <ul className="space-y-1.5 text-sm text-gray-800 font-medium">
-              <li>· $0 — no fees, ever</li>
+              <li>$0. No fees, ever</li>
               <li>· Same indexing, no demotion</li>
               <li>· Candidate emails go to you only</li>
-              <li>· 10 active posts free — no auction, no upgrade required</li>
+              <li>10 active posts free. No auction, no upgrade required</li>
             </ul>
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">Will my job appear on Indeed and Google for Jobs?</h3>
-            <p className="text-gray-700">Yes. Every job page includes JobPosting structured data that Google for Jobs indexes within hours. Indeed discovers listings through its own organic crawler — no separate submission needed. We also publish a public XML/RSS feed at /jobs.xml used by ZipRecruiter, Adzuna, Jooble, and other aggregators.</p>
+            <p className="text-gray-700">Yes. Every job page includes JobPosting structured data that Google for Jobs indexes within hours. Indeed discovers listings through its own organic crawler. No separate submission needed. We also publish a public XML/RSS feed at /jobs.xml used by ZipRecruiter, Adzuna, Jooble, and other aggregators.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">Do you sell my company name or contact info?</h3>
@@ -169,7 +169,7 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">Who can post a job here?</h3>
-            <p className="text-gray-700">US-based healthcare employers — hospitals, private groups, FQHCs, urgent cares, telehealth providers, locum agencies, and pharmacies. We don&apos;t accept third-party staffing-agency reposts or expired roles.</p>
+            <p className="text-gray-700">US-based healthcare employers: hospitals, private groups, FQHCs, urgent cares, telehealth providers, locum agencies, and pharmacies. We don&apos;t accept third-party staffing-agency reposts or expired roles.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">What roles can I post?</h3>

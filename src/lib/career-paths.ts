@@ -52,9 +52,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Registered Nurse (RN)',
     abbreviation: 'RN',
     metaDescription:
-      'How to become a Registered Nurse — ADN vs BSN paths, NCLEX-RN licensing, typical timeline, and current RN job openings on freejobpost.co.',
+      'How to become a Registered Nurse: ADN vs BSN paths, NCLEX-RN licensing, typical timeline, and current RN job openings on freejobpost.co.',
     lede:
-      'Registered Nurse is the largest single clinical role in US healthcare — about 3.3 million practicing RNs per the latest BLS data. The path runs from accredited nursing program → NCLEX-RN exam → state license → first staff role.',
+      'Registered Nurse is the largest single clinical role in US healthcare. About 3.3 million practicing RNs per the latest BLS data. The path runs from accredited nursing program → NCLEX-RN exam → state license → first staff role.',
     sections: [
       {
         heading: 'Education',
@@ -91,7 +91,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Nurse Practitioner (NP)',
     abbreviation: 'NP',
     metaDescription:
-      'How to become a Nurse Practitioner — RN → MSN/DNP → national certification + state APRN license. Open NP jobs on freejobpost.co.',
+      'How to become a Nurse Practitioner: RN → MSN/DNP → national certification + state APRN license. Open NP jobs on freejobpost.co.',
     lede:
       'Nurse Practitioners are advanced-practice RNs licensed to diagnose, treat, and (in most states) prescribe. The American Association of Nurse Practitioners reports 385,000+ licensed NPs as of 2024, with growth far outpacing physician supply.',
     sections: [
@@ -130,7 +130,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Physician Assistant (PA)',
     abbreviation: 'PA',
     metaDescription:
-      'How to become a Physician Assistant — undergrad → PA school (2-3 years) → PANCE + state license. Open PA jobs on freejobpost.co.',
+      'How to become a Physician Assistant: undergrad → PA school (2-3 years) → PANCE + state license. Open PA jobs on freejobpost.co.',
     lede:
       'Physician Assistants (PAs, or in some states PAs are now formally Physician Associates) are licensed clinicians who diagnose, treat, and prescribe. The American Academy of Physician Associates reports about 178,000 PAs in clinical practice.',
     sections: [
@@ -164,9 +164,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Certified Registered Nurse Anesthetist (CRNA)',
     abbreviation: 'CRNA',
     metaDescription:
-      'How to become a CRNA — RN → ICU experience → DNP/DNAP in anesthesia (3 years) → NBCRNA cert. Open CRNA jobs on freejobpost.co.',
+      'How to become a CRNA: RN → ICU experience → DNP/DNAP in anesthesia (3 years) → NBCRNA cert. Open CRNA jobs on freejobpost.co.',
     lede:
-      'CRNAs administer anesthesia in operating rooms, labor-and-delivery suites, pain clinics, and procedural settings. The American Association of Nurse Anesthesiology reports about 65,000 practicing CRNAs in the US — and CRNAs remain one of the highest-paid nursing roles by a meaningful margin.',
+      'CRNAs administer anesthesia in operating rooms, labor-and-delivery suites, pain clinics, and procedural settings. The American Association of Nurse Anesthesiology reports about 65,000 practicing CRNAs in the US. CRNAs remain one of the highest-paid nursing roles by a meaningful margin.',
     sections: [
       {
         heading: 'Prerequisites',
@@ -203,7 +203,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Pharmacist (PharmD)',
     abbreviation: 'PharmD',
     metaDescription:
-      'How to become a Pharmacist — pre-pharm undergrad → PharmD (4 years) → NAPLEX + MPJE → state license. Open pharmacist jobs on freejobpost.co.',
+      'How to become a Pharmacist: pre-pharm undergrad → PharmD (4 years) → NAPLEX + MPJE → state license. Open pharmacist jobs on freejobpost.co.',
     lede:
       'Pharmacists dispense medications, counsel patients, manage drug regimens, and (increasingly) provide direct clinical care via collaborative practice agreements. The Bureau of Labor Statistics reports about 330,000 practicing pharmacists in the US.',
     sections: [
@@ -237,7 +237,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Licensed Practical Nurse (LPN/LVN)',
     abbreviation: 'LPN',
     metaDescription:
-      'How to become an LPN/LVN — practical-nursing program (12-18 months), NCLEX-PN, state license. Open LPN jobs on freejobpost.co.',
+      'How to become an LPN/LVN: practical-nursing program (12-18 months), NCLEX-PN, state license. Open LPN jobs on freejobpost.co.',
     lede:
       'Licensed Practical Nurses (LPNs, called Licensed Vocational Nurses or LVNs in California and Texas) provide basic nursing care under the supervision of RNs and physicians. About 660,000 LPNs/LVNs practice nationally per the latest BLS data, with most concentrated in long-term care, skilled nursing facilities, home health, and physician offices.',
     sections: [
@@ -276,9 +276,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Certified Nursing Assistant (CNA)',
     abbreviation: 'CNA',
     metaDescription:
-      'How to become a CNA — 4-12 week state-approved program → competency exam → state registry. Fastest entry into healthcare. Open CNA jobs on freejobpost.co.',
+      'How to become a CNA: 4-12 week state-approved program → competency exam → state registry. Fastest entry into healthcare. Open CNA jobs on freejobpost.co.',
     lede:
-      'CNA is the fastest legitimate entry point into US healthcare — most states require only a 75-150 hour state-approved training program followed by a competency exam. About 1.4 million CNAs and home health aides work nationally per BLS, primarily in long-term care, hospitals, and home health.',
+      'CNA is the fastest legitimate entry point into US healthcare. Most states require only a 75-150 hour state-approved training program followed by a competency exam. About 1.4 million CNAs and home health aides work nationally per BLS, primarily in long-term care, hospitals, and home health.',
     sections: [
       {
         heading: 'Training',
@@ -315,7 +315,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Physical Therapist (PT/DPT)',
     abbreviation: 'PT',
     metaDescription:
-      'How to become a Physical Therapist — bachelor\'s → DPT (3 years) → NPTE → state license. Open PT jobs on freejobpost.co.',
+      'How to become a Physical Therapist: bachelor\'s → DPT (3 years) → NPTE → state license. Open PT jobs on freejobpost.co.',
     lede:
       'Physical Therapists treat impairment, dysfunction, and disability through movement-based interventions. Per the American Physical Therapy Association, about 251,000 PTs practice in the US, with the largest practice settings being outpatient orthopedic clinics, acute-care hospitals, home health, and skilled-nursing facilities.',
     sections: [
@@ -354,9 +354,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Respiratory Therapist (RRT)',
     abbreviation: 'RRT',
     metaDescription:
-      'How to become a Respiratory Therapist — associate or bachelor\'s degree → NBRC TMC + CSE exams → state license. Open RT jobs on freejobpost.co.',
+      'How to become a Respiratory Therapist: associate or bachelor\'s degree → NBRC TMC + CSE exams → state license. Open RT jobs on freejobpost.co.',
     lede:
-      'Respiratory Therapists evaluate, treat, and manage patients with breathing or cardiopulmonary disorders — from neonatal-intensive-care ventilator management to outpatient COPD therapy. About 137,000 RTs work nationally per BLS, concentrated in hospital critical-care + emergency settings.',
+      'Respiratory Therapists evaluate, treat, and manage patients with breathing or cardiopulmonary disorders, from neonatal-intensive-care ventilator management to outpatient COPD therapy. About 137,000 RTs work nationally per BLS, concentrated in hospital critical-care + emergency settings.',
     sections: [
       {
         heading: 'Education',
@@ -393,9 +393,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Medical Assistant (MA)',
     abbreviation: 'MA',
     metaDescription:
-      'How to become a Medical Assistant — postsecondary certificate (~1 year) or on-the-job training → CMA/RMA cert. Open MA jobs on freejobpost.co.',
+      'How to become a Medical Assistant: postsecondary certificate (~1 year) or on-the-job training → CMA/RMA cert. Open MA jobs on freejobpost.co.',
     lede:
-      'Medical Assistants handle the administrative + clinical workflow of outpatient practices — rooming patients, taking vitals, drawing blood, doing EKGs, and managing referrals + records. About 760,000 MAs work nationally per BLS, almost entirely in physician offices, urgent care, and outpatient clinics. The role doesn\'t legally require certification in most states but credentialing significantly improves hiring + pay.',
+      'Medical Assistants handle the administrative + clinical workflow of outpatient practices: rooming patients, taking vitals, drawing blood, doing EKGs, and managing referrals + records. About 760,000 MAs work nationally per BLS, almost entirely in physician offices, urgent care, and outpatient clinics. The role doesn\'t legally require certification in most states but credentialing significantly improves hiring + pay.',
     sections: [
       {
         heading: 'Training pathways',
@@ -432,9 +432,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Surgical Technologist (CST)',
     abbreviation: 'CST',
     metaDescription:
-      'How to become a Surgical Technologist (CST) — accredited program (~12-24 mo) → NBSTSA cert → state recognition. Open surgical tech jobs on freejobpost.co.',
+      'How to become a Surgical Technologist (CST): accredited program (~12-24 mo) → NBSTSA cert → state recognition. Open surgical tech jobs on freejobpost.co.',
     lede:
-      'Surgical Technologists (scrub techs) prepare the operating room, assist the surgeon during procedures, and manage sterile fields + instruments. About 117,000 surgical techs work nationally per BLS, almost entirely in hospital ORs and ambulatory surgery centers — a role that grew faster than overall healthcare hiring through 2020-2024.',
+      'Surgical Technologists (scrub techs) prepare the operating room, assist the surgeon during procedures, and manage sterile fields + instruments. About 117,000 surgical techs work nationally per BLS, almost entirely in hospital ORs and ambulatory surgery centers. The role grew faster than overall healthcare hiring through 2020-2024.',
     sections: [
       {
         heading: 'Training',
@@ -471,7 +471,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Radiologic Technologist (RT)',
     abbreviation: 'RT(R)',
     metaDescription:
-      'How to become a Radiologic Technologist — accredited program (2 yr AS) → ARRT exam → state license. Open RT jobs on freejobpost.co.',
+      'How to become a Radiologic Technologist: accredited program (2 yr AS) → ARRT exam → state license. Open RT jobs on freejobpost.co.',
     lede:
       'Radiologic Technologists operate the imaging equipment that produces diagnostic X-rays, CT scans, MRI, mammography, ultrasound, and fluoroscopy. About 220,000 radiologic + MRI techs work nationally per BLS, primarily in hospital radiology departments, outpatient imaging centers, and specialty diagnostic groups.',
     sections: [
@@ -510,9 +510,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become an Occupational Therapist (OTR/L)',
     abbreviation: 'OT',
     metaDescription:
-      'How to become an Occupational Therapist — bachelor\'s → MOT or OTD → NBCOT cert → state license. Open OT jobs on freejobpost.co.',
+      'How to become an Occupational Therapist: bachelor\'s → MOT or OTD → NBCOT cert → state license. Open OT jobs on freejobpost.co.',
     lede:
-      'Occupational Therapists help patients regain independence in activities of daily living (ADLs) — feeding, dressing, work tasks, school participation — after injury, illness, developmental delay, or aging. About 152,000 OTs practice nationally per BLS, with growth projections among the highest of any healthcare profession (12% over 2024-2034).',
+      'Occupational Therapists help patients regain independence in activities of daily living (ADLs) after injury, illness, developmental delay, or aging: feeding, dressing, work tasks, school participation. About 152,000 OTs practice nationally per BLS, with growth projections among the highest of any healthcare profession (12% over 2024-2034).',
     sections: [
       {
         heading: 'Pre-OT undergraduate',
@@ -549,9 +549,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Speech-Language Pathologist (SLP)',
     abbreviation: 'SLP',
     metaDescription:
-      'How to become an SLP — bachelor\'s → master\'s in speech-language pathology → CCC-SLP → state license. Open SLP jobs on freejobpost.co.',
+      'How to become an SLP: bachelor\'s → master\'s in speech-language pathology → CCC-SLP → state license. Open SLP jobs on freejobpost.co.',
     lede:
-      'Speech-Language Pathologists evaluate, diagnose, and treat communication and swallowing disorders across the lifespan — from pediatric language delay to post-stroke aphasia to swallowing dysfunction in neuro-degenerative disease. About 175,000 SLPs practice nationally per BLS; ~55% work in schools and ~25% in healthcare settings.',
+      'Speech-Language Pathologists evaluate, diagnose, and treat communication and swallowing disorders across the lifespan, from pediatric language delay to post-stroke aphasia to swallowing dysfunction in neuro-degenerative disease. About 175,000 SLPs practice nationally per BLS. About 55% work in schools and 25% in healthcare settings.',
     sections: [
       {
         heading: 'Undergraduate',
@@ -593,9 +593,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become an EMT or Paramedic',
     abbreviation: 'EMT/Paramedic',
     metaDescription:
-      'How to become an EMT or Paramedic — EMT-B (~150h) or Paramedic (1-2 years) → NREMT cert → state license. Open EMT/paramedic jobs.',
+      'How to become an EMT or Paramedic: EMT-B (~150h) or Paramedic (1-2 years) → NREMT cert → state license. Open EMT/paramedic jobs.',
     lede:
-      'Emergency Medical Technicians and Paramedics provide pre-hospital + transport emergency care — from basic life support at the EMT level to advanced cardiac, airway, and trauma management at the Paramedic level. About 270,000 EMTs + paramedics work nationally per BLS, across 911 services, fire-rescue, hospital-based ambulance services, and critical-care transport.',
+      'Emergency Medical Technicians and Paramedics provide pre-hospital + transport emergency care, from basic life support at the EMT level to advanced cardiac, airway, and trauma management at the Paramedic level. About 270,000 EMTs + paramedics work nationally per BLS, across 911 services, fire-rescue, hospital-based ambulance services, and critical-care transport.',
     sections: [
       {
         heading: 'EMT-Basic (entry level)',
@@ -637,9 +637,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Phlebotomist',
     abbreviation: 'CPT',
     metaDescription:
-      'How to become a Phlebotomist — short certificate program (4-8 weeks) → national cert (ASCP/AMT/NHA) → state requirements vary. Open phlebotomist jobs.',
+      'How to become a Phlebotomist: short certificate program (4-8 weeks) → national cert (ASCP/AMT/NHA) → state requirements vary. Open phlebotomist jobs.',
     lede:
-      'Phlebotomists draw blood samples for diagnostic testing, transfusion, donation, and research. About 138,000 phlebotomists work nationally per BLS — one of the shortest training paths into clinical healthcare.',
+      'Phlebotomists draw blood samples for diagnostic testing, transfusion, donation, and research. About 138,000 phlebotomists work nationally per BLS. It is one of the shortest training paths into clinical healthcare.',
     sections: [
       {
         heading: 'Training',
@@ -676,7 +676,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Dental Hygienist (RDH)',
     abbreviation: 'RDH',
     metaDescription:
-      'How to become an RDH — accredited dental-hygiene program (2-4 yr) → NBDHE → state clinical exam + license. Open RDH jobs on freejobpost.co.',
+      'How to become an RDH: accredited dental-hygiene program (2-4 yr) → NBDHE → state clinical exam + license. Open RDH jobs on freejobpost.co.',
     lede:
       'Dental Hygienists deliver preventive oral care: cleanings, periodontal therapy, sealants, fluoride application, oral-health education, and clinical screening for systemic conditions visible in the mouth. About 217,000 RDHs practice nationally per BLS.',
     sections: [
@@ -715,9 +715,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Registered Dietitian Nutritionist (RDN)',
     abbreviation: 'RDN',
     metaDescription:
-      'How to become a Registered Dietitian — accredited bachelor\'s + master\'s (required 2024+) → internship → CDR exam → state license. Open RDN jobs.',
+      'How to become a Registered Dietitian: accredited bachelor\'s + master\'s (required 2024+) → internship → CDR exam → state license. Open RDN jobs.',
     lede:
-      'Registered Dietitian Nutritionists (RDNs) translate nutrition science into patient-care plans across clinical, community, sports, food-service, and outpatient settings. About 75,000 RDNs practice nationally per the Commission on Dietetic Registration; the credentialing requirements moved from bachelor\'s to master\'s as of January 2024.',
+      'Registered Dietitian Nutritionists (RDNs) translate nutrition science into patient-care plans across clinical, community, sports, food-service, and outpatient settings. About 75,000 RDNs practice nationally per the Commission on Dietetic Registration. The credentialing requirements moved from bachelor\'s to master\'s as of January 2024.',
     sections: [
       {
         heading: 'Education',
@@ -754,9 +754,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become an Audiologist (AuD)',
     abbreviation: 'AuD',
     metaDescription:
-      'How to become an Audiologist — bachelor\'s → 4-year AuD doctoral program → Praxis + ASHA CCC-A → state license. Open audiologist jobs.',
+      'How to become an Audiologist: bachelor\'s → 4-year AuD doctoral program → Praxis + ASHA CCC-A → state license. Open audiologist jobs.',
     lede:
-      'Audiologists diagnose + treat hearing and balance disorders across the lifespan. The entry-level credential moved from master\'s to Doctor of Audiology (AuD) in 2007 — all current entry paths are doctoral. About 14,000 audiologists practice in the US per BLS.',
+      'Audiologists diagnose + treat hearing and balance disorders across the lifespan. The entry-level credential moved from master\'s to Doctor of Audiology (AuD) in 2007, so all current entry paths are doctoral. About 14,000 audiologists practice in the US per BLS.',
     sections: [
       {
         heading: 'Undergraduate',
@@ -793,9 +793,9 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Genetic Counselor (CGC)',
     abbreviation: 'CGC',
     metaDescription:
-      'How to become a Genetic Counselor — bachelor\'s + prereqs → master\'s in genetic counseling (~2 yr) → ABGC certification → state license. Open CGC jobs.',
+      'How to become a Genetic Counselor: bachelor\'s + prereqs → master\'s in genetic counseling (~2 yr) → ABGC certification → state license. Open CGC jobs.',
     lede:
-      'Genetic Counselors interpret genetic and genomic testing results for patients + clinicians — translating risk, recurrence, and management implications into actionable clinical guidance. About 5,800 board-certified genetic counselors practice in the US per the American Board of Genetic Counseling — one of the fastest-growing healthcare professions per BLS.',
+      'Genetic Counselors interpret genetic and genomic testing results for patients + clinicians. They translate risk, recurrence, and management implications into clinical guidance patients can act on. About 5,800 board-certified genetic counselors practice in the US per the American Board of Genetic Counseling. It is one of the fastest-growing healthcare professions per BLS.',
     sections: [
       {
         heading: 'Undergraduate prerequisites',

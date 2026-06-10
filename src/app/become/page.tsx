@@ -10,7 +10,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare career-path guides',
   description:
-    'How to become an RN, NP, PA, CRNA, or PharmD — education, licensing, timeline, and current openings. Free guides, no email gate.',
+    'How to become an RN, NP, PA, CRNA, or PharmD: education, licensing, timeline, and current openings. Free guides, no email gate.',
   alternates: { canonical: 'https://freejobpost.co/become' },
   openGraph: {
     title: 'Healthcare career-path guides | freejobpost.co',
@@ -69,7 +69,7 @@ export default function CareerPathsIndex() {
             Healthcare career-path guides
           </h1>
           <p className="text-lg text-gray-700 mb-10 leading-relaxed max-w-3xl">
-            Plain-English summaries of how to enter each healthcare role —
+            Plain-English summaries of how to enter each healthcare role:
             education, licensing, exams, timeline, and links to current job
             openings. No email gate, no upsell to a partner school. If you
             want to skip the guide and look at jobs directly, browse the

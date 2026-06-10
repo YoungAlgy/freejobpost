@@ -4,9 +4,9 @@ import type { Metadata } from 'next'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
 export const metadata: Metadata = {
-  title: 'Post healthcare jobs free — no Indeed tax, no per-applicant fees',
+  title: 'Post healthcare jobs free. No Indeed tax, no per-applicant fees',
   description:
-    'Free healthcare job posting for hospitals, clinics, and staffing firms. Post RN, MD, NP, PA, PT roles in 60 seconds — no Indeed tax, no auction.',
+    'Free healthcare job posting for hospitals, clinics, and staffing firms. Post RN, MD, NP, PA, PT roles in 60 seconds. No Indeed tax, no auction.',
   alternates: { canonical: 'https://freejobpost.co/for-employers' },
   openGraph: {
     title: 'Post healthcare jobs free | freejobpost.co',
@@ -55,8 +55,8 @@ const COST_ROWS = [
 
 const FAQ_ITEMS = [
   {
-    q: 'Is it really free — no hidden upgrade tier?',
-    a: 'Yes. 10 active posts free, forever — see every applicant\'s full contact info immediately, repost expired roles at no cost. If you need more than 10 simultaneous active slots, email info@avahealth.co and we\'ll uncap your account. If we ever add an optional "boost" feature it will be clearly labeled, never a paywall to see who applied.',
+    q: 'Is it really free, with no hidden upgrade tier?',
+    a: 'Yes. 10 active posts free, forever. See every applicant\'s full contact info immediately, repost expired roles at no cost. If you need more than 10 simultaneous active slots, email info@avahealth.co and we\'ll uncap your account. If we ever add an optional "boost" feature it will be clearly labeled, never a paywall to see who applied.',
   },
   {
     q: 'How long does a job stay live?',
@@ -84,7 +84,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How does freejobpost.co make money if posting is free?',
-    a: 'freejobpost.co is operated by Ava Health Partners LLC, a healthcare staffing firm. We maintain a candidate database for our placement business — the job board populates that database with active candidates. The board doesn\'t need to monetize independently because the upstream placement business already does.',
+    a: 'freejobpost.co is operated by Ava Health Partners LLC, a healthcare staffing firm. We maintain a candidate database for our placement business. The job board populates that database with active candidates. The board doesn\'t need to monetize independently because the upstream placement business already does.',
   },
   {
     q: 'Will you cold-recruit my existing staff or sell applicant data?',
@@ -314,7 +314,7 @@ export default function ForEmployersPage() {
         <div className="max-w-3xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">WHY FREE?</h2>
           <p className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-6">
-            The board feeds our recruiting business. Not the other way around.
+            The board feeds our recruiting business. That is why it stays free.
           </p>
           <div className="space-y-4 text-gray-700 leading-relaxed">
             <p>
@@ -323,7 +323,7 @@ export default function ForEmployersPage() {
                 Ava Health Partners LLC
               </a>
               , a healthcare staffing firm. We maintain a candidate database for our placement
-              business — the job board populates that database with active candidates who are
+              business. The job board populates that database with active candidates who are
               genuinely looking.
             </p>
             <p>

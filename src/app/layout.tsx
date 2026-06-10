@@ -19,7 +19,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: {
     template: '%s | Free Job Post',
-    default: 'Free Job Post — Post jobs free, healthcare hiring without the Indeed tax',
+    default: 'Free Job Post: Post jobs free, healthcare hiring without the Indeed tax',
   },
   description:
     'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Free Job Post is where growing employers hire.',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   alternates: {
     types: {
       'application/rss+xml': [
-        { url: '/feeds/rss.xml', title: 'freejobpost.co — Healthcare jobs (RSS)' },
+        { url: '/feeds/rss.xml', title: 'freejobpost.co: Healthcare jobs (RSS)' },
       ],
     },
   },
@@ -41,12 +41,12 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://freejobpost.co',
-    title: 'Free Job Post — Healthcare jobs without the Indeed tax',
+    title: 'Free Job Post: Healthcare jobs without the Indeed tax',
     description: 'Post jobs free. Apply free. No auction fees, no paywall, no recruiter spam.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Job Post — Free healthcare job posts',
+    title: 'Free Job Post: Free healthcare job posts',
     description: 'Post jobs free. No auction, no paywall.',
     site: '@avahealth',
   },

@@ -78,14 +78,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-22',
     title: 'Bug fix: hundreds of specialty hub pages were silently empty',
     body:
-      'A PostgREST URL-encoding bug was causing specialty hubs with multi-word match patterns (Physician Assistant, Registered Nurse, Family Medicine, Internal Medicine, Hospital Medicine, Emergency Medicine, etc.) to silently return zero jobs at runtime. Build-time + sitemap thought the pages existed; the live pages 404’d. Discovered + fixed in an overnight audit pass. Hundreds of long-tail listing pages now render full inventory.',
+      'A PostgREST URL-encoding bug was causing specialty hubs with multi-word match patterns (Physician Assistant, Registered Nurse, Family Medicine, Internal Medicine, Hospital Medicine, Emergency Medicine, etc.) to silently return zero jobs at runtime. Build-time + sitemap thought the pages existed; the live pages returned 404s. Discovered + fixed in an overnight audit pass. Hundreds of long-tail listing pages now render full inventory.',
     tag: 'fixed',
   },
   {
     date: '2026-05-22',
     title: '20 career-path guides for healthcare roles',
     body:
-      'Plain-English “How to become an X” guides for RN, NP, PA, CRNA, PharmD, LPN, CNA, PT, RT, MA, Surgical Tech, Radiologic Tech, OT, SLP, EMT/Paramedic, Phlebotomist, Dental Hygienist, Dietitian, Audiologist, and Genetic Counselor. Each guide covers education, licensing, exam, timeline, practice settings, and compensation, with direct deep-links to current openings. Sourced from BLS, NCSBN, NBRC, CAPTE, NCCPA, ARRT, NBCOT, ASHA, AAMA, AMT, ABGC, ASCP, ADHA, CDR.',
+      'Plain-English "How to become an X" guides for RN, NP, PA, CRNA, PharmD, LPN, CNA, PT, RT, MA, Surgical Tech, Radiologic Tech, OT, SLP, EMT/Paramedic, Phlebotomist, Dental Hygienist, Dietitian, Audiologist, and Genetic Counselor. Each guide covers education, licensing, exam, timeline, practice settings, and compensation, with direct deep-links to current openings. Sourced from BLS, NCSBN, NBRC, CAPTE, NCCPA, ARRT, NBCOT, ASHA, AAMA, AMT, ABGC, ASCP, ADHA, CDR.',
     tag: 'new',
   },
   {

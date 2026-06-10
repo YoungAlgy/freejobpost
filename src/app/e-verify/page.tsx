@@ -70,7 +70,7 @@ export default function EVerifyPage() {
             threshold to establish compliance posture as the team grows.
           </p>
 
-          <h2 className="text-xl font-black mt-8 mb-2">freejobpost.co is a job board, not an employer</h2>
+          <h2 className="text-xl font-black mt-8 mb-2">freejobpost.co is a job board. We are not the employer</h2>
           <p>
             Posting or browsing jobs on freejobpost.co does not create an employment relationship
             with Ava Health Partners LLC. Employers who post jobs here make their own hiring

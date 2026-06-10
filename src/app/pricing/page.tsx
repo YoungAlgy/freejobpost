@@ -5,10 +5,10 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'How posting works',
   description:
-    'Healthcare orgs get 10 free job posts, forever. No auction, no credit card. Built as a utility, not a SaaS. Here is how it works and what to do if you need more slots.',
+    'Healthcare orgs get 10 free job posts, forever. No auction, no credit card. Here is how it works and what to do if you need more slots.',
   alternates: { canonical: 'https://freejobpost.co/pricing' },
   openGraph: {
-    title: 'How posting works — freejobpost.co',
+    title: 'How posting works | freejobpost.co',
     description:
       '10 free healthcare job posts, forever. No auction, no credit card.',
     url: 'https://freejobpost.co/pricing',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'How posting works — freejobpost.co',
+    title: 'How posting works | freejobpost.co',
     description:
       '10 free healthcare job posts, forever. No auction, no credit card.',
     images: ['/opengraph-image'],
@@ -65,7 +65,7 @@ export default function PricingPage() {
           Yes, really.
         </h1>
         <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-4 max-w-2xl">
-          freejobpost.co is a healthcare hiring utility, not a SaaS. Verified
+          freejobpost.co is a healthcare hiring utility. Verified
           healthcare orgs get 10 active job posts, 60 days each, with every
           feature unlocked. If you need more, we figure it out together.
           That&apos;s the whole thing.
@@ -101,7 +101,7 @@ export default function PricingPage() {
             a={[
               'Email info@avahealth.co. We manually flip your account to uncapped. No credit card required during beta — we just need to know who we\u2019re working with.',
               'When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration + API + white-label. Grandfathered for anyone who signs up during beta.',
-              'We built this to be cheaper than every alternative (~$29/mo vs Indeed\u2019s $3,000/mo typical for 10 sponsored roles), not to maximize revenue per customer. Our cost to serve you is a few pennies a month.',
+              'We built this to be cheaper than every alternative (~$29/mo vs Indeed\u2019s $3,000/mo typical for 10 sponsored roles). Our cost to serve you is a few pennies a month.',
             ]}
           />
 
