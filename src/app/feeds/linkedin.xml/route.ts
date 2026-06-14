@@ -194,7 +194,7 @@ export async function GET(): Promise<Response> {
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>Free healthcare job feed — LinkedIn Job Wrapping spec — operated by Ava Health Partners LLC. ${jobs.length} open positions.</description>
+  <description>Free healthcare job feed, LinkedIn Job Wrapping spec. Operated by Ava Health Partners LLC. ${jobs.length} open positions.</description>
 ${jobsXml}
 </source>`
 

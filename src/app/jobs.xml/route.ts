@@ -220,7 +220,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>Free healthcare job feed — operated by Ava Health Partners LLC. ${jobs.length} open positions.</description>
+  <description>Free healthcare job feed. Operated by Ava Health Partners LLC. ${jobs.length} open positions.</description>
 ${jobsXml}
 </source>`
 

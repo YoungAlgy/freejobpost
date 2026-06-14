@@ -80,7 +80,7 @@ export async function GET(): Promise<Response> {
       if (sal) titleParts.push(sal)
       const summary = (j.description ?? '').slice(0, 600).replace(/\s+/g, ' ').trim()
       return `    <item>
-      <title>${escapeXml(titleParts.join(' — '))}</title>
+      <title>${escapeXml(titleParts.join(' | '))}</title>
       <link>${escapeXml(linkUrl)}</link>
       <guid isPermaLink="true">${escapeXml(guidUrl)}</guid>
       <pubDate>${pub}</pubDate>
@@ -99,10 +99,10 @@ export async function GET(): Promise<Response> {
      xmlns:atom="http://www.w3.org/2005/Atom"
      xmlns:job="https://freejobpost.co/schema/job/1.0">
   <channel>
-    <title>freejobpost.co — Healthcare jobs</title>
+    <title>freejobpost.co | Healthcare jobs</title>
     <link>https://freejobpost.co</link>
     <atom:link href="https://freejobpost.co/feeds/rss.xml" rel="self" type="application/rss+xml" />
-    <description>Open healthcare roles posted on freejobpost.co — physicians, nurses, therapists, and allied health. Updated hourly.</description>
+    <description>Open healthcare roles posted on freejobpost.co: physicians, nurses, therapists, and allied health. Updated hourly.</description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
     <ttl>60</ttl>

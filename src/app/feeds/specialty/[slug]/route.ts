@@ -63,7 +63,7 @@ export async function GET(
     hasUsableDescription(j.description),
   )
   const now = new Date().toUTCString()
-  const feedTitle = `${hub.title} — freejobpost.co`
+  const feedTitle = `${hub.title} | freejobpost.co`
   const feedUrl = `https://freejobpost.co/feeds/specialty/${hub.slug}`
   const hubUrl = `https://freejobpost.co/specialty/${hub.slug}`
 
@@ -79,7 +79,7 @@ export async function GET(
       if (sal) titleParts.push(sal)
       const summary = (j.description ?? '').slice(0, 600).replace(/\s+/g, ' ').trim()
       return `    <item>
-      <title>${escapeXml(titleParts.join(' — '))}</title>
+      <title>${escapeXml(titleParts.join(' | '))}</title>
       <link>${escapeXml(linkUrl)}</link>
       <guid isPermaLink="true">${escapeXml(guidUrl)}</guid>
       <pubDate>${pub}</pubDate>
