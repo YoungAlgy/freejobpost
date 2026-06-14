@@ -1,9 +1,9 @@
-// /become/[slug] career-path guides — long-form factual pages that
+// /become/[slug] career-path guides, long-form factual pages that
 // describe how someone enters a healthcare profession. SEO target is the
 // "how to become a <role>" query family, which sits one step upstream
 // of the actual "<role> jobs" intent we serve via /specialty/[slug].
 //
-// Editorial discipline (per memory S3 — content + SEO standards):
+// Editorial discipline (per memory S3, content + SEO standards):
 //   - Stick to well-established facts. No state-by-state license fees
 //     (those change too often), no specific program lengths beyond
 //     standard ranges (ADN vs BSN, etc.).
@@ -23,12 +23,12 @@
 // MD specialty paths (cardiology, ortho, etc.) are intentionally NOT
 // individually covered here because "how to become a cardiologist" =
 // "go to med school then do an IM residency then a cardiology
-// fellowship" — that's a one-paragraph answer, doesn't earn its own page.
+// fellowship", that's a one-paragraph answer, doesn't earn its own page.
 
 export interface CareerPathGuide {
-  /** URL slug — e.g. "registered-nurse" */
+  /** URL slug, e.g. "registered-nurse" */
   slug: string
-  /** Display title — e.g. "How to become a Registered Nurse" */
+  /** Display title, e.g. "How to become a Registered Nurse" */
   title: string
   /** Common abbreviation, used in some heading variants */
   abbreviation?: string
@@ -64,7 +64,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing',
         body:
-          'Every state requires passing the NCLEX-RN — a standardized exam administered by the National Council of State Boards of Nursing (NCSBN). After passing, the candidate applies for licensure through their state board. The Nurse Licensure Compact (NLC) lets an RN licensed in one compact state practice in all other compact states without separate applications; 40+ states participate. Non-compact states (California, New York, Massachusetts, others) require a separate state-specific license.',
+          'Every state requires passing the NCLEX-RN, a standardized exam administered by the National Council of State Boards of Nursing (NCSBN). After passing, the candidate applies for licensure through their state board. The Nurse Licensure Compact (NLC) lets an RN licensed in one compact state practice in all other compact states without separate applications; 40+ states participate. Non-compact states (California, New York, Massachusetts, others) require a separate state-specific license.',
       },
       {
         heading: 'First job',
@@ -74,7 +74,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Typical timeline',
         body:
-          'From high-school start: 2-3 years to ADN + license, or 4-5 years to BSN + license. From career-change start (pre-existing bachelor\'s degree): Accelerated BSN programs run 12-18 months full-time. Total cost varies widely by school type — community-college ADN can land under $10,000; private-school BSN can exceed $80,000.',
+          'From high-school start: 2-3 years to ADN + license, or 4-5 years to BSN + license. From career-change start (pre-existing bachelor\'s degree): Accelerated BSN programs run 12-18 months full-time. Total cost varies widely by school type, community-college ADN can land under $10,000; private-school BSN can exceed $80,000.',
       },
       {
         heading: 'What current openings look like',
@@ -103,7 +103,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Education',
         body:
-          'NPs train at the graduate level — either Master of Science in Nursing (MSN) or Doctor of Nursing Practice (DNP). The American Association of Colleges of Nursing has set the DNP as the preferred entry-level credential for advanced practice, and many programs have shifted MSN → DNP, but MSN-prepared NPs remain fully licensable. Programs typically run 2-3 years for an MSN and 3-4 years for a BSN-to-DNP. Specialties chosen at admission: FNP (family), AGNP (adult-gerontology, primary or acute), PMHNP (psychiatric-mental-health), PNP (pediatric), NNP (neonatal), WHNP (women\'s health), or AGACNP (adult-gerontology acute care).',
+          'NPs train at the graduate level, either Master of Science in Nursing (MSN) or Doctor of Nursing Practice (DNP). The American Association of Colleges of Nursing has set the DNP as the preferred entry-level credential for advanced practice, and many programs have shifted MSN → DNP, but MSN-prepared NPs remain fully licensable. Programs typically run 2-3 years for an MSN and 3-4 years for a BSN-to-DNP. Specialties chosen at admission: FNP (family), AGNP (adult-gerontology, primary or acute), PMHNP (psychiatric-mental-health), PNP (pediatric), NNP (neonatal), WHNP (women\'s health), or AGACNP (adult-gerontology acute care).',
       },
       {
         heading: 'Certification + licensing',
@@ -137,12 +137,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Pre-PA prerequisites',
         body:
-          'PA programs require a bachelor\'s degree + a defined set of prereq courses (general biology, anatomy + physiology, microbiology, organic chemistry, biochemistry, psychology, statistics) and most also require documented direct patient-care experience — commonly EMT/paramedic, medical assistant, scribe, or CNA roles totaling 1,000-3,000 hours.',
+          'PA programs require a bachelor\'s degree + a defined set of prereq courses (general biology, anatomy + physiology, microbiology, organic chemistry, biochemistry, psychology, statistics) and most also require documented direct patient-care experience, commonly EMT/paramedic, medical assistant, scribe, or CNA roles totaling 1,000-3,000 hours.',
       },
       {
         heading: 'PA school',
         body:
-          'Programs are typically 24-27 months (some run 36 months) and award a Master\'s degree (MSPAS, MMS, or similar). The first year is didactic (basic + clinical sciences); the second year is rotational, covering family medicine, internal medicine, pediatrics, surgery, OB-GYN, emergency, psychiatry, and elective rotations. Admissions are competitive — recent cycle data from the PAEA shows acceptance rates around 20-30%.',
+          'Programs are typically 24-27 months (some run 36 months) and award a Master\'s degree (MSPAS, MMS, or similar). The first year is didactic (basic + clinical sciences); the second year is rotational, covering family medicine, internal medicine, pediatrics, surgery, OB-GYN, emergency, psychiatry, and elective rotations. Admissions are competitive, recent cycle data from the PAEA shows acceptance rates around 20-30%.',
       },
       {
         heading: 'Certification + licensing',
@@ -152,7 +152,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Practice + collaboration',
         body:
-          'PAs practice in a team-based model with a collaborating physician. Practice agreements vary by state — some states have moved toward Optimal Team Practice with reduced administrative oversight, others retain prescriptive supervision requirements. PAs work across every specialty: about a third in surgical subspecialties, with the rest spread across primary care, emergency medicine, hospital medicine, and various medical specialties.',
+          'PAs practice in a team-based model with a collaborating physician. Practice agreements vary by state, some states have moved toward Optimal Team Practice with reduced administrative oversight, others retain prescriptive supervision requirements. PAs work across every specialty: about a third in surgical subspecialties, with the rest spread across primary care, emergency medicine, hospital medicine, and various medical specialties.',
       },
     ],
     specialtySlug: 'physician-assistant',
@@ -171,12 +171,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Prerequisites',
         body:
-          'Active RN license + a BSN (or equivalent bachelor\'s). Programs additionally require at least one year of full-time critical-care RN experience — typically ICU, with cardiothoracic, surgical, or neuro ICU favored over MICU at competitive programs. GPA + GRE scores are weighted heavily; the COA (Council on Accreditation of Nurse Anesthesia Educational Programs) requires admissions to consider the full applicant profile.',
+          'Active RN license + a BSN (or equivalent bachelor\'s). Programs additionally require at least one year of full-time critical-care RN experience, typically ICU, with cardiothoracic, surgical, or neuro ICU favored over MICU at competitive programs. GPA + GRE scores are weighted heavily; the COA (Council on Accreditation of Nurse Anesthesia Educational Programs) requires admissions to consider the full applicant profile.',
       },
       {
         heading: 'Doctoral nurse-anesthesia program',
         body:
-          'Per COA mandate, all CRNA programs entering students after 2022 must award a doctoral degree — either DNP (Doctor of Nursing Practice) or DNAP (Doctor of Nurse Anesthesia Practice). Programs run 36 months full-time, front-loaded with anesthesia pharmacology, advanced physiology, regional anesthesia, and pain management; the back half is full-time clinical anesthesia practice across rotations.',
+          'Per COA mandate, all CRNA programs entering students after 2022 must award a doctoral degree, either DNP (Doctor of Nursing Practice) or DNAP (Doctor of Nurse Anesthesia Practice). Programs run 36 months full-time, front-loaded with anesthesia pharmacology, advanced physiology, regional anesthesia, and pain management; the back half is full-time clinical anesthesia practice across rotations.',
       },
       {
         heading: 'Certification',
@@ -215,7 +215,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing',
         body:
-          'Graduates take two exams: the North American Pharmacist Licensure Examination (NAPLEX, tests pharmacy practice) + the Multistate Pharmacy Jurisprudence Exam (MPJE, tests state + federal pharmacy law — taken separately for each state where the candidate seeks licensure). After passing both + meeting state-specific internship hours, the pharmacist applies to the state board for licensure.',
+          'Graduates take two exams: the North American Pharmacist Licensure Examination (NAPLEX, tests pharmacy practice) + the Multistate Pharmacy Jurisprudence Exam (MPJE, tests state + federal pharmacy law, taken separately for each state where the candidate seeks licensure). After passing both + meeting state-specific internship hours, the pharmacist applies to the state board for licensure.',
       },
       {
         heading: 'Residencies + specialization',
@@ -249,7 +249,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing',
         body:
-          'After program completion, candidates sit for the NCLEX-PN — the national exam administered by NCSBN. Pass = state-board application for licensure. Like RNs, LPN/LVN practice is governed by the Nurse Licensure Compact in 40+ states; non-compact states (CA, NY, MA, etc.) require state-specific licenses.',
+          'After program completion, candidates sit for the NCLEX-PN, the national exam administered by NCSBN. Pass = state-board application for licensure. Like RNs, LPN/LVN practice is governed by the Nurse Licensure Compact in 40+ states; non-compact states (CA, NY, MA, etc.) require state-specific licenses.',
       },
       {
         heading: 'Scope of practice',
@@ -288,7 +288,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Certification',
         body:
-          'After completing training, candidates sit for the state competency exam (written + hands-on skills demonstration). Passing both halves places the candidate on the state\'s Nurse Aide Registry — that registry listing is what employers verify before hiring. Some states use the Prometric or Pearson Vue NACES exam; others run their own.',
+          'After completing training, candidates sit for the state competency exam (written + hands-on skills demonstration). Passing both halves places the candidate on the state\'s Nurse Aide Registry, that registry listing is what employers verify before hiring. Some states use the Prometric or Pearson Vue NACES exam; others run their own.',
       },
       {
         heading: 'Scope of practice',
@@ -327,7 +327,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'DPT program',
         body:
-          'The Doctor of Physical Therapy is the only entry-level pathway since 2016 — Masters-level PT degrees were phased out by CAPTE (the accrediting body). DPT programs run ~3 years (some 2.5, some 3.5) and award the DPT degree. Curriculum covers anatomy, kinesiology, neuroscience, biomechanics, therapeutic exercise, manual therapy, and ~30+ weeks of full-time clinical rotations across diverse settings.',
+          'The Doctor of Physical Therapy is the only entry-level pathway since 2016, Masters-level PT degrees were phased out by CAPTE (the accrediting body). DPT programs run ~3 years (some 2.5, some 3.5) and award the DPT degree. Curriculum covers anatomy, kinesiology, neuroscience, biomechanics, therapeutic exercise, manual therapy, and ~30+ weeks of full-time clinical rotations across diverse settings.',
       },
       {
         heading: 'Licensing',
@@ -381,7 +381,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Practice settings',
         body:
-          'Hospitals employ ~80% of RTs — ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19; demand remains elevated.',
+          'Hospitals employ ~80% of RTs, ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19; demand remains elevated.',
       },
     ],
     specialtySlug: 'respiratory-therapy',
@@ -400,7 +400,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Training pathways',
         body:
-          'Three common paths. (1) Postsecondary certificate or diploma program — accredited by CAAHEP or ABHES, typically 9-12 months at a community college or vocational school. (2) Associate degree in medical assisting — typically 2 years, includes general-education + practical coursework. (3) On-the-job training — some employers (especially primary-care groups) hire MAs without formal training and certify them in-house, but the credentialing route is harder to access without an accredited program.',
+          'Three common paths. (1) Postsecondary certificate or diploma program, accredited by CAAHEP or ABHES, typically 9-12 months at a community college or vocational school. (2) Associate degree in medical assisting, typically 2 years, includes general-education + practical coursework. (3) On-the-job training, some employers (especially primary-care groups) hire MAs without formal training and certify them in-house, but the credentialing route is harder to access without an accredited program.',
       },
       {
         heading: 'Certification',
@@ -410,7 +410,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Scope of practice',
         body:
-          'MAs handle clinical tasks (vital signs, EKGs, phlebotomy, injections, sterile procedures assist, point-of-care testing) AND administrative tasks (scheduling, insurance verification, prior authorizations, charting, referrals). Scope is delegated by the supervising physician and varies by state — some states regulate MA injection authority + EKG performance, others leave it to physician discretion.',
+          'MAs handle clinical tasks (vital signs, EKGs, phlebotomy, injections, sterile procedures assist, point-of-care testing) AND administrative tasks (scheduling, insurance verification, prior authorizations, charting, referrals). Scope is delegated by the supervising physician and varies by state, some states regulate MA injection authority + EKG performance, others leave it to physician discretion.',
       },
       {
         heading: 'Practice settings',
@@ -444,7 +444,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Certification',
         body:
-          'The Certified Surgical Technologist (CST) credential is administered by the NBSTSA (National Board of Surgical Technology and Surgical Assisting) and is the standard credential most hospitals require. NCCT offers an alternative — the TS-C (Tech in Surgery — Certified). A few states (TX, NY, MA, IN, NJ, PA, SC, TN, WA) require state recognition or registration in addition to national cert; the rest defer to the national credential.',
+          'The Certified Surgical Technologist (CST) credential is administered by the NBSTSA (National Board of Surgical Technology and Surgical Assisting) and is the standard credential most hospitals require. NCCT offers an alternative, the TS-C (Tech in Surgery, Certified). A few states (TX, NY, MA, IN, NJ, PA, SC, TN, WA) require state recognition or registration in addition to national cert; the rest defer to the national credential.',
       },
       {
         heading: 'Specialization',
@@ -454,7 +454,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Career progression',
         body:
-          'Common next steps: lead/charge surgical tech, surgical first-assistant (CSFA — requires additional training + credential), nursing (LPN/RN bridge programs), or PA school. The OR exposure surgical techs accumulate is highly valued by PA programs as direct patient-care hours.',
+          'Common next steps: lead/charge surgical tech, surgical first-assistant (CSFA, requires additional training + credential), nursing (LPN/RN bridge programs), or PA school. The OR exposure surgical techs accumulate is highly valued by PA programs as direct patient-care hours.',
       },
       {
         heading: 'Compensation',
@@ -483,7 +483,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'ARRT certification',
         body:
-          'The American Registry of Radiologic Technologists (ARRT) administers the primary credentialing exam. Passing earns the R.T.(R)(ARRT) credential — "Radiography" certification, the entry-level RT credential. Most states (37 + DC) require state licensure in addition to ARRT certification; some states accept ARRT certification directly, others require a state-specific exam.',
+          'The American Registry of Radiologic Technologists (ARRT) administers the primary credentialing exam. Passing earns the R.T.(R)(ARRT) credential, "Radiography" certification, the entry-level RT credential. Most states (37 + DC) require state licensure in addition to ARRT certification; some states accept ARRT certification directly, others require a state-specific exam.',
       },
       {
         heading: 'Modality specialties',
@@ -498,7 +498,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Career progression',
         body:
-          'Lead/chief tech, modality supervisor, imaging-department manager, applications specialist (working for a manufacturer like GE/Siemens/Philips), CT/MRI fellowship, or RA (Radiologist Assistant — a master\'s-level credential that expands scope significantly).',
+          'Lead/chief tech, modality supervisor, imaging-department manager, applications specialist (working for a manufacturer like GE/Siemens/Philips), CT/MRI fellowship, or RA (Radiologist Assistant, a master\'s-level credential that expands scope significantly).',
       },
     ],
     specialtySlug: 'radiologic-technologist',
@@ -517,7 +517,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Pre-OT undergraduate',
         body:
-          'Most OT programs require a bachelor\'s degree + specific prereq courses: anatomy + physiology, neuroscience, statistics, psychology (lifespan + abnormal), sociology, and ~40-60 hours of observation across multiple OT practice settings. Common undergraduate majors: psychology, kinesiology, exercise science, biology — though any major satisfying prereqs is acceptable.',
+          'Most OT programs require a bachelor\'s degree + specific prereq courses: anatomy + physiology, neuroscience, statistics, psychology (lifespan + abnormal), sociology, and ~40-60 hours of observation across multiple OT practice settings. Common undergraduate majors: psychology, kinesiology, exercise science, biology, though any major satisfying prereqs is acceptable.',
       },
       {
         heading: 'Graduate program',
@@ -527,7 +527,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing',
         body:
-          'After graduation, candidates sit for the NBCOT (National Board for Certification in Occupational Therapy) exam. Pass = OTR (Occupational Therapist, Registered) credential. State licensure is administered separately by each state — all 50 + DC license OTs. Many states also license Certified Occupational Therapy Assistants (COTAs), the associate-degree-level OT support role.',
+          'After graduation, candidates sit for the NBCOT (National Board for Certification in Occupational Therapy) exam. Pass = OTR (Occupational Therapist, Registered) credential. State licensure is administered separately by each state, all 50 + DC license OTs. Many states also license Certified Occupational Therapy Assistants (COTAs), the associate-degree-level OT support role.',
       },
       {
         heading: 'Practice settings',
@@ -556,27 +556,27 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Undergraduate',
         body:
-          'A bachelor\'s in Communication Sciences and Disorders (CSD) is the most direct path — but applicants from other majors can complete post-baccalaureate prereq coursework (typically 1 year) to qualify for master\'s programs. Prereqs include statistics, biological + physical sciences, social/behavioral sciences, and CSD-specific courses (phonetics, anatomy of speech + hearing, language development).',
+          'A bachelor\'s in Communication Sciences and Disorders (CSD) is the most direct path, but applicants from other majors can complete post-baccalaureate prereq coursework (typically 1 year) to qualify for master\'s programs. Prereqs include statistics, biological + physical sciences, social/behavioral sciences, and CSD-specific courses (phonetics, anatomy of speech + hearing, language development).',
       },
       {
         heading: 'Master\'s program',
         body:
-          'Master\'s in Speech-Language Pathology (MA/MS) is the standard entry-level degree, accredited by the Council on Academic Accreditation (CAA). Programs run 2 years full-time, with the second year heavily clinical — students complete 400+ clock hours of supervised clinical experience across diverse settings (pediatric + adult, medical + educational).',
+          'Master\'s in Speech-Language Pathology (MA/MS) is the standard entry-level degree, accredited by the Council on Academic Accreditation (CAA). Programs run 2 years full-time, with the second year heavily clinical, students complete 400+ clock hours of supervised clinical experience across diverse settings (pediatric + adult, medical + educational).',
       },
       {
         heading: 'Clinical Fellowship + CCC',
         body:
-          'After graduation, the new SLP completes a Clinical Fellowship (CF) — a 36-week paid practicum under the supervision of a CCC-credentialed SLP. After CF completion + passing the Praxis Exam in Speech-Language Pathology, ASHA awards the Certificate of Clinical Competence in Speech-Language Pathology (CCC-SLP). This is the standard credential employers + most state licensing boards require.',
+          'After graduation, the new SLP completes a Clinical Fellowship (CF), a 36-week paid practicum under the supervision of a CCC-credentialed SLP. After CF completion + passing the Praxis Exam in Speech-Language Pathology, ASHA awards the Certificate of Clinical Competence in Speech-Language Pathology (CCC-SLP). This is the standard credential employers + most state licensing boards require.',
       },
       {
         heading: 'Licensing',
         body:
-          'All 50 states + DC require state licensure. Many states accept CCC-SLP directly; some require separate state exams. School-based SLPs may need an additional teaching credential depending on the state — some states require the educational SLP credential, others accept the clinical CCC-SLP for school employment.',
+          'All 50 states + DC require state licensure. Many states accept CCC-SLP directly; some require separate state exams. School-based SLPs may need an additional teaching credential depending on the state, some states require the educational SLP credential, others accept the clinical CCC-SLP for school employment.',
       },
       {
         heading: 'Specialization',
         body:
-          'ASHA offers Board Certification in Specialty Areas (BCS) — child language, swallowing, fluency, intraoperative monitoring. Common practice specialties: pediatric (early-intervention + school-age + autism), adult neurogenic (post-stroke + TBI + dementia), dysphagia (swallowing), AAC (augmentative + alternative communication), voice + speech motor, fluency.',
+          'ASHA offers Board Certification in Specialty Areas (BCS), child language, swallowing, fluency, intraoperative monitoring. Common practice specialties: pediatric (early-intervention + school-age + autism), adult neurogenic (post-stroke + TBI + dementia), dysphagia (swallowing), AAC (augmentative + alternative communication), voice + speech motor, fluency.',
       },
       {
         heading: 'Compensation',
@@ -605,7 +605,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Advanced + Intermediate EMT',
         body:
-          'Advanced EMT (AEMT — sometimes called EMT-I depending on state) adds IV access, limited medication administration, advanced airway adjuncts (King airway, supraglottic devices), and more advanced patient assessment. Training is ~150-250 hours beyond EMT-B. AEMT is heavily used in rural systems where Paramedic-staffed ambulances aren\'t economically feasible.',
+          'Advanced EMT (AEMT, sometimes called EMT-I depending on state) adds IV access, limited medication administration, advanced airway adjuncts (King airway, supraglottic devices), and more advanced patient assessment. Training is ~150-250 hours beyond EMT-B. AEMT is heavily used in rural systems where Paramedic-staffed ambulances aren\'t economically feasible.',
       },
       {
         heading: 'Paramedic',
@@ -659,7 +659,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Career progression',
         body:
-          'Phlebotomy is widely used as a stepping-stone — direct patient-care experience that PA/medical/nursing schools accept as clinical hours. Common next moves: medical assistant, nursing program, clinical lab tech (CLT/MLT), or specialty phlebotomy (donor-center, pediatric, intensive draws). CPT credential plus 2+ years experience opens lead-phlebotomist + lab-supervisor roles.',
+          'Phlebotomy is widely used as a stepping-stone, direct patient-care experience that PA/medical/nursing schools accept as clinical hours. Common next moves: medical assistant, nursing program, clinical lab tech (CLT/MLT), or specialty phlebotomy (donor-center, pediatric, intensive draws). CPT credential plus 2+ years experience opens lead-phlebotomist + lab-supervisor roles.',
       },
       {
         heading: 'Compensation',
@@ -688,22 +688,22 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing exams',
         body:
-          'Candidates take the National Board Dental Hygiene Examination (NBDHE — written) administered by the Joint Commission on National Dental Examinations, AND a regional or state clinical examination (most states accept ADEX, WREB, CITA, or CRDTS). Both required for RDH licensure. Some states additionally require a state jurisprudence exam.',
+          'Candidates take the National Board Dental Hygiene Examination (NBDHE, written) administered by the Joint Commission on National Dental Examinations, AND a regional or state clinical examination (most states accept ADEX, WREB, CITA, or CRDTS). Both required for RDH licensure. Some states additionally require a state jurisprudence exam.',
       },
       {
         heading: 'Scope of practice',
         body:
-          'RDHs perform prophy (cleaning) + scaling-and-root-planing (SRP), administer local anesthesia in ~46 states (state-dependent), take + interpret dental radiographs, place sealants, apply fluoride, conduct periodontal charting, and document oral findings. About 24 states allow some form of dental hygiene practice without on-site dentist supervision (varies widely — collaborative practice agreements, public-health hygiene, etc.).',
+          'RDHs perform prophy (cleaning) + scaling-and-root-planing (SRP), administer local anesthesia in ~46 states (state-dependent), take + interpret dental radiographs, place sealants, apply fluoride, conduct periodontal charting, and document oral findings. About 24 states allow some form of dental hygiene practice without on-site dentist supervision (varies widely, collaborative practice agreements, public-health hygiene, etc.).',
       },
       {
         heading: 'Practice settings',
         body:
-          'Private dental practices employ the majority — general dentistry + periodontic specialty offices. Pediatric dental, community + public health, school-based programs, DSO (dental service organization) groups like Heartland + Pacific Dental, and corporate roles with dental product companies all hire RDHs.',
+          'Private dental practices employ the majority, general dentistry + periodontic specialty offices. Pediatric dental, community + public health, school-based programs, DSO (dental service organization) groups like Heartland + Pacific Dental, and corporate roles with dental product companies all hire RDHs.',
       },
       {
         heading: 'Compensation',
         body:
-          'BLS reports median annual RDH salary around $87k-$93k. RDH commonly ranks in the top 10 highest-paying associate-degree-only US careers. Compensation varies by state and practice setting — DSO + corporate groups typically structure as base + production bonus; private offices commonly hourly + benefits.',
+          'BLS reports median annual RDH salary around $87k-$93k. RDH commonly ranks in the top 10 highest-paying associate-degree-only US careers. Compensation varies by state and practice setting, DSO + corporate groups typically structure as base + production bonus; private offices commonly hourly + benefits.',
       },
     ],
     specialtySlug: 'dental-hygienist',
@@ -722,27 +722,27 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Education',
         body:
-          'As of January 2024, the Commission on Dietetic Registration (CDR) requires a graduate degree to sit for the RDN exam — typically a Master of Science in Nutrition or a coordinated program leading to MS + supervised practice. ACEND-accredited programs are the only ones whose graduates are eligible.',
+          'As of January 2024, the Commission on Dietetic Registration (CDR) requires a graduate degree to sit for the RDN exam, typically a Master of Science in Nutrition or a coordinated program leading to MS + supervised practice. ACEND-accredited programs are the only ones whose graduates are eligible.',
       },
       {
         heading: 'Supervised practice',
         body:
-          'Candidates complete an ACEND-accredited supervised-practice rotation (formerly a "dietetic internship") totaling at least 1,000 hours across clinical, community, and food-service settings. Coordinated programs integrate the supervised practice into the master\'s curriculum; standalone internships run ~9-12 months post-degree. Match rates for standalone internships historically run 50-70% — coordinated programs avoid this risk.',
+          'Candidates complete an ACEND-accredited supervised-practice rotation (formerly a "dietetic internship") totaling at least 1,000 hours across clinical, community, and food-service settings. Coordinated programs integrate the supervised practice into the master\'s curriculum; standalone internships run ~9-12 months post-degree. Match rates for standalone internships historically run 50-70%, coordinated programs avoid this risk.',
       },
       {
         heading: 'Examination + licensure',
         body:
-          'After supervised practice, candidates sit for the CDR registration exam. Passing = RDN credential. About 38 states + DC also require state licensure in addition to RDN — application requirements vary; some states accept CDR registration directly, others require a state-specific application + fee.',
+          'After supervised practice, candidates sit for the CDR registration exam. Passing = RDN credential. About 38 states + DC also require state licensure in addition to RDN, application requirements vary; some states accept CDR registration directly, others require a state-specific application + fee.',
       },
       {
         heading: 'Practice settings',
         body:
-          'Clinical (hospital + outpatient) is the largest segment — inpatient medical nutrition therapy, diabetes education, weight-management programs, oncology nutrition, renal/dialysis, eating-disorder treatment. Other paths: community + public health (WIC, SNAP-Ed), sports nutrition (collegiate, pro teams), corporate wellness, food-service management (Sodexo, Aramark, Compass), retail (supermarket dietitians at Kroger / Wegmans), private practice (insurance-billed or cash-pay), and pharmaceutical / food industry.',
+          'Clinical (hospital + outpatient) is the largest segment, inpatient medical nutrition therapy, diabetes education, weight-management programs, oncology nutrition, renal/dialysis, eating-disorder treatment. Other paths: community + public health (WIC, SNAP-Ed), sports nutrition (collegiate, pro teams), corporate wellness, food-service management (Sodexo, Aramark, Compass), retail (supermarket dietitians at Kroger / Wegmans), private practice (insurance-billed or cash-pay), and pharmaceutical / food industry.',
       },
       {
         heading: 'Specialization',
         body:
-          'CDR offers board certifications in 8 specialty areas — oncology (CSO), pediatric (CSP), renal (CSR), gerontological (CSG), sports (CSSD), obesity/weight management (CSOWM), and Intuitive Eating + clinical eating-disorder credentials offered through other bodies.',
+          'CDR offers board certifications in 8 specialty areas, oncology (CSO), pediatric (CSP), renal (CSR), gerontological (CSG), sports (CSSD), obesity/weight management (CSOWM), and Intuitive Eating + clinical eating-disorder credentials offered through other bodies.',
       },
     ],
     specialtySlug: 'dietitian',
@@ -800,22 +800,22 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Undergraduate prerequisites',
         body:
-          'Most genetic-counseling programs require a bachelor\'s degree + a defined prerequisite course set: genetics, biochemistry, statistics, psychology (including abnormal + lifespan), and often organic chemistry. Many candidates major in biology, genetics, psychology, or molecular biology. Programs also typically require documented experience in counseling + healthcare exposure (crisis-line volunteering, advocacy work, shadowing) — applications without these tend to be uncompetitive.',
+          'Most genetic-counseling programs require a bachelor\'s degree + a defined prerequisite course set: genetics, biochemistry, statistics, psychology (including abnormal + lifespan), and often organic chemistry. Many candidates major in biology, genetics, psychology, or molecular biology. Programs also typically require documented experience in counseling + healthcare exposure (crisis-line volunteering, advocacy work, shadowing), applications without these tend to be uncompetitive.',
       },
       {
         heading: 'Master\'s program',
         body:
-          'Master of Science in Genetic Counseling accredited by ACGC (Accreditation Council for Genetic Counseling) — typically 2 years (4 semesters + summer rotations). Curriculum: medical genetics, prenatal + pediatric + adult genetics, cancer genetics, cardiogenetics, neurogenetics, counseling theory, ethics, lab methods (NGS, microarray, karyotype), and ~50+ supervised clinical cases across multiple specialty areas. ACGC programs are competitive — historically <30% acceptance rates at established programs.',
+          'Master of Science in Genetic Counseling accredited by ACGC (Accreditation Council for Genetic Counseling), typically 2 years (4 semesters + summer rotations). Curriculum: medical genetics, prenatal + pediatric + adult genetics, cancer genetics, cardiogenetics, neurogenetics, counseling theory, ethics, lab methods (NGS, microarray, karyotype), and ~50+ supervised clinical cases across multiple specialty areas. ACGC programs are competitive, historically <30% acceptance rates at established programs.',
       },
       {
         heading: 'Certification + licensure',
         body:
-          'After graduation, candidates sit for the ABGC (American Board of Genetic Counseling) certification exam. Pass = CGC credential. State licensure is jurisdiction-dependent — about half of US states + DC license genetic counselors, requiring ABGC certification + state-specific application; others rely solely on ABGC.',
+          'After graduation, candidates sit for the ABGC (American Board of Genetic Counseling) certification exam. Pass = CGC credential. State licensure is jurisdiction-dependent, about half of US states + DC license genetic counselors, requiring ABGC certification + state-specific application; others rely solely on ABGC.',
       },
       {
         heading: 'Practice settings',
         body:
-          'Hospital-based clinical genetics (most common — prenatal, pediatric, cancer, cardio, neuro), commercial laboratories (variant interpretation, customer-facing CGC roles at Invitae, Natera, Color, Ambry, Myriad), telehealth (Genome Medical, Genoox), industry / pharmaceutical, research, and increasingly outpatient + specialty groups embedding CGCs into existing teams (cancer centers, cardiology + neurology specialty practices).',
+          'Hospital-based clinical genetics (most common, prenatal, pediatric, cancer, cardio, neuro), commercial laboratories (variant interpretation, customer-facing CGC roles at Invitae, Natera, Color, Ambry, Myriad), telehealth (Genome Medical, Genoox), industry / pharmaceutical, research, and increasingly outpatient + specialty groups embedding CGCs into existing teams (cancer centers, cardiology + neurology specialty practices).',
       },
       {
         heading: 'Compensation',
