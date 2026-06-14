@@ -245,7 +245,7 @@ export default async function CityHubPage(
                 {cityName} healthcare salaries
               </h2>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                Based on {salaryOverall.count} active role{salaryOverall.count === 1 ? '' : 's'} in {hub.name} with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}&ndash;{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
+                Based on {salaryOverall.count} active role{salaryOverall.count === 1 ? '' : 's'} in {hub.name} with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}-{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
               </p>
               {salaryByBucket.length > 0 && (
                 <div className="overflow-x-auto">
@@ -264,7 +264,7 @@ export default async function CityHubPage(
                           <td className="px-3 py-2">{row.label}</td>
                           <td className="px-3 py-2 text-right tabular-nums">{row.count}</td>
                           <td className="px-3 py-2 text-right tabular-nums">
-                            {fmtUsdCompact(row.low)}&ndash;{fmtUsdCompact(row.high)}
+                            {fmtUsdCompact(row.low)}-{fmtUsdCompact(row.high)}
                           </td>
                           <td className="px-3 py-2 text-right tabular-nums font-medium">
                             {fmtUsdCompact(row.avg)}

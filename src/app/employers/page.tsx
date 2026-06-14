@@ -152,7 +152,7 @@ export default async function EmployersPage() {
                 <Link href="/jobs" className="underline hover:text-green-700">
                   browse all active openings
                 </Link>{' '}
-                &mdash; every listing has a real apply link.
+                where every listing has a real apply link.
               </p>
               <Link
                 href="/post-job"

@@ -47,7 +47,7 @@ export async function GET(): Promise<Response> {
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>freejobpost.co — Changelog</title>
+    <title>freejobpost.co Changelog</title>
     <link>https://freejobpost.co/changelog</link>
     <atom:link href="https://freejobpost.co/changelog/feed.xml" rel="self" type="application/rss+xml" />
     <description>Recent shipped features, fixes, and reliability work on freejobpost.co.</description>

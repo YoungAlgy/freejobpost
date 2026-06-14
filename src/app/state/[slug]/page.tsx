@@ -453,7 +453,7 @@ export default async function StateHubPage(
                           <td className="px-3 py-2">{row.label}</td>
                           <td className="px-3 py-2 text-right tabular-nums">{row.count}</td>
                           <td className="px-3 py-2 text-right tabular-nums">
-                            {fmtUsdCompact(row.low)}&ndash;{fmtUsdCompact(row.high)}
+                            {fmtUsdCompact(row.low)}-{fmtUsdCompact(row.high)}
                           </td>
                           <td className="px-3 py-2 text-right tabular-nums font-medium">
                             {fmtUsdCompact(row.avg)}

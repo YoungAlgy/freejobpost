@@ -11,27 +11,27 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Changelog',
   description:
-    'What\'s new on freejobpost.co — recent shipped features, fixes, and reliability work. Updated when something user-visible changes.',
+    'What\'s new on freejobpost.co: recent shipped features, fixes, and reliability work. Updated when something user-visible changes.',
   alternates: {
     canonical: 'https://freejobpost.co/changelog',
     types: {
       'application/rss+xml': [
-        { url: 'https://freejobpost.co/changelog/feed.xml', title: 'freejobpost.co — Changelog (RSS)' },
+        { url: 'https://freejobpost.co/changelog/feed.xml', title: 'freejobpost.co Changelog (RSS)' },
       ],
     },
   },
   robots: { index: true, follow: true },
   openGraph: {
-    title: 'Changelog — freejobpost.co',
-    description: 'Recent ships on freejobpost.co — features, fixes, and reliability work.',
+    title: 'freejobpost.co Changelog',
+    description: 'Recent ships on freejobpost.co: features, fixes, and reliability work.',
     url: 'https://freejobpost.co/changelog',
     type: 'website',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Changelog — freejobpost.co',
-    description: 'Recent ships on freejobpost.co — features, fixes, and reliability work.',
+    title: 'freejobpost.co Changelog',
+    description: 'Recent ships on freejobpost.co: features, fixes, and reliability work.',
     images: ['/opengraph-image'],
   },
 }
@@ -108,7 +108,7 @@ export default function ChangelogPage() {
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-2">
           Recent shipped features, fixes, and reliability work. We update this when something
-          user-visible changes — not on every commit.
+          user-visible changes, not on every commit.
         </p>
         {lastUpdated && (
           <p className="text-sm text-gray-500 mb-12">

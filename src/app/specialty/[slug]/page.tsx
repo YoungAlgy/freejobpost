@@ -294,7 +294,7 @@ export default async function SpecialtyHubPage(
                 {hub.title.replace(/ Jobs$/, '')} salaries by state
               </h2>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                Based on {salaryOverall.count} active {hub.title.toLowerCase().replace(/ jobs$/, '')} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}&ndash;{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
+                Based on {salaryOverall.count} active {hub.title.toLowerCase().replace(/ jobs$/, '')} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}-{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
               </p>
               {salaryByState.length > 0 && (
                 <div className="overflow-x-auto">
@@ -313,7 +313,7 @@ export default async function SpecialtyHubPage(
                           <td className="px-3 py-2">{row.label}</td>
                           <td className="px-3 py-2 text-right tabular-nums">{row.count}</td>
                           <td className="px-3 py-2 text-right tabular-nums">
-                            {fmtUsdCompact(row.low)}&ndash;{fmtUsdCompact(row.high)}
+                            {fmtUsdCompact(row.low)}-{fmtUsdCompact(row.high)}
                           </td>
                           <td className="px-3 py-2 text-right tabular-nums font-medium">
                             {fmtUsdCompact(row.avg)}

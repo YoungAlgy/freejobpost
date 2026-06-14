@@ -253,7 +253,7 @@ export default async function EmployerPage({ params }: Props) {
               {roles.length > 0 && (
                 <>
                   {' '}
-                  &mdash;{' '}
+                  including{' '}
                   {roles.slice(0, 5).join(', ')}
                   {roles.length > 5 ? `, +${roles.length - 5} more` : ''}
                 </>
