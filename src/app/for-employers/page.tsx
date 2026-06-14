@@ -28,27 +28,27 @@ export const metadata: Metadata = {
 const COST_ROWS = [
   {
     label: 'RN (floor / ICU)',
-    indeed: '$400–$900 avg cost per hire',
+    indeed: '$400-$900 avg cost per hire',
     freejobpost: '$0',
   },
   {
     label: 'Physician (MD/DO)',
-    indeed: '$800–$2,500+ avg cost per hire',
+    indeed: '$800-$2,500+ avg cost per hire',
     freejobpost: '$0',
   },
   {
     label: 'NP / PA',
-    indeed: '$500–$1,200 avg cost per hire',
+    indeed: '$500-$1,200 avg cost per hire',
     freejobpost: '$0',
   },
   {
     label: 'PT / OT / SLP',
-    indeed: '$300–$700 avg cost per hire',
+    indeed: '$300-$700 avg cost per hire',
     freejobpost: '$0',
   },
   {
     label: 'Pharmacist',
-    indeed: '$600–$1,500 avg cost per hire',
+    indeed: '$600-$1,500 avg cost per hire',
     freejobpost: '$0',
   },
 ]
@@ -60,23 +60,23 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How long does a job stay live?',
-    a: '60 days by default. You can repost the same role at any time — expired roles don\'t count toward your 10-active-post limit. Filled roles can be marked "closed" to come off the board and free up a slot instantly.',
+    a: '60 days by default. You can repost the same role at any time. Expired roles don\'t count toward your 10-active-post limit. Filled roles can be marked "closed" to come off the board and free up a slot instantly.',
   },
   {
     q: 'Where does my listing appear besides freejobpost.co?',
-    a: 'Every listing gets JobPosting JSON-LD for Google for Jobs (crawled directly by Google), plus our XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings through crawl — no separate submission needed. Active feed partners ingest within a few hours of posting.',
+    a: 'Every listing gets JobPosting JSON-LD for Google for Jobs (crawled directly by Google), plus our XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings through crawl. No separate submission needed. Active feed partners ingest within a few hours of posting.',
   },
   {
-    q: 'Who applies — real people or scraped profiles?',
-    a: "Real candidates. Candidates apply directly from the job page — name, email, phone, optional cover note, optional resume URL. Some candidates also come through the freeresumepost.co matching engine, which shows them new roles that fit their specialty and state. We do not scrape profiles or auto-submit applications on anyone's behalf.",
+    q: 'Who applies, real people or scraped profiles?',
+    a: "Real candidates. Candidates apply directly from the job page: name, email, phone, optional cover note, optional resume URL. Some candidates also come through the freeresumepost.co matching engine, which shows them new roles that fit their specialty and state. We do not scrape profiles or auto-submit applications on anyone's behalf.",
   },
   {
     q: 'Do I have to create an account or set a password?',
-    a: 'No. Post a job, verify your email with a one-click magic link, and you\'re live. Access your dashboard anytime by requesting a new magic link — no password to forget or reset.',
+    a: 'No. Post a job, verify your email with a one-click magic link, and you\'re live. Access your dashboard anytime by requesting a new magic link. No password to forget or reset.',
   },
   {
     q: 'Can I post locum, per diem, or travel roles?',
-    a: 'Yes — all employment types are supported: full-time, part-time, contract, locum, per diem, and internship. Remote, hybrid, and onsite roles are all accepted.',
+    a: 'Yes. All employment types are supported: full-time, part-time, contract, locum, per diem, and internship. Remote, hybrid, and onsite roles are all accepted.',
   },
   {
     q: 'What roles can I post here?',
@@ -190,7 +190,7 @@ export default function ForEmployersPage() {
         </div>
       </section>
 
-      {/* How it works — employer-specific */}
+      {/* How it works (employer-specific) */}
       <section className="border-b-2 border-black">
         <div className="max-w-5xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">HOW IT WORKS</h2>
@@ -207,7 +207,7 @@ export default function ForEmployersPage() {
               {
                 n: '02',
                 h: 'Verify your email',
-                p: 'We send you a one-click magic link. Click it and your listing goes live — visible on freejobpost.co and in our syndication feeds.',
+                p: 'We send you a one-click magic link. Click it and your listing goes live. Visible on freejobpost.co and in our syndication feeds.',
               },
               {
                 n: '03',
@@ -244,12 +244,12 @@ export default function ForEmployersPage() {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              { name: 'Google for Jobs', status: 'Active', note: 'JobPosting JSON-LD on every listing page — auto-indexed by Google' },
-              { name: 'Indeed', status: 'Active', note: 'Organic crawl of JobPosting JSON-LD — no sponsored required' },
+              { name: 'Google for Jobs', status: 'Active', note: 'JobPosting JSON-LD on every listing page, auto-indexed by Google' },
+              { name: 'Indeed', status: 'Active', note: 'Organic crawl of JobPosting JSON-LD, no sponsored required' },
               { name: 'Glassdoor', status: 'Active', note: 'Indeed-owned; same auto-crawl pipeline' },
-              { name: 'Adzuna', status: 'Feed live', note: 'Feed submitted — partnership in review' },
-              { name: 'ZipRecruiter', status: 'Feed live', note: 'Feed submitted — pending Open Network acceptance' },
-              { name: 'Jooble', status: 'Feed live', note: 'Feed submitted — pending acceptance' },
+              { name: 'Adzuna', status: 'Feed live', note: 'Feed submitted, partnership in review' },
+              { name: 'ZipRecruiter', status: 'Feed live', note: 'Feed submitted, pending Open Network acceptance' },
+              { name: 'Jooble', status: 'Feed live', note: 'Feed submitted, pending acceptance' },
             ].map((ch) => (
               <div key={ch.name} className="border-2 border-black bg-white p-4">
                 <div className="flex items-center justify-between mb-1">
@@ -278,16 +278,16 @@ export default function ForEmployersPage() {
             <div className="border-2 border-gray-300 p-6">
               <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-4">Indeed Sponsored</div>
               <ul className="space-y-2.5 text-sm text-gray-700">
-                <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $0.10–$5.00 per click auction</li>
+                <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $0.10-$5.00 per click auction</li>
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> Posts buried below paid placements</li>
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> Candidate emails resold to other recruiters</li>
-                <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $300–$2,500+ average cost per healthcare hire</li>
+                <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $300-$2,500+ average cost per healthcare hire</li>
               </ul>
             </div>
             <div className="border-2 border-gray-300 p-6">
               <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-4">ZipRecruiter Paid</div>
               <ul className="space-y-2.5 text-sm text-gray-700">
-                <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $299–$599+/month subscription</li>
+                <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $299-$599+/month subscription</li>
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> Traffic-boosted plans for extra reach</li>
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> Monthly billing even for slow hiring periods</li>
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> Candidate profiles sold to multiple employers simultaneously</li>
@@ -296,10 +296,10 @@ export default function ForEmployersPage() {
             <div className="border-2 border-green-700 bg-green-50 p-6">
               <div className="text-xs font-bold tracking-wider text-green-700 uppercase mb-4">freejobpost.co</div>
               <ul className="space-y-2.5 text-sm text-gray-800">
-                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> $0 — free to post, free to see applicants</li>
-                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> No bid auction — all organic listings</li>
+                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> $0, free to post, free to see applicants</li>
+                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> No bid auction, all organic listings</li>
                 <li className="flex gap-2"><span className="font-black text-green-700">✓</span> Applicant contact info goes to you only</li>
-                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> Free forever — no trial that auto-converts</li>
+                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> Free forever, no trial that auto-converts</li>
               </ul>
             </div>
           </div>
