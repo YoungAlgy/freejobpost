@@ -51,7 +51,7 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
           Manage your posts.
         </h1>
         <p className="text-gray-700 mb-8">
-          Enter the email you used to post. We&apos;ll send you a sign-in link —
+          Enter the email you used to post. We&apos;ll send you a sign-in link,
           click it and you&apos;re in. No password.
         </p>
 

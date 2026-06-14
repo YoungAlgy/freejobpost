@@ -19,7 +19,7 @@ type Props = {
 }
 
 export default function VerifiedEmployerBadge({
-  title = 'Verified employer — confirmed via email at the company domain',
+  title = 'Verified employer. Confirmed via email at the company domain',
   iconOnly = false,
   className = '',
 }: Props) {

@@ -338,7 +338,7 @@ export default async function CityHubPage(
               </ul>
               {totalCount > jobs.length && (
                 <p className="text-xs text-gray-500 mt-3">
-                  Showing newest {jobs.length} of {totalCount.toLocaleString()} —{' '}
+                  Showing newest {jobs.length} of {totalCount.toLocaleString()},{' '}
                   <Link href="/jobs" className="underline hover:text-black">
                     see all
                   </Link>

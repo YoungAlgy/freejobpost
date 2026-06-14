@@ -42,8 +42,8 @@ export function composeHubMetaDescription({
 
   if (count === 0) {
     return kind === 'state'
-      ? `No active ${label} healthcare jobs on freejobpost.co right now. Browse thousands of US healthcare roles — free, no recruiter spam.`
-      : `No active ${label.toLowerCase()} on freejobpost.co right now. Browse thousands of US healthcare roles — free, no recruiter spam.`
+      ? `No active ${label} healthcare jobs on freejobpost.co right now. Browse thousands of US healthcare roles. Free, no recruiter spam.`
+      : `No active ${label.toLowerCase()} on freejobpost.co right now. Browse thousands of US healthcare roles. Free, no recruiter spam.`
   }
 
   // 1 or 2 jobs — acknowledge sparsity, point to the broader board

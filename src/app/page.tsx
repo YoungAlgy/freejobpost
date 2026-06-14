@@ -200,7 +200,7 @@ export default async function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { n: '01', h: 'Post', p: 'Fill the 60-second form: title, location, description, salary. Hit submit.' },
-              { n: '02', h: 'Verify', p: 'We email you a one-click verification link. That\u2019s it. No account setup, no phone number.' },
+              { n: '02', h: 'Verify', p: 'We email you a one-click verification link. That\'s it. No account setup, no phone number.' },
               { n: '03', h: 'Get applicants', p: 'Real candidates see your post. They apply. You get emailed. Simple.' },
             ].map((step) => (
               <div key={step.n} className="bg-white border-2 border-black p-8">

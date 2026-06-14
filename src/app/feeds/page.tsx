@@ -37,7 +37,7 @@ export default function FeedsPage() {
           open, no auth required, refreshed every 15 minutes.
         </p>
         <p className="text-gray-700 mb-10 max-w-2xl">
-          Each posted job has per-network opt-in checkboxes — you only see jobs the recruiter
+          Each posted job has per-network opt-in checkboxes. You only see jobs the recruiter
           chose to share with your network. If you need a different format or fields, contact{' '}
           <a href="mailto:info@avahealth.co" className="underline">info@avahealth.co</a>.
         </p>
@@ -119,8 +119,8 @@ export default function FeedsPage() {
             <li>All listings link back to <code>freejobpost.co/jobs/[slug]</code> with full job description and apply form.</li>
             <li>Salary fields are present where the employer chose to disclose them.</li>
             <li>Expired/removed jobs are dropped from the feed within 15 minutes (next ISR cycle).</li>
-            <li>Each feed only lists jobs whose recruiter opted into that specific network — empty feed is normal if no recruiter has opted in to your network yet.</li>
-            <li>No duplicates across feeds — each job appears once per network with a stable <code>slug</code> reference.</li>
+            <li>Each feed only lists jobs whose recruiter opted into that specific network. Empty feed is normal if no recruiter has opted in to your network yet.</li>
+            <li>No duplicates across feeds. Each job appears once per network with a stable <code>slug</code> reference.</li>
           </ul>
         </div>
       </div>

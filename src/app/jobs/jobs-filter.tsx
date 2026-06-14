@@ -402,7 +402,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
       {errored && (
         <div role="alert" aria-live="assertive" className="text-center mt-6">
           <p className="text-sm font-bold text-red-700">
-            Couldn&apos;t reach the server — check your connection and try again.
+            Couldn&apos;t reach the server. Check your connection and try again.
           </p>
         </div>
       )}
