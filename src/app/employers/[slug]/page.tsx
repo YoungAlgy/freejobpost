@@ -112,8 +112,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const employer = await getEmployer(slug)
   if (!employer) return { robots: { index: false, follow: false } }
   return {
-    title: `${employer.company_name} — open healthcare jobs`,
-    description: `Browse open healthcare positions at ${employer.company_name}. Apply free on freejobpost.co — no account required, no fees.`,
+    title: `${employer.company_name}: open healthcare jobs`,
+    description: `Browse open healthcare positions at ${employer.company_name}. Apply free on freejobpost.co. No account required, no fees.`,
     alternates: { canonical: `https://freejobpost.co/employers/${slug}` },
     openGraph: {
       title: `${employer.company_name} healthcare jobs`,
@@ -337,7 +337,7 @@ export default async function EmployerPage({ params }: Props) {
               For employers
             </p>
             <h2 className="text-2xl font-black mb-4">
-              Post your open roles free — no auction, no per-applicant fee.
+              Post your open roles free. No auction, no per-applicant fee.
             </h2>
             <p className="text-gray-700 mb-6 leading-relaxed max-w-xl">
               freejobpost.co is a free healthcare job board. Listings go into public XML feeds

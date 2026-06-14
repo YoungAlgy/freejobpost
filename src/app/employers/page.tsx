@@ -15,10 +15,10 @@ export const revalidate = 21600
 export const metadata: Metadata = {
   title: 'Healthcare employers hiring',
   description:
-    'Verified healthcare employers currently hiring on freejobpost.co. Browse open roles by organization — free to apply, no account required.',
+    'Verified healthcare employers currently hiring on freejobpost.co. Browse open roles by organization. Free to apply, no account required.',
   alternates: { canonical: 'https://freejobpost.co/employers' },
   openGraph: {
-    title: 'Healthcare employers — freejobpost.co',
+    title: 'Healthcare employers | freejobpost.co',
     description: 'Verified healthcare employers currently hiring on freejobpost.co.',
     url: 'https://freejobpost.co/employers',
     type: 'website',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Healthcare employers — freejobpost.co',
+    title: 'Healthcare employers | freejobpost.co',
     description: 'Verified healthcare employers currently hiring on freejobpost.co.',
     images: ['/opengraph-image'],
   },
@@ -139,7 +139,7 @@ export default async function EmployersPage() {
           </h1>
           <p className="text-gray-600 mb-10 leading-relaxed">
             Verified healthcare employers currently posting on freejobpost.co. Browse by
-            organization — free to apply, no account required.
+            organization. Free to apply, no account required.
           </p>
 
           {active.length === 0 ? (
@@ -201,7 +201,7 @@ export default async function EmployersPage() {
               <Link href="/post-job" className="font-bold underline hover:text-green-700">
                 Post your open roles free
               </Link>{' '}
-              — no credit card, no auction, no paywall to see applicants.
+              with no credit card, no auction, no paywall to see applicants.
             </p>
             <Link
               href="/for-employers"
