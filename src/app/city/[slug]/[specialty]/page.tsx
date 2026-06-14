@@ -197,7 +197,7 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
           </p>
 
           <p className="text-lg text-gray-700 mb-8 max-w-3xl leading-relaxed">
-            {specialtyHub.shortDescription} {cityHub.shortDescription.split('—')[1]?.trim() ? `In ${cityHub.name}: ${cityHub.shortDescription.split('—')[1]?.trim()}` : ''}
+            {specialtyHub.shortDescription}
           </p>
 
           <section>
