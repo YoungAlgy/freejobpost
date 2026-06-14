@@ -207,10 +207,10 @@ export default async function StateHubPage(
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-            {hub.name} healthcare jobs <span className="text-green-700">— {jobs.length}</span>
+            {hub.name} healthcare jobs <span className="text-green-700">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 max-w-3xl">
-            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers — every listing has a real apply link.
+            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers. Every listing has a real apply link.
           </p>
 
           {/* Licensing + market notes — per-state factual content. Renders only when
@@ -248,11 +248,11 @@ export default async function StateHubPage(
                   <li>
                     <span className="font-semibold">Nurse Licensure Compact:</span>{' '}
                     {hub.nlcCompactStatus === 'compact' &&
-                      'Compact member — multi-state RN licenses are valid here.'}
+                      'Compact member. Multi-state RN licenses are valid here.'}
                     {hub.nlcCompactStatus === 'pending' &&
-                      'NLC implementation pending — check current status before relocating.'}
+                      'NLC implementation pending. Check current status before relocating.'}
                     {hub.nlcCompactStatus === 'none' &&
-                      'Not a compact state — RNs need a separate state license.'}
+                      'Not a compact state. RNs need a separate state license.'}
                   </li>
                 )}
                 {typeof hub.rnLicenseInitialFee === 'number' && (
@@ -328,7 +328,7 @@ export default async function StateHubPage(
           {matrixCellsForState.length > 0 && (
             <div className="mb-10">
               <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
-                {hub.name} jobs by specialty — direct links
+                {hub.name} jobs by specialty: direct links
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {matrixCellsForState.map((c) => (
@@ -357,7 +357,7 @@ export default async function StateHubPage(
               hubs missing some fields (very few) skip individual Qs. */}
           <section className="mb-10 max-w-3xl">
             <h2 className="text-2xl font-black tracking-tight mb-4">
-              {hub.name} healthcare hiring — frequently asked
+              {hub.name} healthcare hiring: frequently asked
             </h2>
             <div className="space-y-5">
               {hub.nursingBoardName && hub.nursingBoardUrl && (
@@ -377,7 +377,7 @@ export default async function StateHubPage(
                     </a>{' '}
                     is the authoritative source for current fees, timelines, CE
                     requirements, and endorsement paperwork. Third-party rewrites
-                    tend to go stale — the board's own site is the only place to
+                    tend to go stale. The board's own site is the only place to
                     confirm what&apos;s current.
                   </p>
                 </div>
@@ -392,7 +392,7 @@ export default async function StateHubPage(
                     {hub.topEmployers.slice(0, 5).join(', ')}. Some listings come
                     from these systems directly; others are placed by Ava Health
                     Partners&apos; recruiter book. Every posting has a real apply
-                    link — no Indeed-sponsored middleman.
+                    link. No Indeed-sponsored middleman.
                   </p>
                 </div>
               )}
@@ -407,7 +407,7 @@ export default async function StateHubPage(
                       .slice(0, 5)
                       .map(([s, n]) => `${s} (${n})`)
                       .join(', ')}
-                    . The mix shifts as listings come and go — the live job list
+                    . The mix shifts as listings come and go. The live job list
                     above reflects what&apos;s open right now.
                   </p>
                 </div>
@@ -418,8 +418,8 @@ export default async function StateHubPage(
                 </h3>
                 <p className="text-sm text-gray-700 leading-relaxed">
                   Yes. {jobs.length === 0
-                    ? `No active ${hub.name} roles on the board today, but when listings open they're free to browse and apply directly — apply links go to the hiring employer's site or the partner ATS.`
-                    : `${jobs.length} ${hub.name} role${jobs.length === 1 ? '' : 's'} ${jobs.length === 1 ? 'is' : 'are'} open right now, all free to browse and apply directly. Apply links go to the hiring employer's site or the partner ATS — no "unlock applicants" fee, no paid-sponsor tier, no LinkedIn Premium gate.`}
+                    ? `No active ${hub.name} roles on the board today, but when listings open they're free to browse and apply directly. Apply links go to the hiring employer's site or the partner ATS.`
+                    : `${jobs.length} ${hub.name} role${jobs.length === 1 ? '' : 's'} ${jobs.length === 1 ? 'is' : 'are'} open right now, all free to browse and apply directly. Apply links go to the hiring employer's site or the partner ATS. No "unlock applicants" fee, no paid-sponsor tier, no LinkedIn Premium gate.`}
                 </p>
               </div>
             </div>
@@ -434,7 +434,7 @@ export default async function StateHubPage(
                 Typical {hub.name} healthcare salaries
               </h2>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                Based on {salaryOverall.count} active {hub.name} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}–{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
+                Based on {salaryOverall.count} active {hub.name} role{salaryOverall.count === 1 ? '' : 's'} on freejobpost.co with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}-{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
               </p>
               {salaryByBucket.length > 0 && (
                 <div className="overflow-x-auto">
@@ -485,8 +485,8 @@ export default async function StateHubPage(
                 <div className="border-l-4 border-yellow-500 bg-yellow-50 p-4 mb-6">
                   <p className="text-sm text-gray-800">
                     <span className="font-bold">Limited inventory in {hub.name} right now.</span>{' '}
-                    Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}. Most of our open positions are concentrated in higher-density states —{' '}
-                    <Link href="/jobs" className="underline font-medium hover:text-green-700">see all healthcare jobs</Link>.
+                    Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}. Most of our open positions are concentrated in higher-density states.{' '}
+                    <Link href="/jobs" className="underline font-medium hover:text-green-700">See all healthcare jobs</Link>.
                   </p>
                 </div>
               )}
