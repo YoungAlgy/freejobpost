@@ -4,12 +4,12 @@ import { supabase, hourIso } from '@/lib/supabase'
 import PostJobForm from './post-job-form'
 
 export const metadata: Metadata = {
-  title: 'Post a healthcare job — free',
+  title: 'Post a healthcare job, free',
   description:
     'Post a healthcare job for free on freejobpost.co. No credit card, no auction fees, no paywall. Verify your email once and your job goes live instantly.',
   alternates: { canonical: 'https://freejobpost.co/post-job' },
   openGraph: {
-    title: 'Post a healthcare job — free',
+    title: 'Post a healthcare job, free',
     description:
       'Post healthcare jobs for free. No auction fees, no paywall, no credit card.',
     url: 'https://freejobpost.co/post-job',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Post a healthcare job — free',
+    title: 'Post a healthcare job, free',
     description:
       'Post healthcare jobs for free. No auction fees, no paywall, no credit card.',
     images: ['/opengraph-image'],
@@ -70,7 +70,7 @@ export default async function PostJobPage() {
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16">
         <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
           <span className="w-2 h-2 bg-green-600 animate-pulse" />
-          POST A JOB — FREE, FOREVER
+          POST A JOB: FREE, FOREVER
         </div>
         <h1 className="text-4xl md:text-5xl font-black leading-[0.95] tracking-tight mb-4">
           Post a healthcare job.
@@ -139,7 +139,7 @@ export default async function PostJobPage() {
             <div className="border-2 border-black p-5">
               <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-2">Indeed Sponsored</div>
               <ul className="space-y-1.5 text-sm text-gray-700">
-                <li>· $0.10–$5.00 per click bid</li>
+                <li>· $0.10-$5.00 per click bid</li>
                 <li>· Posts buried below paid ads</li>
                 <li>· Candidate emails sold to recruiters</li>
                 <li>· $300+ for visibility on a single role</li>
@@ -148,10 +148,10 @@ export default async function PostJobPage() {
             <div className="border-2 border-green-700 bg-green-50 p-5">
               <div className="text-xs font-bold tracking-wider text-green-700 uppercase mb-2">freejobpost.co</div>
               <ul className="space-y-1.5 text-sm text-gray-800 font-medium">
-                <li>· $0 — no fees, ever</li>
+                <li>· $0, no fees, ever</li>
                 <li>· Same indexing, no demotion</li>
                 <li>· Candidate emails go to you only</li>
-                <li>· 10 active posts free — no auction, no upgrade</li>
+                <li>· 10 active posts free, no auction, no upgrade</li>
               </ul>
             </div>
           </div>

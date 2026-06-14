@@ -267,7 +267,7 @@ export default function PostJobForm() {
               type="text"
               value={values.title}
               onChange={(e) => update('title', e.target.value)}
-              placeholder="e.g. Family Medicine Physician — Tampa, FL"
+              placeholder="e.g. Family Medicine Physician, Tampa, FL"
               maxLength={200}
               className={fieldStyle}
             />
@@ -489,7 +489,7 @@ export default function PostJobForm() {
             <div className="flex items-baseline justify-between mb-3 gap-3">
               <div>
                 <p className="text-xs font-bold tracking-wider uppercase">Where should we syndicate this job?</p>
-                <p className="text-xs text-gray-500 mt-0.5">Active channels on by default — uncheck anywhere you don&apos;t want it pushed.</p>
+                <p className="text-xs text-gray-500 mt-0.5">Active channels on by default. Uncheck anywhere you don&apos;t want it pushed.</p>
               </div>
               <div className="flex gap-3 text-xs font-bold whitespace-nowrap">
                 <button
@@ -537,7 +537,7 @@ export default function PostJobForm() {
             </div>
             {values.syndication_targets.length === 0 && (
               <p className="text-xs text-amber-700 font-bold mt-3">
-                ⚠ No networks selected — this job will only be visible on freejobpost.co directly.
+                ⚠ No networks selected. This job will only be visible on freejobpost.co directly.
               </p>
             )}
           </div>
