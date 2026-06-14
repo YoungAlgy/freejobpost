@@ -9,7 +9,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs by city',
   description:
-    'Healthcare jobs in the top US metros — Houston, NYC, LA, Boston, Tampa, Atlanta, Dallas, Chicago, and more. Free to browse + apply.',
+    'Healthcare jobs in the top US metros: Houston, NYC, LA, Boston, Tampa, Atlanta, Dallas, Chicago, and more. Free to browse + apply.',
   alternates: { canonical: 'https://freejobpost.co/city' },
   openGraph: {
     title: 'Healthcare jobs by city | freejobpost.co',
@@ -77,7 +77,7 @@ export default function CityIndexPage() {
           <p className="text-lg text-gray-700 mb-10 max-w-3xl leading-relaxed">
             {CITY_HUBS.length} top US healthcare metros, each with major-employer
             breakouts + direct links to open roles. Browse the city you're
-            interested in — or browse by{' '}
+            interested in, or browse by{' '}
             <Link href="/state" className="underline hover:text-green-700">state</Link>
             {' '}or{' '}
             <Link href="/specialty" className="underline hover:text-green-700">specialty</Link>.

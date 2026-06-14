@@ -12,12 +12,12 @@ export const revalidate = 21600
 
 export const metadata: Metadata = {
   // The root layout adds " | Free Job Post" via title.template — don't repeat it here.
-  title: 'Federal healthcare jobs — VA, IHS, DoD, NIH, HHS',
+  title: 'Federal healthcare jobs: VA, IHS, DoD, NIH, HHS',
   description:
     'Browse federal healthcare job openings from the U.S. Department of Veterans Affairs, Indian Health Service, military health (Army, Navy, Air Force), NIH, and HHS agencies (CDC, FDA, CMS). Free to browse, free to apply via USAJobs.',
   alternates: { canonical: 'https://freejobpost.co/jobs/federal' },
   openGraph: {
-    title: 'Federal healthcare jobs — freejobpost.co',
+    title: 'Federal healthcare jobs | freejobpost.co',
     description:
       'VA, IHS, military health, NIH, and HHS healthcare positions in one place. Apply directly via USAJobs.',
     url: 'https://freejobpost.co/jobs/federal',
@@ -124,7 +124,7 @@ export default async function FederalJobsHubPage() {
               Open federal healthcare positions from the Department of Veterans
               Affairs, Indian Health Service, military health (Army, Navy, Air
               Force), the National Institutes of Health, and other HHS agencies.
-              Sourced directly from USAJobs — apply links go straight to the
+              Sourced directly from USAJobs. Apply links go straight to the
               federal application portal.
             </p>
           </div>
@@ -172,9 +172,9 @@ export default async function FederalJobsHubPage() {
               USAJobs.gov
             </a>{' '}
             via the official Search API, filtered to OPM job category codes
-            0601–0690 (medical, hospital, dental, public health, and health
+            0601-0690 (medical, hospital, dental, public health, and health
             system administration series). Apply links route directly to the
-            USAJobs hosted application — freejobpost.co does not collect or
+            USAJobs hosted application. freejobpost.co does not collect or
             process federal applications. Listings refresh every four hours.
           </p>
         </section>

@@ -79,11 +79,11 @@ export async function generateMetadata(
   const canonical = `https://freejobpost.co/jobs/federal/${agency.slug}/${state.slug}`
   return {
     title: `${agency.fullName} healthcare jobs in ${state.name}`,
-    description: `Open ${agency.name} healthcare positions in ${state.name} — sourced from USAJobs, refreshed every 4 hours. Apply directly via the federal application portal.`,
+    description: `Open ${agency.name} healthcare positions in ${state.name}. Sourced from USAJobs, refreshed every 4 hours. Apply directly via the federal application portal.`,
     alternates: { canonical },
     ...((count ?? 0) < MIN_CELL_JOBS_FOR_INDEX ? { robots: { index: false, follow: true } } : {}),
     openGraph: {
-      title: `${agency.fullName} healthcare jobs — ${state.name}`,
+      title: `${agency.fullName} healthcare jobs - ${state.name}`,
       description: `${agency.blurb}`,
       url: canonical,
       type: 'website',
@@ -91,7 +91,7 @@ export async function generateMetadata(
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${agency.fullName} healthcare jobs — ${state.name}`,
+      title: `${agency.fullName} healthcare jobs - ${state.name}`,
       description: `${agency.blurb}`,
       images: ['/opengraph-image'],
     },

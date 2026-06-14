@@ -87,7 +87,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const cleanSpecialty = specialtyHub.title.replace(/ Jobs$/, '')
   const cityShort = cityHub.name.split(',')[0]
   const title = `${cleanSpecialty} jobs in ${cityHub.name}`
-  const description = `Free ${cleanSpecialty.toLowerCase()} jobs in ${cityShort} — apply directly, no recruiter spam. ${specialtyHub.shortDescription}`.slice(0, 155)
+  const description = `Free ${cleanSpecialty.toLowerCase()} jobs in ${cityShort}. Apply directly, no recruiter spam. ${specialtyHub.shortDescription}`.slice(0, 155)
   const canonical = `https://freejobpost.co/city/${cityHub.slug}/${specialtyHub.slug}`
   return {
     title,
