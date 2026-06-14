@@ -17,6 +17,49 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
+  // ── June 2026 ────────────────────────────────────
+  {
+    date: "2026-06-04",
+    title: "Job-alert and apply emails are more reliable",
+    body:
+      "Tightened how we send job-alert digests and employer apply notifications so a retry or an overlapping run can't double-send or drop one. You won't get the same alert twice, and an employer won't miss an application.",
+    tag: "reliability",
+  },
+  {
+    date: "2026-06-03",
+    title: "Upload your resume from the job board",
+    body:
+      "Job-seekers can now jump straight from the board to the free resume platform and get matched to openings. A new prompt links you over so you don't have to retype your search.",
+    tag: "new",
+  },
+  {
+    date: "2026-06-02",
+    title: "Job pages show the real hiring company",
+    body:
+      "Listings imported from partner feeds used to read 'Adzuna (aggregator)' as the employer. We now capture and show the actual hiring company on the job page, in the structured data Google reads, and in every partner feed.",
+    tag: "improved",
+  },
+  {
+    date: "2026-06-02",
+    title: "Pay ranges on city pages",
+    body:
+      "City hub pages now show a real pay range computed from the live job inventory, the same panel the state and specialty hubs already had.",
+    tag: "improved",
+  },
+  {
+    date: "2026-06-02",
+    title: "Cleaner mobile header",
+    body:
+      "The header was cramped on phones. Trimmed it across the home page, the job browse, apply, and the inner pages so the navigation fits and stays usable on a small screen.",
+    tag: "fixed",
+  },
+  {
+    date: "2026-06-01",
+    title: "Job alerts by email",
+    body:
+      "Pick the jobs you care about and get new matching roles in your inbox. Sign up from any job hub. One-click unsubscribe, and no account needed.",
+    tag: "new",
+  },
   // ── May 2026 ──────────────────────────────────────────────────────────────
   {
     date: '2026-05-29',
