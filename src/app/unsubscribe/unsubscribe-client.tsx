@@ -34,8 +34,8 @@ export default function UnsubscribeClient() {
       <div className="border-2 border-black p-8 max-w-md w-full text-center">
         <h1 className="text-2xl font-black mb-2">Invalid unsubscribe link</h1>
         <p className="text-gray-700 mb-6">
-          This link is missing or malformed. If you keep getting alerts you don&rsquo;t want, reply
-          to any alert email and we&rsquo;ll remove you.
+          This link is missing or malformed. If you keep getting alerts you don't want, reply
+          to any alert email and we'll remove you.
         </p>
         <Link
           href="/jobs"
@@ -54,9 +54,9 @@ export default function UnsubscribeClient() {
           <span className="w-2 h-2 bg-green-600" />
           UNSUBSCRIBED
         </div>
-        <h1 className="text-2xl font-black mb-2">You&rsquo;re unsubscribed.</h1>
+        <h1 className="text-2xl font-black mb-2">You're unsubscribed.</h1>
         <p className="text-gray-700 mb-6">
-          You won&rsquo;t get any more job-alert emails. Changed your mind? You can re-subscribe from
+          You won't get any more job-alert emails. Changed your mind? You can re-subscribe from
           any specialty or city page.
         </p>
         <Link
@@ -77,8 +77,8 @@ export default function UnsubscribeClient() {
       </p>
       {failed && (
         <p className="border-2 border-red-600 bg-red-50 text-red-700 text-sm font-medium p-3 mb-4">
-          That didn&rsquo;t go through. Try again in a minute, or reply to any alert
-          email and we&rsquo;ll remove you by hand.
+          That didn't go through. Try again in a minute, or reply to any alert
+          email and we'll remove you by hand.
         </p>
       )}
       <button

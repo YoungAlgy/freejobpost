@@ -36,7 +36,7 @@ export default function ResumeMatchCTA({ specialtyLabel, locationLabel }: Props)
         {where}.
       </h3>
       <p className="text-sm text-gray-800 mb-4 leading-relaxed max-w-xl">
-        Drop your resume and we&rsquo;ll match you to new {what} as employers post
+        Drop your resume and we'll match you to new {what} as employers post
         them. No re-applying to each one. Free, no recruiter spam, delete anytime.
       </p>
       <a

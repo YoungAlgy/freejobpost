@@ -132,7 +132,7 @@ export default function ForEmployersPage() {
             <span className="text-green-700">Keep every applicant.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 max-w-2xl leading-snug mb-10">
-            No sponsored-bid auction. No per-applicant charge. No &ldquo;unlock this resume&rdquo;
+            No sponsored-bid auction. No per-applicant charge. No "unlock this resume"
             fee. Post a role in 60 seconds and applicants hit your inbox directly.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">

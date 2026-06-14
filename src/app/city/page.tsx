@@ -76,7 +76,7 @@ export default function CityIndexPage() {
           </h1>
           <p className="text-lg text-gray-700 mb-10 max-w-3xl leading-relaxed">
             {CITY_HUBS.length} top US healthcare metros, each with major-employer
-            breakouts + direct links to open roles. Browse the city you&rsquo;re
+            breakouts + direct links to open roles. Browse the city you're
             interested in — or browse by{' '}
             <Link href="/state" className="underline hover:text-green-700">state</Link>
             {' '}or{' '}

@@ -167,7 +167,7 @@ export default async function Home() {
             <h2 className="text-xl font-black mb-3 uppercase tracking-tight">Free, forever</h2>
             <p className="text-gray-700 leading-relaxed">
               10 active posts free, forever. No trial expiring, no per-applicant charges,
-              no &ldquo;unlock this resume&rdquo; fees. Archived roles don&apos;t count.
+              no "unlock this resume" fees. Archived roles don&apos;t count.
               Posting stays free through beta, and beta employers keep free unlimited posts.
             </p>
           </div>
@@ -395,7 +395,7 @@ export default async function Home() {
           <div className="space-y-8">
             <div>
               <h3 className="text-xl font-black mb-2">Is freejobpost.co really free?</h3>
-              <p className="text-gray-700 leading-relaxed">Yes. No paywall, no per-applicant fee, no &ldquo;sponsored&rdquo; auction. We make money downstream when a placement converts on the matching engine. The job-posting side stays free forever.</p>
+              <p className="text-gray-700 leading-relaxed">Yes. No paywall, no per-applicant fee, no "sponsored" auction. We make money downstream when a placement converts on the matching engine. The job-posting side stays free forever.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">How long does a job stay live?</h3>

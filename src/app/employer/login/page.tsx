@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 // a token previously existed. Just tell the user what to do next.
 const ERROR_MESSAGES: Record<string, string> = {
   bad_token:
-    'Your sign-in link is invalid or has expired. Enter your email below and we’ll send a fresh one.',
+    'Your sign-in link is invalid or has expired. Enter your email below and we\'ll send a fresh one.',
   missing_token:
-    'Sign-in link was missing. Enter your email and we’ll send you a new one.',
+    'Sign-in link was missing. Enter your email and we\'ll send you a new one.',
 }
 
 type Props = {

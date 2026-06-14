@@ -87,9 +87,9 @@ export default function JobAlertCapture({
           <span className="w-2 h-2 bg-green-600" />
           SUBSCRIBED
         </div>
-        <p className="font-black text-lg leading-tight">You&rsquo;re on the list.</p>
+        <p className="font-black text-lg leading-tight">You're on the list.</p>
         <p className="text-sm text-gray-700 mt-1">
-          We&rsquo;ll email <strong>{email}</strong> when new {what} get posted. Unsubscribe
+          We'll email <strong>{email}</strong> when new {what} get posted. Unsubscribe
           anytime with one click, no questions.
         </p>
       </div>

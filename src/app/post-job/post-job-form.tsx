@@ -172,7 +172,7 @@ export default function PostJobForm() {
             <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-green-700">
               info@avahealth.co
             </a>{' '}
-            with the subject line &ldquo;Job verification email not received&rdquo; and we&apos;ll activate your listing manually.
+            with the subject line "Job verification email not received" and we&apos;ll activate your listing manually.
           </p>
         )}
         <div className="flex flex-wrap gap-3">

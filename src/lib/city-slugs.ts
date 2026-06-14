@@ -81,7 +81,7 @@ export const CITY_HUBS: CityHub[] = [
       'Free Orlando healthcare jobs — RN, NP, PA, physician, allied. AdventHealth Orlando, Orlando Health, Nemours.',
     shortDescription:
       'Orlando-area healthcare openings — AdventHealth Orlando (largest hospital in FL by admissions), Orlando Health, Nemours, and the UCF College of Medicine network.',
-    topEmployers: ['AdventHealth Orlando', 'Orlando Health', 'Nemours Children’s Hospital', 'UCF College of Medicine'],
+    topEmployers: ['AdventHealth Orlando', 'Orlando Health', 'Nemours Children\'s Hospital', 'UCF College of Medicine'],
   },
   {
     slug: 'houston-tx',
@@ -91,8 +91,8 @@ export const CITY_HUBS: CityHub[] = [
     metaDescription:
       'Free Houston healthcare jobs — RN, NP, PA, physician, allied. Texas Medical Center anchors the largest US healthcare cluster.',
     shortDescription:
-      'Houston healthcare jobs — the Texas Medical Center alone employs 120,000+. MD Anderson, Memorial Hermann, Methodist, Texas Children’s, Baylor College of Medicine.',
-    topEmployers: ['MD Anderson Cancer Center', 'Memorial Hermann Health System', 'Houston Methodist', 'Texas Children’s Hospital', 'Baylor College of Medicine'],
+      'Houston healthcare jobs — the Texas Medical Center alone employs 120,000+. MD Anderson, Memorial Hermann, Methodist, Texas Children\'s, Baylor College of Medicine.',
+    topEmployers: ['MD Anderson Cancer Center', 'Memorial Hermann Health System', 'Houston Methodist', 'Texas Children\'s Hospital', 'Baylor College of Medicine'],
   },
   {
     slug: 'dallas-tx',
@@ -102,8 +102,8 @@ export const CITY_HUBS: CityHub[] = [
     metaDescription:
       'Free Dallas healthcare jobs — RN, NP, PA, physician, allied. UT Southwestern, Baylor Scott & White, Texas Health Resources.',
     shortDescription:
-      'Dallas-Fort Worth healthcare openings — UT Southwestern, Baylor Scott & White (largest non-profit health system in TX), Texas Health Resources, Children’s Health.',
-    topEmployers: ['UT Southwestern Medical Center', 'Baylor Scott & White Health', 'Texas Health Resources', 'Children’s Health'],
+      'Dallas-Fort Worth healthcare openings — UT Southwestern, Baylor Scott & White (largest non-profit health system in TX), Texas Health Resources, Children\'s Health.',
+    topEmployers: ['UT Southwestern Medical Center', 'Baylor Scott & White Health', 'Texas Health Resources', 'Children\'s Health'],
   },
   {
     slug: 'austin-tx',
@@ -111,10 +111,10 @@ export const CITY_HUBS: CityHub[] = [
     state: 'TX',
     cityMatchPatterns: ['austin'],
     metaDescription:
-      'Free Austin healthcare jobs — RN, NP, PA, physician, allied. Ascension Seton, St. David’s, Dell Medical School.',
+      'Free Austin healthcare jobs — RN, NP, PA, physician, allied. Ascension Seton, St. David\'s, Dell Medical School.',
     shortDescription:
-      'Austin-area healthcare openings — Ascension Seton, St. David’s HealthCare, Dell Medical School at UT Austin, and the rapidly-expanding South Austin metro.',
-    topEmployers: ['Ascension Seton', 'St. David’s HealthCare', 'Dell Medical School', 'Baylor Scott & White Health'],
+      'Austin-area healthcare openings — Ascension Seton, St. David\'s HealthCare, Dell Medical School at UT Austin, and the rapidly-expanding South Austin metro.',
+    topEmployers: ['Ascension Seton', 'St. David\'s HealthCare', 'Dell Medical School', 'Baylor Scott & White Health'],
   },
   {
     slug: 'san-antonio-tx',
@@ -212,8 +212,8 @@ export const CITY_HUBS: CityHub[] = [
     metaDescription:
       'Free Philadelphia healthcare jobs — RN, NP, PA, physician, allied. Penn Medicine, Jefferson Health, CHOP, Temple.',
     shortDescription:
-      'Philadelphia-area healthcare openings — Penn Medicine, Jefferson Health (largest in PA by acute beds), Children’s Hospital of Philadelphia, Temple Health, Main Line Health.',
-    topEmployers: ['Penn Medicine', 'Jefferson Health', 'Children’s Hospital of Philadelphia', 'Temple Health', 'Main Line Health'],
+      'Philadelphia-area healthcare openings — Penn Medicine, Jefferson Health (largest in PA by acute beds), Children\'s Hospital of Philadelphia, Temple Health, Main Line Health.',
+    topEmployers: ['Penn Medicine', 'Jefferson Health', 'Children\'s Hospital of Philadelphia', 'Temple Health', 'Main Line Health'],
   },
   {
     slug: 'pittsburgh-pa',
@@ -234,7 +234,7 @@ export const CITY_HUBS: CityHub[] = [
     metaDescription:
       'Free Atlanta healthcare jobs — RN, NP, PA, physician, allied. Emory, Northside, Piedmont, WellStar.',
     shortDescription:
-      'Atlanta-metro healthcare openings — Emory Healthcare, Northside Hospital, Piedmont Healthcare, WellStar Health System, Grady Health (Georgia’s largest safety-net).',
+      'Atlanta-metro healthcare openings — Emory Healthcare, Northside Hospital, Piedmont Healthcare, WellStar Health System, Grady Health (Georgia\'s largest safety-net).',
     topEmployers: ['Emory Healthcare', 'Northside Hospital', 'Piedmont Healthcare', 'WellStar Health System', 'Grady Health System'],
   },
   {
@@ -259,7 +259,7 @@ export const CITY_HUBS: CityHub[] = [
       'Nashville healthcare openings — Vanderbilt University Medical Center, HCA Healthcare (corporate HQ here), TriStar Health, Ascension Saint Thomas.',
     topEmployers: ['Vanderbilt University Medical Center', 'HCA Healthcare', 'TriStar Health', 'Ascension Saint Thomas'],
     editorialNote:
-      'Nashville is HCA Healthcare’s corporate home and houses the country’s largest concentration of hospital-management headquarters.',
+      'Nashville is HCA Healthcare\'s corporate home and houses the country\'s largest concentration of hospital-management headquarters.',
   },
   {
     slug: 'phoenix-az',
@@ -269,8 +269,8 @@ export const CITY_HUBS: CityHub[] = [
     metaDescription:
       'Free Phoenix healthcare jobs — RN, NP, PA, physician, allied. Banner Health, HonorHealth, Mayo Clinic Arizona, Dignity Health.',
     shortDescription:
-      'Phoenix-area healthcare openings — Banner Health (largest in AZ), HonorHealth, Mayo Clinic Arizona, Dignity Health, Phoenix Children’s Hospital.',
-    topEmployers: ['Banner Health', 'HonorHealth', 'Mayo Clinic Arizona', 'Dignity Health', 'Phoenix Children’s Hospital'],
+      'Phoenix-area healthcare openings — Banner Health (largest in AZ), HonorHealth, Mayo Clinic Arizona, Dignity Health, Phoenix Children\'s Hospital.',
+    topEmployers: ['Banner Health', 'HonorHealth', 'Mayo Clinic Arizona', 'Dignity Health', 'Phoenix Children\'s Hospital'],
   },
   {
     slug: 'denver-co',
@@ -291,8 +291,8 @@ export const CITY_HUBS: CityHub[] = [
     metaDescription:
       'Free Seattle healthcare jobs — RN, NP, PA, physician, allied. UW Medicine, Virginia Mason, Swedish, Providence.',
     shortDescription:
-      'Seattle-area healthcare openings — UW Medicine, Virginia Mason Franciscan Health, Swedish Medical Center (now Providence), Seattle Children’s, Fred Hutchinson Cancer Center.',
-    topEmployers: ['UW Medicine', 'Virginia Mason Franciscan Health', 'Providence Swedish', 'Seattle Children’s', 'Fred Hutchinson Cancer Center'],
+      'Seattle-area healthcare openings — UW Medicine, Virginia Mason Franciscan Health, Swedish Medical Center (now Providence), Seattle Children\'s, Fred Hutchinson Cancer Center.',
+    topEmployers: ['UW Medicine', 'Virginia Mason Franciscan Health', 'Providence Swedish', 'Seattle Children\'s', 'Fred Hutchinson Cancer Center'],
   },
   {
     slug: 'minneapolis-mn',
@@ -302,8 +302,8 @@ export const CITY_HUBS: CityHub[] = [
     metaDescription:
       'Free Minneapolis-Saint Paul healthcare jobs — RN, NP, PA, physician. Mayo, M Health Fairview, HealthPartners, Allina.',
     shortDescription:
-      'Twin Cities healthcare openings — M Health Fairview, HealthPartners, Allina Health, Mayo Clinic outreach campuses, Children’s Minnesota.',
-    topEmployers: ['M Health Fairview', 'HealthPartners', 'Allina Health', 'Mayo Clinic', 'Children’s Minnesota'],
+      'Twin Cities healthcare openings — M Health Fairview, HealthPartners, Allina Health, Mayo Clinic outreach campuses, Children\'s Minnesota.',
+    topEmployers: ['M Health Fairview', 'HealthPartners', 'Allina Health', 'Mayo Clinic', 'Children\'s Minnesota'],
   },
   {
     slug: 'indianapolis-in',
@@ -335,10 +335,10 @@ export const CITY_HUBS: CityHub[] = [
     state: 'OH',
     cityMatchPatterns: ['columbus'],
     metaDescription:
-      'Free Columbus healthcare jobs — RN, NP, PA, physician, allied. OhioHealth, Ohio State Wexner, Nationwide Children’s, Mount Carmel.',
+      'Free Columbus healthcare jobs — RN, NP, PA, physician, allied. OhioHealth, Ohio State Wexner, Nationwide Children\'s, Mount Carmel.',
     shortDescription:
-      'Columbus-area healthcare openings — OhioHealth, Ohio State Wexner Medical Center, Nationwide Children’s, Mount Carmel Health.',
-    topEmployers: ['OhioHealth', 'Ohio State Wexner Medical Center', 'Nationwide Children’s Hospital', 'Mount Carmel Health System'],
+      'Columbus-area healthcare openings — OhioHealth, Ohio State Wexner Medical Center, Nationwide Children\'s, Mount Carmel Health.',
+    topEmployers: ['OhioHealth', 'Ohio State Wexner Medical Center', 'Nationwide Children\'s Hospital', 'Mount Carmel Health System'],
   },
   {
     slug: 'cincinnati-oh',
@@ -346,10 +346,10 @@ export const CITY_HUBS: CityHub[] = [
     state: 'OH',
     cityMatchPatterns: ['cincinnati'],
     metaDescription:
-      'Free Cincinnati healthcare jobs — RN, NP, PA, physician, allied. Cincinnati Children’s, TriHealth, UC Health, Mercy Health.',
+      'Free Cincinnati healthcare jobs — RN, NP, PA, physician, allied. Cincinnati Children\'s, TriHealth, UC Health, Mercy Health.',
     shortDescription:
-      'Cincinnati-area healthcare openings — Cincinnati Children’s Hospital (top-ranked US pediatric center), TriHealth, UC Health, Mercy Health.',
-    topEmployers: ['Cincinnati Children’s Hospital', 'TriHealth', 'UC Health', 'Mercy Health'],
+      'Cincinnati-area healthcare openings — Cincinnati Children\'s Hospital (top-ranked US pediatric center), TriHealth, UC Health, Mercy Health.',
+    topEmployers: ['Cincinnati Children\'s Hospital', 'TriHealth', 'UC Health', 'Mercy Health'],
   },
   {
     slug: 'detroit-mi',
@@ -368,10 +368,10 @@ export const CITY_HUBS: CityHub[] = [
     state: 'MO',
     cityMatchPatterns: ['st. louis', 'st louis', 'saint louis'],
     metaDescription:
-      'Free St. Louis healthcare jobs — RN, NP, PA, physician, allied. BJC HealthCare, SSM Health, Mercy, St. Luke’s.',
+      'Free St. Louis healthcare jobs — RN, NP, PA, physician, allied. BJC HealthCare, SSM Health, Mercy, St. Luke\'s.',
     shortDescription:
-      'St. Louis-area healthcare openings — BJC HealthCare (Washington University academic system), SSM Health, Mercy, St. Luke’s Hospital.',
-    topEmployers: ['BJC HealthCare', 'SSM Health', 'Mercy', 'St. Luke’s Hospital'],
+      'St. Louis-area healthcare openings — BJC HealthCare (Washington University academic system), SSM Health, Mercy, St. Luke\'s Hospital.',
+    topEmployers: ['BJC HealthCare', 'SSM Health', 'Mercy', 'St. Luke\'s Hospital'],
   },
   {
     slug: 'kansas-city-mo',
@@ -379,10 +379,10 @@ export const CITY_HUBS: CityHub[] = [
     state: 'MO',
     cityMatchPatterns: ['kansas city'],
     metaDescription:
-      'Free Kansas City healthcare jobs — RN, NP, PA, physician, allied. Saint Luke’s, HCA Midwest, University of Kansas Health, Children’s Mercy.',
+      'Free Kansas City healthcare jobs — RN, NP, PA, physician, allied. Saint Luke\'s, HCA Midwest, University of Kansas Health, Children\'s Mercy.',
     shortDescription:
-      'Kansas City metro healthcare openings (both MO + KS sides) — Saint Luke’s Health System, HCA Midwest Health, University of Kansas Health System, Children’s Mercy.',
-    topEmployers: ['Saint Luke’s Health System', 'HCA Midwest Health', 'University of Kansas Health System', 'Children’s Mercy'],
+      'Kansas City metro healthcare openings (both MO + KS sides) — Saint Luke\'s Health System, HCA Midwest Health, University of Kansas Health System, Children\'s Mercy.',
+    topEmployers: ['Saint Luke\'s Health System', 'HCA Midwest Health', 'University of Kansas Health System', 'Children\'s Mercy'],
   },
   {
     slug: 'baltimore-md',
