@@ -166,7 +166,7 @@ export default async function Home() {
             <div className="font-black text-6xl mb-4">01</div>
             <h2 className="text-xl font-black mb-3 uppercase tracking-tight">Free, forever</h2>
             <p className="text-gray-700 leading-relaxed">
-              10 active posts free, forever — no trial expiring, no per-applicant charges,
+              10 active posts free, forever. No trial expiring, no per-applicant charges,
               no &ldquo;unlock this resume&rdquo; fees. Archived roles don&apos;t count.
               Posting stays free through beta, and beta employers keep free unlimited posts.
             </p>
@@ -184,7 +184,7 @@ export default async function Home() {
             <h2 className="text-xl font-black mb-3 uppercase tracking-tight">Matches come to you</h2>
             <p className="text-gray-700 leading-relaxed">
               Our matching engine surfaces candidates that fit by specialty, state, experience,
-              and credential. You get a real email when hot matches apply — no dashboard check needed.
+              and credential. You get a real email when hot matches apply. No dashboard check needed.
             </p>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default async function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { n: '01', h: 'Post', p: 'Fill the 60-second form: title, location, description, salary. Hit submit.' },
-              { n: '02', h: 'Verify', p: 'We email you a one-click verification link. That\u2019s it — no account setup, no phone number.' },
+              { n: '02', h: 'Verify', p: 'We email you a one-click verification link. That\u2019s it. No account setup, no phone number.' },
               { n: '03', h: 'Get applicants', p: 'Real candidates see your post. They apply. You get emailed. Simple.' },
             ].map((step) => (
               <div key={step.n} className="bg-white border-2 border-black p-8">
@@ -317,7 +317,7 @@ export default async function Home() {
                 {SPECIALTY_HUBS.length} healthcare specialties.
               </p>
               <p className="text-gray-700 mb-5">
-                Cardiology, hospital medicine, EM, ortho, NP, PA, RN, CRNA, pharmacist — active openings only.
+                Cardiology, hospital medicine, EM, ortho, NP, PA, RN, CRNA, pharmacist. Active openings only.
               </p>
               <div className="flex flex-wrap gap-2 mb-5">
                 {/* All specialty hubs — full set rendered to maximize 1-click
@@ -354,7 +354,7 @@ export default async function Home() {
               Top US healthcare metros.
             </p>
             <p className="text-gray-700 mb-5 max-w-3xl">
-              {CITY_HUBS.length} curated metros, each with major-employer breakouts. Tampa, NYC, Boston, LA, Houston, and more — direct links to active openings.
+              {CITY_HUBS.length} curated metros, each with major-employer breakouts. Tampa, NYC, Boston, LA, Houston, and more. Direct links to active openings.
             </p>
             <div className="flex flex-wrap gap-2 mb-5">
               {[
@@ -395,7 +395,7 @@ export default async function Home() {
           <div className="space-y-8">
             <div>
               <h3 className="text-xl font-black mb-2">Is freejobpost.co really free?</h3>
-              <p className="text-gray-700 leading-relaxed">Yes. No paywall, no per-applicant fee, no &ldquo;sponsored&rdquo; auction. We make money downstream when a placement converts on the matching engine — the job-posting side stays free forever.</p>
+              <p className="text-gray-700 leading-relaxed">Yes. No paywall, no per-applicant fee, no &ldquo;sponsored&rdquo; auction. We make money downstream when a placement converts on the matching engine. The job-posting side stays free forever.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">How long does a job stay live?</h3>
@@ -403,11 +403,11 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">Where else does my job get distributed?</h3>
-              <p className="text-gray-700 leading-relaxed">When you check the syndication boxes during posting, your listing gets JobPosting JSON-LD for Google for Jobs plus XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings via crawl — no extra step needed. Active feed partners ingest within a few hours.</p>
+              <p className="text-gray-700 leading-relaxed">When you check the syndication boxes during posting, your listing gets JobPosting JSON-LD for Google for Jobs plus XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings via crawl. No extra step needed. Active feed partners ingest within a few hours.</p>
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">Who&apos;s applying — real people or bots?</h3>
-              <p className="text-gray-700 leading-relaxed">Real candidates. They either apply directly from the listing, or come through the <a href="https://www.freeresumepost.co" className="underline font-bold hover:text-green-700">freeresumepost.co</a> matching engine — where they&apos;ve uploaded their own resume. We don&apos;t scrape profiles or auto-apply.</p>
+              <h3 className="text-xl font-black mb-2">Who&apos;s applying, real people or bots?</h3>
+              <p className="text-gray-700 leading-relaxed">Real candidates. They either apply directly from the listing, or come through the <a href="https://www.freeresumepost.co" className="underline font-bold hover:text-green-700">freeresumepost.co</a> matching engine, where they&apos;ve uploaded their own resume. We don&apos;t scrape profiles or auto-apply.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">Do you charge for &quot;unlocking&quot; an applicant?</h3>
@@ -415,7 +415,7 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">What healthcare roles can I post?</h3>
-              <p className="text-gray-700 leading-relaxed">Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing — non-healthcare roles are out of scope.</p>
+              <p className="text-gray-700 leading-relaxed">Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing. Non-healthcare roles are out of scope.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2">How do candidates find my job?</h3>
