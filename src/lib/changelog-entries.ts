@@ -22,28 +22,28 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-29',
     title: 'Closed jobs now point you to similar open roles',
     body:
-      'When a listing comes down — filled, or its posting window ended — its page used to dead-end on a 404. Now it shows a clear "position closed" notice plus a list of similar open roles in the same specialty and state, with quick links into the relevant job hubs. A stale search result or a saved link still lands you somewhere useful instead of on a dead page.',
+      'When a listing comes down (filled, or its posting window ended), its page used to dead-end on a 404. Now it shows a clear "position closed" notice plus a list of similar open roles in the same specialty and state, with quick links into the relevant job hubs. A stale search result or a saved link still lands you somewhere useful instead of on a dead page.',
     tag: 'improved',
   },
   {
     date: '2026-05-29',
     title: 'Browse related jobs across specialties + states',
     body:
-      'Every "[specialty] jobs in [state]" page now links to its closest neighbors — the same specialty in other states, plus other in-demand specialties in the same state — each tagged with a live open-job count. Jump straight from, say, RN jobs in Texas to RN jobs in Florida, or to PA / NP / family-medicine jobs in Texas, without back-tracking through search. Every link points to a page with real open inventory (5+ jobs), so you never land on an empty result.',
+      'Every "[specialty] jobs in [state]" page now links to its closest neighbors: the same specialty in other states, plus other in-demand specialties in the same state, each tagged with a live open-job count. Jump straight from, say, RN jobs in Texas to RN jobs in Florida, or to PA / NP / family-medicine jobs in Texas, without back-tracking through search. Every link points to a page with real open inventory (5+ jobs), so you never land on an empty result.',
     tag: 'improved',
   },
   {
     date: '2026-05-27',
-    title: '2 more major health systems added — Intermountain Health + Cigna',
+    title: '2 more major health systems added: Intermountain Health + Cigna',
     body:
-      'Intermountain Health (~1,271 jobs across UT, ID, NV) brings their full clinical roster including physicians, imaging, RN/LPN, allied health, and clinic ops. Cigna (~630 jobs) adds the insurance side — utilization management, case managers, provider contracting clinicians, behavioral health clinicians, and Accredo specialty pharmacy. Bringing total Workday board count to 12, total active inventory above 12,000 healthcare jobs across all sources.',
+      'Intermountain Health (~1,271 jobs across UT, ID, NV) brings their full clinical roster including physicians, imaging, RN/LPN, allied health, and clinic ops. Cigna (~630 jobs) adds the insurance side: utilization management, case managers, provider contracting clinicians, behavioral health clinicians, and Accredo specialty pharmacy. Bringing total Workday board count to 12, total active inventory above 12,000 healthcare jobs across all sources.',
     tag: 'new',
   },
   {
     date: '2026-05-26',
-    title: '4 major health systems added — +5,100 healthcare openings',
+    title: '4 major health systems added: +5,100 healthcare openings',
     body:
-      'Four big-name non-profit hospital systems are now integrated employer feeds. Banner Health (~1,050 jobs across AZ/CO/NE/NV/WY, 28 hospitals), Ochsner Health (~1,933 jobs across LA + the Gulf South), Highmark Health / Allegheny Health Network (~1,802 jobs across PA/NY/DE/WV, including the AHN hospital arm and Highmark BCBS), and NewYork-Presbyterian (~364 jobs across Manhattan, Queens, and Westchester). Mostly nursing, allied health, and clinical support — auto-refreshed every 4 hours alongside the existing Cleveland Clinic / AdventHealth / Mass General Brigham / Stanford / Saint Luke\'s / Elevance feeds.',
+      'Four big-name non-profit hospital systems are now integrated employer feeds. Banner Health (~1,050 jobs across AZ/CO/NE/NV/WY, 28 hospitals), Ochsner Health (~1,933 jobs across LA + the Gulf South), Highmark Health / Allegheny Health Network (~1,802 jobs across PA/NY/DE/WV, including the AHN hospital arm and Highmark BCBS), and NewYork-Presbyterian (~364 jobs across Manhattan, Queens, and Westchester). Mostly nursing, allied health, and clinical support, auto-refreshed every 4 hours alongside the existing Cleveland Clinic / AdventHealth / Mass General Brigham / Stanford / Saint Luke\'s / Elevance feeds.',
     tag: 'new',
   },
   {
@@ -57,28 +57,28 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-26',
     title: 'Ava Health enrolled in E-Verify',
     body:
-      'Ava Health Partners LLC is now an enrolled participant in the federal E-Verify employment authorization system (Company ID 3024987, MOU effective 2026-05-26). Added a small "E-Verify Participant" chip to the footer linking to a new /e-verify page with the full federal-compliance statement, official DHS Participation poster, DOJ Right to Work poster, and Florida SB 1718 context. We enrolled proactively below the FL SB 1718 25-employee threshold so the compliance ramp is in place as the team grows. Doesn\'t change anything for candidates or employers posting jobs here; it\'s confirmation that any future Ava Health hire goes through federal work-eligibility verification.',
+      'Ava Health Partners LLC is now an enrolled participant in the federal E-Verify employment authorization system (Company ID 3024987, MOU effective 2026-05-26). Added a small "E-Verify Participant" chip to the footer linking to a new /e-verify page with the full federal-compliance statement, official DHS Participation poster, DOJ Right to Work poster, and Florida SB 1718 context. We enrolled proactively below the FL SB 1718 25-employee threshold so the compliance ramp is in place as the team grows. Doesn\'t change anything for candidates or employers posting jobs here. It\'s confirmation that any future Ava Health hire goes through federal work-eligibility verification.',
     tag: 'improved',
   },
   {
     date: '2026-05-24',
     title: 'Pay ranges + AI-discovery + EEO + canonical contact email',
     body:
-      'Wired Workday-tenant pay ranges into the import pipeline so when an employer opts into pay-transparency on their job posting, that range now shows up in our JobPosting schema and is searchable by Google for Jobs. USD only; hourly rates are annualized to a 40-hour year. Most employers still hide salary, but the ones who don\'t get full credit for the disclosure. Added an llms.txt at the site root so ChatGPT, Claude, and Perplexity can discover the job board cleanly. Added a federal Equal Opportunity statement to the footer. Switched the customer-facing contact email to info@avahealth.co (more professional than a personal address; same mailbox underneath).',
+      'Wired Workday-tenant pay ranges into the import pipeline so when an employer opts into pay-transparency on their job posting, that range now shows up in our JobPosting schema and is searchable by Google for Jobs. USD only. Hourly rates are annualized to a 40-hour year. Most employers still hide salary, but the ones who don\'t get full credit for the disclosure. Added an llms.txt at the site root so ChatGPT, Claude, and Perplexity can discover the job board cleanly. Added a federal Equal Opportunity statement to the footer. Switched the customer-facing contact email to info@avahealth.co (more professional than a personal address, same mailbox underneath).',
     tag: 'improved',
   },
   {
     date: '2026-05-22',
     title: 'Polish pass: link previews, error pages, page titles, a11y',
     body:
-      '14 pages were rendering blank or default link-preview cards when shared to LinkedIn / iMessage / Slack — now every page emits the branded Open Graph card. Added a styled error page with one-click retry for transient failures. Stopped browser tabs from showing the brand twice on the home page. Added aria-pressed to the LOCATION toggle buttons so screen-reader users can hear which mode is active. Locked the specialty .or() filter behind a unit-tested helper across all three consumers (hub pages, city × specialty pages, RSS feeds) so future regressions of the encoding bug get caught in CI before they ship.',
+      '14 pages were rendering blank or default link-preview cards when shared to LinkedIn / iMessage / Slack. Now every page emits the branded Open Graph card. Added a styled error page with one-click retry for transient failures. Stopped browser tabs from showing the brand twice on the home page. Added aria-pressed to the LOCATION toggle buttons so screen-reader users can hear which mode is active. Locked the specialty .or() filter behind a unit-tested helper across all three consumers (hub pages, city × specialty pages, RSS feeds) so future regressions of the encoding bug get caught in CI before they ship.',
     tag: 'improved',
   },
   {
     date: '2026-05-22',
     title: 'Bug fix: hundreds of specialty hub pages were silently empty',
     body:
-      'A PostgREST URL-encoding bug was causing specialty hubs with multi-word match patterns (Physician Assistant, Registered Nurse, Family Medicine, Internal Medicine, Hospital Medicine, Emergency Medicine, etc.) to silently return zero jobs at runtime. Build-time + sitemap thought the pages existed; the live pages returned 404s. Discovered + fixed in an overnight audit pass. Hundreds of long-tail listing pages now render full inventory.',
+      'A PostgREST URL-encoding bug was causing specialty hubs with multi-word match patterns (Physician Assistant, Registered Nurse, Family Medicine, Internal Medicine, Hospital Medicine, Emergency Medicine, etc.) to silently return zero jobs at runtime. Build-time + sitemap thought the pages existed. The live pages returned 404s. Discovered + fixed in an overnight audit pass. Hundreds of long-tail listing pages now render full inventory.',
     tag: 'fixed',
   },
   {
@@ -104,7 +104,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   },
   {
     date: '2026-05-21',
-    title: 'City hub pages — 32 US healthcare metros',
+    title: 'City hub pages: 32 US healthcare metros',
     body:
       'Pages like /city/tampa-fl, /city/houston-tx, /city/boston-ma now exist for every top US healthcare market. Each carries a major-employer breakout + active openings filtered to that metro. Closes the gap between state-level hubs and per-job pages.',
     tag: 'new',
@@ -134,21 +134,21 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-20',
     title: 'Submitted to Talent.com, Adzuna, and Jooble',
     body:
-      'Free-tier publisher programs at Talent.com, Adzuna, and Jooble received our feed via their partner intake forms today. Aggregator placement onboarding takes 1–2 weeks; tracking attributed traffic via our new partner-attribution dashboard once placements go live.',
+      'Free-tier publisher programs at Talent.com, Adzuna, and Jooble received our feed via their partner intake forms today. Aggregator placement onboarding takes 1-2 weeks. Tracking attributed traffic via our new partner-attribution dashboard once placements go live.',
     tag: 'new',
   },
   {
     date: '2026-05-19',
     title: 'Per-Apply-click attribution',
     body:
-      'Every Apply-button click now logs the source partner (talent, adzuna, jooble, careerjet, glassdoor, RSS, or internal). Lets us prove which boards actually drive applicants — and gives employers an honest per-source breakdown.',
+      'Every Apply-button click now logs the source partner (talent, adzuna, jooble, careerjet, glassdoor, RSS, or internal). Lets us prove which boards actually drive applicants, and gives employers an honest per-source breakdown.',
     tag: 'new',
   },
   {
     date: '2026-05-19',
     title: 'Bug fix: 3,443 jobs returning 404',
     body:
-      'Workday job IDs use uppercase letters (R2654676, JR192702, etc.) but our slug validator rejected uppercase characters, sending users to a 404 page. 3,443 active jobs — 39% of the listing — were unreachable. Fixed: uppercase slugs now resolve normally.',
+      'Workday job IDs use uppercase letters (R2654676, JR192702, etc.) but our slug validator rejected uppercase characters, sending users to a 404 page. 3,443 active jobs, 39% of the listing, were unreachable. Fixed: uppercase slugs now resolve normally.',
     tag: 'fixed',
   },
   {
@@ -169,7 +169,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-13',
     title: 'Salary panel on state + specialty hubs',
     body:
-      'Every state and specialty hub now shows a real pay range computed from the live job inventory — 10th–90th percentile bounds with the median called out. No more guessing.',
+      'Every state and specialty hub now shows a real pay range computed from the live job inventory: 10th-90th percentile bounds with the median called out. No more guessing.',
     tag: 'new',
   },
   {
@@ -183,7 +183,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-13',
     title: 'Mobile nav + iOS input fix',
     body:
-      'Mobile nav was hiding all secondary links on small screens. Fixed across every key surface. Also stopped iOS Safari from auto-zooming when you tap an input — forms feel native now.',
+      'Mobile nav was hiding all secondary links on small screens. Fixed across every key surface. Also stopped iOS Safari from auto-zooming when you tap an input. Forms feel native now.',
     tag: 'fixed',
   },
   {
@@ -195,7 +195,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   },
   {
     date: '2026-05-13',
-    title: 'IndexNow — new jobs ping Bing + Yandex',
+    title: 'IndexNow: new jobs ping Bing + Yandex',
     body:
       'New job posts now push to Bing, Yandex, Naver, Seznam, and Yep within seconds of publishing. Indexing latency on non-Google search engines drops from days to minutes.',
     tag: 'reliability',
@@ -219,7 +219,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-08',
     title: 'Employer applicant tracking',
     body:
-      'Employer dashboard now shows applicant contact info inline — name, email, phone, applied date — without a click-through. The "see who applied" experience matches Indeed without the paywall.',
+      'Employer dashboard now shows applicant contact info inline (name, email, phone, applied date) without a click-through. The "see who applied" experience matches Indeed without the paywall.',
     tag: 'new',
   },
   {
@@ -233,7 +233,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-08',
     title: 'URL-state filter sync on /jobs',
     body:
-      'Search filters now live in the URL. Deep-link a filtered view, share it, hit back — the filter state always matches what you see on screen.',
+      'Search filters now live in the URL. Deep-link a filtered view, share it, hit back. The filter state always matches what you see on screen.',
     tag: 'improved',
   },
   {
@@ -262,7 +262,7 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-04-27',
     title: 'Initial launch',
     body:
-      'freejobpost.co goes live — free healthcare job posts, no auction, no paywall, no recruiter spam. Includes JobPosting JSON-LD for Google for Jobs visibility from day one.',
+      'freejobpost.co goes live. Free healthcare job posts, no auction, no paywall, no recruiter spam. Includes JobPosting JSON-LD for Google for Jobs visibility from day one.',
     tag: 'new',
   },
 ]
