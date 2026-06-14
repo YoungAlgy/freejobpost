@@ -40,3 +40,7 @@ next-env.d.ts
 scripts/freejobpost-logo-*.png
 scripts/freejobpost-banner-*.png
 out/
+
+# Audit working artifacts (not app source)
+AUDIT_R1_FINDINGS.json
+NIGHT_LOG.md
