@@ -8,7 +8,7 @@ import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs by specialty',
-  description: 'Healthcare jobs organized by specialty — cardiology, ortho, hospitalist, EM, anesth, derm, GI, peds, OBGYN, CRNA, NP, PA, RN. Free to browse + apply.',
+  description: 'Healthcare jobs organized by specialty: cardiology, ortho, hospitalist, EM, anesth, derm, GI, peds, OBGYN, CRNA, NP, PA, RN. Free to browse + apply.',
   alternates: { canonical: 'https://freejobpost.co/specialty' },
   openGraph: {
     title: 'Healthcare jobs by specialty | freejobpost.co',

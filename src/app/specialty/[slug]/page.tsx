@@ -229,10 +229,10 @@ export default async function SpecialtyHubPage(
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-            {hub.title} <span className="text-green-700">— {jobs.length}</span>
+            {hub.title} <span className="text-green-700">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers — every listing has a real apply link.
+            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers. Every listing has a real apply link.
           </p>
 
           {/* Conversion bridge → freeresumepost.co, contextual to this
@@ -424,7 +424,7 @@ export default async function SpecialtyHubPage(
                   >
                     {guide.title}
                   </Link>{' '}
-                  — education, licensing, exam, timeline.
+                  covers education, licensing, exam, timeline.
                 </p>
               </aside>
             )

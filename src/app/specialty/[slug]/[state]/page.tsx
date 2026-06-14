@@ -103,7 +103,7 @@ export async function generateMetadata(
   if (!specialty || !stateHub) return {}
   const cleanTitle = specialty.title.replace(/ Jobs$/, '')
   const title = `${cleanTitle} jobs in ${stateHub.name}`
-  const description = `Free ${cleanTitle.toLowerCase()} job listings in ${stateHub.name} — salary ranges, apply directly, no recruiter spam. Real openings on freejobpost.co.`
+  const description = `Free ${cleanTitle.toLowerCase()} job listings in ${stateHub.name}. Salary ranges, apply directly, no recruiter spam. Real openings on freejobpost.co.`
   // Thin-cell noindex gate (see MIN_CELL_JOBS_FOR_INDEX). Cells with 1-4
   // jobs render but aren't indexed; ≥5 index normally. Self-heals as
   // inventory grows (6h revalidate re-evaluates).
@@ -253,10 +253,10 @@ export default async function SpecialtyStateMatrixPage(
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
             {cleanSpecialtyTitle} jobs in {stateHub.name}{' '}
-            <span className="text-green-700">— {jobs.length}</span>
+            <span className="text-green-700">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-            {jobs.length} active {cleanSpecialtyTitle.toLowerCase()} role{jobs.length === 1 ? '' : 's'} in {stateHub.name} on freejobpost.co. Free to browse, free to apply, no recruiter spam — every listing has a real apply link going to the hiring employer.
+            {jobs.length} active {cleanSpecialtyTitle.toLowerCase()} role{jobs.length === 1 ? '' : 's'} in {stateHub.name} on freejobpost.co. Free to browse, free to apply, no recruiter spam. Every listing has a real apply link going to the hiring employer.
           </p>
 
           {/* By-city linkbar */}
@@ -278,7 +278,7 @@ export default async function SpecialtyStateMatrixPage(
                 {cleanSpecialtyTitle} salaries in {stateHub.name}
               </h2>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                Based on {salaryOverall.count} active {cleanSpecialtyTitle.toLowerCase()} role{salaryOverall.count === 1 ? '' : 's'} in {stateHub.name} with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}–{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
+                Based on {salaryOverall.count} active {cleanSpecialtyTitle.toLowerCase()} role{salaryOverall.count === 1 ? '' : 's'} in {stateHub.name} with published salary ranges. Typical pay: {fmtUsdCompact(salaryOverall.low)}-{fmtUsdCompact(salaryOverall.high)} (median {fmtUsdCompact(salaryOverall.avg)} per year).
               </p>
               {salaryByBucket.length > 0 && (
                 <div className="overflow-x-auto">
