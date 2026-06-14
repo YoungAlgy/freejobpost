@@ -60,7 +60,7 @@ export function formatSalary(minRaw: number | null, maxRaw: number | null): stri
   const { min, max } = usableSalary(minRaw, maxRaw)
   if (!min && !max) return null
   const fmt = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}K` : `$${n}`)
-  if (min && max && min !== max) return `${fmt(min)}–${fmt(max)}`
+  if (min && max && min !== max) return `${fmt(min)}-${fmt(max)}`
   return fmt(min ?? max ?? 0)
 }
 
