@@ -82,7 +82,7 @@ export default function PricingPage() {
               '10 active job posts at any given time.',
               '60-day post duration (longer than Indeed organic).',
               'Every feature: apply-tracking dashboard, per-job view and apply counts, no paywall anywhere.',
-              'JobPosting JSON-LD on every listing page for Google for Jobs and Indeed organic (direct crawl, no submission needed), plus XML feeds for ZipRecruiter, Adzuna, and Jooble — active partnerships come online as the network grows.',
+              'JobPosting JSON-LD on every listing page for Google for Jobs and Indeed organic (direct crawl, no submission needed), plus XML feeds for ZipRecruiter, Adzuna, and Jooble. Active partnerships come online as the network grows.',
               'Your own permanent URL: freejobpost.co/jobs/<your-role-slug>.',
             ]}
           />
@@ -91,7 +91,7 @@ export default function PricingPage() {
             q="What does 'active' mean?"
             a={[
               'A post is active from the moment you verify your email until one of three things happens: it expires after 60 days, you archive it as filled, or you delete it.',
-              'Archiving a filled role is a one-click action from your employer dashboard — it frees a slot instantly so you can post the next one.',
+              'Archiving a filled role is a one-click action from your employer dashboard. It frees a slot instantly so you can post the next one.',
               'Most healthcare orgs cycle through way fewer than 10 at a time, so the cap rarely matters in practice.',
             ]}
           />
@@ -99,9 +99,9 @@ export default function PricingPage() {
           <Section
             q="What if I need more than 10 slots?"
             a={[
-              'Email info@avahealth.co. We manually flip your account to uncapped. No credit card required during beta — we just need to know who we\u2019re working with.',
+              'Email info@avahealth.co. We manually flip your account to uncapped. No credit card required during beta. We just need to know who we\'re working with.',
               'When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration + API + white-label. Grandfathered for anyone who signs up during beta.',
-              'We built this to be cheaper than every alternative (~$29/mo vs Indeed\u2019s $3,000/mo typical for 10 sponsored roles). Our cost to serve you is a few pennies a month.',
+              'We built this to be cheaper than every alternative (~$29/mo vs Indeed\'s $3,000/mo typical for 10 sponsored roles). Our cost to serve you is a few pennies a month.',
             ]}
           />
 
@@ -115,11 +115,11 @@ export default function PricingPage() {
           />
 
           <Section
-            q="What\u2019s the catch?"
+            q="What\'s the catch?"
             a={[
               'No catch. This product exists because Indeed just eliminated free organic visibility on March 31, 2026, and healthcare orgs we work with were getting hit with $3K+/month bills to post 10 jobs. We thought that was absurd.',
-              'We\u2019re sustained by the much larger Ava Health recruiting business — this board is top-of-funnel for that. Even if zero people ever upgrade, the platform pays for itself in candidate flow.',
-              'Grandfathered pricing is our commitment: if you join at the current rate, that\u2019s your rate for as long as you have the account. No surprise increases.',
+              'We\'re sustained by the much larger Ava Health recruiting business. This board is top-of-funnel for that. Even if zero people ever upgrade, the platform pays for itself in candidate flow.',
+              'Grandfathered pricing is our commitment: if you join at the current rate, that\'s your rate for as long as you have the account. No surprise increases.',
             ]}
           />
 
@@ -132,7 +132,7 @@ export default function PricingPage() {
               '• Indeed sponsored: $36,000+ (typical CPC × 10 concurrent)',
               '• ZipRecruiter: $60,000+ (daily rate × 10 slots)',
               '• freejobpost.co: $0 at 10 concurrent, $290/yr if you need unlimited.',
-              'Those aren\u2019t rhetorical numbers — they\u2019re from public pricing pages, verified April 2026.',
+              'Those aren\'t rhetorical numbers. They\'re from public pricing pages, verified April 2026.',
             ]}
           />
         </div>
