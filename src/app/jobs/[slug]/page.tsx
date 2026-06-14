@@ -255,7 +255,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const cLoc = locationLabel(closed)
       const cTitle = stripSalarySuffix(closed.title) || closed.title
       return {
-        title: `${cLoc ? `${cTitle} — ${cLoc}` : cTitle} (position closed)`,
+        title: `${cLoc ? `${cTitle} - ${cLoc}` : cTitle} (position closed)`,
         description: `This ${cTitle} position is no longer accepting applications. Browse similar open healthcare jobs on freejobpost.co.`,
         robots: { index: false, follow: true, googleBot: { index: false, follow: true } },
       }
@@ -267,7 +267,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const loc = locationLabel(job)
   const cleanTitle = stripSalarySuffix(job.title) || job.title
-  const title = loc ? `${cleanTitle} — ${loc}` : cleanTitle
+  const title = loc ? `${cleanTitle} - ${loc}` : cleanTitle
   const desc = (job.description || '')
     .replace(/\*\*/g, '')
     .replace(/\n+/g, ' ')
@@ -873,7 +873,7 @@ function ClosedJobView({
           {loc && <p className="text-lg text-gray-700 mb-1">{loc}</p>}
           {employerName && <p className="text-sm text-gray-500 mb-4">{employerName}</p>}
           <p className="text-gray-700 leading-relaxed mb-6 max-w-2xl">
-            This role is no longer accepting applications — it&apos;s been filled or
+            This role is no longer accepting applications. It&apos;s been filled or
             its posting window has ended. There are similar open healthcare jobs
             below, refreshed every few hours.
           </p>

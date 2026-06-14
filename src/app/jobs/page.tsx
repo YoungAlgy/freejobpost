@@ -9,12 +9,12 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 export const metadata: Metadata = {
-  title: 'Healthcare jobs — free to browse, free to apply',
+  title: 'Healthcare jobs: free to browse, free to apply',
   description:
-    'Browse 10,000+ healthcare jobs — physicians, nurses, therapists, locum, per-diem roles. Free to browse, free to apply. No account required.',
+    'Browse 10,000+ healthcare jobs: physicians, nurses, therapists, locum, per-diem roles. Free to browse, free to apply. No account required.',
   alternates: { canonical: 'https://freejobpost.co/jobs' },
   openGraph: {
-    title: 'Healthcare jobs — freejobpost.co',
+    title: 'Healthcare jobs | freejobpost.co',
     description: 'Hundreds of healthcare jobs, free to browse and apply.',
     url: 'https://freejobpost.co/jobs',
     type: 'website',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Healthcare jobs — freejobpost.co',
+    title: 'Healthcare jobs | freejobpost.co',
     description: 'Hundreds of healthcare jobs, free to browse and apply.',
     images: ['/opengraph-image'],
   },
@@ -227,7 +227,7 @@ export default async function JobsIndexPage() {
             </h1>
             <p className="text-lg md:text-xl max-w-2xl text-gray-700">
               Browse open roles. No account required.
-              Apply directly — no middleman.
+              Apply directly. No middleman.
             </p>
           </div>
         </section>
