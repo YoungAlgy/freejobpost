@@ -8,7 +8,7 @@
 // Maintenance rule: re-verify deliverability every 90 days. The check is
 // just "send a real test email and watch for a bounce within 24h." When
 // you re-verify, update `lastVerifiedAt` and any `note` lines that have
-// gone stale. Do NOT silently swap addresses — leave a comment showing
+// gone stale. Do NOT silently swap addresses, leave a comment showing
 // what bounced so future you knows the previous address is dead.
 //
 // History:
@@ -20,14 +20,14 @@
 import type { SyndicationTargetId } from './syndication-targets'
 
 export type DeliveryStatus =
-  | 'auto_crawl' // No submission needed — the network picks us up via JSON-LD or RSS auto-discovery
+  | 'auto_crawl' // No submission needed, the network picks us up via JSON-LD or RSS auto-discovery
   | 'email_active' // Email channel verified delivering as of `lastVerifiedAt`
   | 'gated_portal' // Web portal that requires sales call / invite / Talent Solutions rep
   | 'channel_dead' // No working public channel as of last verification
   | 'web_form_submitted' // Application submitted via the partner's web form, awaiting reply
 
 export type PartnerContact = {
-  /** Network id — matches `SyndicationTargetId` from syndication-targets.ts */
+  /** Network id, matches `SyndicationTargetId` from syndication-targets.ts */
   target: SyndicationTargetId | 'sitemap'
   /** Current state of the submission channel */
   status: DeliveryStatus
@@ -38,14 +38,14 @@ export type PartnerContact = {
   primaryEmail: string | null
   /** Optional cc address that has also been verified */
   ccEmail?: string
-  /** ISO date — when we last confirmed deliverability of `primaryEmail` */
+  /** ISO date, when we last confirmed deliverability of `primaryEmail` */
   lastVerifiedAt: string
   /**
    * Addresses that bounced in the past. Don't use them; here so we don't
    * accidentally re-add them on a future "let's resend" pass.
    */
   bouncedAddresses?: string[]
-  /** Plain-English instructions shown on /feeds — partner-facing playbook */
+  /** Plain-English instructions shown on /feeds, partner-facing playbook */
   instructions: string
   /** Internal note: anything we should remember next time we revisit */
   note?: string
@@ -58,7 +58,7 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
     primaryEmail: null,
     lastVerifiedAt: '2026-04-30',
     instructions:
-      "No submission needed — Indeed retired the public XML feed onboarding. Their crawler auto-picks up the JobPosting JSON-LD we emit on each /jobs/[slug] page. For sponsored / explicit ingestion, contact your Indeed account rep.",
+      "No submission needed, Indeed retired the public XML feed onboarding. Their crawler auto-picks up the JobPosting JSON-LD we emit on each /jobs/[slug] page. For sponsored / explicit ingestion, contact your Indeed account rep.",
   },
   ziprecruiter: {
     target: 'ziprecruiter',
@@ -67,9 +67,9 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
     lastVerifiedAt: '2026-04-30',
     bouncedAddresses: ['partners@ziprecruiter.com'],
     instructions:
-      'Email support@ziprecruiter.com with the feed URL — the general support inbox routes to the publisher partnerships team.',
+      'Email support@ziprecruiter.com with the feed URL, the general support inbox routes to the publisher partnerships team.',
     note:
-      'Direct partners@ziprecruiter.com bounces 550 5.1.1. The publisher signup at ziprecruiter.com/publishers is wrapped in Cloudflare bot detection — sales call may be needed if email goes ignored.',
+      'Direct partners@ziprecruiter.com bounces 550 5.1.1. The publisher signup at ziprecruiter.com/publishers is wrapped in Cloudflare bot detection, sales call may be needed if email goes ignored.',
   },
   glassdoor: {
     target: 'glassdoor',
@@ -77,7 +77,7 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
     primaryEmail: null,
     lastVerifiedAt: '2026-04-30',
     instructions:
-      'Glassdoor is Indeed-owned — same pipeline as Indeed (passive auto-crawl). For explicit listings, ask your Indeed account rep.',
+      'Glassdoor is Indeed-owned, same pipeline as Indeed (passive auto-crawl). For explicit listings, ask your Indeed account rep.',
   },
   linkedin: {
     target: 'linkedin',
@@ -93,7 +93,7 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
     primaryEmail: null,
     lastVerifiedAt: '2026-04-30',
     instructions:
-      'No submission needed — Google crawls each /jobs/[slug] page directly and reads the JobPosting JSON-LD. Submit /sitemap.xml to Google Search Console for crawl discovery (done 2026-04-29). Bing Webmaster Tools imports from GSC automatically (done 2026-04-29).',
+      'No submission needed, Google crawls each /jobs/[slug] page directly and reads the JobPosting JSON-LD. Submit /sitemap.xml to Google Search Console for crawl discovery (done 2026-04-29). Bing Webmaster Tools imports from GSC automatically (done 2026-04-29).',
   },
   adzuna: {
     target: 'adzuna',
@@ -137,7 +137,7 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
     instructions:
       'Email partners@careerjet.com with the feed URL (https://freejobpost.co/jobs.xml?ref=careerjet) and a one-paragraph pitch. Careerjet ingests Indeed-spec XML; their crawl picks up new sources on a ~weekly cycle once whitelisted.',
     note:
-      'Per Careerjet partner docs, they accept the same <source><job> envelope Indeed v2 specifies — no schema changes vs. the other partner feeds.',
+      'Per Careerjet partner docs, they accept the same <source><job> envelope Indeed v2 specifies, no schema changes vs. the other partner feeds.',
   },
   rss: {
     target: 'rss',
@@ -145,7 +145,7 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
     primaryEmail: null,
     lastVerifiedAt: '2026-04-30',
     instructions:
-      'No submission needed — Apple News, Feedly, Inoreader, Reddit RSS bots, and most niche aggregators auto-discover via the <link rel="alternate"> tag and direct URL.',
+      'No submission needed, Apple News, Feedly, Inoreader, Reddit RSS bots, and most niche aggregators auto-discover via the <link rel="alternate"> tag and direct URL.',
   },
   sitemap: {
     target: 'sitemap',

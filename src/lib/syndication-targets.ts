@@ -34,7 +34,7 @@ export type SyndicationTarget = {
   // Default-on for new posts. We default everything on so the recruiter has
   // to actively opt out of distribution rather than opt in.
   defaultOn: boolean
-  // Reach descriptor — informal, used in UI tooltips
+  // Reach descriptor, informal, used in UI tooltips
   reach: string
 }
 
@@ -51,7 +51,7 @@ export const SYNDICATION_TARGETS: SyndicationTarget[] = [
   {
     id: 'ziprecruiter',
     label: 'ZipRecruiter',
-    blurb: 'Open Network — accepts the same Indeed-format feed.',
+    blurb: 'Open Network, accepts the same Indeed-format feed.',
     feedUrl: 'https://freejobpost.co/feeds/ziprecruiter.xml',
     spec: 'Indeed v2 XML',
     defaultOn: true,
@@ -69,7 +69,7 @@ export const SYNDICATION_TARGETS: SyndicationTarget[] = [
   {
     id: 'linkedin',
     label: 'LinkedIn Jobs',
-    blurb: 'Feed ready — awaiting LinkedIn Job Wrapping partnership. Contact your LinkedIn Talent Solutions rep to activate ingestion of this feed.',
+    blurb: 'Feed ready, awaiting LinkedIn Job Wrapping partnership. Contact your LinkedIn Talent Solutions rep to activate ingestion of this feed.',
     feedUrl: 'https://freejobpost.co/feeds/linkedin.xml',
     spec: 'LinkedIn Job Wrapping XML',
     defaultOn: false,  // gated_portal as of 2026-04-30; re-enable when Talent Solutions rep whitelists the feed
