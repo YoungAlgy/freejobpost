@@ -84,7 +84,7 @@ export default function Dashboard({
             <span className="text-gray-500 self-center">
               {active.length}
               {isFinite(quota) ? ` / ${quota}` : ''} active
-              {isFinite(quota) && active.length >= quota && ' — archive one to post more'}
+              {isFinite(quota) && active.length >= quota && ', archive one to post more'}
             </span>
           </div>
         </div>
@@ -403,7 +403,7 @@ function ApplicationRow({ app }: { app: Application }) {
             target="_blank"
           >
             {app.job_title}
-            {loc && <span className="text-gray-400 ml-1 text-xs">— {loc}</span>}
+            {loc && <span className="text-gray-400 ml-1 text-xs">- {loc}</span>}
           </Link>
           <p className="text-xs text-gray-400 mt-0.5">{date}</p>
           {app.cover_note && (

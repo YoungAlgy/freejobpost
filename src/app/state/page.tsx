@@ -8,7 +8,7 @@ import { STATE_HUBS } from '@/lib/state-slugs'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs by state',
-  description: 'Healthcare jobs by state — Florida, Texas, California, New York, Illinois, Pennsylvania, Ohio, and 43 more. Free to browse + apply, no account.',
+  description: 'Healthcare jobs by state: Florida, Texas, California, New York, Illinois, Pennsylvania, Ohio, and 43 more. Free to browse + apply, no account.',
   alternates: { canonical: 'https://freejobpost.co/state' },
   openGraph: {
     title: 'Healthcare jobs by state | freejobpost.co',

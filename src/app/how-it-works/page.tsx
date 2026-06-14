@@ -115,7 +115,7 @@ export default function HowItWorksPage() {
           <div className="border-2 border-black p-5">
             <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-2">Indeed Sponsored</div>
             <ul className="space-y-1.5 text-sm text-gray-700">
-              <li>· $0.10–$5.00 per click bid</li>
+              <li>· $0.10-$5.00 per click bid</li>
               <li>· Posts demoted below paid ads</li>
               <li>· Candidate emails resold to recruiters</li>
               <li>· Average cost per role: $300+</li>
@@ -153,7 +153,7 @@ export default function HowItWorksPage() {
         <div className="space-y-6 mb-12">
           <div>
             <h3 className="font-black mb-1">Is it really free to post a job?</h3>
-            <p className="text-gray-700">Yes. No fees, no credit card, no trial period that quietly converts. We don&apos;t charge employers because the upstream Ava Health recruiting business already monetizes its candidate database — the job board feeds that database.</p>
+            <p className="text-gray-700">Yes. No fees, no credit card, no trial period that quietly converts. We don&apos;t charge employers because the upstream Ava Health recruiting business already monetizes its candidate database. The job board feeds that database.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">How long does a posted job stay live?</h3>

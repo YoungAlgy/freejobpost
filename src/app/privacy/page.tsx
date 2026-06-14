@@ -112,7 +112,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-black mt-8 mb-2">Your rights (CCPA / GDPR)</h2>
           <p>
             California + EU residents: you have the right to access, correct, or delete your data.
-            Email <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a> with the subject &quot;Privacy request&quot; — we&apos;ll respond within 30 days.
+            Email <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a> with the subject &quot;Privacy request&quot;, and we&apos;ll respond within 30 days.
           </p>
 
           <h2 className="text-xl font-black mt-8 mb-2">Security</h2>

@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import UnsubscribeClient from './unsubscribe-client'
 
 export const metadata: Metadata = {
-  title: 'Unsubscribe — freejobpost.co',
+  title: 'Unsubscribe | freejobpost.co',
   robots: { index: false, follow: false },
 }
 

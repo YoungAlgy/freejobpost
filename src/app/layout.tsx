@@ -111,7 +111,7 @@ export default function RootLayout({
                 websiteDescription:
                   'Free healthcare job board. Post jobs free. Apply free. No auction fees.',
                 organizationDescription:
-                  'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates freejobpost.co — a free healthcare job board with no posting fees and no auction pricing.',
+                  'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates freejobpost.co, a free healthcare job board with no posting fees and no auction pricing.',
                 searchActionTarget: 'https://freejobpost.co/jobs?q={search_term_string}',
                 additionalSameAs: ['https://www.linkedin.com/company/freejobpost/'],
               })
