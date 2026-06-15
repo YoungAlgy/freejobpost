@@ -52,6 +52,7 @@ import {
   rfc822,
   hasUsableDescription,
   isBuildPhase,
+  MIN_DESCRIPTION_CHARS,
 } from '@/lib/feed-builders'
 
 // Refresh every 6 hours. This is the heaviest feed (12-batch query +
@@ -107,7 +108,10 @@ export async function GET(req: NextRequest): Promise<Response> {
     .gt('expires_at', nowIso)
     // DB-side mirror of hasUsableDescription() (2026-06 audit): the route
     // discarded thin rows in JS after fetching them — ~46% wasted fetch.
-    .gte('description_usable_chars', 250)
+    // Pinned to MIN_DESCRIPTION_CHARS so the DB prefilter and the JS filter
+    // below agree. jobs.xml is the partner megafeed (Jooble, Indeed, Talent,
+    // etc.), so it uses the 600-char rich-content bar, not the 250 page floor.
+    .gte('description_usable_chars', MIN_DESCRIPTION_CHARS)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const batches = await Promise.all(
     Array.from({ length: numBatches }, (_, i) =>
@@ -159,7 +163,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   // 250 chars is a floor for a description with responsibilities +
   // requirements. The on-site /jobs browse is unaffected (still shows
   // all active jobs); partner XML is the only thing filtered.
-  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
 
   // Resolve company names per employer in one batched query.
   // Reads from public_employers_directory (anon-safe view) — the underlying

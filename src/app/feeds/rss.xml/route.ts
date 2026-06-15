@@ -12,7 +12,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, isBuildPhase, hasUsableDescription, escapeXml, cdata } from '@/lib/feed-builders'
+import { jobUrlWithUtm, isBuildPhase, hasUsableDescription, escapeXml, cdata, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 
 // 1h ISR: RSS readers (Feedly/Inoreader) poll ~hourly, so keep this one
 // fresher than the 6h partner feeds, but 900s was still 4× over-regen
@@ -58,12 +58,13 @@ export async function GET(): Promise<Response> {
     throw new Error('rss.xml: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).')
   }
   // Skip thin-description jobs — RSS readers (Feedly / Inoreader / Apple News)
-  // de-prioritize feeds full of empty/thin <description>. Use the SHARED
-  // hasUsableDescription() (250-char, HTML-stripped) so a job appears in every
-  // feed + its own page or nowhere — consistent with jobs.xml, the per-partner
-  // feeds, and the /jobs/[slug] noindex gate. (Was an inline 50-char check that
-  // drifted from the 250 unification; fixed 2026-05-28.)
-  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
+  // de-prioritize feeds full of empty/thin <description>. Reader-facing coverage
+  // feed, so it uses the 250-char page-indexability floor
+  // (MIN_INDEXABLE_DESCRIPTION_CHARS), matching the /jobs/[slug] noindex gate and
+  // the sitemap so a job appears in this feed and on its page or nowhere. (Not
+  // the 600 partner bar, which is for the strict partner submissions. Pinned
+  // explicit 2026-06-15 so it can't ride the shared default.)
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_INDEXABLE_DESCRIPTION_CHARS))
   const now = new Date().toUTCString()
 
   const items = jobs

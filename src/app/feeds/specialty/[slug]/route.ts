@@ -15,7 +15,7 @@ import {
   formatSalary,
   locationLabel,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, hasUsableDescription, escapeXml, cdata } from '@/lib/feed-builders'
+import { jobUrlWithUtm, hasUsableDescription, escapeXml, cdata, isBuildPhase, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 
@@ -45,7 +45,7 @@ export async function GET(
     return new Response('Not found', { status: 404 })
   }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at')
     .eq('status', 'active')
@@ -55,12 +55,21 @@ export async function GET(
     .order('created_at', { ascending: false })
     .limit(200)
 
+  // FAIL CLOSED on a DB ERROR only (not on a legitimately-empty niche). A real
+  // empty specialty renders an empty feed, which is correct. A transient DB
+  // failure throws so ISR serves the last-good cache instead of caching
+  // emptiness. Runtime-only: never throw at build (it would abort the deploy).
+  if (error && !isBuildPhase()) {
+    throw new Error(`specialty feed ${slug}: query failed, refusing to cache. ${error.message}`)
+  }
+
   type RssJob = PublicJob & { updated_at: string }
-  // Filter thin-description jobs, matching jobs.xml + the Indeed-format feeds
-  // (a job syndicates everywhere or nowhere — on-site browse still shows them).
-  // Unifies this RSS surface with the pass-1 thin-gate work. 2026-05-28 audit.
+  // Reader-facing coverage feed: filter to the 250-char page-indexability floor
+  // (MIN_INDEXABLE_DESCRIPTION_CHARS), the same gate as /jobs/[slug] noindex and
+  // the sitemap. Not the 600 partner bar. Pinned explicit 2026-06-15 so this
+  // niche RSS surface can't ride the shared default.
   const jobs = ((data ?? []) as unknown as RssJob[]).filter((j) =>
-    hasUsableDescription(j.description),
+    hasUsableDescription(j.description, MIN_INDEXABLE_DESCRIPTION_CHARS),
   )
   const now = new Date().toUTCString()
   const feedTitle = `${hub.title} | freejobpost.co`
