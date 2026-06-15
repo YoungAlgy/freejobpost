@@ -186,6 +186,18 @@ describe('buildJobPostingJsonLd — edge cases', () => {
     expect(qv).not.toHaveProperty('maxValue')
   })
 
+  it('uses QuantitativeValue.value for equal bounds (fixed salary, not a degenerate range)', () => {
+    // min === max is a single figure, not a range — emit {value}, matching how
+    // formatSalary() collapses it to "$150K" on the page. Avoids a degenerate
+    // {minValue:X, maxValue:X}.
+    const fixed: PublicJob = { ...baseJob, salary_min: 150000, salary_max: 150000 }
+    const out = buildJobPostingJsonLd({ job: fixed, employer: baseEmployer })
+    const qv = (out.baseSalary as { value: Record<string, unknown> }).value
+    expect(qv).toMatchObject({ '@type': 'QuantitativeValue', value: 150000, unitText: 'YEAR' })
+    expect(qv).not.toHaveProperty('minValue')
+    expect(qv).not.toHaveProperty('maxValue')
+  })
+
   it('uses minValue/maxValue range when both salary bounds are set', () => {
     const both: PublicJob = { ...baseJob, salary_min: 90000, salary_max: 130000 }
     const out = buildJobPostingJsonLd({ job: both, employer: baseEmployer })

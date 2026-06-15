@@ -108,12 +108,13 @@ export function buildJobPostingJsonLd(args: BuildJobPostingArgs): Record<string,
             currency: 'USD',
             // Google flags "Missing field value (in baseSalary.value)" when a
             // QuantitativeValue carries a lone minValue/maxValue and no `value`
-            // (GSC WNC-10030322, 2026-06-11). A real range (both bounds) uses
-            // minValue+maxValue; a single known figure uses `value`. Emitting a
-            // one-sided min/max range is the incomplete shape Google rejects.
+            // (GSC WNC-10030322, 2026-06-11). A real range (two DIFFERENT bounds)
+            // uses minValue+maxValue; a single known figure — including a fixed
+            // salary where min === max — uses `value`. This mirrors formatSalary()
+            // exactly, so the JSON-LD and the displayed salary always agree.
             value: {
               '@type': 'QuantitativeValue',
-              ...(salary.min && salary.max
+              ...(salary.min && salary.max && salary.min !== salary.max
                 ? { minValue: salary.min, maxValue: salary.max }
                 : { value: (salary.min ?? salary.max) as number }),
               unitText: 'YEAR',
