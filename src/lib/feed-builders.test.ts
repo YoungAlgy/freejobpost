@@ -168,20 +168,30 @@ describe('hasUsableDescription', () => {
 
   it('accepts content at or above the threshold (post-HTML-strip)', () => {
     expect(hasUsableDescription('a'.repeat(MIN_DESCRIPTION_CHARS))).toBe(true)
-    // Real-shaped RN job description with responsibilities + requirements.
-    // Sized to exceed MIN_DESCRIPTION_CHARS (250) so it represents a
-    // "full" description per the 2026-05-22 Jooble feedback that drove
-    // the threshold bump.
-    expect(
-      hasUsableDescription(
-        '<p>RN ICU role at a Level 1 trauma center in Tampa, FL. 36-hour weeks ' +
-          'across 12-hour shifts, two weekends per month. Responsibilities: ' +
-          'monitor critically ill patients, titrate vasoactive drips, manage ' +
-          'ventilator settings, coordinate with the intensivist team on care ' +
-          'plans, escalate clinical changes promptly. Requirements: active ' +
-          'Florida RN license, BLS + ACLS, 2+ years ICU experience.</p>'
-      )
-    ).toBe(true)
+    // Real-shaped RN job description with a full responsibilities + a full
+    // requirements list. Sized to exceed MIN_DESCRIPTION_CHARS (600) so it
+    // represents a genuinely "full" description per the Jooble feedback that
+    // drove the threshold — the kind of listing that should reach partner
+    // feeds. A one-paragraph stub (which clears 250 but not 600) should NOT.
+    const fullRn =
+      '<p>RN ICU role at a Level 1 trauma center in Tampa, FL. 36-hour weeks ' +
+      'across three 12-hour shifts, with two weekends per month and a rotating ' +
+      'holiday schedule shared evenly across the unit. ' +
+      'Responsibilities: monitor and assess critically ill patients across a ' +
+      'four-bed assignment, titrate vasoactive and sedation drips to ordered ' +
+      'parameters, manage ventilator settings in coordination with respiratory ' +
+      'therapy, perform hourly neuro and hemodynamic checks, document in Epic, ' +
+      'coordinate the daily plan of care with the intensivist team, educate ' +
+      'families at the bedside, and escalate clinical changes promptly through ' +
+      'the rapid-response pathway. ' +
+      'Requirements: active Florida RN license (or compact), current BLS and ' +
+      'ACLS, a minimum of two years of recent ICU experience, demonstrated ' +
+      'competency with continuous renal replacement therapy, and the ability ' +
+      'to pass a unit-based critical-care skills assessment within 90 days.</p>'
+    expect(fullRn.replace(/<[^>]+>/g, '').trim().length).toBeGreaterThanOrEqual(
+      MIN_DESCRIPTION_CHARS
+    )
+    expect(hasUsableDescription(fullRn)).toBe(true)
   })
 
   it('counts text inside HTML tags, not the tags themselves', () => {

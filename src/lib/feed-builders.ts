@@ -211,8 +211,9 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     // DB-side mirror of hasUsableDescription() (generated column, 2026-06
     // audit): the JS post-filter below discarded ~46% of fetched rows.
     // Filtering here cuts the batch fetch volume nearly in half with
-    // byte-identical feed output.
-    .gte('description_usable_chars', 250)
+    // byte-identical feed output. Reads MIN_DESCRIPTION_CHARS so the DB
+    // floor and the JS floor never drift apart.
+    .gte('description_usable_chars', MIN_DESCRIPTION_CHARS)
     .or(filterClause)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
@@ -334,10 +335,20 @@ ${jobsXml}
 // responsibilities and requirements." 50 chars passed one-line "stub"
 // descriptions; 250 chars is a reasonable floor for a description that
 // includes at least a short responsibilities + requirements section.
-// Tradeoff: this drops more jobs from partner feeds (the on-site /jobs
-// browse still shows them — only partner XML is filtered) but matches
-// what publishers expect to ingest.
-export const MIN_DESCRIPTION_CHARS = 250
+//
+// 2026-06-15: raised 250 → 600 after Jooble re-flagged (same ticket) — the
+// 250 floor still passed one-paragraph stubs that lacked a real
+// requirements list, so they wouldn't take our organic feed live. The
+// active-inventory distribution has a hard cliff here: ~15,950 jobs clear
+// 250, but only ~5,015 clear 600 (almost the entire 400-600 band is thin
+// ATS one-liners). 600 is the floor that reliably carries responsibilities
+// + requirements, which is exactly what Jooble asked for. Tradeoff: the
+// partner feed shrinks to the ~5K genuinely-described roles. That's fine —
+// zero of our jobs are live on Jooble while we're blocked, so 5K rich
+// listings beats 16K mixed ones, and the on-site /jobs browse still shows
+// every job (only the partner XML is filtered). Jobs rejoin the feed as the
+// ATS-enrichment backfill fills their descriptions past 600.
+export const MIN_DESCRIPTION_CHARS = 600
 
 export function hasUsableDescription(description: string | null | undefined): boolean {
   if (!description) return false
@@ -430,7 +441,7 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
-    .gte('description_usable_chars', 250) // mirrors hasUsableDescription (2026-06)
+    .gte('description_usable_chars', MIN_DESCRIPTION_CHARS) // mirrors hasUsableDescription
     .eq('is_ats_import', false)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const numBatches = await activeJobBatchCount(supabase)
