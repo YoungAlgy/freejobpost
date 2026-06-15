@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { supabase, hourIso } from '@/lib/supabase'
 import { activeJobBatchCount } from '@/lib/active-batch-count'
+import { MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
@@ -80,18 +81,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // hourIso (not a raw new Date()) keeps the PostgREST URL stable within the
   // hour so these batch fetches actually hit the Next Data Cache (F52).
   const nowIso = hourIso()
-  // description_usable_chars >= 250 mirrors hasUsableDescription() — the same
-  // gate that noindexes thin job pages. A sitemap must not submit URLs that
-  // declare noindex (F62: 11.5K thin jobs were being submitted). Generated
-  // column + partial index added 2026-06 (migration
-  // add_description_usable_chars_to_public_jobs).
+  // description_usable_chars >= MIN_INDEXABLE_DESCRIPTION_CHARS (250) mirrors the
+  // /jobs/[slug] noindex gate exactly — a sitemap must not submit URLs that
+  // declare noindex (F62: 11.5K thin jobs were being submitted). Uses the SHARED
+  // constant, not a literal 250, so this floor and the page gate can't drift
+  // (they did on 2026-06-15 when the feed bar moved to 600 and dragged the page
+  // gate with it while this literal stayed 250). Generated column + partial
+  // index added 2026-06 (migration add_description_usable_chars_to_public_jobs).
   const baseJobs = () => supabase
     .from('public_jobs')
     .select('slug, updated_at')
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
-    .gte('description_usable_chars', 250)
+    .gte('description_usable_chars', MIN_INDEXABLE_DESCRIPTION_CHARS)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const jobsBatchPromises = Array.from({ length: numBatches }, (_, i) =>
     baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)

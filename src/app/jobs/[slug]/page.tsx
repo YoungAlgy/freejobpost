@@ -30,13 +30,16 @@ import { findSpecialtyHub } from '@/lib/specialty-slugs'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
 import { findCityHub } from '@/lib/city-slugs'
 import { buildJobPostingJsonLd } from '@/lib/job-posting-jsonld'
-// Shared "is this description rich enough to index / syndicate?" check.
-// Single source of truth (MIN_DESCRIPTION_CHARS=250, HTML-stripped) so the
-// /jobs/[slug] noindex gate + JobPosting JSON-LD gate stay aligned with the
-// /jobs.xml + per-partner feed filters. Avoids the split where a 250-299
-// char job appears in the Google-for-Jobs feed but is noindex'd on its
-// own landing page.
-import { hasUsableDescription } from '@/lib/feed-builders'
+// Shared "is this description rich enough to INDEX?" check. The page noindex
+// gate + JobPosting JSON-LD gate + sitemap.ts all use MIN_INDEXABLE_DESCRIPTION_CHARS
+// (250, HTML-stripped) so a job page is never noindex'd while still listed in
+// the sitemap. NOTE: this is the indexability bar, NOT the partner-feed quality
+// bar — the /jobs.xml + per-partner feeds filter at the higher MIN_DESCRIPTION_CHARS
+// (600). So a 250-599 char job IS indexable + carries JSON-LD, but is held back
+// from aggregators. Pass the floor explicitly — hasUsableDescription's DEFAULT is
+// the 600 feed bar, and relying on it here is exactly what noindexed ~10.9K pages
+// on 2026-06-15.
+import { hasUsableDescription, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 import { getViableCellsCached } from '@/lib/specialty-state-matrix'
 import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 
@@ -280,15 +283,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // detail endpoint. Serving those as indexable pages is thin content —
   // Google for Jobs rejects them and they drag the domain's quality signal.
   //
-  // 2026-05-28: use the shared hasUsableDescription() helper (250-char,
-  // HTML-stripped) so this gate matches the /jobs.xml + per-partner feed
-  // filters exactly. Previously a raw `length < 300` check, which could
-  // disagree with the feed's 250-char filter — a 250-299 char job would
-  // ship in the Google-for-Jobs feed but be noindex'd on its landing page.
-  // The page still serves 200 + follows internal links, so it stays in the
-  // crawl graph; once the backfill rehydrates the description the next
-  // revalidate (600s) flips it back to indexable. Self-healing.
-  const isThin = !hasUsableDescription(job.description)
+  // 2026-05-28: use the shared hasUsableDescription() helper (HTML-stripped),
+  // pinned to the 250-char INDEXABLE floor (MIN_INDEXABLE_DESCRIPTION_CHARS) so
+  // this gate matches the sitemap exactly and never noindexes a URL the sitemap
+  // still submits. Pass the floor explicitly: the helper's default is the 600
+  // partner-feed bar, and a 250-599 char job should stay indexable (just held
+  // back from aggregators). The page serves 200 + follows internal links, so it
+  // stays in the crawl graph; once the backfill rehydrates the description the
+  // next revalidate (600s) flips it. Self-healing.
+  const isThin = !hasUsableDescription(job.description, MIN_INDEXABLE_DESCRIPTION_CHARS)
 
   return {
     title,
@@ -418,13 +421,14 @@ export default async function JobDetailPage({ params }: Props) {
   // entries with empty/thin descriptions. Some ATS-imported rows arrive
   // with no description body (provider returns only a title + apply URL).
   //
-  // 2026-05-28: use the shared hasUsableDescription() helper (250-char,
-  // HTML-stripped) — the same gate as the noindex check above and the
-  // /jobs.xml feed filter. All three now agree exactly: thin = noindex +
-  // no JobPosting JSON-LD + excluded from partner feeds; usable = indexable
-  // + full markup + syndicated. Self-heals when the Workday backfill
-  // rehydrates the description (next 600s revalidate flips all three).
-  const descUsable = hasUsableDescription(job.description)
+  // 2026-05-28: use the shared hasUsableDescription() helper (HTML-stripped) at
+  // the 250-char INDEXABLE floor — the same gate as the noindex check above and
+  // the sitemap. These two PAGE gates agree: thin (<250) = noindex + no
+  // JobPosting JSON-LD; usable (>=250) = indexable + full JSON-LD. Partner-feed
+  // syndication is now a SEPARATE, higher bar (600), so a 250-599 char job is
+  // indexable + carries JSON-LD but is NOT in the aggregator feeds. Self-heals
+  // when the Workday backfill rehydrates the description (next 600s revalidate).
+  const descUsable = hasUsableDescription(job.description, MIN_INDEXABLE_DESCRIPTION_CHARS)
   const optedIntoGoogle = optedIntoGoogleByTargets && descUsable
 
   return (

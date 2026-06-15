@@ -359,6 +359,18 @@ export const MIN_DESCRIPTION_CHARS = 600
 // feed to 4 jobs (measured 2026-06-15) — so this feed gets its own floor.
 export const MIN_ORIGINATED_DESCRIPTION_CHARS = 250
 
+// Floor for whether a /jobs/[slug] PAGE is indexable: drives the noindex robots
+// meta + whether the page emits JobPosting JSON-LD, and mirrored by sitemap.ts
+// so the sitemap never submits a noindex URL. This is the INDEXABILITY bar, a
+// different question from the partner-feed QUALITY bar (MIN_DESCRIPTION_CHARS).
+// Kept at 250: a 250-599 char job page is a legit indexable page with a real
+// (if short) description that Google for Jobs accepts — it just isn't rich
+// enough to ship to aggregators like Jooble. These were ONE constant until
+// 2026-06-15, when raising the feed bar to 600 silently noindexed ~10.9K pages
+// in the 250-599 band (page gates read hasUsableDescription's default arg).
+// Split out so the page/sitemap floor and the feed floor can never drift again.
+export const MIN_INDEXABLE_DESCRIPTION_CHARS = 250
+
 export function hasUsableDescription(
   description: string | null | undefined,
   minChars: number = MIN_DESCRIPTION_CHARS,

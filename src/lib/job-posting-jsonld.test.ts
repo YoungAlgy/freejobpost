@@ -177,6 +177,15 @@ describe('buildJobPostingJsonLd — edge cases', () => {
     expect(qv).not.toHaveProperty('maxValue')
   })
 
+  it('uses QuantitativeValue.value for a max-only salary (the ?? fallback path)', () => {
+    const ceilingOnly: PublicJob = { ...baseJob, salary_min: null, salary_max: 200000 }
+    const out = buildJobPostingJsonLd({ job: ceilingOnly, employer: baseEmployer })
+    const qv = (out.baseSalary as { value: Record<string, unknown> }).value
+    expect(qv).toMatchObject({ '@type': 'QuantitativeValue', value: 200000, unitText: 'YEAR' })
+    expect(qv).not.toHaveProperty('minValue')
+    expect(qv).not.toHaveProperty('maxValue')
+  })
+
   it('uses minValue/maxValue range when both salary bounds are set', () => {
     const both: PublicJob = { ...baseJob, salary_min: 90000, salary_max: 130000 }
     const out = buildJobPostingJsonLd({ job: both, employer: baseEmployer })

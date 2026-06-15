@@ -14,8 +14,8 @@ describe('formatSalary', () => {
     expect(formatSalary(null, null)).toBe(null)
   })
 
-  it('formats true ranges as $XK–$YK', () => {
-    expect(formatSalary(180000, 240000)).toBe('$180K–$240K')
+  it('formats true ranges as $XK-$YK (hyphen, not en-dash, per brand voice)', () => {
+    expect(formatSalary(180000, 240000)).toBe('$180K-$240K')
   })
 
   it('returns single value when min === max', () => {
