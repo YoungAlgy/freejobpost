@@ -166,6 +166,25 @@ describe('buildJobPostingJsonLd — edge cases', () => {
     expect(out.baseSalary).toBeUndefined()
   })
 
+  it('uses QuantitativeValue.value (not a lone minValue) for one-sided salary', () => {
+    // GSC WNC-10030322: a lone minValue with no `value` is flagged
+    // "Missing field value (in baseSalary.value)". Single bound -> `value`.
+    const floorOnly: PublicJob = { ...baseJob, salary_min: 120000, salary_max: null }
+    const out = buildJobPostingJsonLd({ job: floorOnly, employer: baseEmployer })
+    const qv = (out.baseSalary as { value: Record<string, unknown> }).value
+    expect(qv).toMatchObject({ '@type': 'QuantitativeValue', value: 120000, unitText: 'YEAR' })
+    expect(qv).not.toHaveProperty('minValue')
+    expect(qv).not.toHaveProperty('maxValue')
+  })
+
+  it('uses minValue/maxValue range when both salary bounds are set', () => {
+    const both: PublicJob = { ...baseJob, salary_min: 90000, salary_max: 130000 }
+    const out = buildJobPostingJsonLd({ job: both, employer: baseEmployer })
+    const qv = (out.baseSalary as { value: Record<string, unknown> }).value
+    expect(qv).toMatchObject({ minValue: 90000, maxValue: 130000, unitText: 'YEAR' })
+    expect(qv).not.toHaveProperty('value')
+  })
+
   it('omits experienceRequirements when experience_required is null', () => {
     const noExp: PublicJob = { ...baseJob, experience_required: null }
     const out = buildJobPostingJsonLd({ job: noExp, employer: baseEmployer })
