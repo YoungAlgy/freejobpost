@@ -350,7 +350,19 @@ ${jobsXml}
 // ATS-enrichment backfill fills their descriptions past 600.
 export const MIN_DESCRIPTION_CHARS = 600
 
-export function hasUsableDescription(description: string | null | undefined): boolean {
+// The originated feed (/feeds/originated.xml — directly-posted + Ava-seeded
+// roles, is_ats_import=false) keeps the OLD 250 floor, NOT the 600 volume-feed
+// bar. Reason: the 600 bar exists to strip thin one-paragraph ATS stubs out of
+// the huge aggregated feed. Originated inventory is small (~426) and already
+// direct-employer content, but most of it sits in the 250-600 band (Ava-seeded
+// roles run a solid paragraph, not a full page). Applying 600 here gutted the
+// feed to 4 jobs (measured 2026-06-15) — so this feed gets its own floor.
+export const MIN_ORIGINATED_DESCRIPTION_CHARS = 250
+
+export function hasUsableDescription(
+  description: string | null | undefined,
+  minChars: number = MIN_DESCRIPTION_CHARS,
+): boolean {
   if (!description) return false
   // Strip HTML tags + collapse whitespace before measuring — empty
   // <p></p> wrappers from html-to-text imports otherwise pass a naive
@@ -359,7 +371,7 @@ export function hasUsableDescription(description: string | null | undefined): bo
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-  return stripped.length >= MIN_DESCRIPTION_CHARS
+  return stripped.length >= minChars
 }
 
 // One-call helper used by every Indeed-format feed route. Pass the target
@@ -441,7 +453,7 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
-    .gte('description_usable_chars', MIN_DESCRIPTION_CHARS) // mirrors hasUsableDescription
+    .gte('description_usable_chars', MIN_ORIGINATED_DESCRIPTION_CHARS) // mirrors hasUsableDescription (originated floor)
     .eq('is_ats_import', false)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const numBatches = await activeJobBatchCount(supabase)
@@ -473,10 +485,13 @@ export async function buildOriginatedFeed(networkLabel: string): Promise<Respons
   // failure, so throwing would risk masking the real empty case. The
   // strict partners that consume this feed tolerate an occasional empty
   // originated feed. (If this grows into a core partner surface, revisit.)
-  // Same thin-description filter as buildIndeedFormatFeed — strict
-  // partners are even more sensitive to thin content than volume
-  // partners. See hasUsableDescription() for context.
-  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
+  // Thin-description filter at the originated floor (250), NOT the 600
+  // volume-feed bar — these are direct-employer roles, mostly a solid
+  // paragraph (250-600 chars); 600 would gut the feed. See
+  // MIN_ORIGINATED_DESCRIPTION_CHARS for why.
+  const jobs = allJobs.filter((j) =>
+    hasUsableDescription(j.description, MIN_ORIGINATED_DESCRIPTION_CHARS),
+  )
   const employerNames = await resolveEmployerNames(jobs)
   const jobsXml = jobs
     .map((job) => {

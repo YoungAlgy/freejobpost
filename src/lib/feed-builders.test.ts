@@ -7,6 +7,7 @@ import {
   descriptionHtml,
   hasUsableDescription,
   MIN_DESCRIPTION_CHARS,
+  MIN_ORIGINATED_DESCRIPTION_CHARS,
 } from './feed-builders'
 import type { PublicJob } from './public-jobs'
 
@@ -192,6 +193,23 @@ describe('hasUsableDescription', () => {
       MIN_DESCRIPTION_CHARS
     )
     expect(hasUsableDescription(fullRn)).toBe(true)
+  })
+
+  it('honors a custom minChars floor (originated feed uses the lower 250 bar)', () => {
+    // A direct-employer role with a solid paragraph (250-600 chars) must FAIL
+    // the default 600 volume-feed bar but PASS the originated feed's 250 floor.
+    // This is exactly the band that gutted /feeds/originated.xml when the 600
+    // bar was applied to it (371 jobs -> 4). Guards against re-applying the
+    // wrong floor to the originated feed.
+    expect(MIN_ORIGINATED_DESCRIPTION_CHARS).toBeLessThan(MIN_DESCRIPTION_CHARS)
+    const midBand = 'a'.repeat(MIN_ORIGINATED_DESCRIPTION_CHARS + 10)
+    expect(midBand.length).toBeLessThan(MIN_DESCRIPTION_CHARS)
+    expect(hasUsableDescription(midBand)).toBe(false) // default 600 bar
+    expect(hasUsableDescription(midBand, MIN_ORIGINATED_DESCRIPTION_CHARS)).toBe(true)
+    // Still rejects genuinely thin content even at the lower floor.
+    expect(
+      hasUsableDescription('Too short.', MIN_ORIGINATED_DESCRIPTION_CHARS),
+    ).toBe(false)
   })
 
   it('counts text inside HTML tags, not the tags themselves', () => {
