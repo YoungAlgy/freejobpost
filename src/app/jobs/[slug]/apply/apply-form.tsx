@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { submitApplication, type ApplyInput, type ApplyResult } from './actions'
 import TurnstileWidget from '@/components/TurnstileWidget'
+import AffiliateOffer from '@/components/AffiliateOffer'
 
 type Props = {
   jobId: string
@@ -90,6 +91,12 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
           >
             Upload your resume
           </a>
+        </div>
+
+        {/* Peak intent: they just applied, the interview is the next worry.
+            Renders nothing unless the program link is configured. */}
+        <div className="mt-6 pt-6 border-t-2 border-black/10">
+          <AffiliateOffer program="finalround" />
         </div>
       </div>
     )

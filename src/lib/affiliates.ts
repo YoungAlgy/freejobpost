@@ -36,7 +36,7 @@ const AFFILIATES: Record<string, Affiliate> = {
     key: 'finalround',
     label: 'Interview coming up? Final Round AI helps you practice and prep.',
     cta: 'Prep my interview',
-    url: process.env.NEXT_PUBLIC_AFF_FINALROUND ?? '',
+    url: process.env.NEXT_PUBLIC_AFF_FINALROUND ?? 'https://www.finalroundai.com/?via=88db34',
   },
   coursera: {
     key: 'coursera',
