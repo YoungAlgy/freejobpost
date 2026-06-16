@@ -27,7 +27,7 @@ import {
   locationLabel,
   usableSalary,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, hasUsableDescription, cdata } from '@/lib/feed-builders'
+import { jobUrlWithUtm, hasUsableDescription, cdata, MIN_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 import { activeJobBatchCount } from '@/lib/active-batch-count'
 
 // 6h ISR: LinkedIn polls every 4–24h (see header), so sub-hour regen was
@@ -140,14 +140,14 @@ export async function GET(): Promise<Response> {
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   // Filter thin descriptions before publishing to LinkedIn. LinkedIn Job
-  // LinkedIn Job Wrapping quality-scores thin-content feeds HARD (strict
-  // partner). Use the SHARED hasUsableDescription() (250-char, HTML-stripped) —
-  // the same gate jobs.xml, the per-partner feeds, and the /jobs/[slug] noindex
-  // use. (Was an inline 50-char check — backwards: the strictest partner had
-  // the loosest filter. Unified 2026-05-28.) Pre-2026-05-21 audit: ~24% of
-  // corpus had empty/<p></p>-only descriptions from Workday shallow-refresh.
+  // Wrapping quality-scores thin-content feeds HARD (strict partner), so this
+  // feed uses the 600-char rich-content bar (MIN_DESCRIPTION_CHARS), the same
+  // bar as jobs.xml and the Indeed-format partner feeds. Was an inline 50-char
+  // check, then the shared 250 default, then pinned explicit to 600 on
+  // 2026-06-15 so the feed bar can't silently ride the shared default again.
+  // Pre-2026-05-21 audit: ~24% of corpus had empty/<p></p>-only descriptions.
   const allJobs = (data ?? []) as unknown as FeedJob[]
-  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
+  const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
 
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }
