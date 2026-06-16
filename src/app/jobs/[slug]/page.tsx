@@ -22,6 +22,7 @@ import ApplyExternalLink from '@/components/ApplyExternalLink'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ShareButtons from '@/components/ShareButtons'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
+import AffiliateOffer from '@/components/AffiliateOffer'
 // Hub-link helpers — drive the BROWSE MORE internal-linking section so
 // per-job pages route PageRank back to the matching specialty / state
 // hubs + employer page. Without these, /jobs/[slug] had zero links
@@ -548,6 +549,13 @@ export default async function JobDetailPage({ params }: Props) {
               >
                 Browse all jobs
               </Link>
+            </div>
+
+            {/* High-intent affiliate: sits right by the apply CTA, where the
+                reader is in "applying to a lot of jobs" mode. Renders nothing
+                until the program link is configured (see lib/affiliates). */}
+            <div className="mt-4">
+              <AffiliateOffer program="jobcopilot" />
             </div>
 
             {/* Share — cheap distribution; the page already ships OG/Twitter cards. */}
