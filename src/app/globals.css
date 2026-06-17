@@ -7,6 +7,12 @@
   --accent-fg: #ffffff;
   --muted: #f5f5f5;
   --border: #e5e5e5;
+  /* Ava Health family palette (parent brand). Available app-wide for the
+     shared family band and any parent-signal UI. This app KEEPS its own
+     green --accent; these are additive, not a reskin. */
+  --brand: #003D5C;
+  --brand-accent: #7FBC00;
+  --brand-cyan: #00B5D4;
   color-scheme: light only;
 }
 
@@ -16,6 +22,9 @@
   --color-accent: var(--accent);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-cyan: var(--brand-cyan);
   --font-sans: var(--font-inter);
 }
 
