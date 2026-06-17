@@ -19,6 +19,13 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── June 2026 ────────────────────────────────────
   {
+    date: "2026-06-17",
+    title: "Part of the Ava Health family",
+    body:
+      "Free Job Post now shows a 'Part of Ava Health' footer with quick links to the free resume tool, the provider directory, and the recruiter platform. The board itself is unchanged and still free to post and apply.",
+    tag: "improved",
+  },
+  {
     date: "2026-06-04",
     title: "Job-alert and apply emails are more reliable",
     body:
