@@ -72,28 +72,28 @@ export default async function FederalJobsHubPage() {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-black text-lg sm:text-xl tracking-tight">
-                freejobpost<span className="text-green-700">.co</span>
+              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+                Ava Health
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider rounded-md border border-gray-200 px-1.5 py-0.5">
                 BETA
               </span>
             </Link>
             <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
                 Browse jobs
               </Link>
-              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">
+              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">
                 For candidates
               </a>
               <Link
                 href="/post-job"
-                className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
               >
-                Post a job →
+                Post a Job →
               </Link>
             </div>
           </div>
@@ -101,24 +101,24 @@ export default async function FederalJobsHubPage() {
 
         {/* Breadcrumb */}
         <div className="max-w-6xl mx-auto px-6 pt-6 text-xs text-gray-500">
-          <Link href="/" className="hover:text-green-700">Home</Link>
+          <Link href="/" className="hover:text-[#003D5C]">Home</Link>
           <span className="mx-2">/</span>
-          <Link href="/jobs" className="hover:text-green-700">Jobs</Link>
+          <Link href="/jobs" className="hover:text-[#003D5C]">Jobs</Link>
           <span className="mx-2">/</span>
-          <span className="text-black">Federal</span>
+          <span className="text-[#003D5C]">Federal</span>
         </div>
 
         {/* Header */}
-        <section className="border-b-2 border-black">
+        <section className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
-            <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
-              <span className="w-2 h-2 bg-green-600" />
+            <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 shadow-sm px-3 py-1 text-xs font-bold tracking-wider mb-6">
+              <span className="w-2 h-2 bg-[#7FBC00]" />
               {totalFederal.toLocaleString()} FEDERAL ROLES
             </div>
-            <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight mb-4">
+            <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight mb-4 text-[#003D5C]">
               Federal healthcare jobs.
               <br />
-              <span className="text-green-700">VA. IHS. DoD. NIH. HHS.</span>
+              <span className="text-[#7FBC00]">VA. IHS. DoD. NIH. HHS.</span>
             </h1>
             <p className="text-lg md:text-xl max-w-3xl text-gray-700">
               Open federal healthcare positions from the Department of Veterans
@@ -140,11 +140,11 @@ export default async function FederalJobsHubPage() {
               <Link
                 key={a.slug}
                 href={`/jobs/federal/${a.slug}`}
-                className="border-2 border-black p-6 hover:bg-green-50 transition-colors flex flex-col"
+                className="rounded-xl border border-gray-200 shadow-sm p-6 hover:bg-[#7FBC00]/10 transition-colors flex flex-col"
               >
                 <div className="flex items-baseline justify-between mb-2">
-                  <div className="font-black text-xl tracking-tight">{a.fullName}</div>
-                  <div className="text-sm font-bold text-green-700 shrink-0 ml-4">
+                  <div className="font-black text-xl tracking-tight text-[#003D5C]">{a.fullName}</div>
+                  <div className="text-sm font-bold text-[#003D5C] shrink-0 ml-4">
                     {a.count.toLocaleString()}{' '}
                     <span className="text-gray-500 font-normal">
                       {a.count === 1 ? 'role' : 'roles'}
@@ -152,7 +152,7 @@ export default async function FederalJobsHubPage() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-700 leading-relaxed">{a.blurb}</p>
-                <span className="mt-4 text-xs font-bold tracking-wider underline underline-offset-2 self-start hover:text-green-700">
+                <span className="mt-4 text-xs font-bold tracking-wider underline underline-offset-2 self-start hover:text-[#003D5C]">
                   Browse {a.name} jobs →
                 </span>
               </Link>
@@ -166,7 +166,7 @@ export default async function FederalJobsHubPage() {
             All federal positions are pulled directly from{' '}
             <a
               href="https://www.usajobs.gov/"
-              className="underline hover:text-green-700"
+              className="underline hover:text-[#003D5C]"
               rel="noopener"
             >
               USAJobs.gov

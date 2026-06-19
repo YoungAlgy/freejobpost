@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <main className="max-w-3xl mx-auto px-6 py-20 text-center">
-      <h1 className="text-6xl font-black tracking-tight mb-4">404</h1>
+      <h1 className="text-6xl font-black tracking-tight mb-4 text-[#003D5C]">404</h1>
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Page not found</h2>
       <p className="text-gray-600 mb-10 max-w-md mx-auto">
         That page doesn't exist or got moved. Try one of the links below.
@@ -20,13 +20,13 @@ export default function NotFound() {
       <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
         <Link
           href="/jobs"
-          className="inline-flex justify-center items-center bg-green-600 text-black px-6 py-3 font-black border-2 border-black hover:bg-green-500 transition-colors"
+          className="inline-flex justify-center items-center bg-[#7FBC00] text-white px-6 py-3 font-black rounded-md hover:bg-[#6DA300] transition-colors"
         >
           Browse all jobs
         </Link>
         <Link
           href="/post-job"
-          className="inline-flex justify-center items-center bg-white text-black px-6 py-3 font-bold border-2 border-black hover:bg-black hover:text-white transition-colors"
+          className="inline-flex justify-center items-center bg-white text-black px-6 py-3 font-bold rounded-md border border-gray-200 hover:bg-[#003D5C] hover:text-white transition-colors"
         >
           Post a job free
         </Link>
@@ -38,8 +38,8 @@ export default function NotFound() {
         </Link>
       </div>
 
-      <div className="text-left border-2 border-black bg-gray-50 p-6">
-        <h3 className="text-xs font-black tracking-wider uppercase mb-4">
+      <div className="text-left rounded-xl border border-gray-200 bg-gray-50 p-6 shadow-sm">
+        <h3 className="text-xs font-black tracking-wider uppercase mb-4 text-[#003D5C]">
           Popular searches
         </h3>
         <div className="flex flex-wrap gap-2">
@@ -56,7 +56,7 @@ export default function NotFound() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm px-3 py-1.5 border-2 border-black bg-white hover:bg-green-50 transition-colors font-bold"
+              className="text-sm px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-[#7FBC00]/10 transition-colors font-bold"
             >
               {link.label}
             </Link>

@@ -56,9 +56,9 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
 
   if (result?.success) {
     return (
-      <div role="status" aria-live="polite" className="border-2 border-black p-8 bg-green-50">
-        <div className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-xs font-bold tracking-wider mb-4">
-          <span className="w-2 h-2 bg-green-600" />
+      <div role="status" aria-live="polite" className="rounded-xl border border-gray-200 shadow-sm p-8 bg-green-50">
+        <div className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1 text-xs font-bold tracking-wider mb-4">
+          <span className="w-2 h-2 bg-[#7FBC00]" />
           APPLIED
         </div>
         <h2 className="text-2xl md:text-3xl font-black leading-tight mb-3">
@@ -81,13 +81,13 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/jobs"
-            className="inline-flex items-center justify-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
+            className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
           >
             Browse more jobs →
           </Link>
           <a
             href="https://www.freeresumepost.co/upload"
-            className="inline-flex items-center justify-center border-2 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-colors"
+            className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-3 font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
           >
             Upload your resume
           </a>
@@ -95,7 +95,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
 
         {/* Peak intent: they just applied, the interview is the next worry.
             Renders nothing unless the program link is configured. */}
-        <div className="mt-6 pt-6 border-t-2 border-black/10">
+        <div className="mt-6 pt-6 border-t border-gray-200">
           <AffiliateOffer program="finalround" />
         </div>
       </div>
@@ -169,7 +169,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
           Or{' '}
           <a
             href="https://www.freeresumepost.co/upload"
-            className="underline hover:text-green-700"
+            className="underline hover:text-[#003D5C]"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -206,17 +206,17 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t-2 border-black">
+      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
         <Link
           href={`/jobs/${jobSlug}`}
-          className="text-sm font-bold underline hover:text-green-700"
+          className="text-sm font-bold underline hover:text-[#003D5C]"
         >
           ← Back to {jobTitle.length > 30 ? 'job' : jobTitle}
         </Link>
         <button
           type="submit"
           disabled={pending || !canSubmit()}
-          className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Submitting…' : 'Apply →'}
         </button>
@@ -226,7 +226,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
 }
 
 const fieldStyle =
-  'w-full px-4 py-3 bg-white border-2 border-black text-sm focus:outline-none focus:ring-2 focus:ring-green-600'
+  'w-full px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#7FBC00]'
 
 function Field({
   label,

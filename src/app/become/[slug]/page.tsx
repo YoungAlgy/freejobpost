@@ -107,7 +107,7 @@ export default async function CareerPathPage({ params }: Props) {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Free Job Post',
+      name: 'Ava Health',
       url: 'https://freejobpost.co',
     },
     inLanguage: 'en-US',
@@ -124,34 +124,34 @@ export default async function CareerPathPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(articleJsonLd) }}
       />
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">All jobs</Link>
-              <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300]">Post a Job</Link>
             </div>
           </div>
         </nav>
 
         <article className="max-w-3xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-500 mb-6" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-black">Home</Link>
+            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
             {' / '}
-            <Link href="/become" className="hover:text-black">Career paths</Link>
+            <Link href="/become" className="hover:text-[#003D5C]">Career paths</Link>
             {' / '}
-            <span className="text-black font-medium">{guide.abbreviation || guide.title}</span>
+            <span className="text-[#003D5C] font-medium">{guide.abbreviation || guide.title}</span>
           </nav>
 
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4 leading-tight text-[#003D5C]">
             {guide.title}
           </h1>
           <p className="text-lg text-gray-700 mb-8 leading-relaxed">{guide.lede}</p>
 
           {/* Mid-page CTA — primary value-add over competing how-to sites */}
-          <aside className="border-2 border-black bg-green-50 p-4 mb-10">
+          <aside className="rounded-xl border border-gray-200 shadow-sm bg-[#7FBC00]/10 p-4 mb-10">
             <p className="text-xs font-bold tracking-widest text-gray-700 uppercase mb-1">
               Looking for current openings?
             </p>
@@ -161,7 +161,7 @@ export default async function CareerPathPage({ params }: Props) {
             </p>
             <Link
               href={`/specialty/${guide.specialtySlug}`}
-              className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+              className="inline-flex items-center font-bold border-b-2 border-[#003D5C] text-[#003D5C] hover:border-[#002A40] pb-0.5"
             >
               See current {guide.specialtyLabel.toLowerCase()} →
             </Link>
@@ -170,13 +170,13 @@ export default async function CareerPathPage({ params }: Props) {
           <div className="prose prose-lg max-w-none space-y-8">
             {guide.sections.map((section) => (
               <section key={section.heading}>
-                <h2 className="text-xl font-black tracking-tight mb-3">{section.heading}</h2>
+                <h2 className="text-xl font-black tracking-tight mb-3 text-[#003D5C]">{section.heading}</h2>
                 <p className="text-gray-800 leading-relaxed">{section.body}</p>
               </section>
             ))}
           </div>
 
-          <section className="mt-12 border-t-2 border-black pt-8">
+          <section className="mt-12 border-t border-gray-200 pt-8">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
               Current {guide.specialtyLabel.toLowerCase()} by metro
             </h2>
@@ -190,7 +190,7 @@ export default async function CareerPathPage({ params }: Props) {
                     // specialty), fall back to the city hub — never link
                     // to a known-404 URL.
                     href={cellExists ? `/city/${hub.slug}/${guide.specialtySlug}` : `/city/${hub.slug}`}
-                    className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                   >
                     {hub.name.split(',')[0]} →
                   </Link>
@@ -199,7 +199,7 @@ export default async function CareerPathPage({ params }: Props) {
               <li>
                 <Link
                   href={`/specialty/${guide.specialtySlug}`}
-                  className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                 >
                   All US openings →
                 </Link>
@@ -225,7 +225,7 @@ export default async function CareerPathPage({ params }: Props) {
             />
           </div>
 
-          <section className="mt-10 border-t-2 border-black pt-8">
+          <section className="mt-10 border-t border-gray-200 pt-8">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
               Other healthcare career guides
             </h2>
@@ -234,7 +234,7 @@ export default async function CareerPathPage({ params }: Props) {
                 <li key={other.slug}>
                   <Link
                     href={`/become/${other.slug}`}
-                    className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                   >
                     {other.abbreviation || other.specialtyLabel.replace(/ jobs$/i, '')} →
                   </Link>

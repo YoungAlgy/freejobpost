@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase'
 import { formatSalary, employmentLabel, locationLabel } from '@/lib/public-jobs'
 
 export const runtime = 'edge'
-export const alt = 'Job posting on freejobpost.co'
+export const alt = 'Job posting on Ava Health'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 // 2026-05-28 cost audit: the route's header comment claimed slug-level CDN
@@ -85,8 +85,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, paddingBottom: 20, borderBottom: `4px solid ${ACCENT}`, marginBottom: 48 }}>
-          <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>freejobpost</span>
-          <span style={{ fontSize: 28, fontWeight: 400, opacity: 0.7 }}>.co</span>
+          <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>Ava Health</span>
         </div>
 
         <div style={{ display: 'flex', alignSelf: 'flex-start', background: ACCENT, color: BRAND, padding: '8px 18px', borderRadius: 999, fontSize: 20, fontWeight: 700, marginBottom: 32, letterSpacing: 1, maxWidth: 1040, overflow: 'hidden' }}>

@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Terms of Use',
-  description: 'Free Job Post terms of use. Healthcare job board operated by Ava Health Partners LLC.',
+  description: 'Ava Health terms of use. Healthcare job board operated by Ava Health Partners LLC.',
   alternates: { canonical: 'https://freejobpost.co/terms' },
   robots: { index: true, follow: true },
 }
@@ -11,17 +11,17 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-            freejobpost<span className="text-green-700">.co</span>
+          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+            Ava Health
           </Link>
-          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-green-700">Browse jobs</Link>
+          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
         </div>
       </nav>
 
       <article className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">Terms of Use</h1>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#003D5C]">Terms of Use</h1>
         <p className="text-sm text-gray-600 mb-10">Last updated April 27, 2026</p>
 
         <div className="space-y-6 text-gray-800 leading-relaxed">
@@ -93,11 +93,11 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-black mt-8 mb-2">10. Contact</h2>
           <p>
-            Questions? <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a>
+            Questions? <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>
           </p>
 
           <p className="mt-10 text-sm text-gray-600">
-            See also: <Link href="/privacy" className="underline hover:text-green-700">Privacy Policy</Link>
+            See also: <Link href="/privacy" className="underline hover:text-[#003D5C]">Privacy Policy</Link>
           </p>
         </div>
       </article>

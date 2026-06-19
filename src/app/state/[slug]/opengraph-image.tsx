@@ -35,8 +35,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, paddingBottom: 20, borderBottom: `4px solid ${ACCENT}`, marginBottom: 64 }}>
-          <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>freejobpost</span>
-          <span style={{ fontSize: 28, fontWeight: 400, opacity: 0.7 }}>.co</span>
+          <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>Ava Health</span>
         </div>
 
         <div style={{ display: 'flex', alignSelf: 'flex-start', background: ACCENT, color: BRAND, padding: '8px 18px', borderRadius: 999, fontSize: 22, fontWeight: 700, marginBottom: 36, textTransform: 'uppercase', letterSpacing: 1 }}>

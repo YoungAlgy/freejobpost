@@ -190,26 +190,24 @@ export default async function FederalAgencyStatePage(
         />
       )}
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-black text-lg sm:text-xl tracking-tight">
-                freejobpost<span className="text-green-700">.co</span>
-              </span>
-              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
+              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
                 BETA
               </span>
             </Link>
             <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
                 Browse jobs
               </Link>
-              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">
+              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">
                 For candidates
               </a>
               <Link
                 href="/post-job"
-                className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
               >
                 Post a job →
               </Link>
@@ -218,29 +216,29 @@ export default async function FederalAgencyStatePage(
         </nav>
 
         <div className="max-w-6xl mx-auto px-6 pt-6 text-xs text-gray-500">
-          <Link href="/" className="hover:text-green-700">Home</Link>
+          <Link href="/" className="hover:text-[#003D5C]">Home</Link>
           <span className="mx-2">/</span>
-          <Link href="/jobs" className="hover:text-green-700">Jobs</Link>
+          <Link href="/jobs" className="hover:text-[#003D5C]">Jobs</Link>
           <span className="mx-2">/</span>
-          <Link href="/jobs/federal" className="hover:text-green-700">Federal</Link>
+          <Link href="/jobs/federal" className="hover:text-[#003D5C]">Federal</Link>
           <span className="mx-2">/</span>
-          <Link href={`/jobs/federal/${agency.slug}`} className="hover:text-green-700">
+          <Link href={`/jobs/federal/${agency.slug}`} className="hover:text-[#003D5C]">
             {agency.name}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-black">{state.name}</span>
+          <span className="text-[#003D5C]">{state.name}</span>
         </div>
 
-        <section className="border-b-2 border-black">
+        <section className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
-            <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
-              <span className="w-2 h-2 bg-green-600" />
+            <div className="inline-flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-1 text-xs font-bold tracking-wider mb-6">
+              <span className="w-2 h-2 bg-[#7FBC00]" />
               {totalCount.toLocaleString()} {agency.name.toUpperCase()} ROLES IN {state.name.toUpperCase()}
             </div>
             <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight mb-4">
               {agency.fullName}
               <br />
-              <span className="text-green-700">{state.name} jobs.</span>
+              <span className="text-[#7FBC00]">{state.name} jobs.</span>
             </h1>
             <p className="text-lg md:text-xl max-w-3xl text-gray-700">
               {agency.blurb}
@@ -255,7 +253,7 @@ export default async function FederalAgencyStatePage(
 
         <section className="max-w-6xl mx-auto px-6 py-10">
           {jobs.length === 0 ? (
-            <div className="py-12 text-center border-2 border-black bg-gray-50">
+            <div className="py-12 text-center border border-gray-200 rounded-lg bg-gray-50">
               <p className="text-lg font-bold mb-2">
                 No active {agency.name} listings in {state.name} right now.
               </p>
@@ -263,12 +261,12 @@ export default async function FederalAgencyStatePage(
                 Federal job postings move fast.{' '}
                 <Link
                   href={`/jobs/federal/${agency.slug}`}
-                  className="underline hover:text-green-700"
+                  className="underline hover:text-[#003D5C]"
                 >
                   See all {agency.name} jobs nationwide
                 </Link>{' '}
                 or{' '}
-                <Link href="/jobs/federal" className="underline hover:text-green-700">
+                <Link href="/jobs/federal" className="underline hover:text-[#003D5C]">
                   browse other agencies
                 </Link>
                 .
@@ -283,7 +281,7 @@ export default async function FederalAgencyStatePage(
                   {jobs.length < totalCount && ` · showing ${jobs.length}`}
                 </p>
               </div>
-              <ul className="divide-y-2 divide-black border-y-2 border-black">
+              <ul className="divide-y divide-gray-200 border-y border-gray-200">
                 {jobs.map((job) => {
                   const loc = locationLabel(job)
                   const sal = formatSalary(job.salary_min, job.salary_max)
@@ -293,7 +291,7 @@ export default async function FederalAgencyStatePage(
                     <li key={job.id}>
                       <Link
                         href={`/jobs/${job.slug}`}
-                        className="grid grid-cols-12 gap-4 py-5 hover:bg-green-50 transition-colors"
+                        className="grid grid-cols-12 gap-4 py-5 hover:bg-[#003D5C]/5 transition-colors"
                       >
                         <div className="col-span-12 md:col-span-5">
                           <div className="font-bold">
@@ -302,7 +300,7 @@ export default async function FederalAgencyStatePage(
                           <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
                             {emp && <span>{emp}</span>}
                             {rem && rem !== 'Onsite' && (
-                              <span className="text-green-700 font-bold">{rem}</span>
+                              <span className="text-[#003D5C] font-bold">{rem}</span>
                             )}
                           </div>
                         </div>
@@ -327,7 +325,7 @@ export default async function FederalAgencyStatePage(
                   For more, view{' '}
                   <Link
                     href={`/jobs/federal/${agency.slug}`}
-                    className="underline hover:text-green-700"
+                    className="underline hover:text-[#003D5C]"
                   >
                     all {agency.name} nationwide
                   </Link>
@@ -361,14 +359,14 @@ export default async function FederalAgencyStatePage(
               ←{' '}
               <Link
                 href={`/jobs/federal/${agency.slug}`}
-                className="underline hover:text-green-700"
+                className="underline hover:text-[#003D5C]"
               >
                 All {agency.name} jobs (nationwide)
               </Link>{' '}
               · ←{' '}
               <Link
                 href="/jobs/federal"
-                className="underline hover:text-green-700"
+                className="underline hover:text-[#003D5C]"
               >
                 Browse other federal agencies
               </Link>

@@ -186,26 +186,26 @@ export default async function JobsIndexPage() {
       )}
       <main className="min-h-screen bg-white text-black">
         {/* Nav */}
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-black text-lg sm:text-xl tracking-tight">
-                freejobpost<span className="text-green-700">.co</span>
+              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+                Ava Health
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
                 BETA
               </span>
             </Link>
             <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700 border-b-2 border-black">
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C] border-b-2 border-[#003D5C]">
                 Browse jobs
               </Link>
-              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">
+              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">
                 For candidates
               </a>
               <Link
                 href="/post-job"
-                className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
               >
                 Post a job →
               </Link>
@@ -214,16 +214,16 @@ export default async function JobsIndexPage() {
         </nav>
 
         {/* Header */}
-        <section className="border-b-2 border-black">
+        <section className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
-            <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
-              <span className="w-2 h-2 bg-green-600" />
+            <div className="inline-flex items-center gap-2 rounded-xl border border-gray-200 shadow-sm px-3 py-1 text-xs font-bold tracking-wider mb-6">
+              <span className="w-2 h-2 bg-[#7FBC00]" />
               {totalActive.toLocaleString()} OPEN ROLES
             </div>
-            <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight mb-4">
+            <h1 className="text-4xl md:text-6xl font-black leading-[0.95] tracking-tight mb-4 text-[#003D5C]">
               Healthcare jobs.
               <br />
-              <span className="text-green-700">Free to apply.</span>
+              <span className="text-[#7FBC00]">Free to apply.</span>
             </h1>
             <p className="text-lg md:text-xl max-w-2xl text-gray-700">
               Browse open roles. No account required.
@@ -266,7 +266,7 @@ export default async function JobsIndexPage() {
             </p>
             <Link
               href="/post-job"
-              className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
+              className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
             >
               Post a job →
             </Link>

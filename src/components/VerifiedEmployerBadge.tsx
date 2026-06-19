@@ -34,7 +34,7 @@ export default function VerifiedEmployerBadge({
         width="14"
         height="14"
         aria-hidden="true"
-        className="text-green-700 shrink-0"
+        className="text-[#00B5D4] shrink-0"
       >
         {/* Filled check inside a circle — recognizable trust signal */}
         <circle cx="8" cy="8" r="7" fill="currentColor" />
@@ -48,7 +48,7 @@ export default function VerifiedEmployerBadge({
         />
       </svg>
       {!iconOnly && (
-        <span className="text-[10px] font-bold uppercase tracking-wider text-green-700">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[#00B5D4]">
           Verified
         </span>
       )}

@@ -44,8 +44,8 @@ type Entry = ChangelogEntry
 const ENTRIES = CHANGELOG_ENTRIES
 
 const TAG_STYLES: Record<Tag, string> = {
-  new: 'bg-green-700 text-white',
-  improved: 'bg-black text-white',
+  new: 'bg-[#7FBC00] text-white',
+  improved: 'bg-[#003D5C] text-white',
   fixed: 'bg-amber-500 text-black',
   reliability: 'bg-blue-700 text-white',
   security: 'bg-red-700 text-white',
@@ -85,26 +85,26 @@ export default function ChangelogPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-            freejobpost<span className="text-green-700">.co</span>
+          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+            Ava Health
           </Link>
           <div className="flex items-center gap-6 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-green-700">Browse jobs</Link>
-            <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
+            <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors">Post A Job</Link>
           </div>
         </div>
       </nav>
 
       <article className="max-w-3xl mx-auto px-6 py-12 md:py-20">
-        <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
-          <span className="w-2 h-2 bg-green-600" />
+        <div className="inline-flex items-center gap-2 border border-gray-200 px-3 py-1 text-xs font-bold tracking-wider mb-6 rounded-md">
+          <span className="w-2 h-2 bg-[#7FBC00]" />
           CHANGELOG
         </div>
-        <h1 className="text-4xl md:text-5xl font-black leading-[0.95] tracking-tight mb-6">
+        <h1 className="text-4xl md:text-5xl font-black leading-[0.95] tracking-tight mb-6 text-[#003D5C]">
           What&apos;s new on<br />
-          <span className="text-green-700">freejobpost.co</span>
+          <span className="text-[#003D5C]">Ava Health</span>
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-2">
           Recent shipped features, fixes, and reliability work. We update this when something
@@ -144,7 +144,7 @@ export default function ChangelogPage() {
                           <h3 className="text-lg font-black leading-tight tracking-tight">
                             <a
                               href={`#${anchor}`}
-                              className="hover:text-green-700 focus:text-green-700"
+                              className="hover:text-[#003D5C] focus:text-[#003D5C]"
                               aria-label={`Permalink to ${e.title}`}
                             >
                               {e.title}
@@ -166,10 +166,10 @@ export default function ChangelogPage() {
           ))}
         </div>
 
-        <div className="mt-16 pt-8 border-t-2 border-black">
+        <div className="mt-16 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-700">
             Want to suggest a feature or report a bug? Email{' '}
-            <a href="mailto:info@avahealth.co" className="underline hover:text-green-700 font-bold">
+            <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C] font-bold">
               info@avahealth.co
             </a>
             .

@@ -27,11 +27,11 @@ export default function ResumeMatchCTA({ specialtyLabel, locationLabel }: Props)
   const where = locationLabel && locationLabel.trim() ? ` in ${locationLabel.trim()}` : ''
 
   return (
-    <aside className="border-2 border-black bg-green-50 p-5 md:p-6">
-      <p className="text-[11px] font-bold tracking-widest text-green-800 uppercase mb-2">
+    <aside className="rounded-xl border border-gray-200 shadow-sm bg-green-50 p-5 md:p-6">
+      <p className="text-[11px] font-bold tracking-widest text-[#003D5C] uppercase mb-2">
         Stop applying one by one
       </p>
-      <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight mb-2">
+      <h3 className="text-xl md:text-2xl font-black tracking-tight leading-tight mb-2 text-[#003D5C]">
         Upload your resume once. Get matched to {what}
         {where}.
       </h3>
@@ -41,7 +41,7 @@ export default function ResumeMatchCTA({ specialtyLabel, locationLabel }: Props)
       </p>
       <a
         href={UPLOAD_URL}
-        className="inline-flex items-center bg-black text-white px-5 py-2.5 font-bold hover:bg-green-700 transition-colors"
+        className="inline-flex items-center bg-[#7FBC00] text-white px-5 py-2.5 font-bold hover:bg-[#6DA300] transition-colors"
       >
         Upload my resume free →
       </a>

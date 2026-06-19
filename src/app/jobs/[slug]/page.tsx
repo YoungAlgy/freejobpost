@@ -446,26 +446,26 @@ export default async function JobDetailPage({ params }: Props) {
       />
       <main className="min-h-screen bg-white text-black">
         {/* Nav */}
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-black text-lg sm:text-xl tracking-tight">
-                freejobpost<span className="text-green-700">.co</span>
+              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+                Ava Health
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
                 BETA
               </span>
             </Link>
             <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
                 Browse jobs
               </Link>
-              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">
+              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">
                 For candidates
               </a>
               <Link
                 href="/post-job"
-                className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
               >
                 Post a job →
               </Link>
@@ -476,11 +476,11 @@ export default async function JobDetailPage({ params }: Props) {
         <div className="max-w-4xl mx-auto px-6 py-10">
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
-            <Link href="/" className="hover:text-green-700">
+            <Link href="/" className="hover:text-[#003D5C]">
               Home
             </Link>
             <span className="mx-2">/</span>
-            <Link href="/jobs" className="hover:text-green-700">
+            <Link href="/jobs" className="hover:text-[#003D5C]">
               Jobs
             </Link>
             <span className="mx-2">/</span>
@@ -488,7 +488,7 @@ export default async function JobDetailPage({ params }: Props) {
           </nav>
 
           {/* Header card */}
-          <div className="border-2 border-black p-6 md:p-8 mb-6">
+          <div className="rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 mb-6">
             <h1 className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-3">
               {cleanJobTitle}
             </h1>
@@ -496,28 +496,28 @@ export default async function JobDetailPage({ params }: Props) {
 
             <div className="flex flex-wrap gap-2 mb-6">
               {emp && (
-                <span className="text-xs font-bold tracking-wider border-2 border-black px-2.5 py-1">
+                <span className="text-xs font-bold tracking-wider rounded-md border border-gray-200 px-2.5 py-1">
                   {emp.toUpperCase()}
                 </span>
               )}
               {rem && (
                 <span
-                  className={`text-xs font-bold tracking-wider border-2 px-2.5 py-1 ${
+                  className={`text-xs font-bold tracking-wider rounded-md border px-2.5 py-1 ${
                     rem === 'Remote'
-                      ? 'bg-green-600 text-white border-green-600'
-                      : 'border-black'
+                      ? 'bg-[#7FBC00] text-white border-[#7FBC00]'
+                      : 'border-gray-200'
                   }`}
                 >
                   {rem.toUpperCase()}
                 </span>
               )}
               {sal && (
-                <span className="text-xs font-bold tracking-wider bg-black text-white px-2.5 py-1">
+                <span className="text-xs font-bold tracking-wider bg-[#003D5C] text-white px-2.5 py-1">
                   {sal}
                 </span>
               )}
               {job.specialty && job.specialty !== job.role && (
-                <span className="text-xs font-bold tracking-wider border-2 border-black px-2.5 py-1">
+                <span className="text-xs font-bold tracking-wider rounded-md border border-gray-200 px-2.5 py-1">
                   {job.specialty.toUpperCase()}
                 </span>
               )}
@@ -531,21 +531,21 @@ export default async function JobDetailPage({ params }: Props) {
                 // to a usable destination.
                 <ApplyExternalLink
                   slug={job.slug}
-                  className="inline-flex items-center justify-center bg-black text-white px-6 py-4 text-base font-bold hover:bg-green-700 transition-colors"
+                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
                 >
                   Apply on employer site →
                 </ApplyExternalLink>
               ) : (
                 <Link
                   href={`/jobs/${job.slug}/apply`}
-                  className="inline-flex items-center justify-center bg-black text-white px-6 py-4 text-base font-bold hover:bg-green-700 transition-colors"
+                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
                 >
                   Apply for this role →
                 </Link>
               )}
               <Link
                 href="/jobs"
-                className="inline-flex items-center justify-center border-2 border-black px-6 py-4 text-base font-bold hover:bg-black hover:text-white transition-colors"
+                className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
               >
                 Browse all jobs
               </Link>
@@ -565,7 +565,7 @@ export default async function JobDetailPage({ params }: Props) {
           </div>
 
           {/* Description */}
-          <div className="border-2 border-black p-6 md:p-8 mb-6">
+          <div className="rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 mb-6">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 mb-4">
               ABOUT THIS ROLE
             </h2>
@@ -626,7 +626,7 @@ export default async function JobDetailPage({ params }: Props) {
               ) : employer.slug ? (
                 <Link
                   href={`/employers/${employer.slug}`}
-                  className="text-black font-medium underline underline-offset-2 hover:text-green-700"
+                  className="text-black font-medium underline underline-offset-2 hover:text-[#003D5C]"
                 >
                   {employer.name}
                 </Link>
@@ -657,7 +657,7 @@ export default async function JobDetailPage({ params }: Props) {
                 This role is placed by{' '}
                 <a
                   href="https://avahealth.co"
-                  className="underline hover:text-green-700"
+                  className="underline hover:text-[#003D5C]"
                   rel="noopener"
                 >
                   Ava Health Partners LLC
@@ -752,7 +752,7 @@ export default async function JobDetailPage({ params }: Props) {
             }
             if (links.length === 0) return null
             return (
-              <section className="border-t-2 border-black pt-10 mb-10">
+              <section className="border-t border-gray-200 pt-10 mb-10">
                 <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
                   BROWSE MORE
                 </h2>
@@ -761,7 +761,7 @@ export default async function JobDetailPage({ params }: Props) {
                     <li key={l.href}>
                       <Link
                         href={l.href}
-                        className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                        className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                       >
                         {l.label} →
                       </Link>
@@ -774,11 +774,11 @@ export default async function JobDetailPage({ params }: Props) {
 
           {/* Related */}
           {related.length > 0 && (
-            <section className="border-t-2 border-black pt-10">
+            <section className="border-t border-gray-200 pt-10">
               <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
                 RELATED ROLES
               </h2>
-              <ul className="divide-y-2 divide-black border-y-2 border-black">
+              <ul className="divide-y divide-gray-200 border-y border-gray-200">
                 {related.map((r) => {
                   const rLoc = locationLabel(r)
                   const rSal = formatSalary(r.salary_min, r.salary_max)
@@ -833,26 +833,26 @@ function ClosedJobView({
   return (
     <main className="min-h-screen bg-white text-black">
       {/* Nav — identical to the active job page for visual continuity */}
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
               BETA
             </span>
           </Link>
           <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-green-700">
+            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
               Browse jobs
             </Link>
-            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">
+            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">
               For candidates
             </a>
             <Link
               href="/post-job"
-              className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+              className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
             >
               Post a job →
             </Link>
@@ -863,11 +863,11 @@ function ClosedJobView({
       <div className="max-w-4xl mx-auto px-6 py-10">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
-          <Link href="/" className="hover:text-green-700">
+          <Link href="/" className="hover:text-[#003D5C]">
             Home
           </Link>
           <span className="mx-2">/</span>
-          <Link href="/jobs" className="hover:text-green-700">
+          <Link href="/jobs" className="hover:text-[#003D5C]">
             Jobs
           </Link>
           <span className="mx-2">/</span>
@@ -875,8 +875,8 @@ function ClosedJobView({
         </nav>
 
         {/* Closed banner */}
-        <div className="border-2 border-black p-6 md:p-8 mb-8">
-          <span className="inline-block text-xs font-bold tracking-wider bg-black text-white px-2.5 py-1 mb-4">
+        <div className="rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 mb-8">
+          <span className="inline-block text-xs font-bold tracking-wider bg-[#003D5C] text-white px-2.5 py-1 mb-4">
             POSITION CLOSED
           </span>
           <h1 className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-3">
@@ -893,14 +893,14 @@ function ClosedJobView({
             {specialtyHub && (
               <Link
                 href={`/specialty/${specialtyHub.slug}`}
-                className="inline-flex items-center justify-center bg-black text-white px-6 py-4 text-base font-bold hover:bg-green-700 transition-colors"
+                className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
               >
                 Browse {specialtyHub.title.replace(/ Jobs$/, '')} jobs →
               </Link>
             )}
             <Link
               href="/jobs"
-              className="inline-flex items-center justify-center border-2 border-black px-6 py-4 text-base font-bold hover:bg-black hover:text-white transition-colors"
+              className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
             >
               Browse all jobs
             </Link>
@@ -916,11 +916,11 @@ function ClosedJobView({
 
         {/* Similar open roles */}
         {related.length > 0 && (
-          <section className="border-t-2 border-black pt-10 mb-10">
+          <section className="border-t border-gray-200 pt-10 mb-10">
             <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
               SIMILAR OPEN ROLES
             </h2>
-            <ul className="divide-y-2 divide-black border-y-2 border-black">
+            <ul className="divide-y divide-gray-200 border-y border-gray-200">
               {related.map((r) => {
                 const rLoc = locationLabel(r)
                 const rSal = formatSalary(r.salary_min, r.salary_max)
@@ -947,7 +947,7 @@ function ClosedJobView({
 
         {/* Hub links — route the visitor (and any equity) into the live hub graph */}
         {(specialtyHub || stateHub) && (
-          <section className="border-t-2 border-black pt-10">
+          <section className="border-t border-gray-200 pt-10">
             <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
               BROWSE MORE
             </h2>
@@ -956,7 +956,7 @@ function ClosedJobView({
                 <li>
                   <Link
                     href={`/specialty/${specialtyHub.slug}`}
-                    className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                   >
                     More {specialtyHub.title.replace(/ Jobs$/, '')} jobs →
                   </Link>
@@ -966,7 +966,7 @@ function ClosedJobView({
                 <li>
                   <Link
                     href={`/state/${stateHub.slug}`}
-                    className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                   >
                     Healthcare jobs in {stateHub.name} →
                   </Link>

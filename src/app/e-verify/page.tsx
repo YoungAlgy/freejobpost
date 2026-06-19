@@ -13,22 +13,22 @@ export const metadata: Metadata = {
 export default function EVerifyPage() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-            freejobpost<span className="text-green-700">.co</span>
+          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+            Ava Health
           </Link>
-          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-green-700">Browse jobs</Link>
+          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
         </div>
       </nav>
 
       <article className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">E-Verify Participation</h1>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#003D5C]">E-Verify Participation</h1>
         <p className="text-sm text-gray-600 mb-8">Ava Health Partners LLC &middot; operator of freejobpost.co</p>
 
         {/* Status card — pulls live from src/lib/e-verify-config.ts. */}
         {E_VERIFY.enrolled && E_VERIFY.companyId && (
-          <div className="border-2 border-black p-5 mb-10">
+          <div className="rounded-xl border border-gray-200 shadow-sm p-5 mb-10">
             <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
               <div>
                 <dt className="text-gray-600 uppercase text-xs tracking-wide">Company</dt>
@@ -96,7 +96,7 @@ export default function EVerifyPage() {
             <li>
               <a
                 href="https://www.e-verify.gov/sites/default/files/everify/posters/EVerifyParticipationPoster.pdf"
-                className="text-green-700 underline hover:text-black"
+                className="text-[#003D5C] underline hover:text-[#002A40]"
               >
                 E-Verify Participation poster (English / Spanish)
               </a>
@@ -104,7 +104,7 @@ export default function EVerifyPage() {
             <li>
               <a
                 href="https://www.e-verify.gov/sites/default/files/everify/posters/IER_RighttoWorkPoster.pdf"
-                className="text-green-700 underline hover:text-black"
+                className="text-[#003D5C] underline hover:text-[#002A40]"
               >
                 Right to Work poster (English / Spanish)
               </a>
@@ -114,11 +114,11 @@ export default function EVerifyPage() {
           <h2 className="text-xl font-black mt-8 mb-2">Questions</h2>
           <p>
             Questions about Ava Health&apos;s E-Verify participation:{' '}
-            <a href="mailto:info@avahealth.co" className="text-green-700 underline hover:text-black">
+            <a href="mailto:info@avahealth.co" className="text-[#003D5C] underline hover:text-[#002A40]">
               info@avahealth.co
             </a>
             . General E-Verify support: 1-888-464-4218 or{' '}
-            <a href="https://www.e-verify.gov" className="text-green-700 underline hover:text-black">
+            <a href="https://www.e-verify.gov" className="text-[#003D5C] underline hover:text-[#002A40]">
               e-verify.gov
             </a>
             .

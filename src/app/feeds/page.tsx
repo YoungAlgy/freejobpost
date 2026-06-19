@@ -15,23 +15,23 @@ export const metadata: Metadata = {
 export default function FeedsPage() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">PARTNER</span>
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">PARTNER</span>
           </Link>
-          <Link href="/jobs" className="text-sm font-medium hover:text-green-700">
+          <Link href="/jobs" className="text-sm font-medium hover:text-[#003D5C]">
             Browse jobs →
           </Link>
         </div>
       </nav>
 
       <div className="max-w-4xl mx-auto px-6 py-12">
-        <p className="text-xs font-bold tracking-widest text-green-700 uppercase mb-3">For distribution partners</p>
-        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4">Job feeds.</h1>
+        <p className="text-xs font-bold tracking-widest text-[#003D5C] uppercase mb-3">For distribution partners</p>
+        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#003D5C]">Job feeds.</h1>
         <p className="text-gray-700 mb-3 max-w-2xl">
           Public XML / RSS feeds you can pull to syndicate our healthcare jobs. All feeds are
           open, no auth required, refreshed every 15 minutes.
@@ -62,7 +62,7 @@ export default function FeedsPage() {
             return (
               <div
                 key={t.id}
-                className={`border-2 p-5 ${isDead ? 'border-red-300 bg-red-50/40' : 'border-black'}`}
+                className={`rounded-xl shadow-sm p-5 ${isDead ? 'border border-red-300 bg-red-50/40' : 'border border-gray-200'}`}
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
@@ -71,10 +71,10 @@ export default function FeedsPage() {
                       {statusLabel[status]}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono bg-black text-white px-2 py-1 tracking-wider">{t.spec}</span>
+                  <span className="text-[10px] font-mono bg-[#003D5C] text-white px-2 py-1 tracking-wider">{t.spec}</span>
                 </div>
                 <p className={`text-sm mb-2 ${isDead ? 'text-gray-500' : 'text-gray-700'}`}>{t.blurb} <span className="text-gray-500">· {t.reach}</span></p>
-                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-500' : 'text-green-700'}`}>{t.feedUrl}</a>
+                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-500' : 'text-[#003D5C]'}`}>{t.feedUrl}</a>
                 <p className="text-sm text-gray-700 mt-3">
                   <span className="font-bold">Submit to:</span>{' '}
                   {contact?.instructions ?? 'Contact partner team for onboarding instructions.'}
@@ -97,13 +97,13 @@ export default function FeedsPage() {
           })}
 
           {/* Sitemap is special — not a per-job-feed but the crawl-discovery signal */}
-          <div className="border-2 border-black p-5">
+          <div className="rounded-xl border border-gray-200 shadow-sm p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
               <h2 className="text-xl font-black">Sitemap (crawl discovery)</h2>
-              <span className="text-[10px] font-mono bg-black text-white px-2 py-1 tracking-wider">sitemaps.org 0.9</span>
+              <span className="text-[10px] font-mono bg-[#003D5C] text-white px-2 py-1 tracking-wider">sitemaps.org 0.9</span>
             </div>
             <p className="text-sm text-gray-700 mb-2">For Google, Bing, DuckDuckGo, and any general-purpose web crawler.</p>
-            <a href="https://freejobpost.co/sitemap.xml" className="text-sm font-mono text-green-700 underline break-all">https://freejobpost.co/sitemap.xml</a>
+            <a href="https://freejobpost.co/sitemap.xml" className="text-sm font-mono text-[#003D5C] underline break-all">https://freejobpost.co/sitemap.xml</a>
             <p className="text-sm text-gray-700 mt-3">
               <span className="font-bold">Submit to:</span> {PARTNER_CONTACTS.sitemap.instructions}
             </p>

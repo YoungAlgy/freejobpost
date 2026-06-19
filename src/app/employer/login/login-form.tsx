@@ -27,7 +27,7 @@ export default function LoginForm() {
 
   if (result?.success) {
     return (
-      <div role="status" aria-live="polite" className="border-2 border-black p-6 bg-green-50">
+      <div role="status" aria-live="polite" className="rounded-xl border border-gray-200 shadow-sm p-6 bg-green-50">
         <p className="font-black text-lg mb-2">Check your email.</p>
         <p className="text-sm text-gray-800">
           If <strong>{email}</strong> has posts on freejobpost.co, you&apos;ll
@@ -37,7 +37,7 @@ export default function LoginForm() {
         <p className="text-xs text-gray-500 mt-4">
           Don&apos;t see it? Check your spam folder. Link stays active for 30 days.
           Still nothing after a few minutes?{' '}
-          <a href="mailto:info@avahealth.co?subject=Employer+dashboard+login+help" className="underline hover:text-green-700">
+          <a href="mailto:info@avahealth.co?subject=Employer+dashboard+login+help" className="underline hover:text-[#003D5C]">
             Email us
           </a>{' '}
           and we&apos;ll sort it out.
@@ -62,7 +62,7 @@ export default function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           maxLength={254}
           placeholder="you@yourhealthclinic.com"
-          className="w-full px-4 py-3 bg-white border-2 border-black text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="w-full px-4 py-3 bg-white rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FBC00]"
         />
       </label>
 
@@ -83,7 +83,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors disabled:opacity-50"
+        className="w-full bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50"
       >
         {pending ? 'Sending…' : 'Send sign-in link →'}
       </button>

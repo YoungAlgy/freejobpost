@@ -105,18 +105,18 @@ export default async function EmployersPage() {
 
       <main className="min-h-screen bg-white text-gray-900 font-sans">
         {/* Nav */}
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="font-black tracking-tight text-xl">
-              freejobpost<span className="text-gray-400">.co</span>
+            <Link href="/" className="font-black tracking-tight text-xl text-[#003D5C]">
+              Ava Health
             </Link>
             <div className="flex items-center gap-4 text-sm">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
                 Browse jobs
               </Link>
               <Link
                 href="/post-job"
-                className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
               >
                 Post a job
               </Link>
@@ -144,19 +144,19 @@ export default async function EmployersPage() {
 
           {active.length === 0 ? (
             /* Empty state during cold-start — honest, not alarming */
-            <div className="border-2 border-black p-10 text-center">
+            <div className="rounded-xl border border-gray-200 shadow-sm p-10 text-center">
               <p className="text-xl font-black mb-3">Building our employer network</p>
               <p className="text-gray-600 mb-6 max-w-lg mx-auto">
                 We&apos;re onboarding direct healthcare employer postings now. In the
                 meantime,{' '}
-                <Link href="/jobs" className="underline hover:text-green-700">
+                <Link href="/jobs" className="underline hover:text-[#003D5C]">
                   browse all active openings
                 </Link>{' '}
                 where every listing has a real apply link.
               </p>
               <Link
                 href="/post-job"
-                className="inline-block bg-black text-white font-bold px-6 py-3 hover:bg-green-700 transition-colors"
+                className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-3 rounded-md hover:bg-[#6DA300] transition-colors"
               >
                 Post your roles free →
               </Link>
@@ -166,7 +166,7 @@ export default async function EmployersPage() {
               <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
                 {active.length} verified {active.length === 1 ? 'employer' : 'employers'}
               </p>
-              <ul className="divide-y-2 divide-black border-y-2 border-black">
+              <ul className="divide-y divide-gray-200 border-y border-gray-200">
                 {active.map((employer) => {
                   const jobCount = counts[employer.id] ?? 0
                   return (
@@ -183,7 +183,7 @@ export default async function EmployersPage() {
                             </span>
                           )}
                         </div>
-                        <span className="text-sm font-bold text-green-700 shrink-0">
+                        <span className="text-sm font-bold text-[#003D5C] shrink-0">
                           {jobCount} open {jobCount === 1 ? 'role' : 'roles'} →
                         </span>
                       </Link>
@@ -195,17 +195,17 @@ export default async function EmployersPage() {
           )}
 
           {/* Always-on CTA */}
-          <div className="mt-16 border-t-2 border-black pt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="mt-16 border-t border-gray-200 pt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
               Healthcare employer?{' '}
-              <Link href="/post-job" className="font-bold underline hover:text-green-700">
+              <Link href="/post-job" className="font-bold underline hover:text-[#003D5C]">
                 Post your open roles free
               </Link>{' '}
               with no credit card, no auction, no paywall to see applicants.
             </p>
             <Link
               href="/for-employers"
-              className="text-sm font-bold underline underline-offset-2 hover:text-green-700 shrink-0"
+              className="text-sm font-bold underline underline-offset-2 hover:text-[#003D5C] shrink-0"
             >
               How it works →
             </Link>

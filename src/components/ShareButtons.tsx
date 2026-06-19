@@ -49,7 +49,7 @@ export default function ShareButtons({ url, title, className = '' }: Props) {
   }
 
   const btn =
-    'inline-flex items-center gap-1.5 border-2 border-black px-3 py-2 text-xs font-bold tracking-wider uppercase hover:bg-black hover:text-white transition-colors'
+    'inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-2 text-xs font-bold tracking-wider uppercase hover:bg-[#003D5C] hover:text-white transition-colors'
 
   return (
     <div className={`flex flex-wrap items-center gap-2 ${className}`}>

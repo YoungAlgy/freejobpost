@@ -4,9 +4,9 @@ export const runtime = 'edge'
 export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
 
-// Brutalist favicon — solid black square with a thick green underline,
-// matching the freejobpost.co brand (green-700 = #15803d). The two-letter
-// stack reads as "fj" without ascenders/descenders fighting the tiny canvas.
+// Ava Health favicon — navy square (#003D5C) with a lime underline
+// (#7FBC00), matching the Ava Health brand. The single "A" monogram reads
+// cleanly without ascenders/descenders fighting the tiny 32x32 canvas.
 export default function Icon() {
   return new ImageResponse(
     (
@@ -18,16 +18,16 @@ export default function Icon() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#000',
+          background: '#003D5C',
           fontFamily: '"Helvetica Neue", "Segoe UI", system-ui, sans-serif',
           fontWeight: 900,
           color: '#fff',
           fontSize: 22,
           letterSpacing: -1,
-          borderBottom: '4px solid #15803d',
+          borderBottom: '4px solid #7FBC00',
         }}
       >
-        fj
+        A
       </div>
     ),
     { ...size },

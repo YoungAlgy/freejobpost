@@ -94,24 +94,24 @@ const FAQ_ITEMS = [
 
 export default function ForEmployersPage() {
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
               BETA
             </span>
           </Link>
           <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-green-700">Browse jobs</Link>
-            <Link href="/how-it-works" className="hover:text-green-700">How it works</Link>
+            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
+            <Link href="/how-it-works" className="hover:text-[#003D5C]">How it works</Link>
             <Link
               href="/post-job"
-              className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+              className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
             >
               Post a job →
             </Link>
@@ -120,16 +120,16 @@ export default function ForEmployersPage() {
       </nav>
 
       {/* Hero */}
-      <section className="border-b-2 border-black">
+      <section className="border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 py-20 md:py-28">
-          <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-8">
-            <span className="w-2 h-2 bg-green-600" />
+          <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-1 text-xs font-bold tracking-wider mb-8">
+            <span className="w-2 h-2 bg-[#7FBC00]" />
             FOR HEALTHCARE EMPLOYERS
           </div>
-          <h1 className="text-5xl md:text-7xl font-black leading-[0.92] tracking-tight mb-8">
+          <h1 className="text-5xl md:text-7xl font-black leading-[0.92] tracking-tight mb-8 text-[#003D5C]">
             Post healthcare jobs free.
             <br />
-            <span className="text-green-700">Keep every applicant.</span>
+            <span className="text-[#7FBC00]">Keep every applicant.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 max-w-2xl leading-snug mb-10">
             No sponsored-bid auction. No per-applicant charge. No "unlock this resume"
@@ -138,13 +138,13 @@ export default function ForEmployersPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/post-job"
-              className="inline-flex items-center justify-center bg-black text-white px-8 py-4 text-base font-bold hover:bg-green-700 transition-colors"
+              className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-8 py-4 text-base font-bold rounded-md hover:bg-[#6DA300] transition-colors"
             >
               Post a job free →
             </Link>
             <Link
               href="/how-it-works"
-              className="inline-flex items-center justify-center border-2 border-black px-8 py-4 text-base font-bold hover:bg-black hover:text-white transition-colors"
+              className="inline-flex items-center justify-center rounded-md border border-gray-200 px-8 py-4 text-base font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
             >
               See how it works
             </Link>
@@ -153,7 +153,7 @@ export default function ForEmployersPage() {
       </section>
 
       {/* The cost comparison */}
-      <section className="border-b-2 border-black bg-gray-50">
+      <section className="border-b border-gray-200 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">THE INDEED TAX</h2>
           <p className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-6 max-w-3xl">
@@ -167,18 +167,18 @@ export default function ForEmployersPage() {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b-2 border-black">
+                <tr className="border-b border-gray-200">
                   <th className="text-left py-3 pr-6 text-xs font-bold tracking-widest">ROLE</th>
                   <th className="text-left py-3 pr-6 text-xs font-bold tracking-widest text-gray-600">INDEED SPONSORED (typical)</th>
-                  <th className="text-left py-3 text-xs font-bold tracking-widest text-green-700">FREEJOBPOST.CO</th>
+                  <th className="text-left py-3 text-xs font-bold tracking-widest text-[#003D5C]">AVA HEALTH</th>
                 </tr>
               </thead>
               <tbody>
                 {COST_ROWS.map((row, i) => (
-                  <tr key={row.label} className={`border-b ${i < COST_ROWS.length - 1 ? 'border-gray-200' : 'border-black'}`}>
+                  <tr key={row.label} className={`border-b ${i < COST_ROWS.length - 1 ? 'border-gray-200' : 'border-gray-200'}`}>
                     <td className="py-4 pr-6 font-bold">{row.label}</td>
                     <td className="py-4 pr-6 text-gray-700">{row.indeed}</td>
-                    <td className="py-4 font-black text-green-700">{row.freejobpost}</td>
+                    <td className="py-4 font-black text-[#003D5C]">{row.freejobpost}</td>
                   </tr>
                 ))}
               </tbody>
@@ -191,7 +191,7 @@ export default function ForEmployersPage() {
       </section>
 
       {/* How it works (employer-specific) */}
-      <section className="border-b-2 border-black">
+      <section className="border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">HOW IT WORKS</h2>
           <p className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-16">
@@ -220,8 +220,8 @@ export default function ForEmployersPage() {
                 p: 'Applicant contact info lands in your inbox. No middleman, no "unlock" fee, no dashboard login required to see who applied.',
               },
             ].map((step) => (
-              <div key={step.n} className="border-2 border-black p-6">
-                <div className="text-green-700 font-black text-xs tracking-widest mb-3">{step.n}</div>
+              <div key={step.n} className="rounded-xl border border-gray-200 shadow-sm p-6">
+                <div className="text-[#003D5C] font-black text-xs tracking-widest mb-3">{step.n}</div>
                 <h3 className="font-black text-xl tracking-tight mb-3">{step.h}</h3>
                 <p className="text-gray-700 leading-relaxed text-sm">{step.p}</p>
               </div>
@@ -231,7 +231,7 @@ export default function ForEmployersPage() {
       </section>
 
       {/* Where does it go */}
-      <section className="border-b-2 border-black bg-gray-50">
+      <section className="border-b border-gray-200 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">DISTRIBUTION</h2>
           <p className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-6 max-w-3xl">
@@ -251,11 +251,11 @@ export default function ForEmployersPage() {
               { name: 'ZipRecruiter', status: 'Feed live', note: 'Feed submitted, pending Open Network acceptance' },
               { name: 'Jooble', status: 'Feed live', note: 'Feed submitted, pending acceptance' },
             ].map((ch) => (
-              <div key={ch.name} className="border-2 border-black bg-white p-4">
+              <div key={ch.name} className="rounded-xl border border-gray-200 shadow-sm bg-white p-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-black text-base">{ch.name}</span>
                   <span className={`text-[10px] font-bold tracking-wider px-1.5 py-0.5 ${
-                    ch.status === 'Active' ? 'bg-green-600 text-white' : 'border border-black text-gray-700'
+                    ch.status === 'Active' ? 'bg-[#7FBC00] text-white' : 'border border-gray-200 text-gray-700'
                   }`}>
                     {ch.status.toUpperCase()}
                   </span>
@@ -268,14 +268,14 @@ export default function ForEmployersPage() {
       </section>
 
       {/* Comparison table */}
-      <section className="border-b-2 border-black">
+      <section className="border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">VS THE ALTERNATIVES</h2>
           <p className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-12 max-w-3xl">
             What you don&apos;t pay for.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="border-2 border-gray-300 p-6">
+            <div className="rounded-xl border border-gray-200 shadow-sm p-6">
               <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-4">Indeed Sponsored</div>
               <ul className="space-y-2.5 text-sm text-gray-700">
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $0.10-$5.00 per click auction</li>
@@ -284,7 +284,7 @@ export default function ForEmployersPage() {
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $300-$2,500+ average cost per healthcare hire</li>
               </ul>
             </div>
-            <div className="border-2 border-gray-300 p-6">
+            <div className="rounded-xl border border-gray-200 shadow-sm p-6">
               <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-4">ZipRecruiter Paid</div>
               <ul className="space-y-2.5 text-sm text-gray-700">
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $299-$599+/month subscription</li>
@@ -293,13 +293,13 @@ export default function ForEmployersPage() {
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> Candidate profiles sold to multiple employers simultaneously</li>
               </ul>
             </div>
-            <div className="border-2 border-green-700 bg-green-50 p-6">
-              <div className="text-xs font-bold tracking-wider text-green-700 uppercase mb-4">freejobpost.co</div>
+            <div className="rounded-xl border border-[#7FBC00] bg-green-50 shadow-sm p-6">
+              <div className="text-xs font-bold tracking-wider text-[#003D5C] uppercase mb-4">Ava Health</div>
               <ul className="space-y-2.5 text-sm text-gray-800">
-                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> $0, free to post, free to see applicants</li>
-                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> No bid auction, all organic listings</li>
-                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> Applicant contact info goes to you only</li>
-                <li className="flex gap-2"><span className="font-black text-green-700">✓</span> Free forever, no trial that auto-converts</li>
+                <li className="flex gap-2"><span className="font-black text-[#003D5C]">✓</span> $0, free to post, free to see applicants</li>
+                <li className="flex gap-2"><span className="font-black text-[#003D5C]">✓</span> No bid auction, all organic listings</li>
+                <li className="flex gap-2"><span className="font-black text-[#003D5C]">✓</span> Applicant contact info goes to you only</li>
+                <li className="flex gap-2"><span className="font-black text-[#003D5C]">✓</span> Free forever, no trial that auto-converts</li>
               </ul>
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function ForEmployersPage() {
       </section>
 
       {/* Why free */}
-      <section className="border-b-2 border-black bg-gray-50">
+      <section className="border-b border-gray-200 bg-gray-50">
         <div className="max-w-3xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">WHY FREE?</h2>
           <p className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-6">
@@ -319,7 +319,7 @@ export default function ForEmployersPage() {
           <div className="space-y-4 text-gray-700 leading-relaxed">
             <p>
               freejobpost.co is operated by{' '}
-              <a href="https://avahealth.co" className="underline font-bold hover:text-green-700">
+              <a href="https://avahealth.co" className="underline font-bold hover:text-[#003D5C]">
                 Ava Health Partners LLC
               </a>
               , a healthcare staffing firm. We maintain a candidate database for our placement
@@ -341,7 +341,7 @@ export default function ForEmployersPage() {
       </section>
 
       {/* FAQ */}
-      <section className="border-b-2 border-black">
+      <section className="border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">EMPLOYER FAQ</h2>
           <p className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-12">
@@ -359,12 +359,12 @@ export default function ForEmployersPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="border-b-2 border-black bg-black text-white">
+      <section className="border-b border-gray-200 bg-[#003D5C] text-white">
         <div className="max-w-5xl mx-auto px-6 py-24 text-center">
           <p className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tight mb-8">
             Post your first role.
             <br />
-            <span className="text-green-500">60 seconds. $0.</span>
+            <span className="text-[#7FBC00]">60 seconds. $0.</span>
           </p>
           <p className="text-lg text-gray-300 max-w-xl mx-auto mb-10">
             No account setup. No credit card. No sales call. Just fill the form and you&apos;re live.
@@ -372,13 +372,13 @@ export default function ForEmployersPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/post-job"
-              className="inline-flex items-center justify-center bg-green-600 text-black px-8 py-5 text-lg font-black hover:bg-green-500 transition-colors"
+              className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-8 py-5 text-lg font-black rounded-md hover:bg-[#6DA300] transition-colors"
             >
               Post a job free →
             </Link>
             <a
               href="mailto:info@avahealth.co?subject=freejobpost.co%20employer%20question"
-              className="inline-flex items-center justify-center border-2 border-white text-white px-8 py-5 text-lg font-bold hover:bg-white hover:text-black transition-colors"
+              className="inline-flex items-center justify-center rounded-md border-2 border-white text-white px-8 py-5 text-lg font-bold hover:bg-white hover:text-[#003D5C] transition-colors"
             >
               Questions? Email us
             </a>

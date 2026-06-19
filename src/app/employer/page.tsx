@@ -133,14 +133,14 @@ export default async function EmployerDashboardPage() {
   if (!session) redirect('/employer/login')
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+    <main className="min-h-screen bg-white text-gray-900">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
               BETA
             </span>
           </Link>
@@ -148,7 +148,7 @@ export default async function EmployerDashboardPage() {
             <span className="text-gray-500 hidden md:inline">
               Signed in as <strong>{session.employer.contact_email}</strong>
             </span>
-            <Link href="/post-job" className="font-bold hover:text-green-700">
+            <Link href="/post-job" className="font-bold text-[#003D5C] hover:text-[#002A40]">
               + New post
             </Link>
           </div>

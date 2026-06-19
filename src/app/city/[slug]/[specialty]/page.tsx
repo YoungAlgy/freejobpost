@@ -164,34 +164,34 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListJsonLd) }}
       />
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">All jobs</Link>
-              <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300]">Post a Job</Link>
             </div>
           </div>
         </nav>
 
         <div className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-500 mb-6" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-black">Home</Link>
+            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
             {' / '}
-            <Link href="/city" className="hover:text-black">Cities</Link>
+            <Link href="/city" className="hover:text-[#003D5C]">Cities</Link>
             {' / '}
-            <Link href={`/city/${cityHub.slug}`} className="hover:text-black">{cityHub.name}</Link>
+            <Link href={`/city/${cityHub.slug}`} className="hover:text-[#003D5C]">{cityHub.name}</Link>
             {' / '}
-            <span className="text-black font-medium">{cleanSpecialty}</span>
+            <span className="text-[#003D5C] font-medium">{cleanSpecialty}</span>
           </nav>
 
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#003D5C]">
             {cleanSpecialty} jobs in {cityShort}
           </h1>
           <p className="text-base text-gray-600 mb-6">
-            <span className="tabular-nums font-bold text-black">{jobs.length}</span>
+            <span className="tabular-nums font-bold text-[#003D5C]">{jobs.length}</span>
             {' '}
             {jobs.length === 1 ? 'open role' : 'open roles'}
           </p>
@@ -204,7 +204,7 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
             <h2 className="text-sm font-bold tracking-widest text-gray-500 uppercase mb-4">
               Open roles
             </h2>
-            <ul className="divide-y-2 divide-black border-y-2 border-black">
+            <ul className="divide-y divide-gray-200 border-y border-gray-200">
               {jobs.map((j) => {
                 const loc = locationLabel(j)
                 const sal = formatSalary(j.salary_min, j.salary_max)
@@ -214,7 +214,7 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
                   <li key={j.id}>
                     <Link
                       href={`/jobs/${j.slug}`}
-                      className="block py-4 hover:bg-green-50 transition-colors"
+                      className="block py-4 hover:bg-[#7FBC00]/10 transition-colors"
                     >
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -251,7 +251,7 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
             />
           </div>
 
-          <section className="mt-12 border-t-2 border-black pt-8">
+          <section className="mt-12 border-t border-gray-200 pt-8">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
               Browse more
             </h2>
@@ -259,7 +259,7 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
               <li>
                 <Link
                   href={`/city/${cityHub.slug}`}
-                  className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                 >
                   All {cityShort} jobs →
                 </Link>
@@ -267,7 +267,7 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
               <li>
                 <Link
                   href={`/specialty/${specialtyHub.slug}`}
-                  className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                 >
                   {cleanSpecialty} nationwide →
                 </Link>
@@ -276,7 +276,7 @@ export default async function CitySpecialtyMatrixPage({ params }: Props) {
                 <li>
                   <Link
                     href={`/specialty/${specialtyHub.slug}/${stateHub.slug}`}
-                    className="inline-block border-2 border-black px-3 py-2 text-sm font-bold hover:bg-black hover:text-white transition-colors"
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                   >
                     {cleanSpecialty} in {stateHub.name} →
                   </Link>

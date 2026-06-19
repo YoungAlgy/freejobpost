@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Free Job Post privacy policy. We never sell candidate contact data. Operated by Ava Health Partners LLC.',
+  description: 'Ava Health privacy policy. We never sell candidate contact data. Operated by Ava Health Partners LLC.',
   alternates: { canonical: 'https://freejobpost.co/privacy' },
   robots: { index: true, follow: true },
 }
@@ -11,17 +11,17 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-            freejobpost<span className="text-green-700">.co</span>
+          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+            Ava Health
           </Link>
-          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-green-700">Browse jobs</Link>
+          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
         </div>
       </nav>
 
       <article className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">Privacy Policy</h1>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#003D5C]">Privacy Policy</h1>
         <p className="text-sm text-gray-600 mb-10">Last updated April 27, 2026</p>
 
         <div className="space-y-6 text-gray-800 leading-relaxed">
@@ -81,14 +81,14 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-black mt-8 mb-2">Bot protection (Cloudflare Turnstile)</h2>
           <p>
             We use{' '}
-            <a href="https://www.cloudflare.com/products/turnstile/" className="underline hover:text-green-700" rel="noopener noreferrer">
+            <a href="https://www.cloudflare.com/products/turnstile/" className="underline hover:text-[#003D5C]" rel="noopener noreferrer">
               Cloudflare Turnstile
             </a>{' '}
             on form submissions (post a job, apply for a job, employer login) to detect bots and
             prevent spam. Turnstile may use browser signals (cookies, local storage, browser
             characteristics) to assess whether a form submission is human. No data collected by
             Turnstile is used for advertising. See{' '}
-            <a href="https://www.cloudflare.com/privacypolicy/" className="underline hover:text-green-700" rel="noopener noreferrer">
+            <a href="https://www.cloudflare.com/privacypolicy/" className="underline hover:text-[#003D5C]" rel="noopener noreferrer">
               Cloudflare&apos;s Privacy Policy
             </a>{' '}
             for details.
@@ -99,20 +99,20 @@ export default function PrivacyPage() {
             Transactional emails (post verification, applicant notifications) are sent via Resend.
             We honor unsubscribe requests immediately and add the email to a permanent suppression list.
             We do not run cold-email campaigns; if you receive unsolicited mail claiming to be from us,
-            forward it to <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a>.
+            forward it to <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>.
           </p>
 
           <h2 className="text-xl font-black mt-8 mb-2">Data retention + deletion</h2>
           <ul className="list-disc pl-5 space-y-1.5">
             <li>Job posts are retained for 90 days post-expiration, then soft-deleted.</li>
             <li>Applications are retained for 12 months for legal/audit reasons, then deleted.</li>
-            <li>You can request deletion of your data anytime by emailing <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a>.</li>
+            <li>You can request deletion of your data anytime by emailing <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>.</li>
           </ul>
 
           <h2 className="text-xl font-black mt-8 mb-2">Your rights (CCPA / GDPR)</h2>
           <p>
             California + EU residents: you have the right to access, correct, or delete your data.
-            Email <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a> with the subject &quot;Privacy request&quot;, and we&apos;ll respond within 30 days.
+            Email <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a> with the subject &quot;Privacy request&quot;, and we&apos;ll respond within 30 days.
           </p>
 
           <h2 className="text-xl font-black mt-8 mb-2">Security</h2>
@@ -126,11 +126,11 @@ export default function PrivacyPage() {
             <strong>Ava Health Partners LLC</strong><br />
             4532 W Kennedy Blvd, Suite 125<br />
             Tampa, FL 33609<br />
-            <a href="mailto:info@avahealth.co" className="underline hover:text-green-700">info@avahealth.co</a>
+            <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>
           </p>
 
           <p className="mt-10 text-sm text-gray-600">
-            See also: <Link href="/terms" className="underline hover:text-green-700">Terms of Use</Link>
+            See also: <Link href="/terms" className="underline hover:text-[#003D5C]">Terms of Use</Link>
           </p>
         </div>
       </article>

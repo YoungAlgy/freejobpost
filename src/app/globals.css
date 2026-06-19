@@ -3,15 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
-  --accent: #16a34a;
+  --accent: #7FBC00;
   --accent-fg: #ffffff;
   --muted: #f5f5f5;
   --border: #e5e5e5;
-  /* Ava Health family palette (parent brand). Available app-wide for the
-     shared family band and any parent-signal UI. This app KEEPS its own
-     green --accent; these are additive, not a reskin. */
+  /* Ava Health brand palette — this IS the brand now (unification reskin
+     2026-06-19). freejobpost is being unified under Ava Health: navy + green
+     + cyan, Inter. --accent repointed from the old freejob green (#16a34a) to
+     Ava green so CTAs/accents read Ava; use --brand (navy) for headings / hero
+     / nav as the component sweep lands. */
   --brand: #003D5C;
+  --brand-hover: #002A40;
   --brand-accent: #7FBC00;
+  --brand-accent-hover: #6DA300;
   --brand-cyan: #00B5D4;
   color-scheme: light only;
 }

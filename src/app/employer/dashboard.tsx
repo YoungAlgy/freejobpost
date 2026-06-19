@@ -74,11 +74,11 @@ export default function Dashboard({
           </h1>
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
             {employer.verified_healthcare_org && (
-              <span className="border-2 border-black bg-green-50 px-2 py-1 font-bold tracking-wider">
+              <span className="rounded-md border border-[#00B5D4] text-[#00B5D4] px-2 py-1 font-bold tracking-wider">
                 VERIFIED
               </span>
             )}
-            <span className="border-2 border-black px-2 py-1 font-bold tracking-wider uppercase">
+            <span className="rounded-md border border-gray-200 px-2 py-1 font-bold tracking-wider uppercase">
               {employer.tier}
             </span>
             <span className="text-gray-500 self-center">
@@ -94,14 +94,14 @@ export default function Dashboard({
               href={`/employers/${publicSlug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center border-2 border-black px-5 py-2.5 font-bold hover:bg-black hover:text-white transition-colors text-sm"
+              className="inline-flex items-center rounded-md border border-gray-200 px-5 py-2.5 font-bold hover:bg-[#003D5C] hover:text-white transition-colors text-sm"
             >
               View public page ↗
             </Link>
           )}
           <Link
             href={`/post-job?co=${encodeURIComponent(employer.company_name)}&cn=${encodeURIComponent(employer.contact_name ?? '')}`}
-            className="inline-flex items-center bg-black text-white px-5 py-2.5 font-bold hover:bg-green-700 transition-colors"
+            className="inline-flex items-center rounded-md bg-[#7FBC00] text-white px-5 py-2.5 font-bold hover:bg-[#6DA300] transition-colors"
           >
             Post a new role →
           </Link>
@@ -160,12 +160,12 @@ function Section({
         {title}
       </h2>
       {hasChildren ? (
-        <ul className="divide-y-2 divide-black border-y-2 border-black">{children}</ul>
+        <ul className="divide-y divide-gray-200 border-y border-gray-200">{children}</ul>
       ) : (
         empty && (
-          <div className="py-10 px-4 text-center text-gray-500 border-2 border-dashed border-gray-300">
+          <div className="py-10 px-4 text-center text-gray-500 rounded-xl border border-dashed border-gray-300">
             {emptyHref ? (
-              <Link href={emptyHref} className="font-bold underline hover:text-green-700">
+              <Link href={emptyHref} className="font-bold underline text-[#003D5C] hover:text-[#002A40]">
                 {empty}
               </Link>
             ) : (
@@ -208,7 +208,7 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
         <div className="col-span-12 md:col-span-5">
           <Link
             href={`/jobs/${job.slug}`}
-            className="font-bold hover:text-green-700"
+            className="font-bold hover:text-[#003D5C]"
             target="_blank"
           >
             {job.title}
@@ -216,7 +216,7 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
           <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
             {emp && <span>{emp}</span>}
             {rem && rem !== 'Onsite' && (
-              <span className="text-green-700 font-bold">{rem}</span>
+              <span className="text-[#003D5C] font-bold">{rem}</span>
             )}
             <StatusBadge status={job.status} />
           </div>
@@ -244,7 +244,7 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
               type="button"
               onClick={onArchive}
               disabled={pending}
-              className="text-xs font-bold underline hover:text-green-700 disabled:opacity-50"
+              className="text-xs font-bold underline hover:text-[#003D5C] disabled:opacity-50"
             >
               {pending ? 'Archiving…' : confirmArchive ? 'Click again to confirm' : 'Mark filled'}
             </button>
@@ -258,7 +258,7 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    active: 'text-green-700',
+    active: 'text-[#003D5C]',
     pending_review: 'text-amber-600',
     filled: 'text-gray-500',
     expired: 'text-gray-500',
@@ -285,7 +285,7 @@ function LogoutButton() {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center border-2 border-black px-5 py-2.5 font-bold hover:bg-black hover:text-white transition-colors disabled:opacity-50"
+        className="inline-flex items-center rounded-md border border-gray-200 px-5 py-2.5 font-bold hover:bg-[#003D5C] hover:text-white transition-colors disabled:opacity-50"
       >
         Sign out
       </button>
@@ -308,7 +308,7 @@ function ApplicationsSection({ applications }: { applications: Application[] }) 
         <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-3">
           Applications
         </h2>
-        <div className="py-8 px-4 text-center text-gray-500 border-2 border-dashed border-gray-300">
+        <div className="py-8 px-4 text-center text-gray-500 rounded-xl border border-dashed border-gray-300">
           No applications yet. When candidates apply to your roles, their contact info
           appears here as a backup if an email notification is missed.
         </div>
@@ -332,7 +332,7 @@ function ApplicationsSection({ applications }: { applications: Application[] }) 
         </p>
       </div>
 
-      <div className="border-2 border-black divide-y-2 divide-black">
+      <div className="rounded-xl border border-gray-200 divide-y divide-gray-200">
         {visible.map((app) => (
           <ApplicationRow key={app.application_id} app={app} />
         ))}
@@ -343,7 +343,7 @@ function ApplicationsSection({ applications }: { applications: Application[] }) 
           type="button"
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
-          className="mt-3 text-xs font-bold underline hover:text-green-700"
+          className="mt-3 text-xs font-bold underline hover:text-[#003D5C]"
         >
           {expanded
             ? 'Show fewer'
@@ -381,14 +381,14 @@ function ApplicationRow({ app }: { app: Application }) {
         <div className="col-span-12 md:col-span-4 text-sm space-y-0.5">
           <a
             href={`mailto:${app.email}`}
-            className="block font-medium underline hover:text-green-700 break-all"
+            className="block font-medium underline hover:text-[#003D5C] break-all"
           >
             {app.email}
           </a>
           {app.phone && (
             <a
               href={`tel:${app.phone}`}
-              className="block text-gray-600 hover:text-green-700"
+              className="block text-gray-600 hover:text-[#003D5C]"
             >
               {app.phone}
             </a>
@@ -399,7 +399,7 @@ function ApplicationRow({ app }: { app: Application }) {
         <div className="col-span-12 md:col-span-4 text-sm text-right">
           <Link
             href={`/jobs/${app.job_slug}`}
-            className="block text-gray-700 hover:text-green-700 truncate"
+            className="block text-gray-700 hover:text-[#003D5C] truncate"
             target="_blank"
           >
             {app.job_title}
@@ -411,7 +411,7 @@ function ApplicationRow({ app }: { app: Application }) {
               type="button"
               onClick={() => setNoteOpen((o) => !o)}
               aria-expanded={noteOpen}
-              className="text-xs font-bold underline hover:text-green-700 mt-1"
+              className="text-xs font-bold underline hover:text-[#003D5C] mt-1"
             >
               {noteOpen ? 'Hide note' : 'Cover note'}
             </button>

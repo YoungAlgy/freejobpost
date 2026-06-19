@@ -74,18 +74,18 @@ export default async function ApplyPage({ params }: Props) {
   const loc = locationLabel(job)
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+    <main className="min-h-screen bg-white text-gray-900">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <span className="font-bold text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-300 text-gray-600 px-1.5 py-0.5 rounded">
               BETA
             </span>
           </Link>
-          <Link href="/jobs" className="hidden sm:inline text-sm font-medium hover:text-green-700">
+          <Link href="/jobs" className="hidden sm:inline text-sm font-medium hover:text-[#003D5C]">
             Browse jobs
           </Link>
         </div>
@@ -93,26 +93,26 @@ export default async function ApplyPage({ params }: Props) {
 
       <div className="max-w-2xl mx-auto px-6 py-10 md:py-14">
         <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
-          <Link href="/" className="hover:text-green-700">
+          <Link href="/" className="hover:text-[#003D5C]">
             Home
           </Link>
           <span className="mx-2">/</span>
-          <Link href="/jobs" className="hover:text-green-700">
+          <Link href="/jobs" className="hover:text-[#003D5C]">
             Jobs
           </Link>
           <span className="mx-2">/</span>
-          <Link href={`/jobs/${slug}`} className="hover:text-green-700">
+          <Link href={`/jobs/${slug}`} className="hover:text-[#003D5C]">
             {job.title}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-black">Apply</span>
+          <span className="text-[#003D5C] font-medium">Apply</span>
         </nav>
 
-        <div className="border-2 border-black p-6 mb-8">
+        <div className="rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
           <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-2">
             Applying to
           </p>
-          <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight mb-2">
+          <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight mb-2 text-[#003D5C]">
             {job.title}
           </h1>
           {loc && <p className="text-gray-600">{loc}</p>}
@@ -123,7 +123,7 @@ export default async function ApplyPage({ params }: Props) {
         <p className="mt-8 text-xs text-gray-500">
           By applying you are sharing your contact info with the employer.
           They will reach you by email. We never sell your data. See{' '}
-          <Link href="/privacy" className="underline hover:text-green-700">
+          <Link href="/privacy" className="underline hover:text-[#003D5C]">
             privacy
           </Link>
           .

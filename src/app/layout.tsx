@@ -7,6 +7,7 @@ import './globals.css'
 import { buildOrganizationGraph } from '@/lib/organization-schema'
 import { E_VERIFY } from '@/lib/e-verify-config'
 import { AvaFamilyBand } from '@/components/ava-family/AvaFamilyBand'
+import { AvaFamilyNav } from '@/components/ava-family/AvaFamilyNav'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 const inter = Inter({
@@ -19,11 +20,11 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Free Job Post',
-    default: 'Free Job Post: Post jobs free, healthcare hiring without the Indeed tax',
+    template: '%s | Ava Health',
+    default: 'Healthcare Jobs — Post Free, Apply Free | Ava Health',
   },
   description:
-    'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Free Job Post is where growing employers hire.',
+    'Post and find healthcare jobs free on Ava Health. No credit card, no sponsored-bid auction, no paywall to see applicants. Where growing healthcare employers hire.',
   metadataBase: new URL('https://freejobpost.co'),
   // NO root-level `canonical` here. With metadataBase set, a root canonical
   // of '/' is inherited by every page that doesn't declare its own
@@ -38,16 +39,16 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    siteName: 'Free Job Post',
+    siteName: 'Ava Health',
     type: 'website',
     locale: 'en_US',
     url: 'https://freejobpost.co',
-    title: 'Free Job Post: Healthcare jobs without the Indeed tax',
+    title: 'Ava Health: Healthcare jobs without the Indeed tax',
     description: 'Post jobs free. Apply free. No auction fees, no paywall, no recruiter spam.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Free Job Post: Free healthcare job posts',
+    title: 'Ava Health: Free healthcare job posts',
     description: 'Post jobs free. No auction, no paywall.',
     site: '@avahealth',
   },
@@ -108,11 +109,11 @@ export default function RootLayout({
             __html: safeJsonLd(
               buildOrganizationGraph({
                 websiteUrl: 'https://freejobpost.co',
-                websiteName: 'Free Job Post',
+                websiteName: 'Ava Health',
                 websiteDescription:
-                  'Free healthcare job board. Post jobs free. Apply free. No auction fees.',
+                  'Ava Health — free healthcare job board. Post jobs free. Apply free. No auction fees.',
                 organizationDescription:
-                  'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates freejobpost.co, a free healthcare job board with no posting fees and no auction pricing.',
+                  'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates a free healthcare job board with no posting fees and no auction pricing.',
                 searchActionTarget: 'https://freejobpost.co/jobs?q={search_term_string}',
                 additionalSameAs: ['https://www.linkedin.com/company/freejobpost/'],
               })
@@ -124,10 +125,11 @@ export default function RootLayout({
         {/* Skip-nav: keyboard users can jump past the nav directly to the main content */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-black focus:text-white focus:text-sm focus:font-bold focus:rounded"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#003D5C] focus:text-white focus:text-sm focus:font-bold focus:rounded"
         >
           Skip to main content
         </a>
+        <AvaFamilyNav currentSite="freejob" />
         <div id="main-content">
           {children}
         </div>

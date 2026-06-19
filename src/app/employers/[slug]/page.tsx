@@ -188,18 +188,18 @@ export default async function EmployerPage({ params }: Props) {
 
       <main className="min-h-screen bg-white text-gray-900 font-sans">
         {/* Nav */}
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="font-black tracking-tight text-xl">
-              freejobpost<span className="text-gray-400">.co</span>
+            <Link href="/" className="font-black tracking-tight text-xl text-[#003D5C]">
+              Ava Health
             </Link>
             <div className="flex items-center gap-4 text-sm">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
                 Browse jobs
               </Link>
               <Link
                 href="/post-job"
-                className="bg-black text-white px-4 py-2 font-bold hover:bg-green-700 transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
               >
                 Post a job
               </Link>
@@ -222,7 +222,7 @@ export default async function EmployerPage({ params }: Props) {
           </nav>
 
           {/* Employer header */}
-          <header className="border-b-2 border-black pb-8 mb-10">
+          <header className="border-b border-gray-200 pb-8 mb-10">
             <div className="flex flex-wrap items-center gap-3 mb-2">
               <h1 className="text-4xl font-black tracking-tight leading-tight">
                 {employer.company_name}
@@ -266,7 +266,7 @@ export default async function EmployerPage({ params }: Props) {
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
               Open positions at {employer.company_name}
             </h2>
-            <ul className="divide-y-2 divide-black border-y-2 border-black">
+            <ul className="divide-y divide-gray-200 border-y border-gray-200">
               {jobs.map((job) => {
                 const loc = locationLabel(job)
                 const sal = formatSalary(job.salary_min, job.salary_max)
@@ -304,7 +304,7 @@ export default async function EmployerPage({ params }: Props) {
                         {emp || ''}
                       </div>
                       {/* Salary — full width on mobile (matches /jobs list pattern) */}
-                      <div className="col-span-12 md:col-span-1 font-bold text-right text-sm self-center text-green-700">
+                      <div className="col-span-12 md:col-span-1 font-bold text-right text-sm self-center text-[#003D5C]">
                         {sal || ''}
                       </div>
                     </Link>
@@ -332,11 +332,11 @@ export default async function EmployerPage({ params }: Props) {
           </div>
 
           {/* Post-job CTA */}
-          <div className="mt-16 border-2 border-black p-8">
+          <div className="mt-16 rounded-xl border border-gray-200 shadow-sm p-8">
             <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-2">
               For employers
             </p>
-            <h2 className="text-2xl font-black mb-4">
+            <h2 className="text-2xl font-black mb-4 text-[#003D5C]">
               Post your open roles free. No auction, no per-applicant fee.
             </h2>
             <p className="text-gray-700 mb-6 leading-relaxed max-w-xl">
@@ -347,13 +347,13 @@ export default async function EmployerPage({ params }: Props) {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/post-job"
-                className="inline-block bg-black text-white font-bold px-6 py-3 hover:bg-green-700 transition-colors"
+                className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-3 rounded-md hover:bg-[#6DA300] transition-colors"
               >
                 Post a job →
               </Link>
               <Link
                 href="/for-employers"
-                className="inline-block border-2 border-black font-bold px-6 py-3 hover:bg-black hover:text-white transition-colors"
+                className="inline-block rounded-md border border-gray-200 font-bold px-6 py-3 hover:bg-[#003D5C] hover:text-white transition-colors"
               >
                 How it works
               </Link>

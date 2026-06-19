@@ -134,9 +134,9 @@ export default function PostJobForm() {
   // Success screen
   if (result?.success) {
     return (
-      <div className="border-2 border-black p-8 md:p-10 bg-green-50">
-        <div className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-xs font-bold tracking-wider mb-6">
-          <span className="w-2 h-2 bg-green-600" />
+      <div className="border border-gray-200 rounded-xl p-8 md:p-10 bg-green-50">
+        <div className="inline-flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-3 py-1 text-xs font-bold tracking-wider mb-6">
+          <span className="w-2 h-2 bg-[#7FBC00]" />
           SUBMITTED
         </div>
         <h2 className="text-3xl md:text-4xl font-black leading-tight mb-4">
@@ -149,7 +149,7 @@ export default function PostJobForm() {
             Your job is saved, but the verification email to{' '}
             <strong className="font-bold">{values.contact_email}</strong> did not go
             out. Email{' '}
-            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-green-700">
+            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-[#003D5C]">
               info@avahealth.co
             </a>{' '}
             and we will verify your listing by hand.
@@ -169,7 +169,7 @@ export default function PostJobForm() {
           <p className="text-sm text-gray-600 mb-6">
             Link expires in 48 hours. Check your spam folder if you don&apos;t see it in a few minutes.
             Still nothing? Email{' '}
-            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-green-700">
+            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-[#003D5C]">
               info@avahealth.co
             </a>{' '}
             with the subject line "Job verification email not received" and we&apos;ll activate your listing manually.
@@ -178,7 +178,7 @@ export default function PostJobForm() {
         <div className="flex flex-wrap gap-3">
           <Link
             href="/jobs"
-            className="inline-flex items-center border-2 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-colors"
+            className="inline-flex items-center border border-[#003D5C] rounded-lg px-6 py-3 font-bold text-[#003D5C] hover:bg-[#003D5C] hover:text-white transition-colors"
           >
             Browse live jobs
           </Link>
@@ -193,7 +193,7 @@ export default function PostJobForm() {
               const cn = params.get('cn') ?? ''
               setValues({ ...INITIAL, company_name: co, contact_name: cn })
             }}
-            className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
+            className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
           >
             Post another →
           </button>
@@ -232,15 +232,15 @@ export default function PostJobForm() {
           <div
             key={s}
             className={`flex items-center gap-2 ${
-              s === step ? 'text-black' : s < step ? 'text-green-700' : 'text-gray-600'
+              s === step ? 'text-[#003D5C]' : s < step ? 'text-[#003D5C]' : 'text-gray-600'
             }`}
           >
             <span
               className={`w-7 h-7 border-2 flex items-center justify-center ${
                 s === step
-                  ? 'border-black bg-black text-white'
+                  ? 'border-[#003D5C] bg-[#003D5C] text-white'
                   : s < step
-                  ? 'border-green-700 bg-green-700 text-white'
+                  ? 'border-[#7FBC00] bg-[#7FBC00] text-white'
                   : 'border-gray-400'
               }`}
             >
@@ -485,7 +485,7 @@ export default function PostJobForm() {
             />
           </Field>
           {/* Distribution targets — checkboxes per network */}
-          <div className="border-2 border-black p-4 mt-2">
+          <div className="border border-gray-200 rounded-lg p-4 mt-2">
             <div className="flex items-baseline justify-between mb-3 gap-3">
               <div>
                 <p className="text-xs font-bold tracking-wider uppercase">Where should we syndicate this job?</p>
@@ -495,7 +495,7 @@ export default function PostJobForm() {
                 <button
                   type="button"
                   onClick={() => update('syndication_targets', SYNDICATION_TARGETS.map((t) => t.id))}
-                  className="underline hover:text-green-700"
+                  className="underline hover:text-[#003D5C]"
                 >
                   All on
                 </button>
@@ -514,15 +514,15 @@ export default function PostJobForm() {
                 return (
                   <label
                     key={t.id}
-                    className={`flex items-start gap-2.5 p-2.5 border cursor-pointer transition-colors ${
-                      on ? 'border-black bg-green-50' : 'border-gray-300 hover:border-black'
+                    className={`flex items-start gap-2.5 p-2.5 border rounded-lg cursor-pointer transition-colors ${
+                      on ? 'border-[#7FBC00] bg-[#7FBC00]/5' : 'border-gray-300 hover:border-[#003D5C]'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={on}
                       onChange={() => toggleTarget(t.id)}
-                      className="mt-0.5 w-4 h-4 accent-green-700"
+                      className="mt-0.5 w-4 h-4 accent-[#7FBC00]"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
@@ -564,7 +564,7 @@ export default function PostJobForm() {
       {stepError && <p role="alert" className="text-sm font-bold text-red-600">{stepError}</p>}
 
       {/* Nav buttons */}
-      <div className="flex items-center justify-between pt-4 border-t-2 border-black">
+      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
         <div>
           {step > 1 && (
             <button
@@ -573,7 +573,7 @@ export default function PostJobForm() {
                 setStep((step - 1) as 1 | 2 | 3)
                 setStepError(null)
               }}
-              className="text-sm font-bold underline hover:text-green-700"
+              className="text-sm font-bold underline hover:text-[#003D5C]"
             >
               ← Back
             </button>
@@ -582,7 +582,7 @@ export default function PostJobForm() {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending
             ? 'Submitting…'
@@ -596,7 +596,7 @@ export default function PostJobForm() {
 }
 
 const fieldStyle =
-  'w-full px-4 py-3 bg-white border-2 border-black text-sm focus:outline-none focus:ring-2 focus:ring-green-600'
+  'w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7FBC00]'
 
 function Field({
   label,

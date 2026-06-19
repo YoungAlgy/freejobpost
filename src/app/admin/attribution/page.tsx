@@ -113,9 +113,9 @@ export default async function AttributionDashboard({ searchParams }: Props) {
         )}
 
         {/* Summary tile */}
-        <section className="bg-white border-2 border-black p-6 mb-6">
+        <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
           <p className="text-xs font-bold tracking-wider text-gray-500">TOTAL APPLY CLICKS (30D)</p>
-          <p className="text-5xl font-black mt-2 tabular-nums">{grandTotal.toLocaleString()}</p>
+          <p className="text-5xl font-black mt-2 tabular-nums text-[#003D5C]">{grandTotal.toLocaleString()}</p>
           <p className="text-xs text-gray-500 mt-2">
             across {byPartner.size} {byPartner.size === 1 ? 'partner' : 'partners'}
           </p>
@@ -123,7 +123,7 @@ export default async function AttributionDashboard({ searchParams }: Props) {
 
         {/* Per-partner totals */}
         {partnerTotals.length === 0 ? (
-          <section className="bg-white border-2 border-black p-8 text-center">
+          <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center">
             <p className="text-lg font-bold mb-2">No attribution data yet.</p>
             <p className="text-sm text-gray-600 mb-4">
               Publisher partners haven&apos;t started crawling the feed yet, or no apply clicks
@@ -137,9 +137,9 @@ export default async function AttributionDashboard({ searchParams }: Props) {
             </p>
           </section>
         ) : (
-          <section className="bg-white border-2 border-black mb-6">
+          <section className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-black text-white text-xs uppercase tracking-wider">
+              <thead className="bg-[#003D5C] text-white text-xs uppercase tracking-wider">
                 <tr>
                   <th className="text-left px-4 py-3">Partner</th>
                   <th className="text-right px-4 py-3">Clicks (30d)</th>
@@ -147,9 +147,9 @@ export default async function AttributionDashboard({ searchParams }: Props) {
                   <th className="text-right px-4 py-3">Days active</th>
                 </tr>
               </thead>
-              <tbody className="divide-y-2 divide-black">
+              <tbody className="divide-y divide-gray-200">
                 {partnerTotals.map((p) => (
-                  <tr key={p.partner} className="hover:bg-green-50">
+                  <tr key={p.partner} className="hover:bg-[#7FBC00]/10">
                     <td className="px-4 py-3 font-bold">{p.partner}</td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {p.totalClicks.toLocaleString()}
@@ -167,8 +167,8 @@ export default async function AttributionDashboard({ searchParams }: Props) {
 
         {/* Daily breakdown (raw rows for debugging / spot-check) */}
         {rows.length > 0 && (
-          <section className="bg-white border-2 border-black">
-            <h2 className="text-xs font-bold tracking-wider text-gray-500 px-4 py-3 border-b-2 border-black">
+          <section className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <h2 className="text-xs font-bold tracking-wider text-gray-500 px-4 py-3 border-b border-gray-200">
               DAILY BREAKDOWN (raw)
             </h2>
             <table className="w-full text-sm">

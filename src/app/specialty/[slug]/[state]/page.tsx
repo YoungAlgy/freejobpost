@@ -228,32 +228,32 @@ export default async function SpecialtyStateMatrixPage(
         />
       )}
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">All jobs</Link>
-              <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300]">Post a job</Link>
             </div>
           </div>
         </nav>
 
         <article className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-            <Link href="/" className="hover:text-green-700">Home</Link>
+            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
             {' / '}
-            <Link href="/specialty" className="hover:text-green-700">Specialties</Link>
+            <Link href="/specialty" className="hover:text-[#003D5C]">Specialties</Link>
             {' / '}
-            <Link href={`/specialty/${specialty.slug}`} className="hover:text-green-700">{specialty.title}</Link>
+            <Link href={`/specialty/${specialty.slug}`} className="hover:text-[#003D5C]">{specialty.title}</Link>
             {' / '}
             <span className="text-black font-medium">{stateHub.name}</span>
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
             {cleanSpecialtyTitle} jobs in {stateHub.name}{' '}
-            <span className="text-green-700">({jobs.length})</span>
+            <span className="text-[#7FBC00]">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
             {jobs.length} active {cleanSpecialtyTitle.toLowerCase()} role{jobs.length === 1 ? '' : 's'} in {stateHub.name} on freejobpost.co. Free to browse, free to apply, no recruiter spam. Every listing has a real apply link going to the hiring employer.
@@ -264,7 +264,7 @@ export default async function SpecialtyStateMatrixPage(
             <div className="mb-8 flex flex-wrap gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500 self-center mr-2">By city:</span>
               {cities.map((c) => (
-                <span key={c} className="text-xs border border-black px-2 py-1">
+                <span key={c} className="text-xs border border-gray-200 px-2 py-1">
                   {c} ({jobs.filter((j) => j.city === c).length})
                 </span>
               ))}
@@ -282,7 +282,7 @@ export default async function SpecialtyStateMatrixPage(
               </p>
               {salaryByBucket.length > 0 && (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-2 border-black">
+                  <table className="w-full text-sm border border-gray-200">
                     <thead className="bg-gray-100 text-left">
                       <tr>
                         <th scope="col" className="px-3 py-2 font-bold">Role / sub-specialty</th>
@@ -312,13 +312,13 @@ export default async function SpecialtyStateMatrixPage(
           )}
 
           {/* Job list */}
-          <ul className="border-t-2 border-black">
+          <ul className="border-t border-gray-200">
             {jobs.map((j) => (
               <li key={j.id} className="border-b border-black/10 py-5">
                 <Link href={`/jobs/${j.slug}`} className="group block">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">
+                      <h2 className="text-lg font-black tracking-tight group-hover:text-[#003D5C] mb-1">
                         {stripSalarySuffix(j.title) || j.title}
                       </h2>
                       <p className="text-sm text-gray-700">
@@ -357,7 +357,7 @@ export default async function SpecialtyStateMatrixPage(
               internal-link density that helps Google discover + index the
               long-tail matrix surface. */}
           {(sameSpecialtyOtherStates.length > 0 || sameStateOtherSpecialties.length > 0) && (
-            <section className="mt-12 border-t-2 border-black pt-8 space-y-8">
+            <section className="mt-12 border-t border-gray-200 pt-8 space-y-8">
               {sameSpecialtyOtherStates.length > 0 && (
                 <div>
                   <h2 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">
@@ -368,7 +368,7 @@ export default async function SpecialtyStateMatrixPage(
                       <Link
                         key={c.state.slug}
                         href={`/specialty/${specialty.slug}/${c.state.slug}`}
-                        className="text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors"
+                        className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#003D5C] hover:text-white transition-colors"
                       >
                         {c.state.name}{' '}
                         <span className="text-gray-500">({c.count})</span>
@@ -387,7 +387,7 @@ export default async function SpecialtyStateMatrixPage(
                       <Link
                         key={c.specialty.slug}
                         href={`/specialty/${c.specialty.slug}/${stateHub.slug}`}
-                        className="text-sm border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors"
+                        className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#003D5C] hover:text-white transition-colors"
                       >
                         {c.specialty.title.replace(/ Jobs$/, '')}{' '}
                         <span className="text-gray-500">({c.count})</span>
@@ -400,17 +400,17 @@ export default async function SpecialtyStateMatrixPage(
           )}
 
           {/* Back-links to the parent hubs */}
-          <section className="mt-12 border-t-2 border-black pt-8 flex flex-wrap gap-4">
+          <section className="mt-12 border-t border-gray-200 pt-8 flex flex-wrap gap-4">
             <Link
               href={`/specialty/${specialty.slug}`}
-              className="text-sm font-bold hover:text-green-700"
+              className="text-sm font-bold hover:text-[#003D5C]"
             >
               ← All {cleanSpecialtyTitle} jobs (nationwide)
             </Link>
             <span className="text-gray-300">·</span>
             <Link
               href={`/state/${stateHub.slug}`}
-              className="text-sm font-bold hover:text-green-700"
+              className="text-sm font-bold hover:text-[#003D5C]"
             >
               ← All {stateHub.name} healthcare jobs
             </Link>

@@ -65,17 +65,15 @@ export default async function VerifyTokenPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
-            </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
               BETA
             </span>
           </Link>
-          <Link href="/jobs" className="hidden sm:inline text-sm font-medium hover:text-green-700">
+          <Link href="/jobs" className="hidden sm:inline text-sm font-medium hover:text-[#003D5C]">
             Browse jobs
           </Link>
         </div>
@@ -83,9 +81,9 @@ export default async function VerifyTokenPage({ params }: Props) {
 
       <div className="max-w-2xl mx-auto px-6 py-16">
         {result.success ? (
-          <div className="border-2 border-black p-8 md:p-10 bg-green-50">
-            <div className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-xs font-bold tracking-wider mb-6">
-              <span className="w-2 h-2 bg-green-600" />
+          <div className="border border-gray-200 rounded-lg p-8 md:p-10 bg-green-50">
+            <div className="inline-flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-3 py-1 text-xs font-bold tracking-wider mb-6">
+              <span className="w-2 h-2 bg-[#7FBC00]" />
               {result.was_already_verified ? 'ALREADY VERIFIED' : 'VERIFIED'}
             </div>
             <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">
@@ -99,27 +97,27 @@ export default async function VerifyTokenPage({ params }: Props) {
             <div className="flex flex-wrap gap-3">
               <Link
                 href={`/jobs/${result.job_slug}`}
-                className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
+                className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
               >
                 View your job →
               </Link>
               <Link
                 href="/employer/login"
-                className="inline-flex items-center border-2 border-black px-6 py-3 font-bold hover:bg-black hover:text-white transition-colors"
+                className="inline-flex items-center border border-gray-200 px-6 py-3 font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
               >
                 Employer dashboard →
               </Link>
               <Link
                 href="/post-job"
-                className="inline-flex items-center text-sm underline underline-offset-2 hover:text-green-700 self-center"
+                className="inline-flex items-center text-sm underline underline-offset-2 hover:text-[#003D5C] self-center"
               >
                 Post another job
               </Link>
             </div>
           </div>
         ) : (
-          <div className="border-2 border-black p-8 md:p-10">
-            <div className="inline-flex items-center gap-2 border-2 border-black bg-red-50 px-3 py-1 text-xs font-bold tracking-wider mb-6">
+          <div className="border border-gray-200 rounded-lg p-8 md:p-10">
+            <div className="inline-flex items-center gap-2 border border-gray-200 rounded-lg bg-red-50 px-3 py-1 text-xs font-bold tracking-wider mb-6">
               <span className="w-2 h-2 bg-red-600" />
               COULDN&apos;T VERIFY
             </div>
@@ -136,7 +134,7 @@ export default async function VerifyTokenPage({ params }: Props) {
             )}
             <Link
               href="/post-job"
-              className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
+              className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
             >
               Start over →
             </Link>

@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'Free Job Post: Healthcare jobs without the Indeed tax'
+export const alt = 'Healthcare Jobs Without the Indeed Tax | Ava Health'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -33,16 +33,18 @@ export default async function OG() {
           }}
         >
           <div style={{ display: 'flex' }}>
-            <span>freejobpost</span>
-            <span style={{ color: '#15803d' }}>.co</span>
+            <span style={{ color: '#003D5C' }}>Ava Health</span>
           </div>
           <div
             style={{
               display: 'flex',
               fontSize: 13,
               fontWeight: 700,
-              border: '2px solid #000',
-              padding: '4px 8px',
+              color: '#003D5C',
+              background: '#eef6e6',
+              border: '1px solid #cbe39a',
+              borderRadius: 999,
+              padding: '4px 12px',
               letterSpacing: 2,
             }}
           >
@@ -65,7 +67,7 @@ export default async function OG() {
               fontSize: 14,
               fontWeight: 700,
               letterSpacing: 3,
-              color: '#15803d',
+              color: '#003D5C',
               textTransform: 'uppercase',
               marginBottom: 22,
             }}
@@ -79,7 +81,7 @@ export default async function OG() {
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -2.5,
-              color: '#000',
+              color: '#003D5C',
               marginBottom: 12,
             }}
           >
@@ -92,7 +94,7 @@ export default async function OG() {
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -2.5,
-              color: '#000',
+              color: '#003D5C',
               marginBottom: 36,
             }}
           >
@@ -105,7 +107,7 @@ export default async function OG() {
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -1.5,
-              color: '#15803d',
+              color: '#7FBC00',
             }}
           >
             No Indeed tax.
@@ -120,12 +122,12 @@ export default async function OG() {
             justifyContent: 'space-between',
             fontSize: 20,
             color: '#525252',
-            borderTop: '2px solid #000',
+            borderTop: '1px solid #e2e8f0',
             paddingTop: 22,
           }}
         >
           <span>Post jobs free · Apply free · No auction</span>
-          <span style={{ color: '#000', fontWeight: 800 }}>freejobpost.co</span>
+          <span style={{ color: '#003D5C', fontWeight: 800 }}>freejobpost.co</span>
         </div>
       </div>
     ),

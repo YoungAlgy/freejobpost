@@ -27,92 +27,92 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-            freejobpost<span className="text-green-700">.co</span>
+          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+            Ava Health
           </Link>
           <div className="flex items-center gap-6 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-green-700">Browse jobs</Link>
-            <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
+            <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors">Post A Job</Link>
           </div>
         </div>
       </nav>
 
       <article className="max-w-3xl mx-auto px-6 py-12 md:py-20">
-        <div className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider mb-6">
-          <span className="w-2 h-2 bg-green-600" />
+        <div className="inline-flex items-center gap-2 border border-gray-200 px-3 py-1 text-xs font-bold tracking-wider mb-6 rounded-md">
+          <span className="w-2 h-2 bg-[#7FBC00]" />
           HOW IT WORKS
         </div>
-        <h1 className="text-4xl md:text-5xl font-black leading-[0.95] tracking-tight mb-6">
+        <h1 className="text-4xl md:text-5xl font-black leading-[0.95] tracking-tight mb-6 text-[#003D5C]">
           Free healthcare job posts.<br />
-          <span className="text-green-700">Without the Indeed tax.</span>
+          <span className="text-[#003D5C]">Without the Indeed tax.</span>
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-12">
-          freejobpost.co is a plain utility. We don&apos;t charge employers, we don&apos;t auction
+          Ava Health is a plain utility. We don&apos;t charge employers, we don&apos;t auction
           visibility, we don&apos;t sell candidate emails. Here&apos;s how it actually works.
         </p>
 
-        <h2 className="text-2xl font-black tracking-tight mb-3">For employers</h2>
+        <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">For employers</h2>
         <ol className="space-y-5 mb-12">
           <li className="flex gap-4">
-            <div className="shrink-0 w-8 h-8 bg-black text-white text-sm font-black flex items-center justify-center">1</div>
+            <div className="shrink-0 w-8 h-8 bg-[#003D5C] text-white text-sm font-black flex items-center justify-center rounded-md">1</div>
             <div>
               <div className="font-black text-lg mb-1">Fill the 60-second form</div>
               <div className="text-gray-700">Title, role, location, comp, description. No account, no credit card.</div>
             </div>
           </li>
           <li className="flex gap-4">
-            <div className="shrink-0 w-8 h-8 bg-black text-white text-sm font-black flex items-center justify-center">2</div>
+            <div className="shrink-0 w-8 h-8 bg-[#003D5C] text-white text-sm font-black flex items-center justify-center rounded-md">2</div>
             <div>
               <div className="font-black text-lg mb-1">Verify your email (one click)</div>
               <div className="text-gray-700">We email you a magic link. Click it and your job is live. No password to remember.</div>
             </div>
           </li>
           <li className="flex gap-4">
-            <div className="shrink-0 w-8 h-8 bg-black text-white text-sm font-black flex items-center justify-center">3</div>
+            <div className="shrink-0 w-8 h-8 bg-[#003D5C] text-white text-sm font-black flex items-center justify-center rounded-md">3</div>
             <div>
               <div className="font-black text-lg mb-1">Get applicants in your inbox</div>
               <div className="text-gray-700">Real candidates apply directly to you. No screening fee, no upsell, no &quot;unlock this resume&quot; charge. We&apos;re not in the loop.</div>
             </div>
           </li>
           <li className="flex gap-4">
-            <div className="shrink-0 w-8 h-8 bg-black text-white text-sm font-black flex items-center justify-center">4</div>
+            <div className="shrink-0 w-8 h-8 bg-[#003D5C] text-white text-sm font-black flex items-center justify-center rounded-md">4</div>
             <div>
               <div className="font-black text-lg mb-1">Manage from your free dashboard</div>
-              <div className="text-gray-700">All your posts, applicant counts, and status, all at <Link href="/employer" className="underline hover:text-green-700">/employer</Link>. Magic-link login, no password.</div>
+              <div className="text-gray-700">All your posts, applicant counts, and status, all at <Link href="/employer" className="underline hover:text-[#003D5C]">/employer</Link>. Magic-link login, no password.</div>
             </div>
           </li>
         </ol>
 
-        <h2 className="text-2xl font-black tracking-tight mb-3">For candidates</h2>
+        <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">For candidates</h2>
         <ol className="space-y-5 mb-12">
           <li className="flex gap-4">
-            <div className="shrink-0 w-8 h-8 bg-green-700 text-white text-sm font-black flex items-center justify-center">1</div>
+            <div className="shrink-0 w-8 h-8 bg-[#7FBC00] text-white text-sm font-black flex items-center justify-center rounded-md">1</div>
             <div>
               <div className="font-black text-lg mb-1">Browse jobs (no account)</div>
               <div className="text-gray-700">Filter by role, state, employment type. Pure list, no &quot;featured&quot; ads burying organic posts.</div>
             </div>
           </li>
           <li className="flex gap-4">
-            <div className="shrink-0 w-8 h-8 bg-green-700 text-white text-sm font-black flex items-center justify-center">2</div>
+            <div className="shrink-0 w-8 h-8 bg-[#7FBC00] text-white text-sm font-black flex items-center justify-center rounded-md">2</div>
             <div>
               <div className="font-black text-lg mb-1">Apply directly to the employer</div>
               <div className="text-gray-700">Name, email, phone, optional resume URL, optional note. Goes straight to the employer&apos;s inbox.</div>
             </div>
           </li>
           <li className="flex gap-4">
-            <div className="shrink-0 w-8 h-8 bg-green-700 text-white text-sm font-black flex items-center justify-center">3</div>
+            <div className="shrink-0 w-8 h-8 bg-[#7FBC00] text-white text-sm font-black flex items-center justify-center rounded-md">3</div>
             <div>
               <div className="font-black text-lg mb-1">Want a profile that auto-matches?</div>
-              <div className="text-gray-700">Upload your resume at <a href="https://www.freeresumepost.co/upload" className="underline hover:text-green-700">freeresumepost.co</a>. We&apos;ll email you when a 70%+ match opens that fits your specialty + state.</div>
+              <div className="text-gray-700">Upload your resume at <a href="https://www.freeresumepost.co/upload" className="underline hover:text-[#003D5C]">freeresumepost.co</a>. We&apos;ll email you when a 70%+ match opens that fits your specialty + state.</div>
             </div>
           </li>
         </ol>
 
-        <h2 className="text-2xl font-black tracking-tight mb-3">vs the alternatives</h2>
+        <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">vs the alternatives</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-12">
-          <div className="border-2 border-black p-5">
+          <div className="rounded-xl border border-gray-200 shadow-sm p-5">
             <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-2">Indeed Sponsored</div>
             <ul className="space-y-1.5 text-sm text-gray-700">
               <li>· $0.10-$5.00 per click bid</li>
@@ -121,8 +121,8 @@ export default function HowItWorksPage() {
               <li>· Average cost per role: $300+</li>
             </ul>
           </div>
-          <div className="border-2 border-green-700 bg-green-50 p-5">
-            <div className="text-xs font-bold tracking-wider text-green-700 uppercase mb-2">freejobpost.co</div>
+          <div className="rounded-xl border border-[#7FBC00] bg-[#7FBC00]/10 shadow-sm p-5">
+            <div className="text-xs font-bold tracking-wider text-[#003D5C] uppercase mb-2">Ava Health</div>
             <ul className="space-y-1.5 text-sm text-gray-800 font-medium">
               <li>· $0. No fees, ever</li>
               <li>· Same indexing, no demotion</li>
@@ -133,23 +133,23 @@ export default function HowItWorksPage() {
         </div>
         <p className="text-xs text-gray-600 mb-12">
           Every listing gets JobPosting JSON-LD for Google for Jobs, plus our{' '}
-          <a href="/jobs.xml" className="underline hover:text-green-700">public XML/RSS feed</a>{' '}
+          <a href="/jobs.xml" className="underline hover:text-[#003D5C]">public XML/RSS feed</a>{' '}
           for ZipRecruiter, Adzuna, Jooble, and other aggregators.
         </p>
 
-        <h2 className="text-2xl font-black tracking-tight mb-3">Why is this free?</h2>
+        <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">Why is this free?</h2>
         <p className="text-gray-700 leading-relaxed mb-4">
-          freejobpost.co is operated by Ava Health Partners LLC, a healthcare staffing firm. We
+          Ava Health is operated by Ava Health Partners LLC, a healthcare staffing firm. We
           maintain a candidate database for our placement business. The job board feeds candidates
           into that database; the database fuels our recruiting. The board itself doesn&apos;t need to
           monetize because the upstream business already does.
         </p>
         <p className="text-gray-700 leading-relaxed mb-12">
           We don&apos;t spam your applicants. We don&apos;t cold-recruit your existing staff. We don&apos;t resell
-          your job posts to competing sites. Read our <Link href="/privacy" className="underline hover:text-green-700">privacy policy</Link> for the specifics.
+          your job posts to competing sites. Read our <Link href="/privacy" className="underline hover:text-[#003D5C]">privacy policy</Link> for the specifics.
         </p>
 
-        <h2 className="text-2xl font-black tracking-tight mb-3">FAQ</h2>
+        <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">FAQ</h2>
         <div className="space-y-6 mb-12">
           <div>
             <h3 className="font-black mb-1">Is it really free to post a job?</h3>
@@ -181,10 +181,10 @@ export default function HowItWorksPage() {
           </div>
         </div>
 
-        <div className="border-2 border-black bg-black text-white p-8 text-center">
+        <div className="rounded-xl border border-gray-200 bg-[#003D5C] text-white p-8 text-center shadow-sm">
           <p className="text-2xl font-black mb-3">Ready?</p>
-          <Link href="/post-job" className="inline-block bg-green-700 text-white font-bold px-6 py-3 hover:bg-green-600">
-            Post a job for free →
+          <Link href="/post-job" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-3 rounded-md hover:bg-[#6DA300]">
+            Post A Job For Free →
           </Link>
         </div>
       </article>

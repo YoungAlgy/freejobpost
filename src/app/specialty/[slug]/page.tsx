@@ -207,29 +207,29 @@ export default async function SpecialtyHubPage(
         />
       )}
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">All jobs</Link>
-              <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300]">Post a job</Link>
             </div>
           </div>
         </nav>
 
         <article className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-            <Link href="/" className="hover:text-green-700">Home</Link>
+            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
             {' / '}
-            <Link href="/specialty" className="hover:text-green-700">Specialties</Link>
+            <Link href="/specialty" className="hover:text-[#003D5C]">Specialties</Link>
             {' / '}
             <span className="text-black font-medium">{hub.title}</span>
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-            {hub.title} <span className="text-green-700">({jobs.length})</span>
+            {hub.title} <span className="text-[#7FBC00]">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
             {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers. Every listing has a real apply link.
@@ -250,7 +250,7 @@ export default async function SpecialtyHubPage(
                 <Link
                   key={s}
                   href={`/jobs?state=${encodeURIComponent(s)}`}
-                  className="text-xs border border-black px-2 py-1 hover:bg-black hover:text-white"
+                  className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#003D5C] hover:text-white"
                 >
                   {s} ({jobs.filter((j) => j.state === s).length})
                 </Link>
@@ -273,7 +273,7 @@ export default async function SpecialtyHubPage(
                   <Link
                     key={`${c.specialty.slug}-${c.state.slug}`}
                     href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
-                    className="flex items-baseline justify-between gap-3 text-sm border-2 border-black px-3 py-2 hover:bg-black hover:text-white"
+                    className="flex items-baseline justify-between gap-3 text-sm border border-gray-200 rounded-lg px-3 py-2 hover:bg-[#003D5C] hover:text-white"
                   >
                     <span className="font-medium truncate">
                       {hub.title.replace(/ Jobs$/, '')} in {c.state.name}
@@ -298,7 +298,7 @@ export default async function SpecialtyHubPage(
               </p>
               {salaryByState.length > 0 && (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-2 border-black">
+                  <table className="w-full text-sm border border-gray-200">
                     <thead className="bg-gray-100 text-left">
                       <tr>
                         <th scope="col" className="px-3 py-2 font-bold">State</th>
@@ -331,12 +331,12 @@ export default async function SpecialtyHubPage(
           )}
 
           {jobs.length === 0 ? (
-            <div className="border-2 border-black p-8 text-center">
+            <div className="border border-gray-200 rounded-lg p-8 text-center">
               <p className="text-lg font-bold mb-2">No active {hub.title.toLowerCase()} right now.</p>
               <p className="text-gray-700 mb-4">This specialty&apos;s inventory is still ramping up on freejobpost.co. Browse the full national board in the meantime, or upload your resume so we can match you the moment a {hub.title.toLowerCase().replace(/ jobs$/, '')} role opens.</p>
               <div className="flex flex-wrap gap-3 justify-center">
-                <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
-                <a href={resumeHubUrl} className="inline-block border-2 border-black font-bold px-6 py-2 hover:bg-black hover:text-white">Get matched →</a>
+                <Link href="/jobs" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-2 hover:bg-[#6DA300]">Browse all jobs →</Link>
+                <a href={resumeHubUrl} className="inline-block border border-gray-200 rounded-lg font-bold px-6 py-2 hover:bg-[#003D5C] hover:text-white">Get matched →</a>
               </div>
             </div>
           ) : (
@@ -346,20 +346,20 @@ export default async function SpecialtyHubPage(
                   <p className="text-sm text-gray-800">
                     <span className="font-bold">Limited {hub.title.toLowerCase().replace(/ jobs$/, '')} inventory right now.</span>{' '}
                     Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}.{' '}
-                    <Link href="/jobs" className="underline font-medium hover:text-green-700">See all healthcare jobs</Link>{' '}
+                    <Link href="/jobs" className="underline font-medium hover:text-[#003D5C]">See all healthcare jobs</Link>{' '}
                     or{' '}
-                    <a href={resumeHubUrl} className="underline font-medium hover:text-green-700">upload your resume</a>{' '}
+                    <a href={resumeHubUrl} className="underline font-medium hover:text-[#003D5C]">upload your resume</a>{' '}
                     to be matched as new roles open.
                   </p>
                 </div>
               )}
-              <ul className="border-t-2 border-black">
+              <ul className="border-t border-gray-200">
               {jobs.map((j) => (
                 <li key={j.id} className="border-b border-black/10 py-5">
                   <Link href={`/jobs/${j.slug}`} className="group block">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
+                        <h2 className="text-lg font-black tracking-tight group-hover:text-[#003D5C] mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
                         <p className="text-sm text-gray-700">
                           {locationLabel(j)} · {employmentLabel(j.employment_type)}
                           {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
@@ -397,7 +397,7 @@ export default async function SpecialtyHubPage(
               <Link
                 key={s.slug}
                 href={`/specialty/${s.slug}`}
-                className="text-sm border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white font-medium"
+                className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#003D5C] hover:text-white font-medium"
               >
                 {s.title.replace(/ Jobs$/, '')}
               </Link>
@@ -412,7 +412,7 @@ export default async function SpecialtyHubPage(
             const guide = CAREER_PATHS.find((p) => p.specialtySlug === hub.slug)
             if (!guide) return null
             return (
-              <aside className="mt-10 border-2 border-black bg-green-50 p-5">
+              <aside className="mt-10 border border-gray-200 rounded-lg bg-green-50 p-5">
                 <p className="text-xs font-bold tracking-widest text-gray-700 uppercase mb-2">
                   New to this role?
                 </p>
@@ -420,7 +420,7 @@ export default async function SpecialtyHubPage(
                   Read our plain-English guide:{' '}
                   <Link
                     href={`/become/${guide.slug}`}
-                    className="font-bold underline hover:text-green-700"
+                    className="font-bold underline hover:text-[#003D5C]"
                   >
                     {guide.title}
                   </Link>{' '}
@@ -437,7 +437,7 @@ export default async function SpecialtyHubPage(
               <Link
                 key={s.slug}
                 href={`/state/${s.slug}`}
-                className="text-sm border border-black/40 px-3 py-1.5 hover:bg-black hover:text-white"
+                className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#003D5C] hover:text-white"
               >
                 {s.name}
               </Link>

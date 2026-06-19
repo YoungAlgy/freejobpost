@@ -185,29 +185,29 @@ export default async function StateHubPage(
         />
       )}
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b-2 border-black">
+        <nav className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-green-700">All jobs</Link>
-              <Link href="/post-job" className="bg-black text-white px-4 py-2 font-bold">Post a job</Link>
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300]">Post a job</Link>
             </div>
           </div>
         </nav>
 
         <article className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-            <Link href="/" className="hover:text-green-700">Home</Link>
+            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
             {' / '}
-            <Link href="/state" className="hover:text-green-700">States</Link>
+            <Link href="/state" className="hover:text-[#003D5C]">States</Link>
             {' / '}
             <span className="text-black font-medium">{hub.name}</span>
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-            {hub.name} healthcare jobs <span className="text-green-700">({jobs.length})</span>
+            {hub.name} healthcare jobs <span className="text-[#7FBC00]">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 max-w-3xl">
             {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers. Every listing has a real apply link.
@@ -220,7 +220,7 @@ export default async function StateHubPage(
               FAQPage / Occupation schema — those rich results are deprecated. */}
           {(hub.nursingBoardName || hub.nlcCompactStatus || hub.editorialNote) && (
             <aside
-              className="mb-10 border-l-4 border-green-700 bg-green-50/60 px-5 py-4 max-w-3xl"
+              className="mb-10 border-l-4 border-[#003D5C] bg-green-50/60 px-5 py-4 max-w-3xl"
               aria-label={`Licensing and market notes for ${hub.name}`}
             >
               <h2 className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
@@ -233,7 +233,7 @@ export default async function StateHubPage(
                     {hub.nursingBoardUrl ? (
                       <a
                         href={hub.nursingBoardUrl}
-                        className="underline hover:text-green-700"
+                        className="underline hover:text-[#003D5C]"
                         target="_blank"
                         rel="noopener nofollow"
                       >
@@ -275,7 +275,7 @@ export default async function StateHubPage(
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Major {hub.name} metros</h2>
             <div className="flex flex-wrap gap-2">
               {hub.majorMetros.map((m) => (
-                <span key={m} className="text-sm border border-black/30 px-2 py-1">{m}</span>
+                <span key={m} className="text-sm border border-gray-200 px-2 py-1">{m}</span>
               ))}
             </div>
           </div>
@@ -300,7 +300,7 @@ export default async function StateHubPage(
                 <Link
                   key={c}
                   href={`/jobs?state=${encodeURIComponent(hub.abbr)}&q=${encodeURIComponent(c)}`}
-                  className="text-xs border border-black px-2 py-1 hover:bg-black hover:text-white"
+                  className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#003D5C] hover:text-white"
                 >
                   {c} ({jobs.filter((j) => j.city === c).length})
                 </Link>
@@ -335,7 +335,7 @@ export default async function StateHubPage(
                   <Link
                     key={`${c.specialty.slug}-${c.state.slug}`}
                     href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
-                    className="flex items-baseline justify-between gap-3 text-sm border-2 border-black px-3 py-2 hover:bg-black hover:text-white"
+                    className="flex items-baseline justify-between gap-3 text-sm border border-gray-200 rounded-lg px-3 py-2 hover:bg-[#003D5C] hover:text-white"
                   >
                     <span className="font-medium truncate">
                       {c.specialty.title.replace(/ Jobs$/, '')} in {hub.name}
@@ -369,7 +369,7 @@ export default async function StateHubPage(
                     The{' '}
                     <a
                       href={hub.nursingBoardUrl}
-                      className="underline hover:text-green-700"
+                      className="underline hover:text-[#003D5C]"
                       target="_blank"
                       rel="noopener nofollow"
                     >
@@ -438,7 +438,7 @@ export default async function StateHubPage(
               </p>
               {salaryByBucket.length > 0 && (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm border-2 border-black">
+                  <table className="w-full text-sm border border-gray-200">
                     <thead className="bg-gray-100 text-left">
                       <tr>
                         <th scope="col" className="px-3 py-2 font-bold">Specialty / Role</th>
@@ -471,12 +471,12 @@ export default async function StateHubPage(
           )}
 
           {jobs.length === 0 ? (
-            <div className="border-2 border-black p-8 text-center">
+            <div className="border border-gray-200 rounded-lg p-8 text-center">
               <p className="text-lg font-bold mb-2">No active {hub.name} healthcare jobs right now.</p>
               <p className="text-gray-700 mb-4">{hub.name} inventory is still ramping up on freejobpost.co. Browse our active national board in the meantime, or set up a candidate match alert.</p>
               <div className="flex flex-wrap gap-3 justify-center">
-                <Link href="/jobs" className="inline-block bg-green-700 text-white font-bold px-6 py-2 hover:bg-green-600">Browse all jobs →</Link>
-                <a href="https://www.freeresumepost.co" className="inline-block border-2 border-black font-bold px-6 py-2 hover:bg-black hover:text-white">Get matched →</a>
+                <Link href="/jobs" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-2 hover:bg-[#6DA300]">Browse all jobs →</Link>
+                <a href="https://www.freeresumepost.co" className="inline-block border border-gray-200 rounded-lg font-bold px-6 py-2 hover:bg-[#003D5C] hover:text-white">Get matched →</a>
               </div>
             </div>
           ) : (
@@ -486,17 +486,17 @@ export default async function StateHubPage(
                   <p className="text-sm text-gray-800">
                     <span className="font-bold">Limited inventory in {hub.name} right now.</span>{' '}
                     Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}. Most of our open positions are concentrated in higher-density states.{' '}
-                    <Link href="/jobs" className="underline font-medium hover:text-green-700">See all healthcare jobs</Link>.
+                    <Link href="/jobs" className="underline font-medium hover:text-[#003D5C]">See all healthcare jobs</Link>.
                   </p>
                 </div>
               )}
-              <ul className="border-t-2 border-black">
+              <ul className="border-t border-gray-200">
               {jobs.map((j) => (
                 <li key={j.id} className="border-b border-black/10 py-5">
                   <Link href={`/jobs/${j.slug}`} className="group block">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-black tracking-tight group-hover:text-green-700 mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
+                        <h2 className="text-lg font-black tracking-tight group-hover:text-[#003D5C] mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
                         <p className="text-sm text-gray-700">
                           {locationLabel(j)} · {employmentLabel(j.employment_type)}
                           {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
@@ -532,7 +532,7 @@ export default async function StateHubPage(
               <Link
                 key={s.slug}
                 href={`/state/${s.slug}`}
-                className="text-sm border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white font-medium"
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-[#003D5C] hover:text-white font-medium"
               >
                 {s.name}
               </Link>
@@ -546,7 +546,7 @@ export default async function StateHubPage(
               <Link
                 key={s.slug}
                 href={`/specialty/${s.slug}`}
-                className="text-sm border border-black/40 px-3 py-1.5 hover:bg-black hover:text-white"
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-[#003D5C] hover:text-white"
               >
                 {s.title.replace(/ Jobs$/, '')}
               </Link>

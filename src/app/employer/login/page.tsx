@@ -26,18 +26,18 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
   const errorMessage = error ? ERROR_MESSAGES[error] : null
 
   return (
-    <main className="min-h-screen bg-white text-black">
-      <nav className="border-b-2 border-black">
+    <main className="min-h-screen bg-white text-gray-900">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight">
-              freejobpost<span className="text-green-700">.co</span>
+            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
+              Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5">
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
               BETA
             </span>
           </Link>
-          <Link href="/post-job" className="text-sm font-medium hover:text-green-700">
+          <Link href="/post-job" className="text-sm font-medium hover:text-[#003D5C]">
             Post a job →
           </Link>
         </div>
@@ -47,7 +47,7 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
         <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
           Employer sign-in
         </p>
-        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4">
+        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#003D5C]">
           Manage your posts.
         </h1>
         <p className="text-gray-700 mb-8">
@@ -65,7 +65,7 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
 
         <p className="mt-8 text-sm text-gray-500">
           First time here?{' '}
-          <Link href="/post-job" className="font-bold underline hover:text-green-700">
+          <Link href="/post-job" className="font-bold underline hover:text-[#003D5C]">
             Post a job →
           </Link>
         </p>

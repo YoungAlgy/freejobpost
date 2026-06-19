@@ -81,13 +81,13 @@ export default function JobAlertCapture({
       <div
         role="status"
         aria-live="polite"
-        className={`border-2 border-black bg-green-50 p-5 ${className}`}
+        className={`rounded-xl border border-gray-200 shadow-sm bg-green-50 p-5 ${className}`}
       >
-        <div className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-xs font-bold tracking-wider mb-2">
-          <span className="w-2 h-2 bg-green-600" />
+        <div className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1 text-xs font-bold tracking-wider mb-2">
+          <span className="w-2 h-2 bg-[#7FBC00]" />
           SUBSCRIBED
         </div>
-        <p className="font-black text-lg leading-tight">You're on the list.</p>
+        <p className="font-black text-lg leading-tight text-[#003D5C]">You're on the list.</p>
         <p className="text-sm text-gray-700 mt-1">
           We'll email <strong>{email}</strong> when new {what} get posted. Unsubscribe
           anytime with one click, no questions.
@@ -97,8 +97,8 @@ export default function JobAlertCapture({
   }
 
   return (
-    <form onSubmit={onSubmit} className={`border-2 border-black p-5 ${className}`}>
-      <h3 className="text-lg font-black leading-tight mb-1">Get new {what} by email</h3>
+    <form onSubmit={onSubmit} className={`rounded-xl border border-gray-200 shadow-sm p-5 ${className}`}>
+      <h3 className="text-lg font-black leading-tight mb-1 text-[#003D5C]">Get new {what} by email</h3>
       <p className="text-sm text-gray-600 mb-4">
         Free job alerts. New matching roles straight to your inbox. No spam, unsubscribe anytime.
       </p>
@@ -113,12 +113,12 @@ export default function JobAlertCapture({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           maxLength={254}
-          className="flex-1 px-4 py-3 bg-white border-2 border-black text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="flex-1 px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#7FBC00]"
         />
         <button
           type="submit"
           disabled={pending || !emailValid}
-          className="inline-flex items-center justify-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >
           {pending ? 'Subscribing…' : 'Email me jobs →'}
         </button>
@@ -146,7 +146,7 @@ export default function JobAlertCapture({
       <p className="text-xs text-gray-500 mt-3">
         By subscribing you agree to receive job-alert emails from freejobpost.co. Unsubscribe
         anytime.{' '}
-        <a href="/privacy" className="underline hover:text-green-700">
+        <a href="/privacy" className="underline hover:text-[#003D5C]">
           Privacy
         </a>
         .

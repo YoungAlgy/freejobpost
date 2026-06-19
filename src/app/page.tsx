@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   // `absolute` bypasses the layout template `%s | Free Job Post`. Without
   // it the rendered title would be the double-branded "Free Job Post —
   // Healthcare jobs without the Indeed tax | Free Job Post".
-  title: { absolute: 'Free Job Post: Healthcare jobs without the Indeed tax' },
+  title: { absolute: 'Healthcare Jobs Without the Indeed Tax | Ava Health' },
   description:
-    'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Free Job Post is where growing employers hire.',
+    'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Ava Health is where growing employers hire.',
   alternates: { canonical: 'https://freejobpost.co' },
   openGraph: {
-    title: 'Free Job Post: Healthcare jobs without the Indeed tax',
+    title: 'Healthcare Jobs Without the Indeed Tax | Ava Health',
     description:
       'Post jobs free. Apply free. No auction fees, no paywall, no recruiter spam.',
     url: 'https://freejobpost.co',
@@ -85,29 +85,29 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-white text-black">
       {/* Nav */}
-      <nav className="border-b-2 border-black">
+      <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2 min-w-0">
-            <span className="font-black text-lg sm:text-xl tracking-tight">freejobpost<span className="text-green-700">.co</span></span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-black px-1.5 py-0.5 shrink-0">BETA</span>
+            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5 shrink-0">BETA</span>
           </Link>
           <div className="flex items-center gap-4 md:gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-green-700 whitespace-nowrap">Browse</Link>
-            <Link href="/how-it-works" className="hidden md:inline hover:text-green-700">How it works</Link>
-            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-green-700">For candidates</a>
-            <Link href="/post-job" className="bg-black text-white px-3 md:px-4 py-2 font-bold hover:bg-green-700 transition-colors text-xs md:text-sm whitespace-nowrap">
-              Post a job →
+            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C] whitespace-nowrap">Browse</Link>
+            <Link href="/how-it-works" className="hidden md:inline hover:text-[#003D5C]">How it works</Link>
+            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">For candidates</a>
+            <Link href="/post-job" className="bg-[#7FBC00] text-white px-3 md:px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors text-xs md:text-sm whitespace-nowrap">
+              Post a Job →
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="border-b-2 border-black">
+      <section className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-32">
           <div className="inline-flex flex-wrap items-center gap-2 mb-8">
-            <span className="inline-flex items-center gap-2 border-2 border-black px-3 py-1 text-xs font-bold tracking-wider">
-              <span className="w-2 h-2 bg-green-600 animate-pulse" />
+            <span className="inline-flex items-center gap-2 rounded-xl border border-gray-200 shadow-sm px-3 py-1 text-xs font-bold tracking-wider">
+              <span className="w-2 h-2 bg-[#7FBC00] animate-pulse" />
               {liveCount > 0 ? (
                 <>{liveCount.toLocaleString()} ACTIVE HEALTHCARE JOBS</>
               ) : (
@@ -115,22 +115,22 @@ export default async function Home() {
               )}
             </span>
             {newThisWeek > 0 && (
-              <span className="inline-flex items-center gap-1 bg-green-700 text-white px-3 py-1 text-xs font-bold tracking-wider">
+              <span className="inline-flex items-center gap-1 bg-[#7FBC00] text-white px-3 py-1 text-xs font-bold tracking-wider">
                 +{newThisWeek.toLocaleString()} NEW THIS WEEK
               </span>
             )}
             {verifiedEmployerCount > 0 && (
-              <span className="inline-flex items-center gap-1 border-2 border-green-700 text-green-700 px-3 py-1 text-xs font-bold tracking-wider">
+              <span className="inline-flex items-center gap-1 border border-[#00B5D4] text-[#00B5D4] px-3 py-1 text-xs font-bold tracking-wider">
                 {verifiedEmployerCount.toLocaleString()} VERIFIED EMPLOYER{verifiedEmployerCount === 1 ? '' : 'S'}
               </span>
             )}
           </div>
-          <h1 className="text-[64px] md:text-[104px] font-black leading-[0.92] tracking-tight mb-8">
+          <h1 className="text-[64px] md:text-[104px] font-black leading-[0.92] tracking-tight mb-8 text-[#003D5C]">
             Free healthcare
             <br />
             job posts.
             <br />
-            <span className="text-green-700">No Indeed tax.</span>
+            <span className="text-[#7FBC00]">No Indeed tax.</span>
           </h1>
           <p className="text-xl md:text-2xl max-w-2xl leading-snug mb-10 text-gray-800">
             Post RN, MD, PT, and front-desk roles in 60 seconds. Real applicants.
@@ -139,20 +139,20 @@ export default async function Home() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/post-job"
-              className="inline-flex items-center justify-center bg-black text-white px-6 py-4 text-base font-bold hover:bg-green-700 transition-colors"
+              className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
             >
-              Post a job →
+              Post a Job →
             </Link>
             <Link
               href="/jobs"
-              className="inline-flex items-center justify-center border-2 border-black px-6 py-4 text-base font-bold hover:bg-black hover:text-white transition-colors"
+              className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
             >
-              Browse jobs
+              Browse Jobs
             </Link>
           </div>
           <p className="mt-8 text-sm text-gray-600">
             Hiring candidates? Send them to{' '}
-            <a href="https://www.freeresumepost.co" className="font-bold underline hover:text-green-700">
+            <a href="https://www.freeresumepost.co" className="font-bold underline hover:text-[#003D5C]">
               freeresumepost.co →
             </a>
           </p>
@@ -160,28 +160,28 @@ export default async function Home() {
       </section>
 
       {/* Three things */}
-      <section className="border-b-2 border-black">
-        <div className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-0 md:divide-x-2 md:divide-black">
-          <div className="pr-0 md:pr-10 pb-10 md:pb-0 border-b-2 md:border-b-0 border-black">
-            <div className="font-black text-6xl mb-4">01</div>
-            <h2 className="text-xl font-black mb-3 uppercase tracking-tight">Free, forever</h2>
+      <section className="border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-0 md:divide-x md:divide-gray-200">
+          <div className="pr-0 md:pr-10 pb-10 md:pb-0 border-b md:border-b-0 border-gray-200">
+            <div className="font-black text-6xl mb-4 text-[#003D5C]">01</div>
+            <h2 className="text-xl font-black mb-3 uppercase tracking-tight text-[#003D5C]">Free, forever</h2>
             <p className="text-gray-700 leading-relaxed">
               10 active posts free, forever. No trial expiring, no per-applicant charges,
               no "unlock this resume" fees. Archived roles don&apos;t count.
               Posting stays free through beta, and beta employers keep free unlimited posts.
             </p>
           </div>
-          <div className="px-0 md:px-10 pb-10 md:pb-0 border-b-2 md:border-b-0 border-black">
-            <div className="font-black text-6xl mb-4">02</div>
-            <h2 className="text-xl font-black mb-3 uppercase tracking-tight">Real applicants</h2>
+          <div className="px-0 md:px-10 pb-10 md:pb-0 border-b md:border-b-0 border-gray-200">
+            <div className="font-black text-6xl mb-4 text-[#003D5C]">02</div>
+            <h2 className="text-xl font-black mb-3 uppercase tracking-tight text-[#003D5C]">Real applicants</h2>
             <p className="text-gray-700 leading-relaxed">
               Candidates upload their own resumes at freeresumepost.co. No scraped profiles,
               no bots, no bid-for-visibility games. If they apply, they&apos;re real people who chose you.
             </p>
           </div>
           <div className="pl-0 md:pl-10">
-            <div className="font-black text-6xl mb-4">03</div>
-            <h2 className="text-xl font-black mb-3 uppercase tracking-tight">Matches come to you</h2>
+            <div className="font-black text-6xl mb-4 text-[#003D5C]">03</div>
+            <h2 className="text-xl font-black mb-3 uppercase tracking-tight text-[#003D5C]">Matches come to you</h2>
             <p className="text-gray-700 leading-relaxed">
               Our matching engine surfaces candidates that fit by specialty, state, experience,
               and credential. You get a real email when hot matches apply. No dashboard check needed.
@@ -191,10 +191,10 @@ export default async function Home() {
       </section>
 
       {/* How it works */}
-      <section className="border-b-2 border-black bg-gray-50">
+      <section className="border-b border-gray-200 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">HOW IT WORKS</h2>
-          <p className="text-4xl md:text-5xl font-black leading-tight mb-16 max-w-3xl">
+          <p className="text-4xl md:text-5xl font-black leading-tight mb-16 max-w-3xl text-[#003D5C]">
             Three steps. No credit card. No sales call.
           </p>
           <div className="grid md:grid-cols-3 gap-8">
@@ -203,9 +203,9 @@ export default async function Home() {
               { n: '02', h: 'Verify', p: 'We email you a one-click verification link. That\'s it. No account setup, no phone number.' },
               { n: '03', h: 'Get applicants', p: 'Real candidates see your post. They apply. You get emailed. Simple.' },
             ].map((step) => (
-              <div key={step.n} className="bg-white border-2 border-black p-8">
-                <div className="text-green-700 font-black text-xs tracking-widest mb-3">{step.n}</div>
-                <h3 className="font-black text-2xl mb-3 tracking-tight">{step.h}</h3>
+              <div key={step.n} className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+                <div className="text-[#003D5C] font-black text-xs tracking-widest mb-3">{step.n}</div>
+                <h3 className="font-black text-2xl mb-3 tracking-tight text-[#003D5C]">{step.h}</h3>
                 <p className="text-gray-700 leading-relaxed">{step.p}</p>
               </div>
             ))}
@@ -214,34 +214,34 @@ export default async function Home() {
       </section>
 
       {/* Recently posted */}
-      <section className="border-b-2 border-black">
+      <section className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-20">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
             <div>
               <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">OPEN ROLES</h2>
-              <p className="text-4xl md:text-5xl font-black leading-tight tracking-tight">
+              <p className="text-4xl md:text-5xl font-black leading-tight tracking-tight text-[#003D5C]">
                 Fresh healthcare jobs.
               </p>
             </div>
             <Link
               href="/jobs"
-              className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+              className="inline-flex items-center font-bold border-b-2 border-[#003D5C] text-[#003D5C] hover:text-[#002A40] hover:border-[#002A40] pb-0.5"
             >
               View all →
             </Link>
           </div>
           {recentJobs.length === 0 ? (
-            <div className="border-2 border-black border-dashed py-16 text-center">
-              <p className="text-2xl font-black mb-2">No jobs posted yet.</p>
+            <div className="rounded-xl border border-gray-200 shadow-sm border-dashed py-16 text-center">
+              <p className="text-2xl font-black mb-2 text-[#003D5C]">No jobs posted yet.</p>
               <p className="text-gray-700">
                 Be the first.{' '}
-                <Link href="/post-job" className="underline font-bold hover:text-green-700">
+                <Link href="/post-job" className="underline font-bold hover:text-[#003D5C]">
                   Post a job in 60 seconds &rarr;
                 </Link>
               </p>
             </div>
           ) : (
-            <div className="divide-y-2 divide-black border-y-2 border-black">
+            <div className="divide-y divide-gray-200 border-y border-gray-200">
               {recentJobs.map((job) => {
                 const salary = formatSalary(job.salary_min, job.salary_max)
                 const loc = locationLabel({ city: job.city, state: job.state })
@@ -251,7 +251,7 @@ export default async function Home() {
                     href={`/jobs/${job.slug}`}
                     className="grid grid-cols-12 gap-4 py-5 hover:bg-green-50 transition-colors group"
                   >
-                    <div className="col-span-12 md:col-span-7 font-bold group-hover:text-green-700 truncate">
+                    <div className="col-span-12 md:col-span-7 font-bold group-hover:text-[#003D5C] truncate">
                       {job.title}
                     </div>
                     <div className="col-span-6 md:col-span-3 text-gray-700 text-sm">{loc || '—'}</div>
@@ -272,12 +272,12 @@ export default async function Home() {
          frequency + authority flow. Pre-fix, all hubs were 2 clicks deep
          (homepage → /state → /state/florida) and the homepage was
          passing zero direct authority to per-state pages. */}
-      <section className="border-b-2 border-black bg-gray-50">
+      <section className="border-b border-gray-200 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="grid md:grid-cols-2 gap-12">
             <div>
               <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">BROWSE BY STATE</h2>
-              <p className="text-2xl font-black leading-tight mb-4">
+              <p className="text-2xl font-black leading-tight mb-4 text-[#003D5C]">
                 Every major US healthcare market.
               </p>
               <p className="text-gray-700 mb-5">
@@ -297,7 +297,7 @@ export default async function Home() {
                     <Link
                       key={slug}
                       href={`/state/${slug}`}
-                      className="text-sm border-2 border-black bg-white px-2.5 py-1 font-bold hover:bg-black hover:text-white transition-colors"
+                      className="text-sm rounded-md border border-gray-200 shadow-sm bg-white px-2.5 py-1 font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                     >
                       {hub.name}
                     </Link>
@@ -306,14 +306,14 @@ export default async function Home() {
               </div>
               <Link
                 href="/state"
-                className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+                className="inline-flex items-center font-bold border-b-2 border-[#003D5C] text-[#003D5C] hover:text-[#002A40] hover:border-[#002A40] pb-0.5"
               >
                 See all {STATE_HUBS.length} states →
               </Link>
             </div>
             <div>
               <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">BROWSE BY SPECIALTY</h2>
-              <p className="text-2xl font-black leading-tight mb-4">
+              <p className="text-2xl font-black leading-tight mb-4 text-[#003D5C]">
                 {SPECIALTY_HUBS.length} healthcare specialties.
               </p>
               <p className="text-gray-700 mb-5">
@@ -330,7 +330,7 @@ export default async function Home() {
                   <Link
                     key={hub.slug}
                     href={`/specialty/${hub.slug}`}
-                    className="text-sm border-2 border-black bg-white px-2.5 py-1 font-bold hover:bg-black hover:text-white transition-colors"
+                    className="text-sm rounded-md border border-gray-200 shadow-sm bg-white px-2.5 py-1 font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                   >
                     {hub.title.replace(/ Jobs$/, '')}
                   </Link>
@@ -338,7 +338,7 @@ export default async function Home() {
               </div>
               <Link
                 href="/specialty"
-                className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+                className="inline-flex items-center font-bold border-b-2 border-[#003D5C] text-[#003D5C] hover:text-[#002A40] hover:border-[#002A40] pb-0.5"
               >
                 See all specialties →
               </Link>
@@ -348,9 +348,9 @@ export default async function Home() {
           {/* City row — third axis of long-tail SEO. Top 12 metros chosen
              by healthcare-market size (combined TMC, NYC, LA, Chicago,
              Boston, Philadelphia, SF, Houston-Dallas-Austin, Tampa-Miami). */}
-          <div className="mt-12 pt-10 border-t-2 border-black">
+          <div className="mt-12 pt-10 border-t border-gray-200">
             <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">BROWSE BY CITY</h2>
-            <p className="text-2xl font-black leading-tight mb-4">
+            <p className="text-2xl font-black leading-tight mb-4 text-[#003D5C]">
               Top US healthcare metros.
             </p>
             <p className="text-gray-700 mb-5 max-w-3xl">
@@ -368,7 +368,7 @@ export default async function Home() {
                   <Link
                     key={slug}
                     href={`/city/${slug}`}
-                    className="text-sm border-2 border-black bg-white px-2.5 py-1 font-bold hover:bg-black hover:text-white transition-colors"
+                    className="text-sm rounded-md border border-gray-200 shadow-sm bg-white px-2.5 py-1 font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
                   >
                     {hub.name.split(',')[0]}
                   </Link>
@@ -377,7 +377,7 @@ export default async function Home() {
             </div>
             <Link
               href="/city"
-              className="inline-flex items-center font-bold border-b-2 border-black hover:text-green-700 hover:border-green-700 pb-0.5"
+              className="inline-flex items-center font-bold border-b-2 border-[#003D5C] text-[#003D5C] hover:text-[#002A40] hover:border-[#002A40] pb-0.5"
             >
               See all {CITY_HUBS.length} cities →
             </Link>
@@ -386,39 +386,39 @@ export default async function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="border-b-2 border-black">
+      <section className="border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-6 py-20">
           <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-3">FAQ</h2>
-          <p className="text-4xl md:text-5xl font-black leading-tight mb-12 tracking-tight">
+          <p className="text-4xl md:text-5xl font-black leading-tight mb-12 tracking-tight text-[#003D5C]">
             Common questions, fast answers.
           </p>
           <div className="space-y-8">
             <div>
-              <h3 className="text-xl font-black mb-2">Is freejobpost.co really free?</h3>
+              <h3 className="text-xl font-black mb-2 text-[#003D5C]">Is freejobpost.co really free?</h3>
               <p className="text-gray-700 leading-relaxed">Yes. No paywall, no per-applicant fee, no "sponsored" auction. We make money downstream when a placement converts on the matching engine. The job-posting side stays free forever.</p>
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">How long does a job stay live?</h3>
+              <h3 className="text-xl font-black mb-2 text-[#003D5C]">How long does a job stay live?</h3>
               <p className="text-gray-700 leading-relaxed">60 days by default. If a job expires and you still need it filled, posting it again takes about two minutes. Filled roles come off the board when you tell us.</p>
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">Where else does my job get distributed?</h3>
+              <h3 className="text-xl font-black mb-2 text-[#003D5C]">Where else does my job get distributed?</h3>
               <p className="text-gray-700 leading-relaxed">When you check the syndication boxes during posting, your listing gets JobPosting JSON-LD for Google for Jobs plus XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings via crawl. No extra step needed. Active feed partners ingest within a few hours.</p>
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">Who&apos;s applying, real people or bots?</h3>
-              <p className="text-gray-700 leading-relaxed">Real candidates. They either apply directly from the listing, or come through the <a href="https://www.freeresumepost.co" className="underline font-bold hover:text-green-700">freeresumepost.co</a> matching engine, where they&apos;ve uploaded their own resume. We don&apos;t scrape profiles or auto-apply.</p>
+              <h3 className="text-xl font-black mb-2 text-[#003D5C]">Who&apos;s applying, real people or bots?</h3>
+              <p className="text-gray-700 leading-relaxed">Real candidates. They either apply directly from the listing, or come through the <a href="https://www.freeresumepost.co" className="underline font-bold hover:text-[#003D5C]">freeresumepost.co</a> matching engine, where they&apos;ve uploaded their own resume. We don&apos;t scrape profiles or auto-apply.</p>
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">Do you charge for &quot;unlocking&quot; an applicant?</h3>
+              <h3 className="text-xl font-black mb-2 text-[#003D5C]">Do you charge for &quot;unlocking&quot; an applicant?</h3>
               <p className="text-gray-700 leading-relaxed">No. When a candidate applies, you get their full contact info immediately. No paywall, no &quot;contact unlock&quot; fees, no upgrade prompts.</p>
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">What healthcare roles can I post?</h3>
+              <h3 className="text-xl font-black mb-2 text-[#003D5C]">What healthcare roles can I post?</h3>
               <p className="text-gray-700 leading-relaxed">Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing. Non-healthcare roles are out of scope.</p>
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">How do candidates find my job?</h3>
+              <h3 className="text-xl font-black mb-2 text-[#003D5C]">How do candidates find my job?</h3>
               <p className="text-gray-700 leading-relaxed">Three paths. The freejobpost.co listing pages rank in search. The freeresumepost.co matching engine shows your role to candidates whose profile fits. And the syndication feeds carry your listing to aggregators. No extra steps on your end.</p>
             </div>
           </div>
@@ -426,7 +426,7 @@ export default async function Home() {
       </section>
 
       {/* Big CTA */}
-      <section className="border-b-2 border-black bg-black text-white">
+      <section className="border-b border-gray-200 bg-[#003D5C] text-white">
         <div className="max-w-6xl mx-auto px-6 py-24 text-center">
           <p className="text-5xl md:text-7xl font-black leading-[0.95] tracking-tight mb-8">
             Ready to post
@@ -438,7 +438,7 @@ export default async function Home() {
           </p>
           <Link
             href="/post-job"
-            className="inline-flex items-center bg-green-600 text-black px-8 py-5 text-lg font-black hover:bg-green-500 transition-colors"
+            className="inline-flex items-center bg-[#7FBC00] text-white px-8 py-5 text-lg font-black hover:bg-[#6DA300] transition-colors"
           >
             Post a job free →
           </Link>

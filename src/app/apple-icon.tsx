@@ -17,16 +17,16 @@ export default function AppleIcon() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#000',
+          background: '#003D5C',
           fontFamily: '"Helvetica Neue", "Segoe UI", system-ui, sans-serif',
           fontWeight: 900,
           color: '#fff',
           fontSize: 110,
           letterSpacing: -5,
-          borderBottom: '20px solid #15803d',
+          borderBottom: '20px solid #7FBC00',
         }}
       >
-        fj
+        A
       </div>
     ),
     { ...size },

@@ -31,15 +31,15 @@ export default function UnsubscribeClient() {
 
   if (!valid) {
     return (
-      <div className="border-2 border-black p-8 max-w-md w-full text-center">
-        <h1 className="text-2xl font-black mb-2">Invalid unsubscribe link</h1>
+      <div className="rounded-xl border border-gray-200 shadow-sm p-8 max-w-md w-full text-center">
+        <h1 className="text-2xl font-black mb-2 text-[#003D5C]">Invalid unsubscribe link</h1>
         <p className="text-gray-700 mb-6">
           This link is missing or malformed. If you keep getting alerts you don't want, reply
           to any alert email and we'll remove you.
         </p>
         <Link
           href="/jobs"
-          className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
+          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
         >
           Browse jobs →
         </Link>
@@ -49,19 +49,19 @@ export default function UnsubscribeClient() {
 
   if (done) {
     return (
-      <div className="border-2 border-black bg-green-50 p-8 max-w-md w-full text-center">
-        <div className="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 text-xs font-bold tracking-wider mb-4">
-          <span className="w-2 h-2 bg-green-600" />
+      <div className="rounded-xl border border-gray-200 bg-[#7FBC00]/10 p-8 max-w-md w-full text-center shadow-sm">
+        <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1 text-xs font-bold tracking-wider mb-4">
+          <span className="w-2 h-2 bg-[#00B5D4]" />
           UNSUBSCRIBED
         </div>
-        <h1 className="text-2xl font-black mb-2">You're unsubscribed.</h1>
+        <h1 className="text-2xl font-black mb-2 text-[#003D5C]">You're unsubscribed.</h1>
         <p className="text-gray-700 mb-6">
           You won't get any more job-alert emails. Changed your mind? You can re-subscribe from
           any specialty or city page.
         </p>
         <Link
           href="/jobs"
-          className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors"
+          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
         >
           Browse jobs →
         </Link>
@@ -70,8 +70,8 @@ export default function UnsubscribeClient() {
   }
 
   return (
-    <div className="border-2 border-black p-8 max-w-md w-full text-center">
-      <h1 className="text-2xl font-black mb-2">Unsubscribe from job alerts?</h1>
+    <div className="rounded-xl border border-gray-200 shadow-sm p-8 max-w-md w-full text-center">
+      <h1 className="text-2xl font-black mb-2 text-[#003D5C]">Unsubscribe from job alerts?</h1>
       <p className="text-gray-700 mb-6">
         Click below to stop receiving job-alert emails from freejobpost.co.
       </p>
@@ -85,7 +85,7 @@ export default function UnsubscribeClient() {
         type="button"
         onClick={onConfirm}
         disabled={pending}
-        className="inline-flex items-center bg-black text-white px-6 py-3 font-bold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-md hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {pending ? 'Unsubscribing…' : 'Unsubscribe me'}
       </button>
