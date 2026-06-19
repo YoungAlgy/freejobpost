@@ -5,8 +5,9 @@ export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
 
 // Brutalist favicon — solid black square with a thick green underline,
-// matching the freejobpost.co brand (green-700 = #15803d). The two-letter
-// stack reads as "fj" without ascenders/descenders fighting the tiny canvas.
+// matching the freejobpost.co brand accent (green-600 = #16a34a, the same
+// --accent token the site uses). The two-letter stack reads as "fj" without
+// ascenders/descenders fighting the tiny canvas.
 export default function Icon() {
   return new ImageResponse(
     (
@@ -24,7 +25,7 @@ export default function Icon() {
           color: '#fff',
           fontSize: 22,
           letterSpacing: -1,
-          borderBottom: '4px solid #15803d',
+          borderBottom: '4px solid #16a34a',
         }}
       >
         fj

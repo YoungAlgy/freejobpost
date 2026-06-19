@@ -34,7 +34,7 @@ export default async function OG() {
         >
           <div style={{ display: 'flex' }}>
             <span>freejobpost</span>
-            <span style={{ color: '#15803d' }}>.co</span>
+            <span style={{ color: '#16a34a' }}>.co</span>
           </div>
           <div
             style={{
@@ -65,7 +65,7 @@ export default async function OG() {
               fontSize: 14,
               fontWeight: 700,
               letterSpacing: 3,
-              color: '#15803d',
+              color: '#16a34a',
               textTransform: 'uppercase',
               marginBottom: 22,
             }}
@@ -105,7 +105,7 @@ export default async function OG() {
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -1.5,
-              color: '#15803d',
+              color: '#16a34a',
             }}
           >
             No Indeed tax.

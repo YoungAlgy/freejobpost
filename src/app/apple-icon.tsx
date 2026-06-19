@@ -23,7 +23,7 @@ export default function AppleIcon() {
           color: '#fff',
           fontSize: 110,
           letterSpacing: -5,
-          borderBottom: '20px solid #15803d',
+          borderBottom: '20px solid #16a34a',
         }}
       >
         fj
