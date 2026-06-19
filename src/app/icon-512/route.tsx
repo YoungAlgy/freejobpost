@@ -3,11 +3,11 @@ import { ImageResponse } from 'next/og'
 export const runtime = 'edge'
 export const contentType = 'image/png'
 
-// 512x512 PWA / maskable app icon. Same brutalist black + green "fj" mark as
-// /icon and /apple-icon, but the green underline is inset (a centered bar, not
+// 512x512 PWA / maskable app icon. Same Ava Health navy + lime "A" mark as
+// /icon and /apple-icon, but the lime underline is inset (a centered bar, not
 // a full-bleed bottom border) so the whole mark stays inside the maskable safe
 // zone and isn't clipped by Android's circular / squircle mask. Referenced from
-// manifest.ts. Uses the site --accent green (#16a34a).
+// manifest.ts. Uses the Ava Health navy (#003D5C) + lime (#7FBC00).
 export function GET() {
   return new ImageResponse(
     (
@@ -19,7 +19,7 @@ export function GET() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#000',
+          background: '#003D5C',
           fontFamily: '"Helvetica Neue", "Segoe UI", system-ui, sans-serif',
         }}
       >
@@ -33,14 +33,14 @@ export function GET() {
             lineHeight: 1,
           }}
         >
-          fj
+          A
         </div>
         <div
           style={{
             display: 'flex',
             width: 200,
             height: 28,
-            background: '#16a34a',
+            background: '#7FBC00',
             marginTop: 24,
           }}
         />
