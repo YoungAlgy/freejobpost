@@ -8,7 +8,7 @@ import { FEDERAL_AGENCIES, agencyOrFilter } from '@/lib/federal-agencies'
 // 4h ingest cron. 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling
 // specialty/state/city hubs (all 21600s) — consistent + 6× fewer regens than
 // 1h, still well inside the 4h data cadence. See jobs/[slug] for rationale.
-export const revalidate = 21600
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   // The root layout adds " | Free Job Post" via title.template — don't repeat it here.

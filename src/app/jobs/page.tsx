@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 // (12×1000-row query + ~5.5MB render per regen); the homepage stays 1h for
 // "latest jobs" freshness, so /jobs can align to the 4h ingest cron without
 // hurting discovery. See jobs/[slug] for the broader ISR-cost rationale.
-export const revalidate = 14400
+export const revalidate = 21600
 
 export default async function JobsIndexPage() {
   // 2026-05-28 payload refactor. This page used to fetch the ENTIRE active

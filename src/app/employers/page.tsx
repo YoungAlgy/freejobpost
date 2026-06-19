@@ -10,7 +10,7 @@ import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
-export const revalidate = 21600
+export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: 'Healthcare employers hiring',

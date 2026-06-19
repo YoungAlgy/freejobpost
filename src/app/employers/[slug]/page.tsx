@@ -29,7 +29,7 @@ import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
-export const revalidate = 21600
+export const revalidate = 86400
 // Allow on-demand rendering for employers that sign up after the last build
 export const dynamicParams = true
 

@@ -23,7 +23,7 @@ import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 // 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling specialty/
 // state/city hubs (21600s). Federal inventory changes on the 4h ingest cron,
 // so 6h is plenty fresh. See jobs/[slug] for rationale.
-export const revalidate = 21600
+export const revalidate = 86400
 
 // Pre-render all known agency landing pages at build time. Adding a new agency
 // is a single config-list edit in src/lib/federal-agencies.ts.

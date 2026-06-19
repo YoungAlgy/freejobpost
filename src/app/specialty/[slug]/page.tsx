@@ -46,7 +46,7 @@ const BRIDGED_SPECIALTY_SLUGS = new Set([
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — listing pages only
 // change when jobs are added (4h ingest cron), so 6h is fresh enough and
 // cuts crawler-driven regen 36×. See jobs/[slug] for full rationale.
-export const revalidate = 21600
+export const revalidate = 86400
 
 export async function generateStaticParams() {
   return SPECIALTY_HUBS.map((s) => ({ slug: s.slug }))

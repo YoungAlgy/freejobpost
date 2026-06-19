@@ -11,7 +11,7 @@ import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
-export const revalidate = 3600
+export const revalidate = 21600
 // The live sitemap froze for ~75h (Age: 272597, content stuck at the Jun 5
 // deploy) because background ISR regeneration silently exceeded the default
 // function duration — Vercel then serves the last good copy forever. This

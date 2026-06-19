@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 // ISR — keeps the live count fresh. 2026-05-28: 300s → 3600s (1h) in the
 // cost audit; this is a low-traffic marketing/form page, no need to regen
 // every 5 min. See jobs/[slug] for rationale.
-export const revalidate = 3600
+export const revalidate = 21600
 
 export default async function PostJobPage() {
   // Live count = social proof for employers landing here cold

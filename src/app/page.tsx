@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 // only on the 4h ingest cron, so a 1h window keeps the live count + recent
 // list fresh while cutting homepage regen 12×. See jobs/[slug] for the full
 // ISR cost rationale.
-export const revalidate = 3600
+export const revalidate = 21600
 
 type RecentJob = Pick<PublicJob, 'id' | 'slug' | 'title' | 'city' | 'state' | 'salary_min' | 'salary_max'>
 

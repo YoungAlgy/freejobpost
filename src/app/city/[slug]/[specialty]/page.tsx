@@ -28,7 +28,7 @@ import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
-export const revalidate = 21600
+export const revalidate = 86400
 // 2026-06 audit (F53): was dynamicParams=false with an UNCAPPED
 // generateStaticParams — every viable cell pre-rendered at build (unbounded
 // build-time fan-out as inventory grows), and any cell that crossed the
