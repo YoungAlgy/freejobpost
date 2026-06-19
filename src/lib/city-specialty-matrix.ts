@@ -36,7 +36,9 @@ export { MIN_JOBS_PER_CELL }
 const _cachedViableCityCells = unstable_cache(
   _computeViableCityCellsUncached,
   ['viable-city-matrix-cells-v2'],
-  { revalidate: 600 },
+  // 6h (was 600s) — full-corpus scan; see specialty-state-matrix note. Cuts the
+  // shared-MICRO scan load ~36× with negligible freshness cost.
+  { revalidate: 21600 },
 )
 
 export async function getViableCityCellsCached(

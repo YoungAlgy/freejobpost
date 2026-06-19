@@ -34,7 +34,9 @@ const MIN_JOBS_PER_CELL = 5
 const _cachedViableFederalCells = unstable_cache(
   _computeViableFederalCellsUncached,
   ['viable-federal-matrix-cells-v2'],
-  { revalidate: 600 },
+  // 6h (was 600s) — recurring federal_jobs_for_match RPC; see specialty-state-matrix
+  // note. Less load on the shared MICRO with negligible freshness cost.
+  { revalidate: 21600 },
 )
 
 export async function getViableFederalCellsCached(

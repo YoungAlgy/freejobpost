@@ -50,7 +50,11 @@ export { MIN_JOBS_PER_CELL }
 const _cachedViableCells = unstable_cache(
   _computeViableCellsUncached,
   ['viable-matrix-cells-v2'],
-  { revalidate: 600 },
+  // 6h (was 600s). The viable-cell list changes very slowly, but 600s meant a
+  // ~40-batch full-corpus scan up to 144×/day — and with 3 such matrices that's
+  // ~430 full scans/day hammering the SHARED MICRO (same pool-exhaustion class as
+  // the 2026-06 incident above). 6h cuts that ~36× with negligible freshness cost.
+  { revalidate: 21600 },
 )
 
 export async function getViableCellsCached(
