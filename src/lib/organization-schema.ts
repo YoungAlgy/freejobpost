@@ -17,11 +17,11 @@
 
 export const ORG_PROFILE = {
   '@type': 'Organization' as const,
-  '@id': 'https://avahealth.co#organization',
+  '@id': 'https://providers.avahealth.co#organization',
   legalName: 'Ava Health Partners LLC',
   name: 'Ava Health',
   alternateName: ['Ava Health Partners', 'Ava Health Partners LLC'],
-  url: 'https://avahealth.co',
+  url: 'https://providers.avahealth.co',
   logo: 'https://static.wixstatic.com/media/91e3ba_b1850056c8a64df0a8bb1d2bebbb8f46~mv2.png/v1/fit/w_512,h_512/91e3ba_b1850056c8a64df0a8bb1d2bebbb8f46~mv2.png',
   telephone: '+1-904-343-9449',
   email: 'info@avahealth.co',
@@ -57,8 +57,6 @@ export const ORG_PROFILE = {
 } as const
 
 const BASE_SAME_AS = [
-  'https://avahealth.co',
-  'https://www.avahealth.co',
   'https://providers.avahealth.co',
   'https://app.avahealth.co',
   'https://freejobpost.co',

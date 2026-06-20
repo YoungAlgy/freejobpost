@@ -17,9 +17,9 @@ describe('ORG_PROFILE (canonical)', () => {
     expect(ORG_PROFILE.legalName).toBe('Ava Health Partners LLC')
   })
 
-  it('uses the canonical avahealth.co identity (not freejobpost or freeresumepost)', () => {
-    expect(ORG_PROFILE['@id']).toBe('https://avahealth.co#organization')
-    expect(ORG_PROFILE.url).toBe('https://avahealth.co')
+  it('uses the canonical providers.avahealth.co identity (not freejobpost or freeresumepost)', () => {
+    expect(ORG_PROFILE['@id']).toBe('https://providers.avahealth.co#organization')
+    expect(ORG_PROFILE.url).toBe('https://providers.avahealth.co')
   })
 
   it('phone is in international E.164 format (Google requirement)', () => {
@@ -60,7 +60,7 @@ describe('buildOrganizationGraph', () => {
     // Google merge them into one Knowledge Graph entity. Different sites,
     // same parent.
     expect(orgA['@id']).toBe(orgB['@id'])
-    expect(orgA['@id']).toBe('https://avahealth.co#organization')
+    expect(orgA['@id']).toBe('https://providers.avahealth.co#organization')
   })
 
   it('WebSite block uses per-site @id and url', () => {
@@ -75,7 +75,7 @@ describe('buildOrganizationGraph', () => {
     const website = graph['@graph'].find((e) => e['@type'] === 'WebSite') as {
       publisher: { '@id': string }
     }
-    expect(website.publisher['@id']).toBe('https://avahealth.co#organization')
+    expect(website.publisher['@id']).toBe('https://providers.avahealth.co#organization')
   })
 
   it('SearchAction target carries the per-site search URL template', () => {
@@ -98,7 +98,7 @@ describe('buildOrganizationGraph', () => {
     const org = graph['@graph'][0] as { sameAs: string[] }
     expect(org.sameAs).toContain('https://freejobpost.co')
     expect(org.sameAs).toContain('https://www.freeresumepost.co')
-    expect(org.sameAs).toContain('https://avahealth.co')
+    expect(org.sameAs).toContain('https://providers.avahealth.co')
   })
 
   it('additionalSameAs entries are appended to the base list, not replacing it', () => {
@@ -109,7 +109,7 @@ describe('buildOrganizationGraph', () => {
     const org = graph['@graph'][0] as { sameAs: string[] }
     expect(org.sameAs).toContain('https://twitter.com/freejobpost')
     // Base entries still present
-    expect(org.sameAs).toContain('https://avahealth.co')
+    expect(org.sameAs).toContain('https://providers.avahealth.co')
     expect(org.sameAs).toContain('https://freejobpost.co')
   })
 })

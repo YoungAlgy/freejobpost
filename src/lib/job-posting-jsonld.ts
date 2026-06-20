@@ -92,7 +92,7 @@ export function buildJobPostingJsonLd(args: BuildJobPostingArgs): Record<string,
       ...(job.company_name
         ? {}
         : employer.isSeeded
-        ? { sameAs: 'https://avahealth.co', logo: 'https://avahealth.co/logo.png' }
+        ? { sameAs: 'https://providers.avahealth.co' }
         : employer.slug
         ? { sameAs: `https://freejobpost.co/employers/${employer.slug}` }
         : {}),

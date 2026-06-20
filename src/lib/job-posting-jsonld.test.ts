@@ -119,12 +119,11 @@ describe('buildJobPostingJsonLd — seeded Ava role', () => {
     employer: { name: 'Ava Health Partners', isSeeded: true, slug: null },
   })
 
-  it('uses avahealth.co sameAs + logo for seeded employers (not a per-employer page)', () => {
+  it('uses providers.avahealth.co sameAs for seeded employers (not a per-employer page)', () => {
     expect(out.hiringOrganization).toMatchObject({
       '@type': 'Organization',
       name: 'Ava Health Partners',
-      sameAs: 'https://avahealth.co',
-      logo: 'https://avahealth.co/logo.png',
+      sameAs: 'https://providers.avahealth.co',
     })
   })
 
