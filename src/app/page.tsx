@@ -8,9 +8,9 @@ import { CITY_HUBS } from '@/lib/city-slugs'
 import AvaCareersNav from '@/components/ava-family/AvaCareersNav'
 
 export const metadata: Metadata = {
-  // `absolute` bypasses the layout template `%s | Free Job Post`. Without
-  // it the rendered title would be the double-branded "Free Job Post —
-  // Healthcare jobs without the Indeed tax | Free Job Post".
+  // `absolute` bypasses the layout template `%s | Ava Health`. Without it the
+  // rendered title would be the double-branded "Healthcare Jobs Without the
+  // Indeed Tax | Ava Health | Ava Health".
   title: { absolute: 'Healthcare Jobs Without the Indeed Tax | Ava Health' },
   description:
     'Post healthcare jobs for free. No credit card, no sponsored-bid auction, no paywall to see applicants. Ava Health is where growing employers hire.',

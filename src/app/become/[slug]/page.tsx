@@ -101,6 +101,7 @@ export default async function CareerPathPage({ params }: Props) {
     '@type': 'Article',
     headline: guide.title,
     description: guide.metaDescription,
+    image: 'https://freejobpost.co/opengraph-image',
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': `https://freejobpost.co/become/${guide.slug}`,
