@@ -5,6 +5,7 @@ import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
+import AvaCareersNav from '@/components/ava-family/AvaCareersNav'
 
 export const metadata: Metadata = {
   // `absolute` bypasses the layout template `%s | Free Job Post`. Without
@@ -102,6 +103,11 @@ export default async function Home() {
         </div>
       </nav>
 
+      {/* Careers sub-nav — ties the job board + resume tool into one careers
+         flow. Homepage-only (kept out of layout) so the 16K indexed job/hub
+         pages' rendered template stays byte-stable. */}
+      <AvaCareersNav currentSection="jobs" />
+
       {/* Hero */}
       <section className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-32">
@@ -136,7 +142,7 @@ export default async function Home() {
             Post RN, MD, PT, and front-desk roles in 60 seconds. Real applicants.
             Zero auction fees. Built by a staffing team that got tired of paying to be seen.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             <Link
               href="/post-job"
               className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
@@ -149,67 +155,16 @@ export default async function Home() {
             >
               Browse Jobs
             </Link>
+            <a
+              href="https://www.freeresumepost.co/upload?utm_source=freejobpost&utm_medium=referral&utm_campaign=careers_hero"
+              className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+            >
+              Upload your resume →
+            </a>
           </div>
           <p className="mt-8 text-sm text-gray-600">
-            Hiring candidates? Send them to{' '}
-            <a href="https://www.freeresumepost.co" className="font-bold underline hover:text-[#003D5C]">
-              freeresumepost.co →
-            </a>
+            Looking for work? Browse jobs free or post your resume and let employers come to you.
           </p>
-        </div>
-      </section>
-
-      {/* Three things */}
-      <section className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-0 md:divide-x md:divide-gray-200">
-          <div className="pr-0 md:pr-10 pb-10 md:pb-0 border-b md:border-b-0 border-gray-200">
-            <div className="font-black text-6xl mb-4 text-[#003D5C]">01</div>
-            <h2 className="text-xl font-black mb-3 uppercase tracking-tight text-[#003D5C]">Free, forever</h2>
-            <p className="text-gray-700 leading-relaxed">
-              10 active posts free, forever. No trial expiring, no per-applicant charges,
-              no "unlock this resume" fees. Archived roles don&apos;t count.
-              Posting stays free through beta, and beta employers keep free unlimited posts.
-            </p>
-          </div>
-          <div className="px-0 md:px-10 pb-10 md:pb-0 border-b md:border-b-0 border-gray-200">
-            <div className="font-black text-6xl mb-4 text-[#003D5C]">02</div>
-            <h2 className="text-xl font-black mb-3 uppercase tracking-tight text-[#003D5C]">Real applicants</h2>
-            <p className="text-gray-700 leading-relaxed">
-              Candidates upload their own resumes at freeresumepost.co. No scraped profiles,
-              no bots, no bid-for-visibility games. If they apply, they&apos;re real people who chose you.
-            </p>
-          </div>
-          <div className="pl-0 md:pl-10">
-            <div className="font-black text-6xl mb-4 text-[#003D5C]">03</div>
-            <h2 className="text-xl font-black mb-3 uppercase tracking-tight text-[#003D5C]">Matches come to you</h2>
-            <p className="text-gray-700 leading-relaxed">
-              Our matching engine surfaces candidates that fit by specialty, state, experience,
-              and credential. You get a real email when hot matches apply. No dashboard check needed.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="border-b border-gray-200 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6 py-20">
-          <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">HOW IT WORKS</h2>
-          <p className="text-4xl md:text-5xl font-black leading-tight mb-16 max-w-3xl text-[#003D5C]">
-            Three steps. No credit card. No sales call.
-          </p>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { n: '01', h: 'Post', p: 'Fill the 60-second form: title, location, description, salary. Hit submit.' },
-              { n: '02', h: 'Verify', p: 'We email you a one-click verification link. That\'s it. No account setup, no phone number.' },
-              { n: '03', h: 'Get applicants', p: 'Real candidates see your post. They apply. You get emailed. Simple.' },
-            ].map((step) => (
-              <div key={step.n} className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-                <div className="text-[#003D5C] font-black text-xs tracking-widest mb-3">{step.n}</div>
-                <h3 className="font-black text-2xl mb-3 tracking-tight text-[#003D5C]">{step.h}</h3>
-                <p className="text-gray-700 leading-relaxed">{step.p}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
