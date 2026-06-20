@@ -20,7 +20,7 @@ The board covers physicians, advanced practice (NP/PA/CRNA), nursing (RN/LPN/CNA
 
 ## About the data
 
-- [About Ava Health](https://www.avahealth.co): Tampa, FL-based healthcare staffing platform (parent operator)
+- [About Ava Health](https://providers.avahealth.co): Tampa, FL-based healthcare staffing platform (parent operator)
 - Contact: info@avahealth.co
 - Job postings sourced from employer ATS feeds (Workday CXS, Greenhouse, Lever) plus federal sources (USAJOBS); refreshed multiple times per day
 - No paywall, no candidate-side login, no resume-database sales
