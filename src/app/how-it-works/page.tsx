@@ -34,7 +34,7 @@ export default function HowItWorksPage() {
           </Link>
           <div className="flex items-center gap-6 text-sm font-medium">
             <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
-            <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors">Post A Job</Link>
+            <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors">Post a job →</Link>
           </div>
         </div>
       </nav>
@@ -184,7 +184,7 @@ export default function HowItWorksPage() {
         <div className="rounded-xl border border-gray-200 bg-[#003D5C] text-white p-8 text-center shadow-sm">
           <p className="text-2xl font-black mb-3">Ready?</p>
           <Link href="/post-job" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-3 rounded-md hover:bg-[#6DA300]">
-            Post A Job For Free →
+            Post a job free →
           </Link>
         </div>
       </article>

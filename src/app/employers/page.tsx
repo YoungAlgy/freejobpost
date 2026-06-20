@@ -118,7 +118,7 @@ export default async function EmployersPage() {
                 href="/post-job"
                 className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
               >
-                Post a job
+                Post a job →
               </Link>
             </div>
           </div>
@@ -204,7 +204,7 @@ export default async function EmployersPage() {
               with no credit card, no auction, no paywall to see applicants.
             </p>
             <Link
-              href="/for-employers"
+              href="/how-it-works"
               className="text-sm font-bold underline underline-offset-2 hover:text-[#003D5C] shrink-0"
             >
               How it works →

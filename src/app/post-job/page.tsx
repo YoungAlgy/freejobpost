@@ -61,7 +61,7 @@ export default async function PostJobPage() {
               For candidates
             </a>
             <Link href="/post-job" className="bg-[#7FBC00] text-white px-3 md:px-4 py-2 font-bold whitespace-nowrap rounded-md hover:bg-[#6DA300] transition-colors">
-              Post a job
+              Post a job →
             </Link>
           </div>
         </div>

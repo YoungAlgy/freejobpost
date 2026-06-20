@@ -93,7 +93,7 @@ export default async function FederalJobsHubPage() {
                 href="/post-job"
                 className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
               >
-                Post a Job →
+                Post a job →
               </Link>
             </div>
           </div>

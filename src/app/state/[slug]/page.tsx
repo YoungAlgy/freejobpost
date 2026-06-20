@@ -476,7 +476,7 @@ export default async function StateHubPage(
               <p className="text-gray-700 mb-4">{hub.name} inventory is still ramping up on freejobpost.co. Browse our active national board in the meantime, or set up a candidate match alert.</p>
               <div className="flex flex-wrap gap-3 justify-center">
                 <Link href="/jobs" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-2 hover:bg-[#6DA300]">Browse all jobs →</Link>
-                <a href="https://www.freeresumepost.co" className="inline-block border border-gray-200 rounded-lg font-bold px-6 py-2 hover:bg-[#003D5C] hover:text-white">Get matched →</a>
+                <a href="https://www.freeresumepost.co/upload?utm_source=freejobpost&utm_medium=referral&utm_campaign=resume_match" className="inline-block border border-gray-200 rounded-lg font-bold px-6 py-2 hover:bg-[#003D5C] hover:text-white">Get matched →</a>
               </div>
             </div>
           ) : (

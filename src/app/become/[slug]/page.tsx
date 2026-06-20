@@ -131,8 +131,8 @@ export default async function CareerPathPage({ params }: Props) {
               Ava Health
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
-              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300]">Post a Job</Link>
+              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300]">Post a job →</Link>
             </div>
           </div>
         </nav>

@@ -49,7 +49,7 @@ export default function PricingPage() {
               href="/post-job"
               className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors rounded-md"
             >
-              Post A Job →
+              Post a job →
             </Link>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function PricingPage() {
               href="/post-job"
               className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors rounded-md"
             >
-              Post A Job →
+              Post a job free →
             </Link>
             <Link
               href="/jobs"
