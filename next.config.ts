@@ -78,6 +78,20 @@ const nextConfig: NextConfig = {
         destination: '/specialty/:slug*',
         permanent: true,
       },
+      // ─── Ava Health family cross-links: vanity paths that don't exist on
+      // this site route to the sibling tool, so the family reads as one
+      // product. All target non-existent freejob paths → zero risk to real
+      // pages. ───
+      { source: '/resumes', destination: 'https://www.freeresumepost.co', permanent: true },
+      { source: '/resume', destination: 'https://www.freeresumepost.co', permanent: true },
+      { source: '/post-resume', destination: 'https://www.freeresumepost.co', permanent: true },
+      { source: '/providers', destination: 'https://providers.avahealth.co', permanent: true },
+      { source: '/find-providers', destination: 'https://providers.avahealth.co', permanent: true },
+      { source: '/recruiters', destination: 'https://app.avahealth.co', permanent: true },
+      { source: '/for-recruiters', destination: 'https://app.avahealth.co', permanent: true },
+      { source: '/platform', destination: 'https://app.avahealth.co', permanent: true },
+      { source: '/outreach', destination: 'https://app.avahealth.co/outreach', permanent: true },
+      { source: '/beacon', destination: 'https://app.avahealth.co/outreach', permanent: true },
     ]
   },
   async headers() {
