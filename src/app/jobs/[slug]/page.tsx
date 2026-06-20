@@ -655,13 +655,7 @@ export default async function JobDetailPage({ params }: Props) {
               </p>
               <p>
                 This role is placed by{' '}
-                <a
-                  href="https://avahealth.co"
-                  className="underline hover:text-[#003D5C]"
-                  rel="noopener"
-                >
-                  Ava Health Partners LLC
-                </a>
+                <span className="font-medium">Ava Health Partners LLC</span>
                 , the healthcare staffing firm that operates freejobpost.co. We
                 seed real placements from our recruiter book while we onboard
                 direct employer postings. Every listing has a real apply link

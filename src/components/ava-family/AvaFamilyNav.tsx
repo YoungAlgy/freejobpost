@@ -23,12 +23,9 @@ export function AvaFamilyNav({ currentSite }: { currentSite: FamilyNavSite }) {
   return (
     <nav aria-label="Ava Health" style={{ backgroundColor: NAVY }} className="text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-9 flex items-center justify-between gap-3">
-        <a
-          href="https://avahealth.co"
-          className="text-[13px] font-bold tracking-tight text-white hover:opacity-90 transition-opacity shrink-0"
-        >
+        <span className="text-[13px] font-bold tracking-tight text-white shrink-0">
           Ava Health
-        </a>
+        </span>
         <ul className="flex items-center gap-3.5 sm:gap-6 text-[12px] sm:text-[13px] font-medium">
           {SECTIONS.map((s) => {
             const isCurrent = s.key === currentSite

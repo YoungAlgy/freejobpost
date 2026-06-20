@@ -220,9 +220,7 @@ export default function RootLayout({
             </div>
             <p className="text-xs text-gray-500 text-center md:text-right max-w-md">
               &copy; {new Date().getFullYear()} Operated by{' '}
-              <Link href="https://avahealth.co" className="underline hover:text-gray-900">
-                Ava Health Partners LLC
-              </Link>
+              <span className="font-medium text-gray-600">Ava Health Partners LLC</span>
               . A free-to-use job board for healthcare employers.
               <br />
               4532 W Kennedy Blvd, Suite 125, Tampa, FL 33609 · (904) 343-9449 · info@avahealth.co

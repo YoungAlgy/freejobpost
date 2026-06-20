@@ -40,7 +40,6 @@ type FamilyMember = {
 // public sites and only shown on Beacon's own site (or when includeBeacon
 // is set).
 const FAMILY: FamilyMember[] = [
-  { key: 'ava', label: 'Ava Health', blurb: 'Healthcare recruiting', href: 'https://avahealth.co' },
   { key: 'crm', label: 'For recruiters', blurb: 'Recruiter platform', href: 'https://app.avahealth.co' },
   { key: 'providers', label: 'Provider directory', blurb: 'Look up any provider', href: 'https://providers.avahealth.co' },
   { key: 'freejob', label: 'Healthcare jobs', blurb: 'Post and find jobs free', href: 'https://freejobpost.co' },

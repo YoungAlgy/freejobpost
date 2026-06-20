@@ -319,9 +319,7 @@ export default function ForEmployersPage() {
           <div className="space-y-4 text-gray-700 leading-relaxed">
             <p>
               freejobpost.co is operated by{' '}
-              <a href="https://avahealth.co" className="underline font-bold hover:text-[#003D5C]">
-                Ava Health Partners LLC
-              </a>
+              <span className="font-bold">Ava Health Partners LLC</span>
               , a healthcare staffing firm. We maintain a candidate database for our placement
               business. The job board populates that database with active candidates who are
               genuinely looking.
