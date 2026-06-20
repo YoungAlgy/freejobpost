@@ -48,17 +48,6 @@ export async function getViableCityCellsCached(
   return _cachedViableCityCells()
 }
 
-/**
- * Thin wrapper over the globally-cached scan (kept for existing callers —
- * generateStaticParams, sitemap). No longer scans per render.
- */
-export async function computeViableCityCellsViaSql(
-  _supabase?: SupabaseClient,
-): Promise<CityMatrixCell[]> {
-  void _supabase
-  return _cachedViableCityCells()
-}
-
 async function _computeViableCityCellsUncached(): Promise<CityMatrixCell[]> {
   const numBatches = await activeJobBatchCount(_moduleSupabase)
   const BATCH_SIZE = 1000

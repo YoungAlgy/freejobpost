@@ -47,18 +47,6 @@ export async function getViableFederalCellsCached(
 }
 
 /**
- * Thin wrapper over the globally-cached scan (kept for existing callers —
- * generateStaticParams on /jobs/federal/[agency]/[state], sitemap.ts, the
- * runtime page renderer). No longer calls the RPC per render.
- */
-export async function computeViableFederalCells(
-  _supabase?: SupabaseClient,
-): Promise<FederalMatrixCell[]> {
-  void _supabase
-  return _cachedViableFederalCells()
-}
-
-/**
  * The actual scan. Pulls every active federal job once via the
  * `federal_jobs_for_match()` RPC (truncates description to 250 chars
  * server-side so the payload stays under the Next 2MB data-cache cap), runs
