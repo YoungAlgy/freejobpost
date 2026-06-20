@@ -20,6 +20,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { supabase, hourIso } from '@/lib/supabase'
 import { JOB_LIST_FIELDS, type PublicJob } from '@/lib/public-jobs'
+import { unstable_cache } from 'next/cache'
 
 // Per-filter, human-triggered — never statically cached.
 export const dynamic = 'force-dynamic'
@@ -47,6 +48,23 @@ function sanitizeQ(raw: string): string {
     .trim()
     .slice(0, 80)
 }
+
+// Verified-employer id set, cached 5 min. Identical across every ?verified=1
+// filter combo, so without caching each distinct filter re-scans
+// public_employers_directory on the shared DB. Same definition as the /jobs page.
+const getVerifiedEmployerIds = unstable_cache(
+  async (): Promise<string[]> => {
+    const { data } = await supabase
+      .from('public_employers_directory')
+      .select('id')
+      .not('verified_at', 'is', null)
+      .not('verified_via', 'in', '(seeded,ats_import)')
+      .not('company_name', 'ilike', 'Ava Health%')
+    return ((data ?? []) as Array<{ id: string }>).map((e) => e.id)
+  },
+  ['verified-employer-ids'],
+  { revalidate: 300 },
+)
 
 export async function GET(req: NextRequest): Promise<Response> {
   const sp = req.nextUrl.searchParams
@@ -85,16 +103,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   if (verifiedOnly) {
-    // Resolve the verified employer set server-side — same definition as the
-    // /jobs page (verified_at set, excluding seeded + ATS imports + Ava seed
-    // names) so the server filter and the client's per-card ✓ stay consistent.
-    const { data: emps } = await supabase
-      .from('public_employers_directory')
-      .select('id')
-      .not('verified_at', 'is', null)
-      .not('verified_via', 'in', '(seeded,ats_import)')
-      .not('company_name', 'ilike', 'Ava Health%')
-    const ids = ((emps ?? []) as Array<{ id: string }>).map((e) => e.id)
+    // Resolve the verified employer set server-side (cached 5 min, see
+    // getVerifiedEmployerIds) so the server filter and the client's per-card ✓
+    // stay consistent without re-scanning the directory per filter combo.
+    const ids = await getVerifiedEmployerIds()
     if (ids.length === 0) {
       return NextResponse.json({ jobs: [], total: 0 })
     }
