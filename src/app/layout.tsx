@@ -6,7 +6,6 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { buildOrganizationGraph } from '@/lib/organization-schema'
 import { E_VERIFY } from '@/lib/e-verify-config'
-import { AvaFamilyBand } from '@/components/ava-family/AvaFamilyBand'
 import { AvaFamilyNav } from '@/components/ava-family/AvaFamilyNav'
 import { SiteHeader } from '@/components/SiteHeader'
 
@@ -136,10 +135,6 @@ export default function RootLayout({
           {children}
         </div>
         <footer className="max-w-6xl mx-auto px-4 py-8 mt-12 border-t border-gray-200">
-          {/* Ava Health family band — shared parent signal + cross-links to
-             the rest of the family. Renders above the freejobpost-specific
-             footer nav. Keeps this site's green accent untouched. */}
-          <AvaFamilyBand currentSite="freejob" />
           {/* Popular-hub footer row — every page on the site links to
              these 9 hubs, giving Google a constant signal of where the
              important category surfaces live. Boosts crawl frequency
