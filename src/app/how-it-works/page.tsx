@@ -46,7 +46,7 @@ export default function HowItWorksPage() {
         </div>
         <h1 className="text-4xl md:text-5xl font-black leading-[0.95] tracking-tight mb-6 text-[#003D5C]">
           Free healthcare job posts.<br />
-          <span className="text-[#003D5C]">Without the Indeed tax.</span>
+          <span className="text-[#003D5C]">No fees, no auction.</span>
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-12">
           Ava Health is a plain utility. We don&apos;t charge employers, we don&apos;t auction

@@ -392,7 +392,7 @@ export default async function StateHubPage(
                     {hub.topEmployers.slice(0, 5).join(', ')}. Some listings come
                     from these systems directly; others are placed by Ava Health
                     Partners&apos; recruiter book. Every posting has a real apply
-                    link. No Indeed-sponsored middleman.
+                    link. No sponsored middleman.
                   </p>
                 </div>
               )}

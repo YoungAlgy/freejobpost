@@ -53,7 +53,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         ) : null}
 
         <div style={{ display: 'flex', fontSize: 28, fontWeight: 400, marginTop: 14, opacity: 0.75, lineHeight: 1.2 }}>
-          Free postings · No Indeed tax · direct apply
+          Free postings · No auction fees · direct apply
         </div>
 
         <div style={{ position: 'absolute', bottom: 80, left: 80, right: 80, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 24, opacity: 0.85 }}>

@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://freejobpost.co',
-    title: 'Ava Health: Healthcare jobs without the Indeed tax',
+    title: 'Ava Health: Healthcare jobs, free to post and apply',
     description: 'Post jobs free. Apply free. No auction fees, no paywall, no recruiter spam.',
   },
   twitter: {
