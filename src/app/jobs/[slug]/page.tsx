@@ -465,7 +465,7 @@ export default async function JobDetailPage({ params }: Props) {
               </a>
               <Link
                 href="/post-job"
-                className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
               >
                 Post a job →
               </Link>
@@ -531,14 +531,14 @@ export default async function JobDetailPage({ params }: Props) {
                 // to a usable destination.
                 <ApplyExternalLink
                   slug={job.slug}
-                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
+                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
                 >
                   Apply on employer site →
                 </ApplyExternalLink>
               ) : (
                 <Link
                   href={`/jobs/${job.slug}/apply`}
-                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
+                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
                 >
                   Apply for this role →
                 </Link>
@@ -846,7 +846,7 @@ function ClosedJobView({
             </a>
             <Link
               href="/post-job"
-              className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
+              className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
             >
               Post a job →
             </Link>
@@ -887,7 +887,7 @@ function ClosedJobView({
             {specialtyHub && (
               <Link
                 href={`/specialty/${specialtyHub.slug}`}
-                className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
+                className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
               >
                 Browse {specialtyHub.title.replace(/ Jobs$/, '')} jobs →
               </Link>

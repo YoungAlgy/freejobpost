@@ -207,7 +207,7 @@ export default async function FederalAgencyStatePage(
               </a>
               <Link
                 href="/post-job"
-                className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
               >
                 Post a job →
               </Link>

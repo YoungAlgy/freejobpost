@@ -97,7 +97,7 @@ export default async function VerifyTokenPage({ params }: Props) {
             <div className="flex flex-wrap gap-3">
               <Link
                 href={`/jobs/${result.job_slug}`}
-                className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
+                className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
               >
                 View your job →
               </Link>
@@ -134,7 +134,7 @@ export default async function VerifyTokenPage({ params }: Props) {
             )}
             <Link
               href="/post-job"
-              className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
+              className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
             >
               Start over →
             </Link>

@@ -140,7 +140,7 @@ export default async function Home() {
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
             <Link
               href="/post-job"
-              className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold hover:bg-[#6DA300] transition-colors"
+              className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
             >
               Post a job free →
             </Link>
@@ -388,7 +388,7 @@ export default async function Home() {
           </p>
           <Link
             href="/post-job"
-            className="inline-flex items-center bg-[#7FBC00] text-white px-8 py-5 text-lg font-black hover:bg-[#6DA300] transition-colors"
+            className="inline-flex items-center bg-[#7FBC00] text-white px-8 py-5 text-lg font-black rounded-lg hover:bg-[#6DA300] transition-colors"
           >
             Post a job free →
           </Link>

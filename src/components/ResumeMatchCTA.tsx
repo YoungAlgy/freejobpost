@@ -41,7 +41,7 @@ export default function ResumeMatchCTA({ specialtyLabel, locationLabel }: Props)
       </p>
       <a
         href={UPLOAD_URL}
-        className="inline-flex items-center bg-[#7FBC00] text-white px-5 py-2.5 font-bold hover:bg-[#6DA300] transition-colors"
+        className="inline-flex items-center bg-[#7FBC00] text-white px-5 py-2.5 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
       >
         Upload my resume free →
       </a>

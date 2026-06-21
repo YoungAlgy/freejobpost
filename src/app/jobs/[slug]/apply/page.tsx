@@ -81,7 +81,7 @@ export default async function ApplyPage({ params }: Props) {
             <span className="font-bold text-lg sm:text-xl tracking-tight text-[#003D5C]">
               Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-300 text-gray-600 px-1.5 py-0.5 rounded">
+            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
               BETA
             </span>
           </Link>

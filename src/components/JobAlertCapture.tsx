@@ -118,7 +118,7 @@ export default function JobAlertCapture({
         <button
           type="submit"
           disabled={pending || !emailValid}
-          className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >
           {pending ? 'Subscribing…' : 'Email me jobs →'}
         </button>

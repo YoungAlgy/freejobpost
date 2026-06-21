@@ -83,7 +83,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50"
+        className="w-full bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors disabled:opacity-50"
       >
         {pending ? 'Sending…' : 'Send sign-in link →'}
       </button>

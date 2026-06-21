@@ -81,7 +81,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/jobs"
-            className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
+            className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
           >
             Browse more jobs →
           </Link>
@@ -216,7 +216,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
         <button
           type="submit"
           disabled={pending || !canSubmit()}
-          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Submitting…' : 'Apply →'}
         </button>

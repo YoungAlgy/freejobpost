@@ -192,7 +192,7 @@ export default async function StateHubPage(
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
               <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
-              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300]">Post a job</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300]">Post a job</Link>
             </div>
           </div>
         </nav>
@@ -475,7 +475,7 @@ export default async function StateHubPage(
               <p className="text-lg font-bold mb-2">No active {hub.name} healthcare jobs right now.</p>
               <p className="text-gray-700 mb-4">{hub.name} inventory is still ramping up on freejobpost.co. Browse our active national board in the meantime, or set up a candidate match alert.</p>
               <div className="flex flex-wrap gap-3 justify-center">
-                <Link href="/jobs" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-2 hover:bg-[#6DA300]">Browse all jobs →</Link>
+                <Link href="/jobs" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#6DA300]">Browse all jobs →</Link>
                 <a href="https://www.freeresumepost.co/upload?utm_source=freejobpost&utm_medium=referral&utm_campaign=resume_match" className="inline-block border border-gray-200 rounded-lg font-bold px-6 py-2 hover:bg-[#003D5C] hover:text-white">Get matched →</a>
               </div>
             </div>

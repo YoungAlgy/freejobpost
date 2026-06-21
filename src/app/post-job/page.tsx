@@ -109,21 +109,21 @@ export default async function PostJobPage() {
           <h2 className="text-xs font-bold tracking-wider text-gray-600 uppercase mb-4">After you post</h2>
           <ol className="space-y-4">
             <li className="flex gap-4">
-              <div className="shrink-0 w-7 h-7 bg-[#003D5C] text-white text-xs font-black flex items-center justify-center rounded-md">1</div>
+              <div className="shrink-0 w-7 h-7 bg-[#003D5C] text-white text-xs font-black flex items-center justify-center rounded-lg">1</div>
               <div>
                 <div className="font-bold">We email you a verification link</div>
                 <div className="text-sm text-gray-700 mt-0.5">One click confirms it&apos;s really your address. No password, no account setup. The link expires in 48 hours.</div>
               </div>
             </li>
             <li className="flex gap-4">
-              <div className="shrink-0 w-7 h-7 bg-[#003D5C] text-white text-xs font-black flex items-center justify-center rounded-md">2</div>
+              <div className="shrink-0 w-7 h-7 bg-[#003D5C] text-white text-xs font-black flex items-center justify-center rounded-lg">2</div>
               <div>
                 <div className="font-bold">Your job goes live instantly</div>
                 <div className="text-sm text-gray-700 mt-0.5">No review queue, no editorial gating. The link clicks → the post is live on /jobs, indexed by Google for Jobs via structured data, and pushed to aggregator feeds within a few hours.</div>
               </div>
             </li>
             <li className="flex gap-4">
-              <div className="shrink-0 w-7 h-7 bg-[#003D5C] text-white text-xs font-black flex items-center justify-center rounded-md">3</div>
+              <div className="shrink-0 w-7 h-7 bg-[#003D5C] text-white text-xs font-black flex items-center justify-center rounded-lg">3</div>
               <div>
                 <div className="font-bold">Candidates apply to you directly</div>
                 <div className="text-sm text-gray-700 mt-0.5">Applicants land in your inbox. We don&apos;t intercept, gate, or upsell. Manage everything from your free dashboard at <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">/employer</code>.</div>

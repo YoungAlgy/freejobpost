@@ -235,7 +235,7 @@ export default async function SpecialtyStateMatrixPage(
             </Link>
             <div className="flex items-center gap-6 text-sm font-medium">
               <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
-              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300]">Post a job</Link>
+              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300]">Post a job</Link>
             </div>
           </div>
         </nav>

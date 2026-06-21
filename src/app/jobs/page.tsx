@@ -205,7 +205,7 @@ export default async function JobsIndexPage() {
               </a>
               <Link
                 href="/post-job"
-                className="bg-[#7FBC00] text-white px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors"
+                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
               >
                 Post a job →
               </Link>
@@ -266,7 +266,7 @@ export default async function JobsIndexPage() {
             </p>
             <Link
               href="/post-job"
-              className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
+              className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
             >
               Post a job →
             </Link>

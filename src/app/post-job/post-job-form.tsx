@@ -193,7 +193,7 @@ export default function PostJobForm() {
               const cn = params.get('cn') ?? ''
               setValues({ ...INITIAL, company_name: co, contact_name: cn })
             }}
-            className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors"
+            className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
           >
             Post another →
           </button>
@@ -582,7 +582,7 @@ export default function PostJobForm() {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending
             ? 'Submitting…'
