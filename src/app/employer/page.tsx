@@ -140,9 +140,6 @@ export default async function EmployerDashboardPage() {
             <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
               Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
-              BETA
-            </span>
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <span className="text-gray-500 hidden md:inline">

@@ -33,9 +33,6 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
             <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
               Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
-              BETA
-            </span>
           </Link>
           <Link href="/post-job" className="text-sm font-medium hover:text-[#003D5C]">
             Post a job →

@@ -78,9 +78,6 @@ export default async function FederalJobsHubPage() {
               <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
                 Ava Health
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
-                BETA
-              </span>
             </Link>
             <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
               <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">

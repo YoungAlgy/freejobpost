@@ -113,7 +113,7 @@ export default function HowItWorksPage() {
         <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">vs the alternatives</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-12">
           <div className="rounded-xl border border-gray-200 shadow-sm p-5">
-            <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-2">Indeed Sponsored</div>
+            <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-2">Sponsored boards</div>
             <ul className="space-y-1.5 text-sm text-gray-700">
               <li>· $0.10-$5.00 per click bid</li>
               <li>· Posts demoted below paid ads</li>

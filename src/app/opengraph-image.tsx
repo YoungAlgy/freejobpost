@@ -35,21 +35,6 @@ export default async function OG() {
           <div style={{ display: 'flex' }}>
             <span style={{ color: '#003D5C' }}>Ava Health</span>
           </div>
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#003D5C',
-              background: '#eef6e6',
-              border: '1px solid #cbe39a',
-              borderRadius: 999,
-              padding: '4px 12px',
-              letterSpacing: 2,
-            }}
-          >
-            BETA
-          </div>
         </div>
 
         {/* Hero */}

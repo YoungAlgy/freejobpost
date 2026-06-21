@@ -102,9 +102,6 @@ export default function ForEmployersPage() {
             <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
               Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
-              BETA
-            </span>
           </Link>
           <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
             <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
@@ -155,9 +152,9 @@ export default function ForEmployersPage() {
       {/* The cost comparison */}
       <section className="border-b border-gray-200 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6 py-20">
-          <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">THE INDEED TAX</h2>
+          <h2 className="text-sm font-bold tracking-widest text-gray-600 mb-4">THE SPONSORED-BOARD TAX</h2>
           <p className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-6 max-w-3xl">
-            The average healthcare hire on Indeed now costs over $500 in sponsored clicks.
+            The average healthcare hire on the big sponsored boards now costs over $500 in sponsored clicks.
           </p>
           <p className="text-gray-700 leading-relaxed mb-10 max-w-2xl">
             Sponsored placement bidding, per-click charges, and pay-to-see-applicants paywalls add up fast.
@@ -169,7 +166,7 @@ export default function ForEmployersPage() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 pr-6 text-xs font-bold tracking-widest">ROLE</th>
-                  <th className="text-left py-3 pr-6 text-xs font-bold tracking-widest text-gray-600">INDEED SPONSORED (typical)</th>
+                  <th className="text-left py-3 pr-6 text-xs font-bold tracking-widest text-gray-600">SPONSORED BOARDS (typical)</th>
                   <th className="text-left py-3 text-xs font-bold tracking-widest text-[#003D5C]">AVA HEALTH</th>
                 </tr>
               </thead>
@@ -185,7 +182,7 @@ export default function ForEmployersPage() {
             </table>
           </div>
           <p className="text-xs text-gray-500 mt-4">
-            Indeed sponsored cost estimates based on published industry benchmarks for healthcare roles (2023-2025). Actual costs vary by location, specialty, and bid competition.
+            Sponsored-board cost estimates based on published industry benchmarks for healthcare roles (2023-2025). Actual costs vary by location, specialty, and bid competition.
           </p>
         </div>
       </section>
@@ -276,7 +273,7 @@ export default function ForEmployersPage() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="rounded-xl border border-gray-200 shadow-sm p-6">
-              <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-4">Indeed Sponsored</div>
+              <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-4">Sponsored boards</div>
               <ul className="space-y-2.5 text-sm text-gray-700">
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> $0.10-$5.00 per click auction</li>
                 <li className="flex gap-2"><span className="font-black text-gray-400">✕</span> Posts buried below paid placements</li>
@@ -304,7 +301,7 @@ export default function ForEmployersPage() {
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-4">
-            Indeed and ZipRecruiter pricing based on published rate cards and industry reports. Actual costs vary. See their sites for current pricing.
+            Sponsored-board and ZipRecruiter pricing based on published rate cards and industry reports. Actual costs vary. See their sites for current pricing.
           </p>
         </div>
       </section>

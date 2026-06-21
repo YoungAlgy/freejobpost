@@ -34,9 +34,6 @@ export default function PricingPage() {
             <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
               Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
-              BETA
-            </span>
           </Link>
           <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
             <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
@@ -80,7 +77,7 @@ export default function PricingPage() {
             q="What do I get for free?"
             a={[
               '10 active job posts at any given time.',
-              '60-day post duration (longer than Indeed organic).',
+              "60-day post duration (longer than the big boards' organic).",
               'Every feature: apply-tracking dashboard, per-job view and apply counts, no paywall anywhere.',
               'JobPosting JSON-LD on every listing page for Google for Jobs and Indeed organic (direct crawl, no submission needed), plus XML feeds for ZipRecruiter, Adzuna, and Jooble. Active partnerships come online as the network grows.',
               'Your own permanent URL: freejobpost.co/jobs/<your-role-slug>.',
@@ -101,7 +98,7 @@ export default function PricingPage() {
             a={[
               'Email info@avahealth.co. We manually flip your account to uncapped. No credit card required during beta. We just need to know who we\'re working with.',
               'When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration + API + white-label. Grandfathered for anyone who signs up during beta.',
-              'We built this to be cheaper than every alternative (~$29/mo vs Indeed\'s $3,000/mo typical for 10 sponsored roles). Our cost to serve you is a few pennies a month.',
+              "We built this to be cheaper than every alternative (~$29/mo vs the sponsored boards' $3,000/mo typical for 10 sponsored roles). Our cost to serve you is a few pennies a month.",
             ]}
           />
 
@@ -129,7 +126,7 @@ export default function PricingPage() {
               'For a 10-role healthcare org, typical annual spend on the incumbents is:',
               '• Health eCareers: $4,990/yr ($499/post × 10 rollover)',
               '• LinkedIn Recruiter Corporate: $14,000+ (1 seat + boosts)',
-              '• Indeed sponsored: $36,000+ (typical CPC × 10 concurrent)',
+              '• Sponsored boards: $36,000+ (typical CPC × 10 concurrent)',
               '• ZipRecruiter: $60,000+ (daily rate × 10 slots)',
               '• freejobpost.co: $0 at 10 concurrent, $290/yr if you need unlimited.',
               'Those aren\'t rhetorical numbers. They\'re from public pricing pages, verified April 2026.',

@@ -49,9 +49,6 @@ export default async function PostJobPage() {
             <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
               Ava Health
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">
-              BETA
-            </span>
           </Link>
           <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
             <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
@@ -132,12 +129,12 @@ export default async function PostJobPage() {
           </ol>
         </div>
 
-        {/* Differentiation — why employers choose us vs Indeed */}
+        {/* Differentiation — why employers choose us vs sponsored boards */}
         <div className="mt-14 mb-6 border-t border-gray-200 pt-10">
           <h2 className="text-xs font-bold tracking-wider text-gray-600 uppercase mb-5">vs the other guys</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-gray-200 shadow-sm p-5">
-              <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-2">Indeed Sponsored</div>
+              <div className="text-xs font-bold tracking-wider text-gray-500 uppercase mb-2">Sponsored boards</div>
               <ul className="space-y-1.5 text-sm text-gray-700">
                 <li>· $0.10-$5.00 per click bid</li>
                 <li>· Posts buried below paid ads</li>

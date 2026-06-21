@@ -90,7 +90,6 @@ export default async function Home() {
           <Link href="/" className="flex items-center gap-2 min-w-0">
             <Logo size={32} className="shrink-0" />
             <span className="font-bold text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5 shrink-0">BETA</span>
           </Link>
           <div className="flex items-center gap-4 md:gap-8 text-sm font-medium">
             <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C] whitespace-nowrap">Browse jobs</Link>
