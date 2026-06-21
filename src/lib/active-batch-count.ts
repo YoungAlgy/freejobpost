@@ -14,12 +14,25 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 // the post-deploy feed monitor.
 //
 // So this returns a FIXED batch count for now — stable (no count dependency),
-// same approach as the prior `NUM_BATCHES = 30` but with more headroom. 40 ×
-// 1,000 = a ~40K active-job ceiling; bump if inventory approaches it. The full
-// count-based implementation is preserved in git history at commit e63c2e0 —
-// re-enable it only once the count query is proven stable in prod (it likely
-// needs a dedicated/uncached count, not the cached supabaseFresh client).
-const FIXED_BATCHES = 40
+// same approach as the prior `NUM_BATCHES = 30` but with more headroom.
+//
+// 2026-06-21 audit: bumped 40 → 60 (a ~60K active-job ceiling). The binding
+// consumer is the specialty×state / city×specialty matrix scan, which pages the
+// FULL active corpus (NO description filter). Active inventory hit 31,208 — past
+// the "bump before 30K" trigger flagged in sitemap.ts, and only ~22% under the
+// old 40K ceiling. Beyond the ceiling the matrix scan drops the OLDEST active
+// jobs (ordered updated_at DESC), which knocks near-threshold (specialty,state)
+// cells below the ≥5 floor and out of the sitemap + generateStaticParams — a
+// silent SEO-surface loss. The sitemap (~19K indexable, description_usable_chars
+// >= 250) and the partner feeds (~5K feed-eligible) page FILTERED subsets, so
+// they still had room; the matrix is the one that binds.
+//
+// DURABLE FIX (deferred, bigger change): compute the viable cells with a real
+// SQL GROUP BY instead of pulling the whole corpus into JS — the function is
+// even named computeViableCellsViaSql but actually does a JS scan. The
+// count-based paging impl is in git at commit e63c2e0; re-enable it only with a
+// dedicated/uncached count (the cached one flapped in prod, see above).
+const FIXED_BATCHES = 60
 
 /**
  * Number of 1,000-row `.range()` batches needed to cover the active-job
