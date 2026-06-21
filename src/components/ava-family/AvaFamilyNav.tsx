@@ -22,10 +22,7 @@ const SECTIONS: { key: FamilyNavSite; label: string; href: string }[] = [
 export function AvaFamilyNav({ currentSite }: { currentSite: FamilyNavSite }) {
   return (
     <nav aria-label="Ava Health" style={{ backgroundColor: NAVY }} className="text-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-9 flex items-center justify-between gap-3">
-        <span className="text-[13px] font-bold tracking-tight text-white shrink-0">
-          Ava Health
-        </span>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-9 flex items-center justify-center gap-3">
         <ul className="flex items-center gap-3.5 sm:gap-6 text-[12px] sm:text-[13px] font-medium">
           {SECTIONS.map((s) => {
             const isCurrent = s.key === currentSite

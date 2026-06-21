@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { Logo } from '@/components/Logo'
 import { supabase, hourIso } from '@/lib/supabase'
 import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
@@ -88,7 +89,7 @@ export default async function Home() {
       <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2 min-w-0">
-            <span className="w-7 h-7 rounded-lg bg-[#003D5C] text-white font-black flex items-center justify-center text-sm shrink-0">A</span>
+            <Logo size={32} className="shrink-0" />
             <span className="font-bold text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
             <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5 shrink-0">BETA</span>
           </Link>
@@ -130,8 +131,6 @@ export default async function Home() {
             Free healthcare
             <br />
             job posts.
-            <br />
-            <span className="text-[#7FBC00]">No Indeed tax.</span>
           </h1>
           <p className="text-xl md:text-2xl max-w-2xl leading-snug mb-10 text-gray-800">
             Post RN, MD, PT, and front-desk roles in 60 seconds. Real applicants.
