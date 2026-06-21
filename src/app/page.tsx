@@ -88,14 +88,15 @@ export default async function Home() {
       <nav className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2 min-w-0">
-            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
+            <span className="w-7 h-7 rounded-lg bg-[#003D5C] text-white font-black flex items-center justify-center text-sm shrink-0">A</span>
+            <span className="font-bold text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
             <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5 shrink-0">BETA</span>
           </Link>
           <div className="flex items-center gap-4 md:gap-8 text-sm font-medium">
             <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C] whitespace-nowrap">Browse jobs</Link>
             <Link href="/how-it-works" className="hidden md:inline hover:text-[#003D5C]">How it works</Link>
             <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">For candidates</a>
-            <Link href="/post-job" className="bg-[#7FBC00] text-white px-3 md:px-4 py-2 font-bold hover:bg-[#6DA300] transition-colors text-xs md:text-sm whitespace-nowrap">
+            <Link href="/post-job" className="bg-[#7FBC00] text-white px-3 md:px-4 py-2 rounded-lg font-bold hover:bg-[#6DA300] transition-colors text-xs md:text-sm whitespace-nowrap">
               Post a job →
             </Link>
           </div>
