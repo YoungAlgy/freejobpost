@@ -15,20 +15,6 @@ export const metadata: Metadata = {
 export default function FeedsPage() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
-              Ava Health
-            </span>
-            <span className="hidden sm:inline-block text-[10px] font-bold tracking-wider border border-gray-200 px-1.5 py-0.5">PARTNER</span>
-          </Link>
-          <Link href="/jobs" className="text-sm font-medium hover:text-[#003D5C]">
-            Browse jobs →
-          </Link>
-        </div>
-      </nav>
-
       <div className="max-w-4xl mx-auto px-6 py-12">
         <p className="text-xs font-bold tracking-widest text-[#003D5C] uppercase mb-3">For distribution partners</p>
         <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#003D5C]">Job feeds.</h1>

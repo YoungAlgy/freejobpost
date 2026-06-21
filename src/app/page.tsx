@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Logo } from '@/components/Logo'
 import { supabase, hourIso } from '@/lib/supabase'
 import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
@@ -84,24 +83,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-white text-black">
-      {/* Nav */}
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2 min-w-0">
-            <Logo size={32} className="shrink-0" />
-            <span className="font-bold text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
-          </Link>
-          <div className="flex items-center gap-4 md:gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C] whitespace-nowrap">Browse jobs</Link>
-            <Link href="/how-it-works" className="hidden md:inline hover:text-[#003D5C]">How it works</Link>
-            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">For candidates</a>
-            <Link href="/post-job" className="bg-[#7FBC00] text-white px-3 md:px-4 py-2 rounded-lg font-bold hover:bg-[#6DA300] transition-colors text-xs md:text-sm whitespace-nowrap">
-              Post a job →
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero */}
       <section className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-20 md:py-32">

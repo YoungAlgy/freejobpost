@@ -75,19 +75,6 @@ export default async function ApplyPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-lg sm:text-xl tracking-tight text-[#003D5C]">
-              Ava Health
-            </span>
-          </Link>
-          <Link href="/jobs" className="hidden sm:inline text-sm font-medium hover:text-[#003D5C]">
-            Browse jobs
-          </Link>
-        </div>
-      </nav>
-
       <div className="max-w-2xl mx-auto px-6 py-10 md:py-14">
         <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
           <Link href="/" className="hover:text-[#003D5C]">

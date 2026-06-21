@@ -85,18 +85,6 @@ export default function ChangelogPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
-            Ava Health
-          </Link>
-          <div className="flex items-center gap-6 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
-            <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors">Post a job →</Link>
-          </div>
-        </div>
-      </nav>
-
       <article className="max-w-3xl mx-auto px-6 py-12 md:py-20">
         <div className="inline-flex items-center gap-2 border border-gray-200 px-3 py-1 text-xs font-bold tracking-wider mb-6 rounded-md">
           <span className="w-2 h-2 bg-[#7FBC00]" />

@@ -65,17 +65,6 @@ export default async function VerifyTokenPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
-          </Link>
-          <Link href="/jobs" className="hidden sm:inline text-sm font-medium hover:text-[#003D5C]">
-            Browse jobs
-          </Link>
-        </div>
-      </nav>
-
       <div className="max-w-2xl mx-auto px-6 py-16">
         {result.success ? (
           <div className="border border-gray-200 rounded-lg p-8 md:p-10 bg-green-50">

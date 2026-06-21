@@ -228,18 +228,6 @@ export default async function SpecialtyStateMatrixPage(
         />
       )}
       <main className="min-h-screen bg-white text-black">
-        <nav className="border-b border-gray-200">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="font-black text-lg sm:text-xl tracking-tight">
-              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">Ava Health</span>
-            </Link>
-            <div className="flex items-center gap-6 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">All jobs</Link>
-              <Link href="/post-job" className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300]">Post a job</Link>
-            </div>
-          </div>
-        </nav>
-
         <article className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
             <Link href="/" className="hover:text-[#003D5C]">Home</Link>

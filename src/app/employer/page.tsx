@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
@@ -134,24 +133,6 @@ export default async function EmployerDashboardPage() {
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
-              Ava Health
-            </span>
-          </Link>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-500 hidden md:inline">
-              Signed in as <strong>{session.employer.contact_email}</strong>
-            </span>
-            <Link href="/post-job" className="font-bold text-[#003D5C] hover:text-[#002A40]">
-              + New post
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       <Dashboard
         employer={session.employer}
         jobs={session.jobs}

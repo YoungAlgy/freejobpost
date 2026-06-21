@@ -42,28 +42,6 @@ export default async function PostJobPage() {
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      {/* Nav */}
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
-              Ava Health
-            </span>
-          </Link>
-          <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-            <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
-              Browse jobs
-            </Link>
-            <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">
-              For candidates
-            </a>
-            <Link href="/post-job" className="bg-[#7FBC00] text-white px-3 md:px-4 py-2 font-bold whitespace-nowrap rounded-md hover:bg-[#6DA300] transition-colors">
-              Post a job →
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16">
         <div className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-1 text-xs font-bold tracking-wider mb-6">
           <span className="w-2 h-2 bg-[#7FBC00] animate-pulse" />

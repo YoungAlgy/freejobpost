@@ -187,26 +187,6 @@ export default async function EmployerPage({ params }: Props) {
       />
 
       <main className="min-h-screen bg-white text-gray-900 font-sans">
-        {/* Nav */}
-        <nav className="border-b border-gray-200">
-          <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/" className="font-black tracking-tight text-xl text-[#003D5C]">
-              Ava Health
-            </Link>
-            <div className="flex items-center gap-4 text-sm">
-              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C]">
-                Browse jobs
-              </Link>
-              <Link
-                href="/post-job"
-                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-md hover:bg-[#6DA300] transition-colors"
-              >
-                Post a job
-              </Link>
-            </div>
-          </div>
-        </nav>
-
         <div className="max-w-5xl mx-auto px-4 py-10">
           {/* Breadcrumb */}
           <nav className="text-xs text-gray-500 mb-6" aria-label="breadcrumb">

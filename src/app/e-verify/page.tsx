@@ -13,15 +13,6 @@ export const metadata: Metadata = {
 export default function EVerifyPage() {
   return (
     <main className="min-h-screen bg-white text-black">
-      <nav className="border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
-            Ava Health
-          </Link>
-          <Link href="/jobs" className="text-sm font-bold hidden sm:inline hover:text-[#003D5C]">Browse jobs</Link>
-        </div>
-      </nav>
-
       <article className="max-w-3xl mx-auto px-6 py-12">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#003D5C]">E-Verify Participation</h1>
         <p className="text-sm text-gray-600 mb-8">Ava Health Partners LLC &middot; operator of freejobpost.co</p>

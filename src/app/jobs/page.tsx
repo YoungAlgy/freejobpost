@@ -185,31 +185,6 @@ export default async function JobsIndexPage() {
         />
       )}
       <main className="min-h-screen bg-white text-black">
-        {/* Nav */}
-        <nav className="border-b border-gray-200">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
-                Ava Health
-              </span>
-            </Link>
-            <div className="flex items-center gap-3 md:gap-8 text-sm font-medium">
-              <Link href="/jobs" className="hidden sm:inline hover:text-[#003D5C] border-b-2 border-[#003D5C]">
-                Browse jobs
-              </Link>
-              <a href="https://www.freeresumepost.co" className="hidden md:inline hover:text-[#003D5C]">
-                For candidates
-              </a>
-              <Link
-                href="/post-job"
-                className="bg-[#7FBC00] text-white px-4 py-2 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
-              >
-                Post a job →
-              </Link>
-            </div>
-          </div>
-        </nav>
-
         {/* Header */}
         <section className="border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">

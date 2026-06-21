@@ -27,19 +27,6 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      <nav className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-black text-lg sm:text-xl tracking-tight text-[#003D5C]">
-              Ava Health
-            </span>
-          </Link>
-          <Link href="/post-job" className="text-sm font-medium hover:text-[#003D5C]">
-            Post a job →
-          </Link>
-        </div>
-      </nav>
-
       <div className="max-w-md mx-auto px-6 py-16 md:py-20">
         <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
           Employer sign-in
