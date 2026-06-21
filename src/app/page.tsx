@@ -5,7 +5,6 @@ import { formatSalary, locationLabel, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
-import AvaCareersNav from '@/components/ava-family/AvaCareersNav'
 
 export const metadata: Metadata = {
   // `absolute` bypasses the layout template `%s | Ava Health`. Without it the
@@ -102,11 +101,6 @@ export default async function Home() {
           </div>
         </div>
       </nav>
-
-      {/* Careers sub-nav — ties the job board + resume tool into one careers
-         flow. Homepage-only (kept out of layout) so the 16K indexed job/hub
-         pages' rendered template stays byte-stable. */}
-      <AvaCareersNav currentSection="jobs" />
 
       {/* Hero */}
       <section className="border-b border-gray-200">
