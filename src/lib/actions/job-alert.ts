@@ -4,7 +4,6 @@ import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { track } from '@vercel/analytics/server'
-import { addToMailchimpAudience } from '@/lib/mailchimp'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -27,7 +26,9 @@ export type JobAlertResult =
  * (RLS-locked table; anon can only insert through this RPC, never read).
  * Mirrors submitApplication / submitCandidate: Turnstile (fail-open when
  * unconfigured), server-side email validation, fire-and-forget conversion
- * event. PII never touches analytics.
+ * event. PII never touches analytics. Fulfillment (the matching-jobs digest
+ * email) runs off public_job_alert_subscribers via the job-alert-digest cron
+ * on Resend.
  */
 export async function subscribeJobAlert(
   input: JobAlertInput,
@@ -75,20 +76,6 @@ export async function subscribeJobAlert(
     })
   } catch {
     /* analytics is best-effort */
-  }
-
-  // Mailchimp audience add — downstream alert-send channel. ENV-GATED +
-  // fail-soft: no-op until MAILCHIMP_API_KEY + MAILCHIMP_AUDIENCE_ID are set,
-  // and never blocks the CRM capture (the CRM row is the source of truth).
-  try {
-    await addToMailchimpAudience(email, {
-      specialty: input.specialty ?? '',
-      state: input.state ?? '',
-      city: input.city ?? '',
-      source: input.source,
-    })
-  } catch {
-    /* mailchimp is best-effort */
   }
 
   return { success: true, already_subscribed: r.already_subscribed }
