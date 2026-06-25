@@ -81,7 +81,13 @@ function normalizeSalary(
   if (!sal) return { min: null, max: null }
   if (sal.currency && sal.currency !== 'USD') return { min: null, max: null }
   const interval = (sal.interval ?? '').toLowerCase()
-  if (interval && !interval.includes('year') && !interval.includes('salary')) {
+  // Annual only: the public_jobs schema is annual USD. Lever's annual interval
+  // is 'per-year-salary'. Reject hourly/daily/weekly/monthly/quarterly/half-yearly
+  // (and one-time) intervals, which would otherwise be mis-stated as annual. Note
+  // 'per-half-year-salary' contains "year" + "salary", so an includes-based check
+  // needs the explicit 'half' guard.
+  const isAnnual = !interval || (interval.includes('year') && !interval.includes('half'))
+  if (!isAnnual) {
     return { min: null, max: null }
   }
   return {
