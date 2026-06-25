@@ -218,14 +218,15 @@ const HC_RE = [
   /\bphysician\b/i, /\bmedical director\b/i, /\bnurs(e|ing)\b/i, /\brn\b/i,
   /\blpn\b/i, /\blvn\b/i, /\bnurse practitioner\b/i, /\bcrna\b/i, /\bphysician assistant\b/i,
   /\btherapist\b/i, /\bcounsel(or|lor)\b/i, /\bpsychiatrist\b/i, /\bpsychologist\b/i,
-  /\bsocial work\b/i, /\blcsw\b/i, /\blmft\b/i, /\blpc\b/i, /\bbcba\b/i,
+  /\bsocial work/i, /\blcsw\b/i, /\blmft\b/i, /\blpc\b/i,
+  /\boccupational therap/i, /\bphysical therap/i, /\bbcba\b/i,
   /\bpharmacist\b/i, /\bpharm(acy)? tech(nician)?\b/i,
   /\bsonographer\b/i, /\bradiologic\b/i,
   /\b(ct|mri|ultrasound|nuclear|mammography|sonography|imaging|cardiology|cardiac|echo|eeg|ekg|cath|vascular) (tech|technologist|technician)\b/i,
   /\b(medical|surgical|radiologic|laboratory|histology|cytology|sterile processing|orthopedic|orthopaedic) tech(nologist|nician)?\b/i,
   /\bmedical lab(oratory)? (tech|scientist)\b/i, /\bsterile processing\b/i,
   /\b(medical|surgical) assistant\b/i, /\bdental (hygienist|assistant)\b/i,
-  /\bdietit?ian\b/i, /\brespiratory therap\b/i, /\bphlebotom\b/i, /\bcath lab\b/i,
+  /\bdietit?ian\b/i, /\brespiratory therap/i, /\bphlebotom/i, /\bcath lab\b/i,
   /\bcardiovascular\b/i, /\bemt\b/i, /\bparamedic\b/i,
   /\boptometrist\b/i, /\baudiologist\b/i, /\boptician\b/i, /\bperfusionist\b/i,
   /\bcare (manager|coordinator|navigator|specialist|partner|assistant)\b/i, /\bcase manager\b/i,
@@ -640,8 +641,13 @@ async function fetchLever(slug: string): Promise<{ fetched: number; jobs: Normal
     const remote = loc.remote || p.workplaceType === 'remote' ? 'remote'
                  : p.workplaceType === 'hybrid' ? 'hybrid' : 'onsite'
     const sal = p.salaryRange ?? {}
+    // Annual USD only (public_jobs is annual USD). Lever's annual interval is
+    // 'per-year-salary'; reject hourly/weekly/monthly/quarterly/half-yearly, which
+    // would be mis-stated as annual. 'per-half-year-salary' contains "year" + "salary",
+    // so the 'half' guard is required (mirrors src/lib/ats-import/lever.ts normalizeSalary).
+    const interval = (sal.interval ?? '').toLowerCase()
     const isUsdAnnual = (!sal.currency || sal.currency === 'USD') &&
-                        (!sal.interval || /year|salary/i.test(sal.interval))
+                        (!interval || (interval.includes('year') && !interval.includes('half')))
     out.push({
       slug: buildAtsSlug(p.text, 'lever', p.id),
       title: p.text,
