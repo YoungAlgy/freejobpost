@@ -31,13 +31,13 @@ const STRONG_HEALTHCARE_TERMS = [
   /\bcounselor\b/i,
   /\bpsychiatrist\b/i,
   /\bpsychologist\b/i,
-  /\bsocial work\b/i,
+  /\bsocial work/i, // stem, no trailing boundary: also matches "social worker"
   /\blcsw\b/i,
   /\blmft\b/i,
   /\blpc\b/i,
   /\bspeech[\s-]language\b/i,
-  /\boccupational therap\b/i,
-  /\bphysical therap\b/i,
+  /\boccupational therap/i, // stem: "occupational therapy" + "occupational therapist"
+  /\bphysical therap/i,
   /\bbcba\b/i,
   // Allied health — imaging + lab + tech roles
   /\bpharmacist\b/i,
@@ -51,8 +51,8 @@ const STRONG_HEALTHCARE_TERMS = [
   /\b(medical|surgical) assistant\b/i,
   /\bdental (hygienist|assistant)\b/i,
   /\bdietit?ian\b/i,
-  /\brespiratory therap\b/i,
-  /\bphlebotom\b/i,
+  /\brespiratory therap/i,
+  /\bphlebotom/i, // stem: matches "phlebotomist" + "phlebotomy" (a trailing boundary had dropped both)
   /\bsleep tech\b/i,
   /\bcath lab\b/i,
   /\bcardiovascular\b/i,
