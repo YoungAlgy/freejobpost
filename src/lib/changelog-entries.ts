@@ -19,11 +19,32 @@ export interface ChangelogEntry {
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   // ── June 2026 ────────────────────────────────────
   {
+    date: "2026-06-19",
+    title: "Now branded as Ava Health",
+    body:
+      "The whole job board got a fresh look under the Ava Health brand: navy and lime colors, the real Ava logo, one shared header on every page, and matching app and tab icons. Links, search, and feeds work the same as before.",
+    tag: "improved",
+  },
+  {
     date: "2026-06-17",
     title: "Part of the Ava Health family",
     body:
       "The job board now shows a 'Part of Ava Health' footer with quick links to the free resume tool, the provider directory, and the recruiter platform. The board itself is unchanged and still free to post and apply.",
     tag: "improved",
+  },
+  {
+    date: "2026-06-15",
+    title: "Fixed about 10,900 job pages dropping out of Google for Jobs",
+    body:
+      "A change meant to clean up partner feeds also raised the bar for which job pages Google could index, so roughly 10,900 real listings quietly fell out of Google for Jobs and lost their job-posting data. We split the two settings apart so those pages are indexed again and carry their job data, while the feed quality bar stays high.",
+    tag: "fixed",
+  },
+  {
+    date: "2026-06-15",
+    title: "Helpful next-step links after you apply and on job pages",
+    body:
+      "Job pages now show an optional tool for auto-filling applications, and the screen after you apply suggests interview prep. These are clearly marked as affiliate links and are easy to skip.",
+    tag: "new",
   },
   {
     date: "2026-06-04",
