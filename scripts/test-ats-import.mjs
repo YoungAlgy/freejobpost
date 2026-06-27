@@ -35,27 +35,36 @@ const STATES = {
 const ABBRS = new Set(Object.values(STATES))
 
 function parseUsLocation(raw) {
-  const s = (raw ?? '').trim()
+  let s = (raw ?? '').trim()
   if (!s) return { us: false, city: null, state: null, remote: false }
-  if (/^remote$|^anywhere$|\(remote\)$/i.test(s) || /remote\s*[-,–]\s*us/i.test(s)) {
+  // A trailing "(Remote)" is a flag on a real location — strip it FIRST so
+  // "City, ST (Remote)" keeps its city/state. If nothing real remains, it's
+  // generic US-remote.
+  let remote = false
+  if (/\s*\(remote\)\s*$/i.test(s)) {
+    remote = true
+    s = s.replace(/\s*\(remote\)\s*$/i, '').trim()
+    if (!s || /^(united states|usa|u\.?s\.?a?\.?)$/i.test(s)) {
+      return { us: true, city: null, state: null, remote: true }
+    }
+  }
+  if (/^remote$|^anywhere$/i.test(s) || /remote\s*[-,–]\s*us/i.test(s)) {
     return { us: true, city: null, state: null, remote: true }
   }
   if (/\b(india|tokyo|japan|johannesburg|south africa|london|uk|united kingdom|canada|berlin|germany|brazil|mexico|spain|france|ireland|singapore|amsterdam|sydney|australia|emea|apac|latam|philippines)\b/i.test(s)) {
     return { us: false, city: null, state: null, remote: false }
   }
-  let trimmed = s.replace(/,\s*(united states|usa|us)\.?\s*$/i, '').trim()
-  const hadRemoteSuffix = /\(remote\)|remote$/i.test(trimmed)
-  trimmed = trimmed.replace(/\s*\(remote\)\s*$/i, '').trim()
+  const trimmed = s.replace(/,\s*(united states|usa|us)\.?\s*$/i, '').trim()
   const parts = trimmed.split(',').map((p) => p.trim()).filter(Boolean)
   if (parts.length === 0) return { us: false, city: null, state: null, remote: false }
   const last = parts[parts.length - 1]
   const cityRaw = parts.length >= 2 ? parts[parts.length - 2] : null
   if (last.length === 2 && ABBRS.has(last.toUpperCase())) {
-    return { us: true, city: cityRaw, state: last.toUpperCase(), remote: hadRemoteSuffix }
+    return { us: true, city: cityRaw, state: last.toUpperCase(), remote }
   }
   const fromName = STATES[last.toLowerCase()]
   if (fromName) {
-    return { us: true, city: cityRaw, state: fromName, remote: hadRemoteSuffix }
+    return { us: true, city: cityRaw, state: fromName, remote }
   }
   return { us: false, city: null, state: null, remote: false }
 }

@@ -38,7 +38,6 @@ const ABBR_SET = new Set([
 const REMOTE_TOKENS = [
   /^remote$/i,
   /^remote\s*[-,–]/i,
-  /\(remote\)$/i,
   /remote\s*[-,–]\s*us(a)?$/i,
   /^anywhere$/i,
   /^worldwide$/i,
@@ -56,28 +55,38 @@ export interface ParsedLocation {
 }
 
 export function parseUsLocation(raw: string | null | undefined): ParsedLocation {
-  const s = (raw ?? '').trim()
+  let s = (raw ?? '').trim()
   if (!s) return { us: false, city: null, state: null, remote: false }
 
-  // 1. Pure "Remote" / "Anywhere" — treat as US-remote by convention (most ATS
+  // 1. A trailing "(Remote)" is a remote FLAG on an otherwise-real location, not
+  //    a standalone remote token — strip it FIRST (remember it) so
+  //    "Austin, TX (Remote)" keeps its city/state instead of collapsing to a
+  //    generic remote result. If nothing real is left ("(Remote)",
+  //    "United States (Remote)", "US (Remote)"), it's generic US-remote.
+  let remote = false
+  if (/\s*\(remote\)\s*$/i.test(s)) {
+    remote = true
+    s = s.replace(/\s*\(remote\)\s*$/i, '').trim()
+    if (!s || /^(united states|usa|u\.?s\.?a?\.?)$/i.test(s)) {
+      return { us: true, city: null, state: null, remote: true }
+    }
+  }
+
+  // 2. Pure "Remote" / "Anywhere" — treat as US-remote by convention (most ATS
   //    boards mean US-remote; international-remote roles usually say so).
   for (const re of REMOTE_TOKENS) {
     if (re.test(s)) return { us: true, city: null, state: null, remote: true }
   }
 
-  // 2. Explicit non-US hint anywhere in the string → reject
+  // 3. Explicit non-US hint anywhere in the string → reject
   for (const re of NON_US_HINTS) {
     if (re.test(s)) return { us: false, city: null, state: null, remote: false }
   }
 
-  // 3. "United States" or "USA" at the end → trim it and parse what's left
-  let trimmed = s
+  // 4. "United States" or "USA" at the end → trim it and parse what's left
+  const trimmed = s
     .replace(/,\s*(united states|usa|us)\.?\s*$/i, '')
     .trim()
-
-  // 4. Detect "(Remote)" suffix → mark as remote, keep parsing for city/state
-  const hadRemoteSuffix = /\(remote\)|remote$/i.test(trimmed)
-  trimmed = trimmed.replace(/\s*\(remote\)\s*$/i, '').trim()
 
   // 5. Comma-split: last segment is state-ish
   const parts = trimmed
@@ -91,32 +100,17 @@ export function parseUsLocation(raw: string | null | undefined): ParsedLocation 
 
   // Match by 2-letter abbreviation (case-insensitive, exact)
   if (last.length === 2 && ABBR_SET.has(last.toUpperCase())) {
-    return {
-      us: true,
-      city: cityRaw,
-      state: last.toUpperCase(),
-      remote: hadRemoteSuffix,
-    }
+    return { us: true, city: cityRaw, state: last.toUpperCase(), remote }
   }
   // Match by state name
   const fromName = ALL_NAMES_TO_ABBR[last.toLowerCase()]
   if (fromName) {
-    return {
-      us: true,
-      city: cityRaw,
-      state: fromName,
-      remote: hadRemoteSuffix,
-    }
+    return { us: true, city: cityRaw, state: fromName, remote }
   }
 
   // 6. Single-token like just "Texas" or "California"
   if (parts.length === 1 && ALL_NAMES_TO_ABBR[parts[0].toLowerCase()]) {
-    return {
-      us: true,
-      city: null,
-      state: ALL_NAMES_TO_ABBR[parts[0].toLowerCase()],
-      remote: hadRemoteSuffix,
-    }
+    return { us: true, city: null, state: ALL_NAMES_TO_ABBR[parts[0].toLowerCase()], remote }
   }
 
   // Fallback: not confidently parseable. Drop.

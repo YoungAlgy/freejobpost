@@ -60,10 +60,35 @@ describe('parseUsLocation', () => {
       })
     })
 
-    // NOTE: a "City, ST (Remote)" suffix currently loses its city/state (the
-    // step-2 remote token short-circuits before step 4 can keep them). That is
-    // a known bug, flagged separately, so it is intentionally not asserted here
-    // to avoid locking in the wrong behavior.
+    it('keeps city/state on a "City, ST (Remote)" suffix and marks it remote', () => {
+      expect(parseUsLocation('Austin, TX (Remote)')).toEqual({
+        us: true,
+        city: 'Austin',
+        state: 'TX',
+        remote: true,
+      })
+      expect(parseUsLocation('New York, NY (Remote)')).toEqual({
+        us: true,
+        city: 'New York',
+        state: 'NY',
+        remote: true,
+      })
+    })
+
+    it('treats "United States (Remote)" / "US (Remote)" as generic US-remote', () => {
+      expect(parseUsLocation('United States (Remote)')).toEqual({
+        us: true,
+        city: null,
+        state: null,
+        remote: true,
+      })
+      expect(parseUsLocation('US (Remote)')).toEqual({
+        us: true,
+        city: null,
+        state: null,
+        remote: true,
+      })
+    })
   })
 
   describe('state-only and territories', () => {
