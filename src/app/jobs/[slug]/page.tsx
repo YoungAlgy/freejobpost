@@ -23,6 +23,7 @@ import JobAlertCapture from '@/components/JobAlertCapture'
 import ShareButtons from '@/components/ShareButtons'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 import AffiliateOffer from '@/components/AffiliateOffer'
+import ApplyKitCTA from '@/components/ApplyKitCTA'
 // Hub-link helpers — drive the BROWSE MORE internal-linking section so
 // per-job pages route PageRank back to the matching specialty / state
 // hubs + employer page. Without these, /jobs/[slug] had zero links
@@ -545,6 +546,13 @@ export default async function JobDetailPage({ params }: Props) {
               className="job-content"
               dangerouslySetInnerHTML={{ __html: renderDescription(job.description || '') }}
             />
+          </div>
+
+          {/* Cross-promo → ApplyKit (own product). Right after the reader
+              finishes the description — peak intent to apply well to THIS
+              specific role. See ApplyKitCTA. */}
+          <div className="mb-6">
+            <ApplyKitCTA jobTitle={cleanJobTitle} />
           </div>
 
           {/* Conversion bridge → freeresumepost.co. Placed right after the
