@@ -7,14 +7,14 @@
 // to this bridge. Cross-domain -> plain <a>.
 //
 // NOTE: "applykit.vercel.app" is NOT ours — that global vanity alias is
-// already taken by an unrelated live product (an ATS at applykit.co). Using
-// the real per-deployment URL until Algy picks a permanent domain (possibly
-// a rename, given the name collision). Update via NEXT_PUBLIC_APPLYKIT_URL
-// once that's decided — don't let this default silently go stale.
+// already taken by an unrelated live product (an ATS at applykit.co). Vercel
+// assigned "applykit-beryl.vercel.app" as our stable alias instead. Update
+// via NEXT_PUBLIC_APPLYKIT_URL once Algy picks a permanent custom domain
+// (possibly a rename, given the name collision) — don't let this go stale.
 
 const APPLYKIT_URL =
   process.env.NEXT_PUBLIC_APPLYKIT_URL ??
-  'https://applykit-f6dm0hhss-youngalgys-projects.vercel.app?utm_source=freejobpost&utm_medium=referral&utm_campaign=job_cta'
+  'https://applykit-beryl.vercel.app?utm_source=freejobpost&utm_medium=referral&utm_campaign=job_cta'
 
 type Props = {
   /** e.g. "Medical Assistant" — used to make the pitch feel specific, not generic */
