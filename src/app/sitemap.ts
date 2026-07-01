@@ -242,12 +242,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }))
 
-  const jobRoutes: MetadataRoute.Sitemap = jobsData.map((j) => ({
-    url: `${base}/jobs/${j.slug}`,
-    lastModified: j.updated_at,
-    changeFrequency: 'daily' as const,
-    priority: 0.7,
-  }))
+  // De-dup by slug: the batched .range() queries above run in parallel
+  // (Promise.all) and are ordered by updated_at DESC. If a job's updated_at
+  // shifts mid-generation (e.g. a concurrent ATS re-sync bumps it), it can
+  // land inside two overlapping batch windows and appear twice. Rare (3 of
+  // 23,460 URLs, 2026-07-01 audit) but cheap to close outright rather than
+  // resize the batching around a race that's inherent to offset pagination
+  // over a table that's still being written to.
+  const seenSlugs = new Set<string>()
+  const jobRoutes: MetadataRoute.Sitemap = jobsData
+    .filter((j) => {
+      if (seenSlugs.has(j.slug)) return false
+      seenSlugs.add(j.slug)
+      return true
+    })
+    .map((j) => ({
+      url: `${base}/jobs/${j.slug}`,
+      lastModified: j.updated_at,
+      changeFrequency: 'daily' as const,
+      priority: 0.7,
+    }))
 
   type EmpSitemapRow = {
     slug: string
