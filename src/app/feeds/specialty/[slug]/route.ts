@@ -16,16 +16,19 @@ import {
   locationLabel,
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, hasUsableDescription, escapeXml, cdata, isBuildPhase, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
-import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
+import { getSpecialtyHub } from '@/lib/specialty-slugs'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 
-// 6h ISR: niche RSS/aggregator consumers poll hourly+ at most, so sub-hour
-// regen was pure Vercel invocation cost (2026-05-28 cost pass).
-export const revalidate = 21600
-
-export async function generateStaticParams() {
-  return SPECIALTY_HUBS.map((s) => ({ slug: s.slug }))
-}
+// force-dynamic (2026-07-09): this per-specialty RSS feed used to prerender all
+// 35 specialties at build (generateStaticParams), each running a full-column
+// select with a slow .or() ILIKE match over the 30K+ active corpus. Once the
+// heavier partner feeds moved off the build, these 35 (plus the 52 state feeds)
+// were the remaining heavy build-time DB queries and pushed pages past the
+// static-generation timeout under concurrent build-worker load. Render
+// per-request instead: these are machine-read feeds (not indexable pages, not
+// in the sitemap), and the response's Cache-Control (s-maxage=21600 = 6h) is
+// the real caching lever. Any valid specialty slug still resolves on demand.
+export const dynamic = 'force-dynamic'
 
 // escapeXml + cdata are imported from @/lib/feed-builders (shared across the
 // RSS-spec feed routes).

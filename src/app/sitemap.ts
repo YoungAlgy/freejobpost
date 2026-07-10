@@ -11,7 +11,15 @@ import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
-export const revalidate = 21600
+// force-dynamic (2026-07-09): this route runs its own ~60-batch job query plus
+// 3 full-corpus matrix scans. Prerendering it at build time exceeded Next's
+// per-page static-generation timeout as active inventory grew past 30K rows
+// and failed the production deploy. Rendering it per-request takes it off the
+// build's critical path. The underlying fetches keep their own explicit cache
+// windows (supabase client fetch = 1h; matrix helpers = 6h unstable_cache), so
+// on-demand rendering does NOT hit the DB on every request — output is
+// identical, only WHEN it's computed changed. Was: export const revalidate = 21600.
+export const dynamic = 'force-dynamic'
 // The live sitemap froze for ~75h (Age: 272597, content stuck at the Jun 5
 // deploy) because background ISR regeneration silently exceeded the default
 // function duration — Vercel then serves the last good copy forever. This

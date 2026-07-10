@@ -14,10 +14,15 @@ import {
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, isBuildPhase, hasUsableDescription, escapeXml, cdata, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 
-// 1h ISR: RSS readers (Feedly/Inoreader) poll ~hourly, so keep this one
-// fresher than the 6h partner feeds, but 900s was still 4× over-regen
-// (2026-05-28 cost pass).
-export const revalidate = 3600
+// force-dynamic (2026-07-10): same shape as the partner feeds fixed
+// 2026-07-09 — a route with only `revalidate` set still prerenders once at
+// build. This feed's full-corpus fetch is currently ~1.6MB (under Next's 2MB
+// data-cache item limit) so it hasn't failed yet, but it's the same
+// build-time-fetch pattern that broke glassdoor.xml et al. and it will hit
+// the same wall as active inventory grows. Moving it off the build now while
+// the fix is fresh. The Cache-Control header below (s-maxage=21600 = 6h) is
+// the real caching lever RSS readers hit; was: export const revalidate = 3600.
+export const dynamic = 'force-dynamic'
 
 // escapeXml + cdata are imported from @/lib/feed-builders (shared across the
 // RSS-spec feed routes — rss.xml, /feeds/state, /feeds/specialty).

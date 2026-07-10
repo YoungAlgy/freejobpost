@@ -20,9 +20,14 @@
 
 import { buildOriginatedFeed } from '@/lib/feed-builders'
 
-// 6h ISR: partners re-crawl every 4–24h, so sub-hour regen was pure Vercel
-// invocation cost (2026-05-28 cost pass). See jobs.xml for full rationale.
-export const revalidate = 21600
+// force-dynamic (2026-07-09): this feed pulls the active-job corpus via ~60
+// batched Supabase queries (small originated subset today, but the same
+// build-time batch machinery). Prerendering it at build time is what crossed
+// Next's static-generation timeout / 2MB data-cache item limit on the heavier
+// sibling feeds and failed the whole production deploy after 3 retries.
+// Rendering it per-request keeps it out of the build. The response's own
+// Cache-Control header (s-maxage=21600 = 6h) is the real caching lever.
+export const dynamic = 'force-dynamic'
 
 export async function GET(): Promise<Response> {
   return buildOriginatedFeed('Originated')

@@ -10,15 +10,18 @@ import {
   locationLabel,
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, hasUsableDescription, escapeXml, cdata, isBuildPhase, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
-import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
+import { getStateHub } from '@/lib/state-slugs'
 
-// 6h ISR: niche RSS/aggregator consumers poll hourly+ at most, so sub-hour
-// regen was pure Vercel invocation cost (2026-05-28 cost pass).
-export const revalidate = 21600
-
-export async function generateStaticParams() {
-  return STATE_HUBS.map((s) => ({ slug: s.slug }))
-}
+// force-dynamic (2026-07-09): this per-state RSS feed used to prerender all 52
+// states at build (generateStaticParams), each running a full-column select
+// over the active corpus. Once the heavier partner feeds moved off the build,
+// these 52 (plus the 35 specialty feeds) were the remaining heavy build-time DB
+// queries and pushed pages past the static-generation timeout under concurrent
+// build-worker load. Render per-request instead: these are machine-read feeds
+// (not indexable pages, not in the sitemap), and the response's Cache-Control
+// (s-maxage=21600 = 6h) is the real caching lever. Any valid state slug still
+// resolves on demand.
+export const dynamic = 'force-dynamic'
 
 // escapeXml + cdata are imported from @/lib/feed-builders (shared across the
 // RSS-spec feed routes).
