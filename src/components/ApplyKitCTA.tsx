@@ -35,7 +35,7 @@ export default function ApplyKitCTA({ jobTitle }: Props) {
       <p className="text-sm text-gray-800 mb-4 leading-relaxed max-w-xl">
         Paste this posting and your resume into ApplyKit. It rewrites your bullets to match what
         this job actually wants, writes you a real cover letter, and preps you for the interview
-        questions they will probably ask. First one is free.
+        questions they will probably ask. A dollar to run it.
       </p>
       <a
         href={APPLYKIT_URL}
@@ -43,7 +43,7 @@ export default function ApplyKitCTA({ jobTitle }: Props) {
         rel="noopener noreferrer"
         className="inline-flex items-center bg-[#003D5C] text-white px-5 py-2.5 font-bold rounded-lg hover:bg-[#002a42] transition-colors"
       >
-        Tailor my resume free →
+        Tailor my resume →
       </a>
       <p className="text-[11px] text-gray-500 mt-2.5">Built by the person who runs this site.</p>
     </aside>
