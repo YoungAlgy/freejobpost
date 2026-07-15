@@ -33,7 +33,7 @@ The board covers physicians, advanced practice (NP/PA/CRNA), nursing (RN/LPN/CNA
 
 ## Sister sites
 
-- [providers.avahealth.co](https://providers.avahealth.co): 1.4M+ verified US healthcare provider directory (NPPES-sourced)
+- [providers.avahealth.co](https://providers.avahealth.co): Ava Health's staffing-services site — state-by-state market comparisons, a salary calculator, and a healthcare recruiting blog. The 1.4M+ NPPES-sourced provider database is searchable by recruiters on the paid CRM at app.avahealth.co, not on this site.
 - [www.freeresumepost.co](https://www.freeresumepost.co): Free candidate resume platform — upload once, get matched to roles posted here
 
 ## For LLM agents

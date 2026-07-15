@@ -1,5 +1,5 @@
 // Ava Health family nav — slim top strip that cross-links the Ava Health
-// sections (Jobs, Resumes, Provider directory, Recruiter platform) on every
+// sections (Jobs, Resumes, Provider staffing, Recruiter platform) on every
 // page, so the whole family reads as one site. Companion to AvaFamilyBand (the
 // footer version). Self-contained on purpose so it copies cleanly between repos
 // with no shared package or token dependency — navy strip, white text, lime
@@ -15,7 +15,7 @@ export type FamilyNavSite = 'crm' | 'providers' | 'freejob' | 'freeresume'
 const SECTIONS: { key: FamilyNavSite; label: string; href: string }[] = [
   { key: 'freejob', label: 'Jobs', href: 'https://freejobpost.co' },
   { key: 'freeresume', label: 'Resumes', href: 'https://www.freeresumepost.co' },
-  { key: 'providers', label: 'Find Providers', href: 'https://providers.avahealth.co' },
+  { key: 'providers', label: 'Provider Staffing', href: 'https://providers.avahealth.co' },
   { key: 'crm', label: 'For Recruiters', href: 'https://app.avahealth.co' },
 ]
 
