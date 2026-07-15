@@ -22,6 +22,33 @@ const FROM_NAME = "Free Job Post";
 // Resend sender — only avahealth.co is verified in this workspace.
 const FROM_EMAIL = "jobs@avahealth.co";
 
+// 2026-07-15: invoked via fetch() from freejobpost's apply server action,
+// never via pg_cron, so a Resend outage here is invisible to
+// cron_health_check/ops-alert. Reuses the same OPS_ALERT_WEBHOOK_URL
+// ops-alert already falls back to (same Supabase project). Never throws;
+// optional, unset = old behavior.
+async function alertOpsViaWebhook(subject: string, body: string): Promise<void> {
+  try {
+    const url = Deno.env.get("OPS_ALERT_WEBHOOK_URL");
+    if (!url) return;
+    const message = `**[ava ops alert]** ${subject}\n\n${body}`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message, text: message }),
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (e) {
+    console.error("apply-notify: ops webhook failed too:", e instanceof Error ? e.message : e);
+  }
+}
+
 // #15: wrap the send so a network-level THROW in one send can't abort the others.
 // This fn sends 2 emails; previously a fetch throw on the employer send fell through to
 // the outer catch and dropped the candidate's confirmation. Convert a throw to a
@@ -392,7 +419,13 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
         text: empText,
       });
       sentResults.push({ to: employerEmail, ok: empSendResult.ok });
-      if (!empSendResult.ok) console.error("employer notify failed:", empSendResult.status, empSendResult.error.slice(0, 200));
+      if (!empSendResult.ok) {
+        console.error("employer notify failed:", empSendResult.status, empSendResult.error.slice(0, 200));
+        await alertOpsViaWebhook(
+          `apply-notify: employer notification failed`,
+          `Employer: ${employerEmail}\nCandidate: ${candidateName}\nJob: ${job.title}\nResend error: ${empSendResult.status} ${empSendResult.error.slice(0, 300)}\n\nThe employer never got notified of this applicant. Not covered by cron_health_check since this is invoked via fetch, not pg_cron.`,
+        );
+      }
 
       // #15: durable audit record for the employer notify (success OR failure)
       // via a DEFINER RPC into the RLS-locked email_sends. Lets a failed
@@ -455,7 +488,13 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
       text: candText,
     });
     sentResults.push({ to: candidate.email, ok: candSendResult.ok });
-    if (!candSendResult.ok) console.error("candidate notify failed:", candSendResult.status, candSendResult.error.slice(0, 200));
+    if (!candSendResult.ok) {
+      console.error("candidate notify failed:", candSendResult.status, candSendResult.error.slice(0, 200));
+      await alertOpsViaWebhook(
+        `apply-notify: candidate confirmation failed`,
+        `Candidate: ${candidateName}\nEmail: ${candidate.email}\nJob: ${job.title}\nResend error: ${candSendResult.status} ${candSendResult.error.slice(0, 300)}\n\nThe candidate never got their application-confirmation email. Not covered by cron_health_check since this is invoked via fetch, not pg_cron.`,
+      );
+    }
 
     return new Response(JSON.stringify({
       success: true,

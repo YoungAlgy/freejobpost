@@ -62,6 +62,36 @@ const DAILY_CAP = parseInt(Deno.env.get("JOB_ALERT_DAILY_CAP") || "80", 10);
 const MAX_JOBS_PER_EMAIL = 8;
 const FIRST_RUN_LOOKBACK_DAYS = 14;
 
+// 2026-07-15: this DOES run via pg_cron, but every per-subscriber send
+// failure is caught internally and only pushed into the `errors` array in
+// the response body — the function always returns 200 {ok:true} regardless
+// of how many sends actually succeeded. That means cron_health_check (which
+// watches HTTP status via net._http_response) sees a "successful" run even
+// if EVERY send failed, e.g. a full Resend outage. Reuses the same
+// OPS_ALERT_WEBHOOK_URL ops-alert already falls back to. Never throws;
+// optional, unset = old behavior.
+async function alertOpsViaWebhook(subject: string, body: string): Promise<void> {
+  try {
+    const url = Deno.env.get("OPS_ALERT_WEBHOOK_URL");
+    if (!url) return;
+    const message = `**[ava ops alert]** ${subject}\n\n${body}`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message, text: message }),
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  } catch (e) {
+    console.error("job-alert-digest: ops webhook failed too:", e instanceof Error ? e.message : e);
+  }
+}
+
 interface Subscriber {
   id: string;
   email: string;
@@ -274,6 +304,19 @@ serve(async (req: Request) => {
       } catch (err) {
         errors.push({ email: sub.email, error: err instanceof Error ? err.message : "unknown" });
       }
+    }
+
+    // Systemic-failure signal: every subscriber this run had a job match
+    // attempted a send, and NONE succeeded — the shape a full Resend outage
+    // takes. A few isolated bad addresses in an 80-subscriber batch is
+    // normal and not alert-worthy; zero successes out of an attempted batch
+    // is not.
+    const attempted = sent + errors.length;
+    if (sent === 0 && attempted > 0) {
+      await alertOpsViaWebhook(
+        `job-alert-digest: every send failed this run`,
+        `${attempted} subscriber(s) had matching jobs and a send was attempted; 0 succeeded.\n\nFirst few errors:\n${errors.slice(0, 5).map((e) => `${e.email}: ${e.error}`).join("\n")}\n\nThis cron ran "successfully" (200 ok:true) per cron_health_check, since individual send failures don't fail the job — this alert exists because that would otherwise make a full Resend outage invisible.`,
+      );
     }
 
     return new Response(JSON.stringify({ ok: true, processed, sent, skipped_no_match, skipped_claimed, errors }),
