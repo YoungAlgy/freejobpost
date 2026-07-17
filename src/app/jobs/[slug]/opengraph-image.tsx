@@ -11,7 +11,6 @@ import { ImageResponse } from 'next/og'
 import { supabase } from '@/lib/supabase'
 import { formatSalary, employmentLabel, locationLabel } from '@/lib/public-jobs'
 
-export const runtime = 'edge'
 export const alt = 'Job posting on Ava Health'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'

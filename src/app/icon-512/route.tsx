@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og'
 
-export const runtime = 'edge'
 export const contentType = 'image/png'
 
 // 512x512 PWA / maskable app icon = the Ava Health mark (navy medical cross +

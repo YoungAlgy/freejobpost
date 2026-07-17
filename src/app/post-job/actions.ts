@@ -5,7 +5,7 @@ import { headers } from 'next/headers'
 import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { validatePayTransparency } from '@/lib/pay-transparency'
-import { track } from '@vercel/analytics/server'
+import { track } from '@/lib/track'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

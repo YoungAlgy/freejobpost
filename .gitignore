@@ -44,3 +44,8 @@ out/
 # Audit working artifacts (not app source)
 AUDIT_R1_FINDINGS.json
 NIGHT_LOG.md
+
+# cloudflare / opennext
+.wrangler/
+.open-next/
+cloudflare-env.d.ts

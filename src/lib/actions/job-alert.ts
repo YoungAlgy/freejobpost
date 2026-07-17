@@ -3,7 +3,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { verifyTurnstileToken } from '@/lib/turnstile'
-import { track } from '@vercel/analytics/server'
+import { track } from '@/lib/track'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
