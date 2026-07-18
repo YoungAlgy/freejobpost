@@ -116,6 +116,16 @@ export default async function StateHubPage(
     new Set(jobs.map((j) => j.city?.trim()).filter((c): c is string => !!c))
   ).sort()
 
+  // Per-city counts for the linkbar below. Single pass over `jobs`, not a
+  // `.filter().length` re-scan per city in the render loop (that's O(cities
+  // × jobs) — same class of redundant-recompute bug as the /jobs page fix,
+  // just smaller scale. Mirrors the specialtyCounts Map pattern right below.
+  const cityCounts = new Map<string, number>()
+  for (const j of jobs) {
+    const c = j.city?.trim()
+    if (c) cityCounts.set(c, (cityCounts.get(c) ?? 0) + 1)
+  }
+
   // Specialty distribution — used to surface "in-demand specialties in [state]"
   const specialtyCounts = new Map<string, number>()
   for (const j of jobs) {
@@ -290,7 +300,7 @@ export default async function StateHubPage(
                   href={`/jobs?state=${encodeURIComponent(hub.abbr)}&q=${encodeURIComponent(c)}`}
                   className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#003D5C] hover:text-white"
                 >
-                  {c} ({jobs.filter((j) => j.city === c).length})
+                  {c} ({cityCounts.get(c) ?? 0})
                 </Link>
               ))}
             </div>

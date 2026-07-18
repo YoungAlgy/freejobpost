@@ -140,6 +140,16 @@ export default async function SpecialtyHubPage(
     new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
   ).sort()
 
+  // Per-state counts for the linkbar below. Single pass over `jobs` instead
+  // of a `.filter().length` re-scan per state in the render loop (O(states ×
+  // jobs) redundant recompute — same class as the /jobs page's pre-refactor
+  // cost bug, smaller scale here but the same fix: count once, read many).
+  const stateCounts = new Map<string, number>()
+  for (const j of jobs) {
+    const s = j.state?.trim()
+    if (s) stateCounts.set(s, (stateCounts.get(s) ?? 0) + 1)
+  }
+
   // Salary aggregates broken down by state — answers "[specialty] salary
   // by state" queries. Plain HTML for AI Overview citability; no
   // Occupation/EstimatedSalary schema (deprecated Sept 2025).
@@ -240,7 +250,7 @@ export default async function SpecialtyHubPage(
                   href={`/jobs?state=${encodeURIComponent(s)}`}
                   className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#003D5C] hover:text-white"
                 >
-                  {s} ({jobs.filter((j) => j.state === s).length})
+                  {s} ({stateCounts.get(s) ?? 0})
                 </Link>
               ))}
             </div>

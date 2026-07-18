@@ -156,6 +156,14 @@ export default async function SpecialtyStateMatrixPage(
     new Set(jobs.map((j) => j.city?.trim()).filter((c): c is string => !!c))
   ).sort()
 
+  // Per-city counts for the linkbar below. Single pass over `jobs` instead of
+  // a `.filter().length` re-scan per city in the render loop.
+  const cityCounts = new Map<string, number>()
+  for (const j of jobs) {
+    const c = j.city?.trim()
+    if (c) cityCounts.set(c, (cityCounts.get(c) ?? 0) + 1)
+  }
+
   const cleanSpecialtyTitle = specialty.title.replace(/ Jobs$/, '')
 
   const breadcrumbJsonLd = {
@@ -253,7 +261,7 @@ export default async function SpecialtyStateMatrixPage(
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500 self-center mr-2">By city:</span>
               {cities.map((c) => (
                 <span key={c} className="text-xs border border-gray-200 px-2 py-1">
-                  {c} ({jobs.filter((j) => j.city === c).length})
+                  {c} ({cityCounts.get(c) ?? 0})
                 </span>
               ))}
             </div>
