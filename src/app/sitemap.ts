@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { unstable_cache } from 'next/cache'
 import { supabase, hourIso } from '@/lib/supabase'
 import { activeJobBatchCount } from '@/lib/active-batch-count'
 import { MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
@@ -62,28 +63,44 @@ function STATIC_FALLBACK_ROUTES(): MetadataRoute.Sitemap {
   return [...core, ...specialtyRoots, ...stateRoots, ...cityRoots]
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = 'https://freejobpost.co'
+type SitemapJobRow = { slug: string; updated_at: string }
+type SitemapEmployerRow = {
+  slug: string
+  verified_via: string | null
+  company_name: string
+  verified_at: string
+}
 
-  // Pull job inventory once, ordered by updated_at DESC. We use the first row's
-  // updated_at as the lastmod signal for every route that aggregates the job
-  // table (homepage, /jobs, hub indexes, individual state/specialty hubs).
-  //
-  // Why not `new Date()`? Google's sitemap docs are explicit: if `lastmod`
-  // consistently lies (e.g. every URL shows "today" on every refresh), Google
-  // stops trusting all `lastmod` values from the host. Tying hub freshness to
-  // real underlying-data freshness keeps the signal honest.
-  // Jobs: 12-batch range pattern (PostgREST anon caps a single .limit(>1000)
-  // at 1,000 silently; with ~9,616 active jobs we'd ship a sitemap covering
-  // only 11% of inventory without batching). Verified 2026-05-19 — pre-fix
-  // sitemap had been missing ~8,000 URLs from Google's index for weeks.
-  // Bumped from 9 → 12 on 2026-05-21 to match /jobs.xml + feed-builders;
-  // keeps the sitemap ahead of inventory growth and avoids the 9-batch
-  // ceiling that hit /jobs.xml on 2026-05-20.
-  // 2026-05-28 audit: 12→30. The 12K ceiling silently dropped ~2.6K oldest jobs
-  // from the sitemap at 14.6K active inventory (deindex risk — same failure mode
-  // as the 9-batch ceiling noted above, re-armed by growth). Bump (or switch to
-  // count-based paging) before 30K.
+// Pull job inventory + employer directory for the sitemap. We use the first
+// job row's updated_at as the lastmod signal for every route that aggregates
+// the job table (homepage, /jobs, hub indexes, individual state/specialty hubs).
+//
+// Jobs: 12-batch range pattern (PostgREST anon caps a single .limit(>1000)
+// at 1,000 silently; with ~9,616 active jobs we'd ship a sitemap covering
+// only 11% of inventory without batching). Verified 2026-05-19 — pre-fix
+// sitemap had been missing ~8,000 URLs from Google's index for weeks.
+// Bumped from 9 → 12 on 2026-05-21 to match /jobs.xml + feed-builders;
+// keeps the sitemap ahead of inventory growth and avoids the 9-batch
+// ceiling that hit /jobs.xml on 2026-05-20.
+// 2026-05-28 audit: 12→30. The 12K ceiling silently dropped ~2.6K oldest jobs
+// from the sitemap at 14.6K active inventory (deindex risk — same failure mode
+// as the 9-batch ceiling noted above, re-armed by growth). Bump (or switch to
+// count-based paging) before 30K.
+//
+// 🔴 2026-07-23 INCIDENT FIX (same root cause as city-specialty-matrix.ts's
+// 2026-06 incident, see its comment): this route is force-dynamic (see
+// maxDuration note above), which disables the Data Cache for every fetch
+// inside it — so these 30+ parallel range() batches + the employer scan were
+// firing on EVERY single crawl hit, uncached. That was fine against the old
+// Micro-compute Postgres; it started 504ing outright once the underlying DB
+// was moved to Nano compute (shared CPU) during an unrelated cost-cutting
+// pass, and appears to have also starved the homepage sharing the same pool.
+// Wrapped in Next's data cache exactly like the matrix helpers below: ≤ one
+// full scan per 6h globally, regardless of crawl frequency.
+async function _fetchSitemapDataUncached(): Promise<{
+  jobs: SitemapJobRow[]
+  employers: SitemapEmployerRow[]
+}> {
   const numBatches = await activeJobBatchCount(supabase)
   const SITEMAP_BATCH_SIZE = 1000
   // hourIso (not a raw new Date()) keeps the PostgREST URL stable within the
@@ -118,9 +135,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...jobsBatchPromises,
   ])
 
-  const jobsData = jobsBatches.flatMap(
-    (b) => (b.data ?? []) as { slug: string; updated_at: string }[]
+  const jobs = jobsBatches.flatMap(
+    (b) => (b.data ?? []) as SitemapJobRow[]
   )
+  const employers = (employersRes.data ?? []) as SitemapEmployerRow[]
+  return { jobs, employers }
+}
+
+const _cachedSitemapData = unstable_cache(
+  _fetchSitemapDataUncached,
+  ['sitemap-jobs-and-employers-v1'],
+  { revalidate: 21600 },
+)
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = 'https://freejobpost.co'
+
+  const { jobs: jobsData, employers: employersData } = await _cachedSitemapData()
   // FAIL SOFT (2026-05-28): an empty sitemap is the worst cache-poison — it
   // tells Google "this site has zero pages," which can drop the whole domain
   // from the index. We always have thousands of active jobs, so 0 fetched =
@@ -271,15 +302,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-  type EmpSitemapRow = {
-    slug: string
-    verified_via: string | null
-    company_name: string
-    verified_at: string
-  }
-  const employerRoutes: MetadataRoute.Sitemap = (
-    (employersRes.data ?? []) as EmpSitemapRow[]
-  )
+  const employerRoutes: MetadataRoute.Sitemap = employersData
     .filter(
       (e) =>
         e.slug &&
