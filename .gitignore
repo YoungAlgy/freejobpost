@@ -49,3 +49,4 @@ NIGHT_LOG.md
 .wrangler/
 .open-next/
 cloudflare-env.d.ts
+.temp/
