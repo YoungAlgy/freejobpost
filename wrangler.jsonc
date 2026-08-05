@@ -7,6 +7,16 @@
   "cache": {
     "enabled": true
   },
+  "vars": {
+    // OpenNext's DO revalidation queue bills the full timeout as Durable
+    // Object "duration" on every ISR revalidation, regardless of how fast
+    // the fetch actually completes (acknowledged upstream as "problematic"
+    // in durable-objects/queue.js). Default is 10s; this account was hitting
+    // the free-tier daily DO duration cap every day for ~2 weeks. Lowering
+    // this caps the worst case per-revalidation cost -- self-referenced
+    // fetches to our own Worker should complete in well under 3s normally.
+    "NEXT_CACHE_DO_QUEUE_REVALIDATION_TIMEOUT_MS": "3000"
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
