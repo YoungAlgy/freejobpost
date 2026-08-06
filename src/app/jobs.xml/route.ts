@@ -166,14 +166,16 @@ export async function GET(req: NextRequest): Promise<Response> {
   const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
 
   // Resolve company names per employer in one batched query.
-  // Reads from public_employers_directory (anon-safe view) — the underlying
+  // Reads from public_employers_directory_all (anon-safe, unfiltered view) —
+  // ATS-imported employers need company-name resolution here even though
+  // they're excluded from the verified-badge view; the underlying
   // public_employers table is internal-only because it carries contact PII.
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }
   const employerNameMap = new Map<string, string>()
   if (employerIds.length > 0) {
     const { data: emps } = await supabase
-      .from('public_employers_directory')
+      .from('public_employers_directory_all')
       .select('id, company_name')
       .in('id', employerIds)
     for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)

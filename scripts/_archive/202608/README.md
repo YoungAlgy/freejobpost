@@ -65,3 +65,32 @@ Files, in original applied order:
 - `2026-05-14_ats_import_isolation_from_crm.sql`
 - `2026-05-14_ats_import_upsert_function.sql`
 - `2026-05-14_refresh_ats_imports_cron.sql`
+
+## run-ats-import.mjs, generate-ats-import-sql.mjs, test-ats-import.mjs
+Archived 2026-08-06 (portfolio correctness/redundancy audit).
+
+These three were the pre-cron bootstrap for the ATS importer: hand-run
+Node scripts that duplicated the fetch+normalize logic from
+`src/lib/ats-import/` (each said so in its own header) so the first
+Greenhouse/Lever/Ashby/Workday/USAJobs import could happen without a TS
+build step, before a cron edge function existed to do it on a schedule.
+
+That cron edge function now exists and is live:
+`supabase/functions/refresh-ats-imports/index.ts`, scheduled every 4
+hours (`refresh-ats-imports-every-4h`, see
+`2026-05-14_refresh_ats_imports_cron.sql` above and
+`supabase/migrations/20260526_schedule_workday_backfill_cron.sql`, which
+references the existing cron at `:17`). It fetches the same boards,
+calls the same `public.ats_import_upsert_jobs()` RPC, and has kept
+evolving independently since (workday page-window rotation, expanded
+healthcare-keyword regex, salary-interval and remote-location parsing
+fixes) while these scripts stayed frozen.
+
+That drift is concrete, not theoretical: `run-ats-import.mjs`'s
+`SEED_BOARDS` list is missing 6 Workday boards the edge function has
+since added (Banner, Ochsner, Highmark, NYP, Intermountain, Cigna) and
+doesn't implement USAJobs at all. `generate-ats-import-sql.mjs` is
+further behind still — only 2 hardcoded boards (Oscar, Lyra Health).
+Run by hand today, any of the three would silently under-cover the
+board list against what's actually live. Nothing in the repo
+(`package.json`, CI, docs) references these files by path.

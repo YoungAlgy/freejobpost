@@ -253,7 +253,7 @@ async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string, string
   if (employerIds.length === 0) return map
   type EmpRow = { id: string; company_name: string }
   const { data: emps } = await supabase
-    .from('public_employers_directory')
+    .from('public_employers_directory_all')
     .select('id, company_name')
     .in('id', employerIds)
   for (const e of ((emps ?? []) as EmpRow[])) map.set(e.id, e.company_name)
