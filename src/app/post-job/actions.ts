@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 import { verifyTurnstileToken } from '@/lib/turnstile'
-import { validatePayTransparency } from '@/lib/pay-transparency'
+import { validatePayTransparency, validateSalaryRangeSanity } from '@/lib/pay-transparency'
 import { track } from '@/lib/track'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -71,15 +71,19 @@ export async function submitPostJob(
   // include a salary range. Mirrors the client-side gate so a forged FormData
   // submit can't bypass it. Remote postings are exempt (candidate's state
   // controls; we don't know it yet at post-time).
-  if (normalized.remote_hybrid !== 'remote') {
-    const payErr = validatePayTransparency(
-      normalized.state,
-      normalized.salary_min,
-      normalized.salary_max
-    )
-    if (payErr) {
-      return { success: false, error: payErr }
-    }
+  //
+  // Separately, whenever both bounds ARE given, sanity-check them — this is
+  // a data-integrity check, not a legal-disclosure requirement, so it runs
+  // unconditionally (any state, remote or not) rather than being gated on
+  // remote_hybrid like the check above.
+  const payErr =
+    normalized.remote_hybrid !== 'remote'
+      ? validatePayTransparency(normalized.state, normalized.salary_min, normalized.salary_max)
+      : null
+  const sanityErr = validateSalaryRangeSanity(normalized.salary_min, normalized.salary_max)
+  const err = payErr || sanityErr
+  if (err) {
+    return { success: false, error: err }
   }
 
   // Anon client — the RPC is SECURITY DEFINER with explicit validation

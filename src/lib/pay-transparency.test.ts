@@ -3,6 +3,7 @@ import {
   requiresSalaryDisclosure,
   payTransparencyCitation,
   validatePayTransparency,
+  validateSalaryRangeSanity,
 } from './pay-transparency'
 
 // These tests lock in the law list. Each state included here has been
@@ -104,5 +105,47 @@ describe('validatePayTransparency', () => {
     expect(err).toMatch(/^[A-Z]{2}/) // Starts with state code
     expect(err).toMatch(/[Aa]dd both/) // Tells user what to do
     expect(err).toContain('SB 1162') // Includes citation for trust
+  })
+})
+
+describe('validateSalaryRangeSanity', () => {
+  // Regression coverage: validatePayTransparency only runs for covered
+  // states and non-remote postings, so an inverted range in a non-covered
+  // state (or on any remote posting) previously passed through with no
+  // validation error anywhere. validateSalaryRangeSanity is the
+  // unconditional check that closes that gap — these cases confirm it
+  // catches what validatePayTransparency alone misses.
+
+  it('rejects an inverted range in a non-covered state, where validatePayTransparency has no opinion', () => {
+    // Confirm the legal-disclosure check alone lets this through...
+    expect(validatePayTransparency('TX', 200000, 100000)).toBe(null)
+    // ...but the unconditional sanity check catches it.
+    const err = validateSalaryRangeSanity(200000, 100000)
+    expect(err).not.toBeNull()
+    expect(err).toContain('higher than')
+  })
+
+  it('rejects an inverted range regardless of remote status (caller never invokes validatePayTransparency for remote postings)', () => {
+    const err = validateSalaryRangeSanity(200000, 100000)
+    expect(err).not.toBeNull()
+    expect(err).toContain('higher than')
+  })
+
+  it('rejects zero or negative bounds even outside covered states', () => {
+    expect(validateSalaryRangeSanity(0, 100000)).not.toBeNull()
+    expect(validateSalaryRangeSanity(100000, 0)).not.toBeNull()
+    expect(validateSalaryRangeSanity(-1, 100000)).not.toBeNull()
+  })
+
+  it('passes when either bound is missing (nothing to check yet)', () => {
+    expect(validateSalaryRangeSanity(null, null)).toBe(null)
+    expect(validateSalaryRangeSanity(100000, null)).toBe(null)
+    expect(validateSalaryRangeSanity(null, 100000)).toBe(null)
+    expect(validateSalaryRangeSanity(undefined, undefined)).toBe(null)
+  })
+
+  it('passes well-formed ranges', () => {
+    expect(validateSalaryRangeSanity(80000, 120000)).toBe(null)
+    expect(validateSalaryRangeSanity(150000, 150000)).toBe(null)
   })
 })

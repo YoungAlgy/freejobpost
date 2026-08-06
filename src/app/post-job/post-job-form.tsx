@@ -8,6 +8,7 @@ import {
   requiresSalaryDisclosure,
   payTransparencyCitation,
   validatePayTransparency,
+  validateSalaryRangeSanity,
 } from '@/lib/pay-transparency'
 import TurnstileWidget from '@/components/TurnstileWidget'
 
@@ -106,9 +107,9 @@ export default function PostJobForm() {
   const isRemote = values.remote_hybrid === 'remote'
   const salaryRequired = !isRemote && requiresSalaryDisclosure(values.state)
   const salaryCitation = salaryRequired ? payTransparencyCitation(values.state) : null
-  const salaryValidationError = isRemote
-    ? null
-    : validatePayTransparency(values.state, values.salary_min, values.salary_max)
+  const salaryValidationError =
+    (!isRemote && validatePayTransparency(values.state, values.salary_min, values.salary_max)) ||
+    validateSalaryRangeSanity(values.salary_min, values.salary_max)
 
   const canAdvanceStep1 = values.title.trim().length >= 3 && values.role.trim().length > 0
   const canAdvanceStep2 =

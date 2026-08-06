@@ -118,3 +118,24 @@ export function validatePayTransparency(
   }
   return null
 }
+
+/**
+ * Sanity-checks a salary range whenever both bounds are present — this is a
+ * data-integrity check, not a legal-disclosure requirement, so unlike
+ * validatePayTransparency() it runs unconditionally: any state, remote or
+ * not. Returns null if either bound is missing (nothing to check yet) or
+ * the range is well-formed.
+ */
+export function validateSalaryRangeSanity(
+  salaryMin: number | null | undefined,
+  salaryMax: number | null | undefined
+): string | null {
+  if (salaryMin == null || salaryMax == null) return null
+  if (salaryMin <= 0 || salaryMax <= 0) {
+    return 'Zero is not a valid minimum or maximum salary.'
+  }
+  if (salaryMin > salaryMax) {
+    return "Salary minimum can't be higher than the maximum."
+  }
+  return null
+}
