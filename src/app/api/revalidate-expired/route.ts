@@ -91,7 +91,16 @@ async function handle(req: Request): Promise<NextResponse> {
   // this is the independent backstop that forces a fresh copy each cron pass.
   revalidatePath('/sitemap.xml')
 
-  return NextResponse.json({ ok: true, revalidated: slugs.size, sitemap: true })
+  // Homepage FAIL CLOSED fix (2026-08-06, src/app/page.tsx) throws instead of
+  // caching a false-empty render on a DB hiccup, which is correct — but it
+  // means a render that failed mid-outage leaves the *previous* (possibly
+  // also-bad, or just stale) ISR cache in place for the full 6h `revalidate`
+  // window, since OpenNext's R2/D1 incremental cache isn't cleared by a
+  // redeploy. Piggybacking the homepage on this same 4h cron closes that gap
+  // instead of waiting up to 6h for the next passive revalidation.
+  revalidatePath('/')
+
+  return NextResponse.json({ ok: true, revalidated: slugs.size, sitemap: true, homepage: true })
 }
 
 export async function POST(req: Request) {
