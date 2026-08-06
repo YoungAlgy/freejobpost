@@ -74,18 +74,26 @@ async function handle(req: Request): Promise<NextResponse> {
       .lt('expires_at', nowIso)
       .limit(300),
   ])
-  if (flipped.error || lapsed.error) {
-    console.error(
-      'revalidate-expired query error:',
-      flipped.error?.message || lapsed.error?.message,
-    )
-    return NextResponse.json({ ok: false, error: 'query failed' }, { status: 500 })
-  }
-
+  // Query failures here must NOT block the sitemap/homepage revalidation
+  // below (see 2026-08-06 incident: the `flipped` query alone was timing out
+  // -- Postgres 57014, "canceling statement due to statement timeout", almost
+  // certainly a missing index on public_jobs(status, updated_at) now that the
+  // table has grown past 74k rows -- which silently zeroed out EVERY run of
+  // this route for an unknown period, meaning the original Google-for-Jobs
+  // compliance fix this route exists for (stale JobPosting markup on expired
+  // jobs) had likely regressed back to the pre-fix stale-for-24h+ behavior.
+  // A slow/broken query here is a real, separate bug to fix at the DB level
+  // (needs Algy to apply the index -- Supabase migrations are stale, live DB
+  // is truth); it should degrade this route, not take the whole thing down.
+  const queryError = flipped.error || lapsed.error
   const slugs = new Set<string>()
-  for (const r of flipped.data ?? []) if (r.slug) slugs.add(r.slug)
-  for (const r of lapsed.data ?? []) if (r.slug) slugs.add(r.slug)
-  for (const s of slugs) revalidatePath(`/jobs/${s}`)
+  if (queryError) {
+    console.error('revalidate-expired query error:', queryError.message)
+  } else {
+    for (const r of flipped.data ?? []) if (r.slug) slugs.add(r.slug)
+    for (const r of lapsed.data ?? []) if (r.slug) slugs.add(r.slug)
+    for (const s of slugs) revalidatePath(`/jobs/${s}`)
+  }
 
   // The sitemap's hourly self-revalidation silently froze for days (F60) —
   // this is the independent backstop that forces a fresh copy each cron pass.
@@ -100,7 +108,13 @@ async function handle(req: Request): Promise<NextResponse> {
   // instead of waiting up to 6h for the next passive revalidation.
   revalidatePath('/')
 
-  return NextResponse.json({ ok: true, revalidated: slugs.size, sitemap: true, homepage: true })
+  return NextResponse.json({
+    ok: !queryError,
+    error: queryError ? 'flipped/lapsed query failed, see logs' : undefined,
+    revalidated: slugs.size,
+    sitemap: true,
+    homepage: true,
+  })
 }
 
 export async function POST(req: Request) {
