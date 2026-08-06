@@ -18,10 +18,12 @@
 // Idempotent: external_ref includes Adzuna's stable job id.
 //
 // Strategy notes:
-//   - Adzuna's free tier caps at 1000 calls/day. We use ~24 calls/day
-//     (6 cron ticks × 4 healthcare categories per tick) — well under cap.
+//   - Adzuna's free tier caps at 1000 calls/day. We use ~12 calls/day
+//     (6 cron ticks × 2 healthcare categories per tick) — well under cap.
+//     (Trimmed from 4 categories / ~24 calls/day down to the 2 below —
+//     see the 2026-05-27 note ahead of ADZUNA_CATEGORIES.)
 //   - Healthcare categories: 'healthcare-nursing-jobs' is the biggest;
-//     'social-care-jobs' covers therapy + counseling.
+//     'social-work-jobs' covers therapy + counseling.
 //   - Each call fetches 50 results (Adzuna's per-page cap on free tier).
 //   - apply_url uses Adzuna's redirect_url — clicks attribute via
 //     the existing /click/[slug] tracking pipeline.

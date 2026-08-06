@@ -156,15 +156,3 @@ export const PARTNER_CONTACTS: Record<SyndicationTargetId | 'sitemap', PartnerCo
       'Google Search Console → Sitemaps → Add /sitemap.xml. Bing Webmaster Tools accepts the same URL.',
   },
 }
-
-/**
- * Returns true if every email-channel contact in the registry was verified
- * within the last 90 days. Used by an upcoming health-check job to flag
- * stale contacts before they bounce silently like 2026-04-29.
- */
-export function partnerContactsAreFresh(now: Date = new Date()): boolean {
-  const cutoff = now.getTime() - 90 * 86400_000
-  return Object.values(PARTNER_CONTACTS)
-    .filter((c) => c.status === 'email_active')
-    .every((c) => new Date(c.lastVerifiedAt).getTime() > cutoff)
-}

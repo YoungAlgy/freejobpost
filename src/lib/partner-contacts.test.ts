@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PARTNER_CONTACTS, partnerContactsAreFresh } from './partner-contacts'
+import { PARTNER_CONTACTS } from './partner-contacts'
 
 describe('PARTNER_CONTACTS', () => {
   it('has an entry for every syndication target plus sitemap', () => {
@@ -65,39 +65,5 @@ describe('PARTNER_CONTACTS', () => {
     expect(PARTNER_CONTACTS.jooble.bouncedAddresses).toContain('partners@jooble.com')
     expect(PARTNER_CONTACTS.talent.bouncedAddresses).toContain('partner@talent.com')
     expect(PARTNER_CONTACTS.talent.bouncedAddresses).toContain('partners@talent.com')
-  })
-})
-
-describe('partnerContactsAreFresh', () => {
-  it('returns true when all email_active contacts were verified within 90 days', () => {
-    // Anchor "now" at a date when current entries (lastVerifiedAt 2026-04-30
-    // for the email_active ones) are within 90 days.
-    const now = new Date('2026-05-15T00:00:00Z')
-    expect(partnerContactsAreFresh(now)).toBe(true)
-  })
-
-  it('returns false when at least one email_active contact is over 90 days stale', () => {
-    // Roll the clock forward past 2026-04-30 + 90 days = 2026-07-29.
-    const now = new Date('2026-08-15T00:00:00Z')
-    expect(partnerContactsAreFresh(now)).toBe(false)
-  })
-
-  it('exactly-90-days-old is treated as stale (cutoff is strict <)', () => {
-    // The function uses cutoff = now - 90d and tests `lastVerified > cutoff`,
-    // so lastVerified == cutoff is stale. Pick a `now` such that one of the
-    // 2026-04-30 entries lands EXACTLY on the cutoff.
-    const exactly90Later = new Date('2026-04-30T00:00:00Z')
-    exactly90Later.setUTCDate(exactly90Later.getUTCDate() + 90)
-    expect(partnerContactsAreFresh(exactly90Later)).toBe(false)
-  })
-
-  it('only checks email_active contacts (ignores auto_crawl / gated_portal / channel_dead)', () => {
-    // If only email_active matters, the function would pass even with stale
-    // dates on auto_crawl entries. We've already asserted the email_active
-    // ones are fresh as of 2026-05-15 — the auto_crawl/channel_dead ones use
-    // the same date so this is a sanity check on the "ignore non-email"
-    // assumption.
-    const now = new Date('2026-05-15T00:00:00Z')
-    expect(partnerContactsAreFresh(now)).toBe(true)
   })
 })

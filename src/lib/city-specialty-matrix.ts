@@ -64,6 +64,16 @@ async function _computeViableCityCellsUncached(): Promise<CityMatrixCell[]> {
       baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )
+  const failedBatches = batches.filter((b) => b.error)
+  if (failedBatches.length > 0) {
+    // Surface batch failures (e.g. transient PostgREST outage / pool exhaustion —
+    // see 2026-06 incident note above) instead of letting `?? []` silently turn
+    // them into a "0 viable cells" result that then gets frozen into the 6h cache.
+    console.error(
+      `city-specialty-matrix: ${failedBatches.length}/${numBatches} batch queries failed:`,
+      failedBatches[0].error,
+    )
+  }
   const jobs = batches.flatMap((b) => (b.data ?? [])) as Array<{
     city: string | null
     state: string | null

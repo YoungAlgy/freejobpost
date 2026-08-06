@@ -54,10 +54,3 @@ export function normalizePartner(raw: string | null | undefined): string {
   const lower = raw.toLowerCase().trim().slice(0, 64)
   return PARTNER_ALLOWLIST.has(lower) ? lower : 'internal'
 }
-
-export function isAllowedPartner(value: string): boolean {
-  return PARTNER_ALLOWLIST.has(value)
-}
-
-// Export for tests + diagnostics that need to enumerate known partners.
-export const ALL_PARTNERS: readonly string[] = Array.from(PARTNER_ALLOWLIST)

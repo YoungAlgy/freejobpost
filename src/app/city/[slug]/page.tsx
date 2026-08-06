@@ -11,7 +11,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase, hourIso } from '@/lib/supabase'
+import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -50,7 +50,7 @@ async function fetchJobCountForCity(
   cityMatchPatterns: string[],
   state: string,
 ): Promise<number> {
-  const { count } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
@@ -58,14 +58,15 @@ async function fetchJobCountForCity(
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
     .or(cityOrFilter(cityMatchPatterns))
-  return count ?? 0
+  assertFreshOrThrow(result, 'fetchJobCountForCity')
+  return result.count ?? 0
 }
 
 async function fetchJobsForCity(
   cityMatchPatterns: string[],
   state: string,
 ): Promise<PublicJob[]> {
-  const { data } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
@@ -75,7 +76,8 @@ async function fetchJobsForCity(
     .or(cityOrFilter(cityMatchPatterns))
     .order('created_at', { ascending: false })
     .limit(200)
-  return (data ?? []) as PublicJob[]
+  assertFreshOrThrow(result, 'fetchJobsForCity')
+  return (result.data ?? []) as PublicJob[]
 }
 
 export async function generateMetadata(

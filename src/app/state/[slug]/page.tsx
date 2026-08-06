@@ -5,7 +5,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase, hourIso } from '@/lib/supabase'
+import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -36,14 +36,15 @@ export async function generateStaticParams() {
 }
 
 async function fetchJobCountForState(abbr: string): Promise<number> {
-  const { count } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
     .eq('state', abbr)
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
-  return count ?? 0
+  assertFreshOrThrow(result, 'fetchJobCountForState')
+  return result.count ?? 0
 }
 
 export async function generateMetadata(
@@ -81,7 +82,7 @@ export async function generateMetadata(
 }
 
 async function fetchJobsForState(abbr: string): Promise<PublicJob[]> {
-  const { data } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
@@ -90,7 +91,8 @@ async function fetchJobsForState(abbr: string): Promise<PublicJob[]> {
     .gt('expires_at', hourIso())
     .order('created_at', { ascending: false })
     .limit(300)
-  return (data ?? []) as PublicJob[]
+  assertFreshOrThrow(result, 'fetchJobsForState')
+  return (result.data ?? []) as PublicJob[]
 }
 
 export default async function StateHubPage(

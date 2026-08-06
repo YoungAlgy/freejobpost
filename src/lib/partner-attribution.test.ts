@@ -1,9 +1,25 @@
 import { describe, expect, it } from 'vitest'
-import {
-  normalizePartner,
-  isAllowedPartner,
-  ALL_PARTNERS,
-} from './partner-attribution'
+import { normalizePartner } from './partner-attribution'
+
+// Known partner keys, mirrored here so this file can assert allowlist
+// membership/shape without partner-attribution.ts needing to export the
+// allowlist itself. Bump/edit alongside PARTNER_ALLOWLIST in that file
+// when introducing a new partner-attribution source.
+const KNOWN_PARTNERS = [
+  'internal',
+  'talent',
+  'adzuna',
+  'jooble',
+  'careerjet',
+  'glassdoor',
+  'ziprecruiter',
+  'linkedin',
+  'indeed',
+  'monster',
+  'simplyhired',
+  'rss',
+  'google',
+]
 
 describe('normalizePartner', () => {
   it('defaults to internal when raw is null/undefined/empty', () => {
@@ -61,36 +77,19 @@ describe('normalizePartner', () => {
   })
 })
 
-describe('isAllowedPartner', () => {
-  it('returns true for every member of ALL_PARTNERS', () => {
-    for (const p of ALL_PARTNERS) {
-      expect(isAllowedPartner(p)).toBe(true)
+describe('normalizePartner allowlist shape', () => {
+  it('round-trips every known partner key unchanged', () => {
+    // If PARTNER_ALLOWLIST in partner-attribution.ts ever drops one of
+    // these, normalizePartner would collapse it to 'internal' and this
+    // assertion would catch the drift.
+    for (const p of KNOWN_PARTNERS) {
+      expect(normalizePartner(p)).toBe(p)
     }
   })
 
-  it('returns false for non-allowlist strings', () => {
-    expect(isAllowedPartner('Talent')).toBe(false) // case-sensitive
-    expect(isAllowedPartner('unknown')).toBe(false)
-    expect(isAllowedPartner('')).toBe(false)
-  })
-})
-
-describe('ALL_PARTNERS', () => {
   it('contains exactly 13 known partners', () => {
-    // Bump this count + add to the allowlist when introducing a new
-    // partner-attribution source.
-    expect(ALL_PARTNERS).toHaveLength(13)
-  })
-
-  it('includes both syndication-target keys AND scraper-attribution keys', () => {
-    // SyndicationTargetId-aligned (publisher feeds we own):
-    expect(ALL_PARTNERS).toContain('talent')
-    expect(ALL_PARTNERS).toContain('careerjet')
-    // Scraper / external surfaces (no feed deal, but they attribute):
-    expect(ALL_PARTNERS).toContain('monster')
-    expect(ALL_PARTNERS).toContain('simplyhired')
-    expect(ALL_PARTNERS).toContain('google')
-    // Internal-traffic baseline:
-    expect(ALL_PARTNERS).toContain('internal')
+    // Bump this count + KNOWN_PARTNERS above (and PARTNER_ALLOWLIST in
+    // partner-attribution.ts) when introducing a new attribution source.
+    expect(KNOWN_PARTNERS).toHaveLength(13)
   })
 })

@@ -26,6 +26,8 @@ export const metadata: Metadata = {
 // only on the 4h ingest cron, so a 1h window keeps the live count + recent
 // list fresh while cutting homepage regen 12×. See jobs/[slug] for the full
 // ISR cost rationale.
+// Later bumped 3600s → 21600s (6h) — still well under the 7-day cutoff
+// below, so the "recent" list stays fresh at this cadence too.
 export const revalidate = 21600
 
 type RecentJob = Pick<PublicJob, 'id' | 'slug' | 'title' | 'city' | 'state' | 'salary_min' | 'salary_max'>
@@ -35,8 +37,8 @@ export default async function Home() {
   // verified-employer count in parallel.
   //
   // Date.now() in a Server Component looks "impure" to React 19's strict
-  // rule but is intentional here: this page revalidates hourly
-  // (see `revalidate = 3600` above) so the "7 days ago" cutoff stays fresh
+  // rule but is intentional here: this page revalidates every 6h
+  // (see `revalidate = 21600` above) so the "7 days ago" cutoff stays fresh
   // — it's not memoizable. Calling Date.now() inside the request scope of
   // an async Server Component is the documented way to get a real
   // wall-clock timestamp for ISR-sensitive queries.
@@ -76,6 +78,30 @@ export default async function Home() {
       .not('verified_via', 'in', '(seeded,ats_import)')
       .not('company_name', 'ilike', 'Ava Health%'),
   ])
+
+  // FAIL CLOSED (2026-08-06): mirrors the /jobs guard (see jobs/page.tsx,
+  // "FAIL CLOSED (2026-06-02)") — never cache a false "0 jobs" homepage. On
+  // infra failure (e.g. the 2026-08-05 Supabase disk-IO outage) PostgREST
+  // returns {data: null, error, count: null} instead of throwing, so without
+  // this check the page would render successfully with liveCount=0 and an
+  // empty "OPEN ROLES" list, and ISR would then cache that false-empty
+  // render for the full 6h `revalidate` window. Throwing makes Next serve
+  // the last-good ISR cache instead. Scoped to the two queries that drive
+  // the severe failure mode (the active-count badge + recent-jobs list);
+  // the secondary badges below (new-this-week, verified-employer) degrade
+  // to simply hiding on error, which is an acceptable, non-misleading
+  // fallback. Build-phase guarded so a DB hiccup during prerender still
+  // degrades gracefully rather than failing the deploy.
+  if (
+    (countRes.error || recentRes.error) &&
+    process.env.NEXT_PHASE !== 'phase-production-build'
+  ) {
+    throw new Error(
+      `/: homepage fetch failed (countError=${countRes.error?.message ?? 'none'}, ` +
+        `recentError=${recentRes.error?.message ?? 'none'}) — refusing to cache a false-empty homepage.`,
+    )
+  }
+
   const liveCount = countRes.count ?? 0
   const recentJobs = (recentRes.data ?? []) as RecentJob[]
   const newThisWeek = newThisWeekRes.count ?? 0

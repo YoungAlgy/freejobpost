@@ -8,7 +8,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase, hourIso } from '@/lib/supabase'
+import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -65,7 +65,7 @@ async function fetchCellJobs(
   state: string,
   specialtyPatterns: string[],
 ): Promise<PublicJob[]> {
-  const { data } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
@@ -76,7 +76,8 @@ async function fetchCellJobs(
     .or(buildSpecialtyOrFilter(specialtyPatterns))
     .order('created_at', { ascending: false })
     .limit(100)
-  return (data ?? []) as PublicJob[]
+  assertFreshOrThrow(result, 'fetchCellJobs (city/specialty)')
+  return (result.data ?? []) as PublicJob[]
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

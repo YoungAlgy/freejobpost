@@ -44,11 +44,25 @@ type EmployerRow = {
 
 export default async function EmployersPage() {
   // Fetch verified non-seeded employers from the directory view
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('public_employers_directory')
     .select('id, company_name, company_url, vertical, verified_at, verified_via, slug')
     .not('verified_at', 'is', null)
     .order('company_name')
+
+  // FAIL CLOSED: unlike /jobs, zero rows here is a genuine, documented state
+  // (cold-start — see file header), so we only fail on a query error, not on
+  // an empty result. Without this, a DB error (bad grant, RLS misconfig,
+  // transient failure) silently collapses to `[]` and renders identically to
+  // the real "Building our employer network" empty state — then gets baked
+  // into the ISR cache for revalidate (24h). Build-phase guarded so a DB
+  // hiccup during prerender degrades to the empty shell instead of failing
+  // the deploy. Mirrors /jobs and /jobs/[slug].
+  if (error && process.env.NEXT_PHASE !== 'phase-production-build') {
+    throw new Error(
+      `/employers: directory fetch failed (error=${error.message}) — refusing to cache a bad result.`,
+    )
+  }
 
   const allRows = (data ?? []) as EmployerRow[]
   // Exclude Ava-seeded inventory + ATS-imported employers. The latter have
@@ -67,13 +81,23 @@ export default async function EmployersPage() {
   const counts: Record<string, number> = {}
   if (employers.length > 0) {
     const ids = employers.map((e) => e.id)
-    const { data: jobData } = await supabase
+    const { data: jobData, error: jobError } = await supabase
       .from('public_jobs')
       .select('employer_id')
       .in('employer_id', ids)
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', hourIso())
+
+    // Same fail-closed pattern: a count-query error must not silently read as
+    // "0 active jobs everywhere," which would wrongly hide every employer
+    // behind the cold-start empty state and cache that for 24h.
+    if (jobError && process.env.NEXT_PHASE !== 'phase-production-build') {
+      throw new Error(
+        `/employers: active-job-count fetch failed (error=${jobError.message}) — refusing to cache a bad result.`,
+      )
+    }
+
     for (const row of (jobData ?? []) as Array<{ employer_id: string }>) {
       counts[row.employer_id] = (counts[row.employer_id] ?? 0) + 1
     }

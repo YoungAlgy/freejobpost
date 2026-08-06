@@ -54,11 +54,23 @@ type EmployerRow = {
 
 async function getEmployer(slug: string): Promise<EmployerRow | null> {
   if (!SLUG_RE.test(slug)) return null
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('public_employers_directory')
     .select('id, company_name, company_url, vertical, verified_at, verified_via, slug, tier')
     .eq('slug', slug)
     .maybeSingle()
+  // FAIL CLOSED (mirrors getJob() in src/app/jobs/[slug]/page.tsx): a query
+  // error is an infrastructure failure (bad grant / DB outage), NOT a missing
+  // row — e.g. the company_name anon-grant incident, where every anon job
+  // query 42501'd, getJob returned null → notFound() → a 404-storm across all
+  // ~16.8K job pages. Throw so Next serves the last-good ISR cache (or 500s on
+  // a cold cache, which a crawler retries) instead of 404'ing a real, verified
+  // employer. Build-phase guarded so a prerender DB hiccup degrades gracefully.
+  if (error && process.env.NEXT_PHASE !== 'phase-production-build') {
+    throw new Error(
+      `getEmployer(${slug}): query failed (${error.message}) — refusing to 404 a real employer`,
+    )
+  }
   const row = data as EmployerRow | null
   if (!row) return null
   // Exclude Ava-seeded inventory — those don't get a public employer page.
@@ -73,7 +85,7 @@ async function getEmployer(slug: string): Promise<EmployerRow | null> {
 }
 
 async function getEmployerJobs(employerId: string): Promise<PublicJob[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('employer_id', employerId)
@@ -82,6 +94,14 @@ async function getEmployerJobs(employerId: string): Promise<PublicJob[]> {
     .gt('expires_at', hourIso())
     .order('created_at', { ascending: false })
     .limit(100)
+  // FAIL CLOSED — same rationale as getEmployer() above: a query error means
+  // we can't tell "no active jobs" from "DB/grant outage", so refuse to let it
+  // collapse into an empty list that triggers notFound() on a real employer.
+  if (error && process.env.NEXT_PHASE !== 'phase-production-build') {
+    throw new Error(
+      `getEmployerJobs(${employerId}): query failed (${error.message}) — refusing to 404 a real employer's jobs`,
+    )
+  }
   return (data ?? []) as PublicJob[]
 }
 

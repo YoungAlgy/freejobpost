@@ -31,5 +31,5 @@ If Jooble re-flags more issues, the next iteration would be content-shape filter
 ## Operational notes
 
 - **Feed URL pattern:** `https://freejobpost.co/jobs.xml?ref=<partner>` for partner attribution; the `?ref=` param flows through every `<url>` and lands in `apply_clicks` for per-partner click data.
-- **Feed health check (deferred ops item):** `partnerContactsAreFresh()` exists in `partner-contacts.ts` but isn't wired into a cron yet. Worth wiring before paid placement traffic to know if a partner stops crawling.
+- **Feed health check (deferred ops item):** the `partnerContactsAreFresh()` freshness check was removed 2026-08-06 as dead code (never wired into anything, no cron infra existed to call it). Worth rebuilding as part of an actual health-check cron before paid placement traffic, so we know if a partner stops crawling. See BACKLOG.md's Operational/monitoring section.
 - **History:** historical state from the 2026-05-08 doc (Adzuna qualification questions, original partner-email bounces, the 4-partner email-channel diagnosis) is preserved in git history of this file if needed for context.

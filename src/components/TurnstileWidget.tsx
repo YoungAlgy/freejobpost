@@ -162,7 +162,14 @@ export default function TurnstileWidget({
         widgetIdRef.current = null
       }
     }
-    // We intentionally re-mount when callbacks change to keep them fresh.
+    // Empty deps is intentional: this effect runs once per mount only and
+    // does NOT re-run when onSuccess/onError/onExpired/action change, so
+    // callers must pass stable callbacks (e.g. a useState setter). A
+    // closure that captures per-render state would go stale for the life
+    // of this mount. We don't add them to the deps array because
+    // onError/onExpired are commonly passed as fresh inline arrows every
+    // render, which would tear down and re-render the Turnstile widget on
+    // every unrelated re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

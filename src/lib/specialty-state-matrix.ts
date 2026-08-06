@@ -65,19 +65,11 @@ export async function getViableCellsCached(
 }
 
 /**
- * Builds the viable (specialty, state) cell list from the live job table.
- * Now a thin wrapper over the globally-cached scan (see above) so existing
- * callers (generateStaticParams on /specialty/[slug]/[state], sitemap.ts) no
- * longer trigger a per-render full-corpus scan. The `_supabase` param is kept
- * for call-site compatibility but ignored — the cached scan uses the shared
- * module client.
+ * Alias kept for call-site compatibility (generateStaticParams on
+ * /specialty/[slug]/[state], sitemap.ts). Identical behavior to
+ * `getViableCellsCached` — see that function's doc comment above.
  */
-export async function computeViableCellsViaSql(
-  _supabase?: SupabaseClient,
-): Promise<MatrixCell[]> {
-  void _supabase
-  return _cachedViableCells()
-}
+export { getViableCellsCached as computeViableCellsViaSql }
 
 /**
  * The actual scan. Equivalent to one count query per (specialty, state) pair
@@ -103,6 +95,22 @@ async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
       baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
   )
+  const failedBatch = batches.find((b) => b.error)
+  if (failedBatch) {
+    // Supabase-js returns { data: null, error } on failure instead of
+    // throwing, so an unchecked batch silently collapses to `[]` via the
+    // `?? []` below — and since this scan is wrapped in a 6h unstable_cache,
+    // that fabricated "zero viable cells" result would get cached and feed
+    // the sitemap / generateStaticParams / peer-links for up to 6 hours.
+    // Throw instead: unstable_cache does not memoize a thrown rejection, so
+    // this propagates to the caller for this request while leaving any
+    // previously-cached good value in place for subsequent reads.
+    console.error(
+      '[specialty-state-matrix] batch scan failed, aborting to avoid caching a false-empty result:',
+      failedBatch.error,
+    )
+    throw new Error(`specialty-state-matrix scan failed: ${failedBatch.error!.message}`)
+  }
   const jobs = batches.flatMap((b) => (b.data ?? [])) as Array<{
     state: string | null
     specialty: string | null

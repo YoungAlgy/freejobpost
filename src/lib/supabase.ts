@@ -86,6 +86,34 @@ export const supabaseFresh = createClient(supabaseUrl, supabaseAnonKey, {
   },
 })
 
+// FAIL-CLOSED guard for hub/matrix pages (2026-08-06 audit). Extracted from
+// the 2026-06-02 /jobs + /jobs/[slug] incident fix after finding the same
+// unguarded shape — `{ error }` ignored, `count`/`data` coerced with `?? 0`/
+// `?? []` — still unfixed in every SEO hub page (/city, /state, /specialty,
+// /specialty/[slug]/[state], /city/[slug]/[specialty]). Those pages all sit
+// on a 24h `revalidate`, so one transient query error at regen time would
+// cache a false "no jobs here" page for a full day, across hundreds of
+// pre-generated hub URLs simultaneously (worse blast radius than /jobs,
+// which is a single page). Build-phase guarded like the /jobs fix: a
+// prerender DB hiccup degrades to an empty shell that self-heals on the
+// next runtime revalidate instead of failing the deploy.
+//
+// Only checks `.error` — NEVER treats a legitimate zero count/empty array as
+// a failure. Unlike /jobs (where zero across the WHOLE corpus is always
+// anomalous), a genuine zero-result hub is expected and legitimate here
+// (e.g. a real low-inventory city/specialty combo) — conflating the two
+// would misfire and 500 real long-tail pages that simply have no openings.
+export function assertFreshOrThrow(
+  result: { error: { message: string } | null },
+  context: string,
+): void {
+  if (result.error && process.env.NEXT_PHASE !== 'phase-production-build') {
+    throw new Error(
+      `${context}: query failed (${result.error.message}) — refusing to cache a false empty result.`,
+    )
+  }
+}
+
 // Hour-truncated "now" for PostgREST time filters (e.g. expires_at.gt).
 // A raw new-Date ISO string changes on EVERY render, which changes the
 // PostgREST request URL, which changes the Next Data Cache key — so the 1h

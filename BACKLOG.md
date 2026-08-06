@@ -94,8 +94,12 @@ don't get lost. Pull into active work when the current phase completes.
 - [ ] Monthly seeded-vs-real-employer ratio report — track against Phase 1 target
       (>15% third-party share by day 90)
 - [ ] Quarterly partner email re-verification (see above)
-- [ ] `partnerContactsAreFresh()` — wire into the health-check cron once the cron
-      infra is in place (function already exists in `partner-contacts.ts`)
+- [ ] ziprecruiter is past its 90-day re-verification window (`lastVerifiedAt:
+      '2026-04-30'` in `partner-contacts.ts`, window closed 2026-07-29) — send
+      a real test email and confirm no bounce, then update `lastVerifiedAt`
+- [ ] If a health-check cron ever gets built, re-add a freshness check like the
+      removed `partnerContactsAreFresh()` (deleted 2026-08-06 as unused dead
+      code — no cron infra ever called it, see git history for the old impl)
 
 ## Decisions deferred (need Algy input when the time comes)
 

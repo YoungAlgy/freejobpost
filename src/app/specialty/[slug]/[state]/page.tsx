@@ -9,7 +9,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase, hourIso } from '@/lib/supabase'
+import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -60,7 +60,7 @@ export async function generateStaticParams(): Promise<Params[]> {
 }
 
 async function fetchCellJobs(matchPatterns: readonly string[], stateAbbr: string): Promise<PublicJob[]> {
-  const { data } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
@@ -70,13 +70,14 @@ async function fetchCellJobs(matchPatterns: readonly string[], stateAbbr: string
     .or(buildHubOrFilter(matchPatterns))
     .order('created_at', { ascending: false })
     .limit(200)
-  return (data ?? []) as PublicJob[]
+  assertFreshOrThrow(result, 'fetchCellJobs (specialty/state)')
+  return (result.data ?? []) as PublicJob[]
 }
 
 // Count-only query for the thin-cell noindex gate in generateMetadata.
 // head:true → no rows transferred, just the count.
 async function fetchCellCount(matchPatterns: readonly string[], stateAbbr: string): Promise<number> {
-  const { count } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
@@ -84,7 +85,8 @@ async function fetchCellCount(matchPatterns: readonly string[], stateAbbr: strin
     .gt('expires_at', hourIso())
     .eq('state', stateAbbr)
     .or(buildHubOrFilter(matchPatterns))
-  return count ?? 0
+  assertFreshOrThrow(result, 'fetchCellCount (specialty/state)')
+  return result.count ?? 0
 }
 
 // SEO viability floor — matches the city×specialty sibling's ≥5 gate. A

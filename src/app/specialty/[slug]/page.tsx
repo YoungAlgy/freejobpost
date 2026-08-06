@@ -5,7 +5,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase, hourIso } from '@/lib/supabase'
+import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   type PublicJob,
@@ -61,14 +61,15 @@ export async function generateStaticParams() {
 const buildHubOrFilter = buildSpecialtyOrFilter
 
 async function fetchJobCountForSpecialty(matchPatterns: string[]): Promise<number> {
-  const { count } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
     .or(buildHubOrFilter(matchPatterns))
-  return count ?? 0
+  assertFreshOrThrow(result, 'fetchJobCountForSpecialty')
+  return result.count ?? 0
 }
 
 export async function generateMetadata(
@@ -105,7 +106,7 @@ export async function generateMetadata(
 }
 
 async function fetchJobsForHub(matchPatterns: string[]): Promise<PublicJob[]> {
-  const { data } = await supabase
+  const result = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('status', 'active')
@@ -114,7 +115,8 @@ async function fetchJobsForHub(matchPatterns: string[]): Promise<PublicJob[]> {
     .or(buildHubOrFilter(matchPatterns))
     .order('created_at', { ascending: false })
     .limit(300)
-  return (data ?? []) as PublicJob[]
+  assertFreshOrThrow(result, 'fetchJobsForHub')
+  return (result.data ?? []) as PublicJob[]
 }
 
 export default async function SpecialtyHubPage(
