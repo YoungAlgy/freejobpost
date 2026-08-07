@@ -79,6 +79,19 @@ export { getViableCellsCached as computeViableCellsViaSql }
  *
  * Only ever invoked by `_cachedViableCells` (≤ once / 10 min globally).
  */
+// 2026-08-07 — firing all `numBatches` (60) range queries at once via a single
+// Promise.all was exactly the "hundreds of concurrent 40-batch scans" failure
+// mode the incident doc comment above describes, just from one invocation
+// instead of many: 60 simultaneous 1000-row reads is still a burst big enough
+// to saturate the shared Nano Postgres instance's connection pool and disk-IO
+// budget for every app sharing it, confirmed live via pg_stat_statements
+// (this exact query was the single largest disk-block-read consumer on the
+// shared DB during the 2026-08-06/07 outage). Capping concurrency doesn't
+// change what's fetched or how it's cached (still ≤once/6h via
+// unstable_cache above) — it only spreads the same 60 reads out instead of
+// hitting the DB as one spike.
+const BATCH_CONCURRENCY = 8
+
 async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
   const numBatches = await activeJobBatchCount(_moduleSupabase)
   const BATCH_SIZE = 1000
@@ -90,11 +103,19 @@ async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const batches = await Promise.all(
-    Array.from({ length: numBatches }, (_, i) =>
-      baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+  const batches = []
+  for (let start = 0; start < numBatches; start += BATCH_CONCURRENCY) {
+    const chunk = await Promise.all(
+      Array.from(
+        { length: Math.min(BATCH_CONCURRENCY, numBatches - start) },
+        (_, j) => {
+          const i = start + j
+          return baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+        }
+      )
     )
-  )
+    batches.push(...chunk)
+  }
   const failedBatch = batches.find((b) => b.error)
   if (failedBatch) {
     // Supabase-js returns { data: null, error } on failure instead of
