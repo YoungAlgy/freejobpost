@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { unstable_cache } from 'next/cache'
 import { supabase, hourIso } from '@/lib/supabase'
-import { activeJobBatchCount } from '@/lib/active-batch-count'
+import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
 import { MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
@@ -121,10 +121,14 @@ async function _fetchSitemapDataUncached(): Promise<{
     .gt('expires_at', nowIso)
     .gte('description_usable_chars', MIN_INDEXABLE_DESCRIPTION_CHARS)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const jobsBatchPromises = Array.from({ length: numBatches }, (_, i) =>
-    baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)
-  )
-  const [employersRes, ...jobsBatches] = await Promise.all([
+  // 2026-08-12 — this fired all `numBatches` (up to 30+) job-range queries
+  // PLUS the employer query in a single Promise.all, an uncapped burst on
+  // every 6h cache-cold hit (worse: it can stack with city-specialty-
+  // matrix.ts's own uncapped burst if both caches are cold at once — see
+  // active-batch-count.ts's note). Job batches now route through the shared
+  // runBatchesConcurrencyCapped helper; the employer query still runs
+  // alongside the first chunk since it's one lightweight query, not a burst.
+  const [employersRes, jobsBatches] = await Promise.all([
     // Employer pages — only verified non-seeded employers with at least 1 active job
     // (the page itself enforces the job-count gate, but pre-filtering here keeps
     // the sitemap clean and avoids surfacing empty 404-bound pages to crawlers)
@@ -132,7 +136,9 @@ async function _fetchSitemapDataUncached(): Promise<{
       .from('public_employers_directory')
       .select('slug, verified_via, company_name, verified_at')
       .not('verified_at', 'is', null),
-    ...jobsBatchPromises,
+    runBatchesConcurrencyCapped(numBatches, (i) =>
+      baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)
+    ),
   ])
 
   const jobs = jobsBatches.flatMap(

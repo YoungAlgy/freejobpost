@@ -28,7 +28,7 @@ import {
   usableSalary,
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, hasUsableDescription, cdata, MIN_DESCRIPTION_CHARS } from '@/lib/feed-builders'
-import { activeJobBatchCount } from '@/lib/active-batch-count'
+import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
 
 // force-dynamic (2026-07-09): this feed runs its own ~60 batched Supabase
 // queries inline and serializes multi-MB XML. Prerendering it at build time
@@ -114,10 +114,14 @@ export async function GET(): Promise<Response> {
 
   const numBatches = await activeJobBatchCount(supabase)
 
-  const filteredBatches = await Promise.all(
-    Array.from({ length: numBatches }, (_, i) =>
-      baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-    )
+  // 2026-08-12 — this route's fallback path could fire numBatches TWICE
+  // (filtered then unfiltered) = up to 120 concurrent range queries in one
+  // request, on top of already being force-dynamic/uncached and polled by
+  // LinkedIn's own crawler on a schedule Algy doesn't control. Both batch
+  // sets now route through the shared runBatchesConcurrencyCapped helper —
+  // see active-batch-count.ts's note.
+  const filteredBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+    baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
 
   // Pre-migration fallback: if column doesn't exist, fetch unfiltered. Use
@@ -132,10 +136,8 @@ export async function GET(): Promise<Response> {
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
       .order('updated_at', { ascending: false }).order('id', { ascending: false })
-    const fallbackBatches = await Promise.all(
-      Array.from({ length: numBatches }, (_, i) =>
-        baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-      )
+    const fallbackBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+      baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
     )
     data = fallbackBatches.flatMap((b) => (b.data ?? []) as unknown[])
   } else {

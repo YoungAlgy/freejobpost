@@ -15,7 +15,7 @@ import { unstable_cache } from 'next/cache'
 import { supabase as _moduleSupabase, hourIso } from './supabase'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { STATE_HUBS, type StateHub } from './state-slugs'
-import { activeJobBatchCount } from './active-batch-count'
+import { activeJobBatchCount, runBatchesConcurrencyCapped } from './active-batch-count'
 
 export type MatrixCell = {
   specialty: SpecialtyHub
@@ -89,9 +89,9 @@ export { getViableCellsCached as computeViableCellsViaSql }
 // shared DB during the 2026-08-06/07 outage). Capping concurrency doesn't
 // change what's fetched or how it's cached (still ≤once/6h via
 // unstable_cache above) — it only spreads the same 60 reads out instead of
-// hitting the DB as one spike.
-const BATCH_CONCURRENCY = 8
-
+// hitting the DB as one spike. 2026-08-12: moved the cap itself into
+// runBatchesConcurrencyCapped (active-batch-count.ts) so every batch-scan
+// caller gets it, not just this file — see that file's note.
 async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
   const numBatches = await activeJobBatchCount(_moduleSupabase)
   const BATCH_SIZE = 1000
@@ -103,19 +103,9 @@ async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const batches = []
-  for (let start = 0; start < numBatches; start += BATCH_CONCURRENCY) {
-    const chunk = await Promise.all(
-      Array.from(
-        { length: Math.min(BATCH_CONCURRENCY, numBatches - start) },
-        (_, j) => {
-          const i = start + j
-          return baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-        }
-      )
-    )
-    batches.push(...chunk)
-  }
+  const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+    baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+  )
   const failedBatch = batches.find((b) => b.error)
   if (failedBatch) {
     // Supabase-js returns { data: null, error } on failure instead of
@@ -130,7 +120,21 @@ async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
       '[specialty-state-matrix] batch scan failed, aborting to avoid caching a false-empty result:',
       failedBatch.error,
     )
-    throw new Error(`specialty-state-matrix scan failed: ${failedBatch.error!.message}`)
+    // 2026-08-12 — BUILD-TIME ONLY exception. `npm run build` reaches this via
+    // /specialty/[slug]/[state]'s generateStaticParams, and throwing there
+    // aborts the ENTIRE build, not just this one cache entry — exactly what
+    // blocked shipping the 2026-08-07 concurrency fix for days (the fix that
+    // reduces DB load couldn't ship until the DB was healthy enough to
+    // build). Matches the same NEXT_PHASE guard supabase.ts's
+    // assertFreshOrThrow already uses. At build time, degrade to whatever
+    // partial data was fetched instead of aborting — every page this feeds
+    // has dynamicParams=true, so anything the build misses renders on-demand
+    // at runtime against a (by-then hopefully healthy) DB and populates the
+    // real cache correctly then. The runtime throw (the actual
+    // cache-poisoning protection) is unchanged.
+    if (process.env.NEXT_PHASE !== 'phase-production-build') {
+      throw new Error(`specialty-state-matrix scan failed: ${failedBatch.error!.message}`)
+    }
   }
   const jobs = batches.flatMap((b) => (b.data ?? [])) as Array<{
     state: string | null

@@ -14,7 +14,7 @@ import { unstable_cache } from 'next/cache'
 import { supabase as _moduleSupabase, hourIso } from './supabase'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { CITY_HUBS, type CityHub } from './city-slugs'
-import { activeJobBatchCount } from './active-batch-count'
+import { activeJobBatchCount, runBatchesConcurrencyCapped } from './active-batch-count'
 
 export type CityMatrixCell = {
   city: CityHub
@@ -48,6 +48,12 @@ export async function getViableCityCellsCached(
   return _cachedViableCityCells()
 }
 
+// 2026-08-12 — this mirrored specialty-state-matrix.ts's structure but NOT
+// its 2026-08-07 concurrency-cap fix: it was still firing all `numBatches`
+// (60) range queries in one Promise.all, unthrottled, on every 6h cache-cold
+// hit — and this is called from /jobs/[slug] (the app's highest-traffic
+// route). Now routed through the shared runBatchesConcurrencyCapped helper
+// (active-batch-count.ts) so it gets the same 8-at-a-time cap.
 async function _computeViableCityCellsUncached(): Promise<CityMatrixCell[]> {
   const numBatches = await activeJobBatchCount(_moduleSupabase)
   const BATCH_SIZE = 1000
@@ -59,10 +65,8 @@ async function _computeViableCityCellsUncached(): Promise<CityMatrixCell[]> {
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const batches = await Promise.all(
-    Array.from({ length: numBatches }, (_, i) =>
-      baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-    )
+  const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+    baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
   const failedBatches = batches.filter((b) => b.error)
   if (failedBatches.length > 0) {

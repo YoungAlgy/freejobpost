@@ -44,3 +44,46 @@ export async function activeJobBatchCount(_supabase: SupabaseClient): Promise<nu
   void _supabase // retained for the call sites; unused while count-based is off
   return FIXED_BATCHES
 }
+
+// 2026-08-12 — every caller of activeJobBatchCount() was firing its batches
+// via a single Promise.all, i.e. up to FIXED_BATCHES (60) simultaneous
+// 1000-row range queries against the shared Nano Postgres instance. One
+// caller (specialty-state-matrix.ts) was capped to 8-at-a-time on 2026-08-07
+// after pg_stat_statements confirmed it as the dominant disk-block-read
+// consumer during that outage — but city-specialty-matrix.ts, sitemap.ts,
+// feed-builders.ts (7 partner-feed routes), and linkedin.xml/route.ts all
+// still fired the full uncapped burst, and (unlike the matrix helpers) the
+// feed routes are force-dynamic with no unstable_cache layer at all, so
+// they re-fire on every uncached crawler hit (Indeed/LinkedIn/Adzuna/etc,
+// on schedules Algy doesn't control) — which is why the outage persisted
+// across DB restarts that don't touch an external crawler's poll schedule.
+// Centralizing the concurrency cap here so every caller gets it instead of
+// each one hand-rolling (and potentially forgetting) the same loop.
+const BATCH_CONCURRENCY = 8
+
+export { BATCH_CONCURRENCY }
+
+/**
+ * Runs `numBatches` range-query batches with at most BATCH_CONCURRENCY in
+ * flight at once, instead of one Promise.all over all of them. Same total
+ * queries, same total data — just spread out instead of hitting the shared
+ * DB as one wide burst. See the note above for why this matters.
+ */
+export async function runBatchesConcurrencyCapped<T>(
+  numBatches: number,
+  // PromiseLike, not Promise: Supabase's query builder is thenable but not a
+  // real Promise (no .catch/.finally), which is what callers pass in here.
+  runBatch: (batchIndex: number) => PromiseLike<T>,
+): Promise<T[]> {
+  const results: T[] = []
+  for (let start = 0; start < numBatches; start += BATCH_CONCURRENCY) {
+    const chunk = await Promise.all(
+      Array.from(
+        { length: Math.min(BATCH_CONCURRENCY, numBatches - start) },
+        (_, j) => runBatch(start + j),
+      ),
+    )
+    results.push(...chunk)
+  }
+  return results
+}

@@ -12,7 +12,7 @@ import { JOB_DETAIL_FIELDS, formatSalary, locationLabel } from './public-jobs'
 // why feed routes need a 30s fetch window vs the page-default 300s.
 import { supabaseFresh as supabase, hourIso } from './supabase'
 import type { SyndicationTargetId } from './syndication-targets'
-import { activeJobBatchCount } from './active-batch-count'
+import { activeJobBatchCount, runBatchesConcurrencyCapped } from './active-batch-count'
 
 export type FeedJob = PublicJob & {
   updated_at: string
@@ -219,10 +219,17 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
 
   const numBatches = await activeJobBatchCount(supabase)
 
-  const filteredBatches = await Promise.all(
-    Array.from({ length: numBatches }, (_, i) =>
-      baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-    )
+  // 2026-08-12 — this is the shared engine behind 7 partner-feed routes
+  // (indeed/adzuna/careerjet/glassdoor/jooble/talent/ziprecruiter), every one
+  // force-dynamic with no unstable_cache layer — only a CDN Cache-Control
+  // header, which is not a guaranteed origin-level dedup. Each was firing up
+  // to `numBatches` (60) concurrent range queries on ANY uncached hit,
+  // triggered by partner-crawler polling schedules Algy doesn't control —
+  // the same disk-IO-exhaustion shape already root-caused (via
+  // pg_stat_statements) in specialty-state-matrix.ts, just never capped
+  // here. Routed through the shared runBatchesConcurrencyCapped helper.
+  const filteredBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+    baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
   // If the first batch errored (column doesn't exist), fall back to
   // unfiltered. Otherwise concat everything.
@@ -238,10 +245,8 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const fallbackBatches = await Promise.all(
-    Array.from({ length: numBatches }, (_, i) =>
-      baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-    )
+  const fallbackBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+    baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
   return fallbackBatches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 }
@@ -469,10 +474,8 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
     .eq('is_ats_import', false)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const numBatches = await activeJobBatchCount(supabase)
-  const batches = await Promise.all(
-    Array.from({ length: numBatches }, (_, i) =>
-      baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-    )
+  const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+    baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
   return batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 }
