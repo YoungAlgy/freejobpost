@@ -32,10 +32,16 @@ export async function getOrComputeCached<T>(
   const fresh = await compute()
 
   // Fire-and-forget: a cache-write failure shouldn't fail the response that
-  // already has a good value to return.
-  void db.rpc('set_matrix_cache', { p_key: key, p_value: fresh as object }).then(({ error }) => {
-    if (error) console.error(`[db-cache] set_matrix_cache(${key}) failed:`, error.message)
-  })
+  // already has a good value to return. Both branches (RPC resolves with an
+  // error field, or the call itself rejects e.g. on a network fault) are
+  // caught here so neither surfaces as an unhandled promise rejection.
+  db.rpc('set_matrix_cache', { p_key: key, p_value: fresh as object })
+    .then(({ error }) => {
+      if (error) console.error(`[db-cache] set_matrix_cache(${key}) failed:`, error.message)
+    })
+    .catch((err) => {
+      console.error(`[db-cache] set_matrix_cache(${key}) threw:`, err)
+    })
 
   return fresh
 }

@@ -37,6 +37,9 @@ const MIN_JOBS_PER_CELL = 5
  * on this OpenNext/Cloudflare deploy). Caches the final JS-computed
  * FederalMatrixCell[] (post agency-matching), not the raw RPC rows -- the
  * agency match logic lives in jobMatchesAgency() here, not in SQL.
+ *
+ * Cache key/TTL live in FEDERAL_MATRIX_CACHE_KEY/FEDERAL_MATRIX_CACHE_TTL_SECONDS
+ * below (6h). See db-cache.ts for the caching contract itself.
  */
 const FEDERAL_MATRIX_CACHE_KEY = 'federal_state_matrix'
 const FEDERAL_MATRIX_CACHE_TTL_SECONDS = 21600 // 6h, same freshness bar as before
@@ -58,13 +61,21 @@ export async function getViableFederalCellsCached(
  * `federal_jobs_for_match()` RPC (truncates description to 250 chars
  * server-side so the payload stays under the Next 2MB data-cache cap), runs
  * agency-match in JS, groups by (agency, state). Returns cells with ≥5 jobs in
- * deterministic order. Only ever invoked by `_cachedViableFederalCells`
- * (≤ once / 10 min globally).
+ * deterministic order. Only ever invoked by `getViableFederalCellsCached`
+ * (≤ once / 6h globally, via the Postgres-backed cache above).
  */
 async function _computeViableFederalCellsUncached(): Promise<FederalMatrixCell[]> {
   const { data, error } = await _moduleSupabase.rpc('federal_jobs_for_match')
   if (error) {
-    console.error('federal_jobs_for_match RPC error:', error)
+    // Same reasoning as specialty-state-matrix.ts: don't let a failure
+    // collapse to a cached false-empty result for 6h. Throw at runtime so
+    // the failed fetch propagates without poisoning the cache; degrade to
+    // empty at BUILD time only, so a DB hiccup during `npm run build`
+    // doesn't abort the whole build.
+    console.error('[federal-state-matrix] federal_jobs_for_match RPC failed:', error)
+    if (process.env.NEXT_PHASE !== 'phase-production-build') {
+      throw new Error(`federal-state-matrix RPC failed: ${error.message}`)
+    }
     return []
   }
 
