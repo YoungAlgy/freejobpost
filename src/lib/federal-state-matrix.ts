@@ -11,8 +11,8 @@
 // has a meaningful job list, low enough that we don't suppress real demand.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { unstable_cache } from 'next/cache'
 import { supabase as _moduleSupabase } from './supabase'
+import { getOrComputeCached } from './db-cache'
 import { FEDERAL_AGENCIES, type FederalAgency, jobMatchesAgency } from './federal-agencies'
 import { STATE_HUBS, type StateHub } from './state-slugs'
 
@@ -28,22 +28,29 @@ const MIN_JOBS_PER_CELL = 5
  * 🔴 2026-06 INCIDENT FIX (same root cause as specialty-state-matrix). The
  * per-process `_cellCache` did NOT survive cold serverless instances, so every
  * federal-matrix / sitemap render re-ran the `federal_jobs_for_match` RPC →
- * piling onto the shared-pool exhaustion. Now wrapped in Next's data cache:
- * ≤ one RPC call per 10min globally, across all instances.
+ * piling onto the shared-pool exhaustion. Now wrapped in a cache: ≤ one RPC
+ * call per 6h globally, across all instances.
+ *
+ * 🔴 2026-08-13 — was `unstable_cache()` until today; replaced with a
+ * Postgres-backed cache for the same reason as specialty-state-matrix.ts's
+ * sibling comment (confirmed unstable_cache wasn't persisting in production
+ * on this OpenNext/Cloudflare deploy). Caches the final JS-computed
+ * FederalMatrixCell[] (post agency-matching), not the raw RPC rows -- the
+ * agency match logic lives in jobMatchesAgency() here, not in SQL.
  */
-const _cachedViableFederalCells = unstable_cache(
-  _computeViableFederalCellsUncached,
-  ['viable-federal-matrix-cells-v2'],
-  // 6h (was 600s) — recurring federal_jobs_for_match RPC; see specialty-state-matrix
-  // note. Less load on the shared MICRO with negligible freshness cost.
-  { revalidate: 21600 },
-)
+const FEDERAL_MATRIX_CACHE_KEY = 'federal_state_matrix'
+const FEDERAL_MATRIX_CACHE_TTL_SECONDS = 21600 // 6h, same freshness bar as before
 
 export async function getViableFederalCellsCached(
   _supabase?: SupabaseClient,
 ): Promise<FederalMatrixCell[]> {
   void _supabase // call-site compat; the cached scan uses the shared module client
-  return _cachedViableFederalCells()
+  return getOrComputeCached(
+    _moduleSupabase,
+    FEDERAL_MATRIX_CACHE_KEY,
+    FEDERAL_MATRIX_CACHE_TTL_SECONDS,
+    _computeViableFederalCellsUncached,
+  )
 }
 
 /**

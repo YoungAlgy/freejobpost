@@ -10,8 +10,8 @@
 // at the expense of the other.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { unstable_cache } from 'next/cache'
 import { supabase as _moduleSupabase } from './supabase'
+import { getOrComputeCached } from './db-cache'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { CITY_HUBS, type CityHub } from './city-slugs'
 
@@ -29,22 +29,27 @@ export { MIN_JOBS_PER_CELL }
  * 🔴 2026-06 INCIDENT FIX (same root cause as specialty-state-matrix). The
  * per-process `_cellCache` did NOT survive cold serverless instances, so every
  * city-matrix / sitemap render re-ran the full 40-batch corpus scan → shared
- * pool exhaustion. Now wrapped in Next's data cache: ≤ one scan per 10min
- * globally, across all instances.
+ * pool exhaustion. Now wrapped in a cache: ≤ one scan per 6h globally, across
+ * all instances.
+ *
+ * 🔴 2026-08-13 — was `unstable_cache()` until today; replaced with a
+ * Postgres-backed cache for the same reason as specialty-state-matrix.ts's
+ * sibling comment (confirmed unstable_cache wasn't persisting in production
+ * on this OpenNext/Cloudflare deploy).
  */
-const _cachedViableCityCells = unstable_cache(
-  _computeViableCityCellsUncached,
-  ['viable-city-matrix-cells-v2'],
-  // 6h (was 600s) — full-corpus scan; see specialty-state-matrix note. Cuts the
-  // shared-MICRO scan load ~36× with negligible freshness cost.
-  { revalidate: 21600 },
-)
+const CITY_MATRIX_CACHE_KEY = 'city_specialty_matrix'
+const CITY_MATRIX_CACHE_TTL_SECONDS = 21600 // 6h, same freshness bar as before
 
 export async function getViableCityCellsCached(
   _supabase?: SupabaseClient,
 ): Promise<CityMatrixCell[]> {
   void _supabase // call-site compat; the cached scan uses the shared module client
-  return _cachedViableCityCells()
+  return getOrComputeCached(
+    _moduleSupabase,
+    CITY_MATRIX_CACHE_KEY,
+    CITY_MATRIX_CACHE_TTL_SECONDS,
+    _computeViableCityCellsUncached,
+  )
 }
 
 // 🔴 2026-08-13 — same fix, same reasoning as specialty-state-matrix.ts's

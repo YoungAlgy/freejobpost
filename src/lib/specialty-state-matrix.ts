@@ -11,8 +11,8 @@
 // useful in its own right.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { unstable_cache } from 'next/cache'
 import { supabase as _moduleSupabase } from './supabase'
+import { getOrComputeCached } from './db-cache'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { STATE_HUBS, type StateHub } from './state-slugs'
 
@@ -39,28 +39,36 @@ export { MIN_JOBS_PER_CELL }
  * SHARED database (CRM + providers + every app) for days, with thousands of
  * `522`s in the API logs.
  *
- * Fix: wrap the scan in Next's **data cache** (`unstable_cache`) so it runs at
- * most once per 10 minutes GLOBALLY — shared across every serverless instance —
- * no matter how many pages render. ALL callers (matrix peer-links via
- * getViableCellsCached, sitemap, and generateStaticParams via
- * computeViableCellsViaSql) now route through this single cached entry, so the
- * corpus is scanned ~once/10min total instead of once per render.
+ * Fix: wrap the scan in a cache so it runs at most once per 6h GLOBALLY —
+ * shared across every serverless instance — no matter how many pages render.
+ * ALL callers (matrix peer-links via getViableCellsCached, sitemap, and
+ * generateStaticParams via computeViableCellsViaSql) now route through this
+ * single cached entry, so the corpus is scanned ~once/6h total instead of
+ * once per render.
+ *
+ * 🔴 2026-08-13 — this was `unstable_cache()` (Next's Data Cache) until today.
+ * Confirmed live that it was a complete no-op in production on this OpenNext/
+ * Cloudflare deploy: the underlying RPC (compute_viable_matrix_cells) ran
+ * 25,799 times in a few hours (8.3M ms cumulative) despite the 6h wrapper —
+ * the single most expensive query on the shared database. Its D1 tag-cache
+ * had zero entries for this key even though OTHER tag writes (revalidatePath)
+ * were landing fine, so the failure is specific to unstable_cache, not D1/R2
+ * access generally. Replaced with a Postgres-backed cache (see db-cache.ts)
+ * instead of chasing the exact Next/OpenNext internals further.
  */
-const _cachedViableCells = unstable_cache(
-  _computeViableCellsUncached,
-  ['viable-matrix-cells-v2'],
-  // 6h (was 600s). The viable-cell list changes very slowly, but 600s meant a
-  // ~40-batch full-corpus scan up to 144×/day — and with 3 such matrices that's
-  // ~430 full scans/day hammering the SHARED MICRO (same pool-exhaustion class as
-  // the 2026-06 incident above). 6h cuts that ~36× with negligible freshness cost.
-  { revalidate: 21600 },
-)
+const MATRIX_CACHE_KEY = 'specialty_state_matrix'
+const MATRIX_CACHE_TTL_SECONDS = 21600 // 6h, same freshness bar as before
 
 export async function getViableCellsCached(
   _supabase?: SupabaseClient,
 ): Promise<MatrixCell[]> {
   void _supabase // call-site compat; the cached scan uses the shared module client
-  return _cachedViableCells()
+  return getOrComputeCached(
+    _moduleSupabase,
+    MATRIX_CACHE_KEY,
+    MATRIX_CACHE_TTL_SECONDS,
+    _computeViableCellsUncached,
+  )
 }
 
 /**
