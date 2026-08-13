@@ -326,16 +326,26 @@ async function fetchUSAJobs(apiKey: string): Promise<{ fetched: number; jobs: No
     const salary_max = isUsdAnnual && sal?.MaximumRange ? Math.round(Number(sal.MaximumRange)) || null : null
     const id = String(item.MatchedObjectId)
     const details = md.UserArea?.Details ?? {}
+    // USAJobs UserArea.Details fields (Qualifications/Requirements/Education)
+    // often arrive as raw HTML from the API itself, same as JobSummary/
+    // MajorDuties once wrapped below. Every OTHER provider (greenhouse/ashby/
+    // workday) normalizes through htmlToText() before storing — this one
+    // didn't, so raw <p>/<h3> tags were stored as literal description text
+    // and rendered as visible tag text on the job detail page (2026-08-13
+    // fix). Headers become **bold** markers (the one emphasis primitive
+    // renderDescription() on the frontend supports) so they stay visually
+    // distinct after the HTML→plain-text pass below instead of disappearing
+    // into a run-on paragraph.
     const sections: string[] = []
     if (details.JobSummary) sections.push(`<p>${details.JobSummary}</p>`)
     const majorDuties = Array.isArray(details.MajorDuties) ? details.MajorDuties : []
-    if (majorDuties.length > 0) sections.push(`<h3>Major Duties</h3>${majorDuties.map((d) => `<p>${d}</p>`).join('')}`)
-    if (details.Qualifications) sections.push(`<h3>Qualifications</h3>${details.Qualifications}`)
-    if (details.Requirements) sections.push(`<h3>Requirements</h3>${details.Requirements}`)
+    if (majorDuties.length > 0) sections.push(`<p>**Major Duties**</p>${majorDuties.map((d) => `<p>${d}</p>`).join('')}`)
+    if (details.Qualifications) sections.push(`<p>**Qualifications**</p>${details.Qualifications}`)
+    if (details.Requirements) sections.push(`<p>**Requirements**</p>${details.Requirements}`)
     const keyReqs = Array.isArray(details.KeyRequirements) ? details.KeyRequirements : []
-    if (keyReqs.length > 0) sections.push(`<h3>Key Requirements</h3><ul>${keyReqs.map((r) => `<li>${r}</li>`).join('')}</ul>`)
-    if (details.Education) sections.push(`<h3>Education</h3>${details.Education}`)
-    out.push({ slug: buildAtsSlug(title, 'usajobs', id), title, description: sections.join(''), apply_url: md.ApplyURI?.[0] ?? md.PositionURI ?? `https://www.usajobs.gov/job/${id}`, city, state, remote_hybrid: 'onsite', employment_type: 'full_time', salary_min, salary_max, source: 'usajobs:federal', external_ref: `usajobs:${id}` })
+    if (keyReqs.length > 0) sections.push(`<p>**Key Requirements**</p><ul>${keyReqs.map((r) => `<li>${r}</li>`).join('')}</ul>`)
+    if (details.Education) sections.push(`<p>**Education**</p>${details.Education}`)
+    out.push({ slug: buildAtsSlug(title, 'usajobs', id), title, description: htmlToText(sections.join('')), apply_url: md.ApplyURI?.[0] ?? md.PositionURI ?? `https://www.usajobs.gov/job/${id}`, city, state, remote_hybrid: 'onsite', employment_type: 'full_time', salary_min, salary_max, source: 'usajobs:federal', external_ref: `usajobs:${id}` })
   }
   return { fetched: items.length, jobs: out }
 }
