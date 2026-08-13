@@ -12,10 +12,9 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import { supabase as _moduleSupabase, hourIso } from './supabase'
+import { supabase as _moduleSupabase } from './supabase'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { STATE_HUBS, type StateHub } from './state-slugs'
-import { activeJobBatchCount, runBatchesConcurrencyCapped } from './active-batch-count'
 
 export type MatrixCell = {
   specialty: SpecialtyHub
@@ -72,118 +71,64 @@ export async function getViableCellsCached(
 export { getViableCellsCached as computeViableCellsViaSql }
 
 /**
- * The actual scan. Equivalent to one count query per (specialty, state) pair
- * (~900 total) collapsed into a single full-corpus pull + JS-side per-column
- * matching, so the build-time list matches what the runtime `fetchCellJobs`
- * query would render. Returns the cells in deterministic order.
+ * The actual scan. Delegates the (specialty, state) grouping + pattern match
+ * to a single Postgres RPC (`compute_viable_matrix_cells`, migration
+ * 20260813) instead of pulling the whole active-job corpus into JS and
+ * matching it here.
  *
- * Only ever invoked by `_cachedViableCells` (≤ once / 10 min globally).
+ * 🔴 2026-08-13 — WHY THIS CHANGED. The batch-scan version below (kept in
+ * git history) was already wrapped in a 6h `unstable_cache` (see above), but
+ * a live incident audit that night found the OpenNext R2/D1-backed cache was
+ * being missed on nearly every request in production — this one query ran
+ * 10,000+ times in a 35-minute window per `pg_stat_statements`, ~30x more
+ * than every other query on the shared DB combined, and was the direct
+ * cause of the CPU/disk-IO exhaustion that forced that same night's
+ * Supabase compute upgrade. The exact cache-miss trigger wasn't fully
+ * pinned (would need live debug-log tracing to confirm), but it doesn't
+ * matter: a cache miss on a cheap indexed SQL aggregate is fine regardless.
+ * This removes the correctness of this endpoint's cost from depending on
+ * the app-level cache being reliable at all — even an uncached call here is
+ * one query, not 60 batched reads of ~20K rows.
+ *
+ * Only ever invoked by `_cachedViableCells` (≤ once / 6h globally, same
+ * unstable_cache wrapper as before — kept as a second layer, not load-bearing).
  */
-// 2026-08-07 — firing all `numBatches` (60) range queries at once via a single
-// Promise.all was exactly the "hundreds of concurrent 40-batch scans" failure
-// mode the incident doc comment above describes, just from one invocation
-// instead of many: 60 simultaneous 1000-row reads is still a burst big enough
-// to saturate the shared Nano Postgres instance's connection pool and disk-IO
-// budget for every app sharing it, confirmed live via pg_stat_statements
-// (this exact query was the single largest disk-block-read consumer on the
-// shared DB during the 2026-08-06/07 outage). Capping concurrency doesn't
-// change what's fetched or how it's cached (still ≤once/6h via
-// unstable_cache above) — it only spreads the same 60 reads out instead of
-// hitting the DB as one spike. 2026-08-12: moved the cap itself into
-// runBatchesConcurrencyCapped (active-batch-count.ts) so every batch-scan
-// caller gets it, not just this file — see that file's note.
 async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
-  const numBatches = await activeJobBatchCount(_moduleSupabase)
-  const BATCH_SIZE = 1000
-  const nowIso = hourIso()
-  const baseQ = () => _moduleSupabase
-    .from('public_jobs')
-    .select('state, specialty, role, title')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', nowIso)
-    .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-    baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-  )
-  const failedBatch = batches.find((b) => b.error)
-  if (failedBatch) {
-    // Supabase-js returns { data: null, error } on failure instead of
-    // throwing, so an unchecked batch silently collapses to `[]` via the
-    // `?? []` below — and since this scan is wrapped in a 6h unstable_cache,
-    // that fabricated "zero viable cells" result would get cached and feed
-    // the sitemap / generateStaticParams / peer-links for up to 6 hours.
-    // Throw instead: unstable_cache does not memoize a thrown rejection, so
-    // this propagates to the caller for this request while leaving any
-    // previously-cached good value in place for subsequent reads.
-    console.error(
-      '[specialty-state-matrix] batch scan failed, aborting to avoid caching a false-empty result:',
-      failedBatch.error,
-    )
-    // 2026-08-12 — BUILD-TIME ONLY exception. `npm run build` reaches this via
-    // /specialty/[slug]/[state]'s generateStaticParams, and throwing there
-    // aborts the ENTIRE build, not just this one cache entry — exactly what
-    // blocked shipping the 2026-08-07 concurrency fix for days (the fix that
-    // reduces DB load couldn't ship until the DB was healthy enough to
-    // build). Matches the same NEXT_PHASE guard supabase.ts's
-    // assertFreshOrThrow already uses. At build time, degrade to whatever
-    // partial data was fetched instead of aborting — every page this feeds
-    // has dynamicParams=true, so anything the build misses renders on-demand
-    // at runtime against a (by-then hopefully healthy) DB and populates the
-    // real cache correctly then. The runtime throw (the actual
-    // cache-poisoning protection) is unchanged.
+  const { data, error } = await _moduleSupabase.rpc('compute_viable_matrix_cells', {
+    specialties: SPECIALTY_HUBS.map((s) => ({ slug: s.slug, patterns: s.matchPatterns })),
+    states: STATE_HUBS.map((s) => ({ slug: s.slug, abbr: s.abbr })),
+    min_jobs: MIN_JOBS_PER_CELL,
+  })
+
+  if (error) {
+    // Same reasoning as the old batch-scan version: don't let a failure
+    // collapse to a cached false-empty result. Throw at runtime so the
+    // failed fetch propagates without poisoning the 6h cache; degrade to
+    // empty at BUILD time only, so a DB hiccup during `npm run build`
+    // doesn't abort the whole build (every page this feeds has
+    // dynamicParams=true and renders on-demand at runtime instead).
+    console.error('[specialty-state-matrix] compute_viable_matrix_cells RPC failed:', error)
     if (process.env.NEXT_PHASE !== 'phase-production-build') {
-      throw new Error(`specialty-state-matrix scan failed: ${failedBatch.error!.message}`)
+      throw new Error(`specialty-state-matrix RPC failed: ${error.message}`)
     }
+    return []
   }
-  const jobs = batches.flatMap((b) => (b.data ?? [])) as Array<{
-    state: string | null
-    specialty: string | null
-    role: string | null
-    title: string | null
+
+  const bySlug = new Map<string, SpecialtyHub>(SPECIALTY_HUBS.map((s) => [s.slug, s]))
+  const stateBySlug = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.slug, s]))
+
+  const rows = (data ?? []) as Array<{
+    specialty_slug: string
+    state_slug: string
+    job_count: number
   }>
 
-  const byAbbr = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.abbr, s]))
-  const counts = new Map<string, { specialty: SpecialtyHub; state: StateHub; count: number }>()
-
-  function fieldMatches(value: string | null, patterns: readonly string[]): boolean {
-    if (!value) return false
-    const lower = value.toLowerCase()
-    for (const p of patterns) {
-      if (lower.includes(p.toLowerCase())) return true
-    }
-    return false
-  }
-
-  for (const job of jobs) {
-    if (!job.state) continue
-    const stateHub = byAbbr.get(job.state)
-    if (!stateHub) continue
-    for (const specialty of SPECIALTY_HUBS) {
-      if (
-        !fieldMatches(job.specialty, specialty.matchPatterns) &&
-        !fieldMatches(job.role, specialty.matchPatterns) &&
-        !fieldMatches(job.title, specialty.matchPatterns)
-      ) {
-        continue
-      }
-      const key = `${specialty.slug}|${stateHub.slug}`
-      const existing = counts.get(key)
-      if (existing) {
-        existing.count += 1
-      } else {
-        counts.set(key, { specialty, state: stateHub, count: 1 })
-      }
-    }
-  }
-
-  return Array.from(counts.values())
-    .filter((c) => c.count >= MIN_JOBS_PER_CELL)
-    .sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count
-      if (a.specialty.slug !== b.specialty.slug) {
-        return a.specialty.slug.localeCompare(b.specialty.slug)
-      }
-      return a.state.slug.localeCompare(b.state.slug)
+  return rows
+    .map((row) => {
+      const specialty = bySlug.get(row.specialty_slug)
+      const state = stateBySlug.get(row.state_slug)
+      if (!specialty || !state) return null
+      return { specialty, state, count: row.job_count }
     })
+    .filter((c): c is MatrixCell => c !== null)
 }

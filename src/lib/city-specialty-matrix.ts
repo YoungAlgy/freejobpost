@@ -11,10 +11,9 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import { supabase as _moduleSupabase, hourIso } from './supabase'
+import { supabase as _moduleSupabase } from './supabase'
 import { SPECIALTY_HUBS, type SpecialtyHub } from './specialty-slugs'
 import { CITY_HUBS, type CityHub } from './city-slugs'
-import { activeJobBatchCount, runBatchesConcurrencyCapped } from './active-batch-count'
 
 export type CityMatrixCell = {
   city: CityHub
@@ -48,99 +47,44 @@ export async function getViableCityCellsCached(
   return _cachedViableCityCells()
 }
 
-// 2026-08-12 — this mirrored specialty-state-matrix.ts's structure but NOT
-// its 2026-08-07 concurrency-cap fix: it was still firing all `numBatches`
-// (60) range queries in one Promise.all, unthrottled, on every 6h cache-cold
-// hit — and this is called from /jobs/[slug] (the app's highest-traffic
-// route). Now routed through the shared runBatchesConcurrencyCapped helper
-// (active-batch-count.ts) so it gets the same 8-at-a-time cap.
+// 🔴 2026-08-13 — same fix, same reasoning as specialty-state-matrix.ts's
+// sibling comment: the JS full-corpus scan (with or without the concurrency
+// cap this file never got) depends on the app-level unstable_cache actually
+// holding, and a live incident audit found it wasn't. This is the
+// higher-stakes of the two — it's called from /jobs/[slug], the app's
+// highest-traffic route. Delegates to compute_viable_city_matrix_cells
+// (migration 20260813), a single indexed SQL aggregate, so a cache miss
+// here is now cheap regardless.
 async function _computeViableCityCellsUncached(): Promise<CityMatrixCell[]> {
-  const numBatches = await activeJobBatchCount(_moduleSupabase)
-  const BATCH_SIZE = 1000
-  const nowIso = hourIso()
-  const baseQ = () => _moduleSupabase
-    .from('public_jobs')
-    .select('city, state, specialty, role, title')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', nowIso)
-    .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-    baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-  )
-  const failedBatches = batches.filter((b) => b.error)
-  if (failedBatches.length > 0) {
-    // Surface batch failures (e.g. transient PostgREST outage / pool exhaustion —
-    // see 2026-06 incident note above) instead of letting `?? []` silently turn
-    // them into a "0 viable cells" result that then gets frozen into the 6h cache.
-    console.error(
-      `city-specialty-matrix: ${failedBatches.length}/${numBatches} batch queries failed:`,
-      failedBatches[0].error,
-    )
+  const { data, error } = await _moduleSupabase.rpc('compute_viable_city_matrix_cells', {
+    cities: CITY_HUBS.map((c) => ({ slug: c.slug, state: c.state, patterns: c.cityMatchPatterns })),
+    specialties: SPECIALTY_HUBS.map((s) => ({ slug: s.slug, patterns: s.matchPatterns })),
+    min_jobs: MIN_JOBS_PER_CELL,
+  })
+
+  if (error) {
+    console.error('[city-specialty-matrix] compute_viable_city_matrix_cells RPC failed:', error)
+    if (process.env.NEXT_PHASE !== 'phase-production-build') {
+      throw new Error(`city-specialty-matrix RPC failed: ${error.message}`)
+    }
+    return []
   }
-  const jobs = batches.flatMap((b) => (b.data ?? [])) as Array<{
-    city: string | null
-    state: string | null
-    specialty: string | null
-    role: string | null
-    title: string | null
+
+  const cityBySlug = new Map<string, CityHub>(CITY_HUBS.map((c) => [c.slug, c]))
+  const specialtyBySlug = new Map<string, SpecialtyHub>(SPECIALTY_HUBS.map((s) => [s.slug, s]))
+
+  const rows = (data ?? []) as Array<{
+    city_slug: string
+    specialty_slug: string
+    job_count: number
   }>
 
-  // Pre-index cities by state for O(1) lookup. Each state can have
-  // multiple curated city hubs (FL has Tampa/Miami/Jax/Orlando).
-  const citiesByState = new Map<string, CityHub[]>()
-  for (const c of CITY_HUBS) {
-    const list = citiesByState.get(c.state) ?? []
-    list.push(c)
-    citiesByState.set(c.state, list)
-  }
-
-  function specialtyMatches(job: { specialty: string | null; role: string | null; title: string | null }, patterns: readonly string[]): boolean {
-    for (const field of [job.specialty, job.role, job.title]) {
-      if (!field) continue
-      const lower = field.toLowerCase()
-      for (const p of patterns) {
-        if (lower.includes(p.toLowerCase())) return true
-      }
-    }
-    return false
-  }
-
-  function cityMatches(jobCity: string | null, patterns: readonly string[]): boolean {
-    if (!jobCity) return false
-    const lower = jobCity.toLowerCase()
-    for (const p of patterns) {
-      if (lower.includes(p)) return true
-    }
-    return false
-  }
-
-  const counts = new Map<string, CityMatrixCell>()
-
-  for (const job of jobs) {
-    if (!job.state || !job.city) continue
-    const candidateCities = citiesByState.get(job.state)
-    if (!candidateCities) continue
-    const matchingCity = candidateCities.find((c) => cityMatches(job.city, c.cityMatchPatterns))
-    if (!matchingCity) continue
-
-    for (const specialty of SPECIALTY_HUBS) {
-      if (!specialtyMatches(job, specialty.matchPatterns)) continue
-      const key = `${matchingCity.slug}|${specialty.slug}`
-      const existing = counts.get(key)
-      if (existing) {
-        existing.count += 1
-      } else {
-        counts.set(key, { city: matchingCity, specialty, count: 1 })
-      }
-    }
-  }
-
-  return Array.from(counts.values())
-    .filter((c) => c.count >= MIN_JOBS_PER_CELL)
-    .sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count
-      if (a.city.slug !== b.city.slug) return a.city.slug.localeCompare(b.city.slug)
-      return a.specialty.slug.localeCompare(b.specialty.slug)
+  return rows
+    .map((row) => {
+      const city = cityBySlug.get(row.city_slug)
+      const specialty = specialtyBySlug.get(row.specialty_slug)
+      if (!city || !specialty) return null
+      return { city, specialty, count: row.job_count }
     })
+    .filter((c): c is CityMatrixCell => c !== null)
 }
