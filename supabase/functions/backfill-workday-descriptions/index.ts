@@ -139,6 +139,18 @@ function deriveExternalPath(applyUrl: string, sourceTag: string): ExternalPathIn
 interface Candidate { id: string; source: string; apply_url: string; description: string }
 
 Deno.serve(async (req: Request) => {
+  // Cron-token gate (2026-08-14 audit): runs under the service role and
+  // writes job descriptions, but was unauthenticated. Require the shared
+  // X-Cron-Token (same secret the drip/bulk crons use). verify_jwt stays
+  // false; this header check IS the authorization.
+  {
+    const _exp = Deno.env.get('DRIP_SCHEDULER_TOKEN') ?? ''
+    const _giv = req.headers.get('x-cron-token') ?? ''
+    const _e = new TextEncoder(); const _a = _e.encode(_giv), _b = _e.encode(_exp)
+    let _ok = _exp.length > 0 && _a.length === _b.length
+    if (_ok) { let d = 0; for (let i = 0; i < _a.length; i++) d |= _a[i] ^ _b[i]; _ok = d === 0 }
+    if (!_ok) return new Response(JSON.stringify({ ok: false, error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } })
+  }
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,

@@ -34,11 +34,17 @@ Right after the SELECT statements succeed, fire the function manually to confirm
 ```sql
 SELECT net.http_post(
   url := 'https://tsruqbodyrmxqzhvxret.supabase.co/functions/v1/adzuna-ingest',
-  headers := jsonb_build_object('Content-Type', 'application/json'),
+  headers := jsonb_build_object(
+    'Content-Type', 'application/json',
+    'X-Cron-Token', (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'drip_scheduler_token' LIMIT 1)
+  ),
   body := '{}'::jsonb,
   timeout_milliseconds := 60000
 ) AS request_id;
 ```
+
+<!-- 2026-08-14: adzuna-ingest now requires X-Cron-Token (audit fix — it had
+     no auth at all before). Manual test calls without the header get 403. -->
 
 Then check the response (within ~30 sec):
 ```sql
