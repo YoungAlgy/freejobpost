@@ -1,6 +1,10 @@
 import { ImageResponse } from 'next/og'
 
 export const contentType = 'image/png'
+// 2026-08-13 audit: same gap as app/opengraph-image.tsx -- 100% static
+// content (no params, no DB query) with no revalidate, so it re-rendered
+// via Satori on every single request instead of serving a cached PNG.
+export const revalidate = 604800
 
 // 512x512 PWA / maskable app icon = the Ava Health mark (navy medical cross +
 // lime leaf) centered on white, inside the maskable safe zone so Android's

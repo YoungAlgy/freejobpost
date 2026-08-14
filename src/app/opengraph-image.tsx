@@ -3,6 +3,15 @@ import { ImageResponse } from 'next/og'
 export const alt = 'Free Healthcare Jobs. Post and Apply Free | Ava Health'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
+// 2026-08-13 audit: this route had no revalidate at all, unlike every
+// sibling OG route in this app (jobs/[slug], specialty/[slug], state/[slug]
+// all cache for 7 days) -- so every single request re-ran Satori rendering
+// from scratch instead of serving a cached PNG. Confirmed live 500s on this
+// route specifically while the cached per-job route stayed healthy under
+// the same conditions. Content here is 100% static (no params, no DB
+// query), so there's no correctness reason it wasn't cached -- this was a
+// gap, not a deliberate choice.
+export const revalidate = 604800
 
 // Mirrors freeresumepost OG structure exactly so we know Satori
 // will render this. Keep nesting flat, every container display:flex,
