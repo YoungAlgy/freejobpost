@@ -1,5 +1,11 @@
 # Deploy notes — freejobpost.co
 
+**Historical document, last refreshed 2026-05-22.** Written for the Vercel
+deploy this app used at the time; it has since migrated to Cloudflare
+Workers (`npm run cf:deploy`, see the main README). The commit history
+and bug-fix context below are still accurate as a record of that
+session — only the "Vercel env vars" deploy mechanics section is stale.
+
 Pre-push checklist for the Vercel deploy. Last refreshed 2026-05-22 after the
 overnight audit-pass session that uncovered + fixed several critical bugs in
 the SEO surface. Every commit on `origin/main` since `42d9c5e` is covered.
