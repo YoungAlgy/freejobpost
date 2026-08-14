@@ -98,8 +98,8 @@ export { getViableCellsCached as computeViableCellsViaSql }
  * the app-level cache being reliable at all — even an uncached call here is
  * one query, not 60 batched reads of ~20K rows.
  *
- * Only ever invoked by `_cachedViableCells` (≤ once / 6h globally, same
- * unstable_cache wrapper as before — kept as a second layer, not load-bearing).
+ * Only ever invoked by `getViableCellsCached` (≤ once / 6h globally, via
+ * the Postgres-backed cache above).
  */
 async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
   const { data, error } = await _moduleSupabase.rpc('compute_viable_matrix_cells', {

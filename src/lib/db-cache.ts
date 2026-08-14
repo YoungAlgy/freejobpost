@@ -35,13 +35,16 @@ export async function getOrComputeCached<T>(
   // already has a good value to return. Both branches (RPC resolves with an
   // error field, or the call itself rejects e.g. on a network fault) are
   // caught here so neither surfaces as an unhandled promise rejection.
-  db.rpc('set_matrix_cache', { p_key: key, p_value: fresh as object })
-    .then(({ error }) => {
+  // supabase-js's .rpc() returns a PromiseLike, not a real Promise -- it has
+  // no .catch(), so both branches are handled via .then()'s two-argument form.
+  db.rpc('set_matrix_cache', { p_key: key, p_value: fresh as object }).then(
+    ({ error }) => {
       if (error) console.error(`[db-cache] set_matrix_cache(${key}) failed:`, error.message)
-    })
-    .catch((err) => {
+    },
+    (err) => {
       console.error(`[db-cache] set_matrix_cache(${key}) threw:`, err)
-    })
+    }
+  )
 
   return fresh
 }
