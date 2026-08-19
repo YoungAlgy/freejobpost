@@ -59,16 +59,75 @@ export { MIN_JOBS_PER_CELL }
 const MATRIX_CACHE_KEY = 'specialty_state_matrix'
 const MATRIX_CACHE_TTL_SECONDS = 21600 // 6h, same freshness bar as before
 
+/**
+ * The cached shape: exactly what the RPC returns (slugs + count), NOT the
+ * hydrated MatrixCell (which embeds the whole SpecialtyHub and StateHub).
+ *
+ * 🔴 2026-08-19 INCIDENT FIX — this cache had been failing to write for days.
+ * Production logs showed, on essentially every render:
+ *   [db-cache] set_matrix_cache(specialty_state_matrix) failed:
+ *   set_matrix_cache: value too large for key specialty_state_matrix
+ * set_matrix_cache rejects anything over 1 MiB. The value being written was the
+ * hydrated MatrixCell[]: each cell inlines the full SpecialtyHub (title +
+ * metaDescription + shortDescription + matchPatterns) and the full StateHub,
+ * ~1,468 bytes per cell. At 800 viable cells that is ~1.12 MB — just over the
+ * limit, crossed silently as inventory grew (the cap binds at ~714 cells).
+ *
+ * Consequences, all of which were live: the cache row sat frozen at a 5-byte
+ * `[]` written 2026-08-14 and never refreshed, `get_matrix_cache` returned NULL
+ * (stale past its 6h window) on every call, and so the RPC — a ~49K-row scan
+ * ILIKE-matched against 33 specialties × 3 columns — re-ran on EVERY caller:
+ * every /specialty/[slug] render, every /specialty/[slug]/[state] render, and
+ * every sitemap.xml render. /specialty/registered-nurse was timing out (524)
+ * and /sitemap.xml was 503ing as a direct result.
+ *
+ * Caching the RPC rows instead drops the payload to ~80 bytes/cell (~62 KB at
+ * 800 cells, 16x under the limit) and costs nothing: the hubs are in-memory
+ * constants, so hydration is a Map lookup that the old code was already doing.
+ * It also cuts the JSON the Worker has to parse per render by ~18x, which
+ * matters on a runtime that is currently CPU-bound.
+ */
+type MatrixCellRow = {
+  specialty_slug: string
+  state_slug: string
+  job_count: number
+}
+
 export async function getViableCellsCached(
   _supabase?: SupabaseClient,
 ): Promise<MatrixCell[]> {
   void _supabase // call-site compat; the cached scan uses the shared module client
-  return getOrComputeCached(
+  const rows = await getOrComputeCached(
     _moduleSupabase,
     MATRIX_CACHE_KEY,
     MATRIX_CACHE_TTL_SECONDS,
-    _computeViableCellsUncached,
+    _computeViableCellRowsUncached,
   )
+  return hydrateCells(rows)
+}
+
+/**
+ * Slugs → hub objects. Rows whose slug no longer matches a configured hub are
+ * dropped, which is what makes a cached payload safe to serve across a deploy
+ * that removes or renames a specialty/state hub.
+ */
+function hydrateCells(rows: MatrixCellRow[]): MatrixCell[] {
+  // Array-check, not just a null-check: this value round-trips through jsonb,
+  // so a legacy/corrupt cache row could be any JSON shape. Treat anything that
+  // isn't an array as a miss rather than throwing inside a page render.
+  if (!Array.isArray(rows)) return []
+
+  const bySlug = new Map<string, SpecialtyHub>(SPECIALTY_HUBS.map((s) => [s.slug, s]))
+  const stateBySlug = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.slug, s]))
+
+  return rows
+    .map((row) => {
+      const specialty = bySlug.get(row.specialty_slug)
+      const state = stateBySlug.get(row.state_slug)
+      if (!specialty || !state) return null
+      return { specialty, state, count: row.job_count }
+    })
+    .filter((c): c is MatrixCell => c !== null)
 }
 
 /**
@@ -101,7 +160,7 @@ export { getViableCellsCached as computeViableCellsViaSql }
  * Only ever invoked by `getViableCellsCached` (≤ once / 6h globally, via
  * the Postgres-backed cache above).
  */
-async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
+async function _computeViableCellRowsUncached(): Promise<MatrixCellRow[]> {
   const { data, error } = await _moduleSupabase.rpc('compute_viable_matrix_cells', {
     specialties: SPECIALTY_HUBS.map((s) => ({ slug: s.slug, patterns: s.matchPatterns })),
     states: STATE_HUBS.map((s) => ({ slug: s.slug, abbr: s.abbr })),
@@ -122,21 +181,7 @@ async function _computeViableCellsUncached(): Promise<MatrixCell[]> {
     return []
   }
 
-  const bySlug = new Map<string, SpecialtyHub>(SPECIALTY_HUBS.map((s) => [s.slug, s]))
-  const stateBySlug = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.slug, s]))
-
-  const rows = (data ?? []) as Array<{
-    specialty_slug: string
-    state_slug: string
-    job_count: number
-  }>
-
-  return rows
-    .map((row) => {
-      const specialty = bySlug.get(row.specialty_slug)
-      const state = stateBySlug.get(row.state_slug)
-      if (!specialty || !state) return null
-      return { specialty, state, count: row.job_count }
-    })
-    .filter((c): c is MatrixCell => c !== null)
+  // Returned (and cached) as-is — hydration into MatrixCell happens after the
+  // cache layer, in hydrateCells(). See the MatrixCellRow note above for why.
+  return (data ?? []) as MatrixCellRow[]
 }

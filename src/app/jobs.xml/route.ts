@@ -31,7 +31,7 @@ import { type NextRequest } from 'next/server'
 // after data-shape migrations (e.g. the 2026-05-20 syndication_targets
 // backfill stuck this route at 425 jobs for 6+ hours).
 import { supabaseFresh as supabase, hourIso } from '@/lib/supabase'
-import { activeJobBatchCount } from '@/lib/active-batch-count'
+import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
 import {
   JOB_DETAIL_FIELDS,
   type PublicJob,
@@ -95,8 +95,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   // once total active inventory crossed 9,000. See same constant in
   // src/lib/feed-builders.ts for the matching rationale.
   // 2026-05-28 audit: 12→30. At 14.6K active inventory the 12K ceiling silently
-  // dropped ~2.6K oldest jobs from this feed. Bump (or switch to count-based
-  // paging — count active rows, fetch ceil(count/1000) batches) before 30K.
+  // dropped ~2.6K oldest jobs from this feed.
+  // 2026-08-19: the batch count is now derived from a real COUNT of the active
+  // corpus (see active-batch-count.ts) instead of a hand-bumped constant, so
+  // this feed tracks inventory growth on its own.
   const numBatches = await activeJobBatchCount(supabase)
   const BATCH_SIZE = 1000
   const nowIso = hourIso()
@@ -113,10 +115,17 @@ export async function GET(req: NextRequest): Promise<Response> {
     // etc.), so it uses the 600-char rich-content bar, not the 250 page floor.
     .gte('description_usable_chars', MIN_DESCRIPTION_CHARS)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const batches = await Promise.all(
-    Array.from({ length: numBatches }, (_, i) =>
-      baseQuery().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-    )
+  // 2026-08-19 — was a raw Promise.all over ALL numBatches, i.e. up to 60 (now
+  // more, since the count is inventory-derived) simultaneous 1,000-row range
+  // queries against the shared Nano Postgres on every uncached crawler hit.
+  // This was the last caller still firing the uncapped burst; linkedin.xml,
+  // sitemap.ts and feed-builders.ts were all routed through the shared capped
+  // runner on 2026-08-12 and this one was missed. Same total queries, same
+  // output, just BATCH_CONCURRENCY (8) in flight at a time instead of all of
+  // them — which also keeps the route under Workers' subrequest ceiling as the
+  // batch count scales with real inventory.
+  const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+    baseQuery().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }

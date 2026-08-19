@@ -1,48 +1,87 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { hourIso } from './supabase'
 
 // Number of 1,000-row `.range()` batches used to cover the full active-job
-// inventory in the syndication feeds, the XML sitemap, and the matrix helpers.
+// inventory in the syndication feeds and the XML sitemap.
 //
-// ⚠️ 2026-05-30 — COUNT-BASED PAGING REVERTED TO A FIXED VALUE.
-// Wiring in true count-based paging (commit e63c2e0: numBatches =
+// ⚠️ 2026-05-30 — COUNT-BASED PAGING WAS REVERTED TO A FIXED VALUE ONCE.
+// Wiring in naive count-based paging (commit e63c2e0: numBatches =
 // ceil(activeCount/1000)) caused jobs.xml + EVERY partner feed to FLAP in prod
 // within minutes of deploy — sampled 7368 ↔ 2314 ↔ 627 ↔ 0 jobs. Root cause:
 // the head-count query (`select('id', { count:'exact', head:true })`) returned
 // wildly inconsistent values (0, ~3.5K, ~16.8K) through the `supabaseFresh` /
 // Next-fetch-cache path under heavy crawler concurrency, collapsing numBatches
-// (a transient 0 → numBatches 1) and silently truncating the feeds. Caught by
-// the post-deploy feed monitor.
+// (a transient 0 → numBatches 1) and silently truncating the feeds.
 //
-// So this returns a FIXED batch count for now — stable (no count dependency),
-// same approach as the prior `NUM_BATCHES = 30` but with more headroom.
+// 2026-06-21 audit: bumped the fixed value 40 → 60 (a ~60K active-job ceiling).
 //
-// 2026-06-21 audit: bumped 40 → 60 (a ~60K active-job ceiling). The binding
-// consumer is the specialty×state / city×specialty matrix scan, which pages the
-// FULL active corpus (NO description filter). Active inventory hit 31,208 — past
-// the "bump before 30K" trigger flagged in sitemap.ts, and only ~22% under the
-// old 40K ceiling. Beyond the ceiling the matrix scan drops the OLDEST active
-// jobs (ordered updated_at DESC), which knocks near-threshold (specialty,state)
-// cells below the ≥5 floor and out of the sitemap + generateStaticParams — a
-// silent SEO-surface loss. The sitemap (~19K indexable, description_usable_chars
-// >= 250) and the partner feeds (~5K feed-eligible) page FILTERED subsets, so
-// they still had room; the matrix is the one that binds.
+// ✅ 2026-08-19 — COUNT-BASED PAGING RE-ENABLED, SAFELY THIS TIME.
+// The fixed 60 was ~6K away from binding again (active corpus 49,324 and
+// growing), and past the ceiling the batches silently drop the OLDEST active
+// jobs (every caller orders updated_at DESC) — jobs vanish from the sitemap and
+// the partner feeds with no error anywhere.
 //
-// DURABLE FIX (deferred, bigger change): compute the viable cells with a real
-// SQL GROUP BY instead of pulling the whole corpus into JS — the function is
-// even named computeViableCellsViaSql but actually does a JS scan. The
-// count-based paging impl is in git at commit e63c2e0; re-enable it only with a
-// dedicated/uncached count (the cached one flapped in prod, see above).
-const FIXED_BATCHES = 60
+// The 2026-05-30 failure mode was NOT "counting is wrong", it was "a bad count
+// SHRANK coverage". So the count now only ever ADDS batches: the result is
+// clamped to a MIN_BATCHES floor equal to the old proven-safe fixed value, so
+// every garbage value from that incident (0, 3.5K, 16.8K → 5, 9, 22 batches)
+// clamps straight back to 60 and behaves exactly like today. Truncation by
+// bad count is impossible by construction, which is what makes it safe to read
+// the count through the caller's ordinary cached client. MAX_BATCHES bounds the
+// other direction so a runaway/garbage-high count can't spin up an unbounded
+// number of concurrent range queries.
+//
+// Net effect today: still 60 batches (the floor). Once the real corpus passes
+// ~55K it grows on its own instead of silently truncating and waiting for
+// someone to notice and bump a constant.
+const BATCH_SIZE = 1000
+// Floor = the previous fixed value. Coverage can never regress below what this
+// module already guaranteed, no matter what the count query returns.
+const MIN_BATCHES = 60
+// Ceiling on a runaway count (200 batches = 200K active jobs, ~4x current).
+const MAX_BATCHES = 200
+// Slack over the counted requirement: rows are inserted between the count and
+// the reads, and offset pagination over a table still being written to can
+// shift rows across batch windows.
+const BATCH_HEADROOM = 5
 
 /**
  * Number of 1,000-row `.range()` batches needed to cover the active-job
- * inventory. Currently a stable fixed value (see the note above). The
- * `supabase` param is retained so call sites don't change when count-based
- * paging is re-enabled.
+ * inventory, derived from a real COUNT of the active corpus and clamped to
+ * [MIN_BATCHES, MAX_BATCHES]. See the note above for why the clamp (not the
+ * count) is the part that makes this safe.
+ *
+ * Counts the BROADEST predicate any caller uses (status=active, not deleted,
+ * not expired). Callers that additionally filter (e.g. a description-length
+ * floor) match a subset, so this over-provisions for them — extra batches
+ * past the end of a result set come back empty and contribute nothing.
+ *
+ * Never throws: any failure falls back to MIN_BATCHES.
  */
-export async function activeJobBatchCount(_supabase: SupabaseClient): Promise<number> {
-  void _supabase // retained for the call sites; unused while count-based is off
-  return FIXED_BATCHES
+export async function activeJobBatchCount(supabase: SupabaseClient): Promise<number> {
+  let activeCount: number | null = null
+  try {
+    const { count, error } = await supabase
+      .from('public_jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      // hourIso, not a raw new Date(): a per-render timestamp changes the
+      // PostgREST URL, which changes the Next Data Cache key, so the count
+      // would re-hit the DB on EVERY render (the F52 bug). Hour-stable means
+      // one count per hour globally instead of one per crawler hit.
+      .gt('expires_at', hourIso())
+    if (!error) activeCount = count
+  } catch {
+    // Network/transport fault — fall through to the floor.
+  }
+
+  if (typeof activeCount !== 'number' || !Number.isFinite(activeCount) || activeCount < 0) {
+    return MIN_BATCHES
+  }
+
+  const needed = Math.ceil(activeCount / BATCH_SIZE) + BATCH_HEADROOM
+  return Math.min(Math.max(needed, MIN_BATCHES), MAX_BATCHES)
 }
 
 // 2026-08-12 — every caller of activeJobBatchCount() was firing its batches

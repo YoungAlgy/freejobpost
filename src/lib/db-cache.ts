@@ -31,6 +31,16 @@ export async function getOrComputeCached<T>(
 
   const fresh = await compute()
 
+  // Never persist an empty result. compute() degrades to [] instead of throwing
+  // during `phase-production-build` (see the matrix helpers), so without this a
+  // single DB hiccup at build time writes [] and every matrix surface — the
+  // sitemap's matrix URLs, the hub peer-link blocks, generateStaticParams —
+  // serves "no viable cells" for the full TTL. A miss costs one indexed
+  // aggregate; a cached empty costs the whole long-tail SEO surface for 6h.
+  // (The specialty_state_matrix row was sitting at exactly this value — a
+  // 5-byte [] — when the oversized-write bug was found on 2026-08-19.)
+  if (Array.isArray(fresh) && fresh.length === 0) return fresh
+
   // Fire-and-forget: a cache-write failure shouldn't fail the response that
   // already has a good value to return. Both branches (RPC resolves with an
   // error field, or the call itself rejects e.g. on a network fault) are
