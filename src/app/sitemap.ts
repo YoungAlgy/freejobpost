@@ -12,21 +12,49 @@ import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
 
-// force-dynamic (2026-07-09): this route runs its own ~60-batch job query plus
-// 3 full-corpus matrix scans. Prerendering it at build time exceeded Next's
-// per-page static-generation timeout as active inventory grew past 30K rows
-// and failed the production deploy. Rendering it per-request takes it off the
-// build's critical path. The underlying fetches keep their own explicit cache
-// windows (supabase client fetch = 1h; matrix helpers = 6h unstable_cache), so
-// on-demand rendering does NOT hit the DB on every request — output is
-// identical, only WHEN it's computed changed. Was: export const revalidate = 21600.
-export const dynamic = 'force-dynamic'
-// The live sitemap froze for ~75h (Age: 272597, content stuck at the Jun 5
-// deploy) because background ISR regeneration silently exceeded the default
-// function duration — Vercel then serves the last good copy forever. This
-// route runs 40 batch queries + 3 matrix helpers; give it real headroom.
-// 2026-06 audit (F60).
-export const maxDuration = 60
+// 🔴 2026-08-19 INCIDENT FIX: back to ISR. `force-dynamic` was added 2026-07-09
+// (kept below for history) when this app still ran on Vercel, where per-request
+// rendering only costs wall-clock time. On Cloudflare Workers it is fatal: the
+// Workers FREE plan allows 10ms of CPU per HTTP request, and force-dynamic means
+// this route re-runs the whole builder and re-serializes ~23,000 URL entries to
+// XML on EVERY hit. Measured on prod with `wrangler tail`: /sitemap.xml returned
+// 503 `exceededCpu` on 3 of 3 probes, killed at cpu=10ms every time. It was not
+// intermittent — this endpoint was 100% down for Googlebot.
+//
+// The old reason for force-dynamic no longer holds. Build-time prerender used to
+// blow the static-generation timeout because the 3 matrix helpers each pulled the
+// full job corpus into JS; they were since moved to SQL RPCs (bc4387f) and given a
+// Postgres-backed cache (63656c6), and next.config.ts already raises
+// staticPageGenerationTimeout to 240s. The data fetch is also wrapped in
+// unstable_cache below, so the build pays for at most one scan.
+//
+// Under ISR the Worker serves this straight from the R2 incremental cache — bytes
+// out of R2, no render, comfortably inside 10ms — and regeneration happens in the
+// background off the request path. Worst case, if a background regeneration fails
+// we serve the last good sitemap instead of a 503, which is strictly better than
+// what force-dynamic was doing.
+//
+// Historical note (2026-06 audit F60): the live sitemap once froze for ~75h
+// because background ISR regeneration exceeded Vercel's default function
+// duration and Vercel then served the last good copy forever. `maxDuration = 60`
+// was the fix for that. It is a Vercel-only directive and a no-op on Workers,
+// so it is removed rather than left behind as a false reassurance. Workers has
+// no wall-clock cap on background revalidation; the relevant budget here is CPU,
+// which ISR is what actually addresses.
+//
+// ⚠️ STILL NOT ENOUGH ON ITS OWN — FOLLOW-UP REQUIRED. ISR removes the
+// per-request re-render, but this sitemap is 6.8MB across 34,058 URLs (measured
+// off .open-next/cache after a real build), and serving a body that size costs
+// more than 10ms of CPU no matter which path serves it: the OpenNext cache
+// interceptor ETags it with md5 over the whole body (~12ms for 6.8MB measured
+// locally) on top of a JSON.parse of the ~7MB cache object. So expect this route
+// to keep failing until it is SPLIT. The fix is to chunk it — keep /sitemap.xml
+// as a small index and move the ~34K job URLs into a fixed set of child
+// sitemaps (e.g. 10 buckets by slug hash, ~680KB each, so no dynamic chunk count
+// leaks into robots.ts), then list them all in robots.txt. Deliberately not done
+// in the same pass as the quota fixes because it changes public SEO URLs and
+// deserves its own review.
+export const revalidate = 21600
 
 // DB-independent fallback sitemap. Returned only when the job query comes
 // back empty (DB saturation) so we never emit a 0-URL sitemap or fail the

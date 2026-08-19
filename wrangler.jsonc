@@ -15,7 +15,42 @@
     // the free-tier daily DO duration cap every day for ~2 weeks. Lowering
     // this caps the worst case per-revalidation cost -- self-referenced
     // fetches to our own Worker should complete in well under 3s normally.
-    "NEXT_CACHE_DO_QUEUE_REVALIDATION_TIMEOUT_MS": "3000"
+    "NEXT_CACHE_DO_QUEUE_REVALIDATION_TIMEOUT_MS": "3000",
+    // 2026-08-19 INCIDENT -- "Exceeded allowed rows read in Durable Objects
+    // free tier", thrown on live traffic. Free tier allows 5,000,000 SQLite
+    // rows read per day per account. Measured via the Cloudflare GraphQL
+    // analytics API on the freejobpost_DOQueueHandler namespace:
+    //   Aug 13:    30,712     Aug 16: 1,422,614
+    //   Aug 14:   113,880     Aug 17: 3,616,868
+    //   Aug 15:   467,991     Aug 18: 5,133,479  <-- cap hit
+    //                         Aug 19: 5,252,404  <-- cap hit again
+    // That curve is quadratic, and the per-shard numbers say why: each of the
+    // 10 revalidate-N shards read 400k-850k rows/day while WRITING only ~400-
+    // 1,200 rows and performing only ~500-600 actual revalidation fetches.
+    // ~1,400 rows read per unit of real work means full table scans, not
+    // per-message work.
+    //
+    // The scans are in DOQueueHandler.initState(), which runs in the
+    // constructor on EVERY cold start (i.e. every hibernation wake and every
+    // retry alarm) and does three unindexed whole-table operations:
+    //   DELETE FROM failed_state WHERE buildId != ?   (no index on buildId)
+    //   DELETE FROM sync         WHERE buildId != ?   (no index on buildId)
+    //   SELECT * FROM failed_state
+    // ...over tables that are never pruned inside a build. `failed_state` is
+    // keyed by MessageDeduplicationId = md5(path-lastModified-etag), which is
+    // unique per revalidation ATTEMPT, so every failed revalidation appends a
+    // permanent new row; nothing ever deletes it (the success path only
+    // deletes from the in-memory Map). Failing revalidations therefore grow
+    // the table, the bigger table makes every alarm wake cost more rows, and
+    // the alarm re-fires -- a compounding loop, which is the curve above.
+    //
+    // This flag makes initState() a no-op and skips checkSyncTable() and both
+    // INSERTs, taking DO row reads to ~0. What we give up is durability of the
+    // retry state across an eviction: in-memory dedup and retries still work
+    // while the object is alive, and a still-stale page is re-queued by the
+    // next ISR request anyway (upstream says as much in addToFailedState).
+    // Losing that persistence is the point -- it is what breaks the loop.
+    "NEXT_CACHE_DO_QUEUE_DISABLE_SQLITE": "true"
   },
   "assets": {
     "directory": ".open-next/assets",
