@@ -28,7 +28,7 @@ The board covers physicians, advanced practice (NP/PA/CRNA), nursing (RN/LPN/CNA
 
 ## Sitemap
 
-- [Sitemap index](https://freejobpost.co/sitemap.xml) — 11,000+ URLs covering jobs, specialty hubs, state/city pages, and editorial content
+- [Sitemap index](https://freejobpost.co/sitemap.xml) — a real sitemapindex listing 21 child sitemaps: /sitemaps/pages.xml (specialty hubs, state/city pages, editorial content) and /sitemaps/jobs-0.xml through jobs-19.xml (34,000+ job URLs)
 - [Jobs-only sitemap](https://freejobpost.co/jobs.xml) — JobPosting structured data for Google for Jobs
 
 ## Sister sites

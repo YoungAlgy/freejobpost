@@ -64,8 +64,20 @@ curl -s https://freejobpost.co/feeds/talent.xml       | grep -c '<job>'   # expe
 curl -s https://freejobpost.co/feeds/careerjet.xml    | grep -c '<job>'   # expect ≥7,300 AFTER migration #1
 curl -s https://freejobpost.co/jobs.xml               | grep -c '<job>'   # expect ≥7,300
 
-# Sitemap
-curl -s https://freejobpost.co/sitemap.xml | grep -c '<loc>'              # expect ≥9,000
+# Sitemap (2026-08-19: now an index + 21 children, NOT one giant urlset —
+# see src/lib/sitemap-chunks.ts. The old `grep -c '<loc>'` on /sitemap.xml
+# now returns 21, which is correct, not a regression.)
+curl -s https://freejobpost.co/sitemap.xml | grep -c '<sitemap>'          # expect 21
+curl -s https://freejobpost.co/sitemaps/pages.xml | grep -c '<loc>'       # expect ≥900
+for i in $(seq 0 19); do
+  printf 'jobs-%s.xml ' "$i"
+  curl -s "https://freejobpost.co/sitemaps/jobs-$i.xml" | grep -c '<loc>' # expect ~1,600 each
+done
+# Total across all children should be ≥9,000. Each child must also be well
+# under ~1MB or it is back over the 10ms Workers CPU budget:
+for i in $(seq 0 19); do
+  curl -sI "https://freejobpost.co/sitemaps/jobs-$i.xml" | grep -i content-length
+done
 
 # Per-job page (real ATS slug — Workday uppercase)
 curl -s -o /dev/null -w "%{http_code}\n" https://freejobpost.co/jobs/mammography-technologist-wd-RQ4052378

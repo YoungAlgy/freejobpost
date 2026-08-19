@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { SITEMAP_BASE, SITEMAP_CHILDREN, sitemapChildUrl } from '@/lib/sitemap-chunks'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -34,9 +35,22 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    // Sitemap: ONLY the real XML sitemap goes here. /sitemap.xml is a proper
-    // <urlset> (17K+ URLs incl every /jobs/<slug>), so Google discovers all job
-    // detail pages — and their JobPosting structured data — straight from it.
+    // Sitemap: ONLY real XML sitemaps go here.
+    //
+    // /sitemap.xml is now a <sitemapindex> rather than one giant <urlset> — the
+    // single 6.8MB response could not be served inside Workers' 10ms free-plan
+    // CPU budget and was returning 503 exceededCpu on every request (see
+    // src/lib/sitemap-chunks.ts for the full writeup and measurements). The
+    // index alone is enough for Google and Bing, which both follow it, but every
+    // child is listed explicitly too: a Sitemap: line is the one discovery path
+    // that does not depend on the index being fetched and parsed successfully,
+    // and it costs ~1.1KB of a file nothing paginates.
+    //
+    // Built from the shared SITEMAP_CHILDREN constant, so this list cannot drift
+    // from what generateStaticParams actually generates. Note this stays a pure
+    // in-memory string build with NO database access — /robots.txt measured 7-9ms
+    // CPU on prod (that was the fixed cost of entering the Next.js server, since
+    // fixed by enableCacheInterception), and it has no budget to spare for I/O.
     //
     // /jobs.xml is deliberately NOT listed: it's an Indeed-format syndication
     // FEED (<source><job>…), not a <urlset> sitemap. Aggregators (Indeed,
@@ -45,7 +59,10 @@ export default function robots(): MetadataRoute.Robots {
     // JobPosting schema on the detail pages, not this feed. Listing it here
     // only made GSC try to parse a job feed as a sitemap and log a read error.
     // The feed stays fully fetchable for aggregators via the allow: '/' above.
-    sitemap: 'https://freejobpost.co/sitemap.xml',
-    host: 'https://freejobpost.co',
+    sitemap: [
+      `${SITEMAP_BASE}/sitemap.xml`,
+      ...SITEMAP_CHILDREN.map(sitemapChildUrl),
+    ],
+    host: SITEMAP_BASE,
   }
 }

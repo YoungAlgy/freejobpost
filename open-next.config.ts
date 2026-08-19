@@ -45,14 +45,31 @@ export default defineCloudflareConfig({
   // middleware — this app has no middleware.ts at all, so that caveat does not
   // apply here.
   //
-  // CAVEAT, because it is not free for everything: the interceptor computes the
-  // ETag as md5 over the whole response body (computeCacheControl -> hash(body)),
-  // so its cost scales with page weight. That is a clear win for small routes
-  // and roughly a wash for the heaviest ones. It does NOT rescue /sitemap.xml,
-  // whose cache entry is 6.8MB / 34,058 URLs — md5 alone on that body measures
-  // ~12ms locally, over budget before the JSON.parse of the cache object. That
-  // route needs to be split into chunked sitemaps; see the note in
-  // src/app/sitemap.ts. The 1.5-2.7MB state/specialty hub entries are worth
-  // watching for the same reason.
+  // CAVEAT, because it is not free for everything: the interceptor's cost scales
+  // LINEARLY WITH BODY SIZE in three separate places, not one —
+  //   r2Object.json()        JSON.parse of the entire cache object
+  //   computeCacheControl()  md5 over the entire body, for the ETag
+  //   toReadableStream()     TextEncoder().encode of the entire body
+  // An earlier version of this note blamed md5 alone (~12ms on the old 6.8MB
+  // sitemap) and under-counted by ~3x: measured against real .open-next cache
+  // files, parse/md5/encode each cost about the same, and the true figure for
+  // that 6.8MB body was ~32ms against a 10ms budget.
+  //
+  // So interception is a clear win for small routes and does NOT rescue heavy
+  // ones. /sitemap.xml was the worst offender and has been SPLIT — it is now a
+  // 3KB <sitemapindex> plus 21 children of ~200-350KB, worst child measuring
+  // 1.94ms (19% of budget). See src/lib/sitemap-chunks.ts for the full writeup.
+  //
+  // ⚠️ STILL OUTSTANDING, same root cause, different routes: the heaviest HTML
+  // hub pages are now the largest cache entries on the site and are measured, not
+  // estimated —
+  //   /jobs/federal/va               2.68MB  ~8.9ms   89% of budget
+  //   /state/north-carolina          1.48MB  ~5.5ms   55%
+  //   /specialty/nurse-practitioner  1.43MB  ~5.0ms   50%
+  // (and ~40 more state/specialty hubs in the 1.4-1.5MB band). /jobs/federal/va
+  // has almost no headroom left and will start returning 503 exceededCpu the way
+  // the sitemap did, once it grows a little more. These need their rendered
+  // payload cut — cap the job list per hub page and paginate — which is a
+  // separate change from this one.
   enableCacheInterception: true,
 });
