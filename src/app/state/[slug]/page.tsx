@@ -6,14 +6,6 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
-import {
-  JOB_LIST_FIELDS,
-  type PublicJob,
-  formatSalary,
-  employmentLabel,
-  remoteLabel,
-  locationLabel,
-} from '@/lib/public-jobs'
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { getViableCellsCached } from '@/lib/specialty-state-matrix'
@@ -24,8 +16,12 @@ import {
   fmtUsdCompact,
 } from '@/lib/salary-aggregates'
 import { stripSalarySuffix } from '@/lib/clean-labels'
+import { fetchStateHubJobs } from '@/lib/hub-job-queries'
+import { hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import HubJobList from '@/components/HubJobList'
+import HubPagination from '@/components/HubPagination'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
@@ -81,20 +77,6 @@ export async function generateMetadata(
   }
 }
 
-async function fetchJobsForState(abbr: string): Promise<PublicJob[]> {
-  const result = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('status', 'active')
-    .eq('state', abbr)
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .order('created_at', { ascending: false })
-    .limit(300)
-  assertFreshOrThrow(result, 'fetchJobsForState')
-  return (result.data ?? []) as PublicJob[]
-}
-
 export default async function StateHubPage(
   { params }: { params: Promise<{ slug: string }> },
 ) {
@@ -102,7 +84,23 @@ export default async function StateHubPage(
   const hub = getStateHub(slug)
   if (!hub) notFound()
 
-  const jobs = await fetchJobsForState(hub.abbr)
+  // The local fetchJobsForState() helper that used to live here moved to
+  // src/lib/hub-job-queries.ts byte-for-byte. Page 1 and the /p/<n>
+  // continuations MUST share one query, or the two routes partition two
+  // differently-ordered corpora and jobs quietly fall out of the series.
+  const jobs = await fetchStateHubJobs(hub.abbr)
+
+  // 🔴 2026-08-19 CPU FIX — see src/lib/hub-pagination.ts. This page rendered
+  // all 300 fetched jobs inline. Measured on the real .open-next cache files,
+  // /state/new-mexico came out at 1.40MB / 7.29ms of interceptor CPU per
+  // request, i.e. 73% of the 10ms Workers-free-plan budget, and it grew with
+  // inventory forever. Only the rendered <li> list is capped: `jobs` (the full
+  // fetched set) is still what the city linkbar, specialty distribution,
+  // salary table, ItemList JSON-LD, headline count, FAQ copy and the
+  // empty/thin-inventory states all read, so no number on the page changes
+  // depending on which page you are looking at.
+  const totalPages = hubTotalPages(jobs.length)
+  const pageJobs = sliceHubPage(jobs, 1)
 
   // Viable matrix cells for THIS state — top specialty deep-links into the
   // /specialty/[slug]/[state] surface. This is the internal-linking-mesh
@@ -377,7 +375,7 @@ export default async function StateHubPage(
                     </a>{' '}
                     is the authoritative source for current fees, timelines, CE
                     requirements, and endorsement paperwork. Third-party rewrites
-                    tend to go stale. The board's own site is the only place to
+                    tend to go stale. The board&apos;s own site is the only place to
                     confirm what&apos;s current.
                   </p>
                 </div>
@@ -490,29 +488,13 @@ export default async function StateHubPage(
                   </p>
                 </div>
               )}
-              <ul className="border-t border-gray-200">
-              {jobs.map((j) => (
-                <li key={j.id} className="border-b border-black/10 py-5">
-                  <Link href={`/jobs/${j.slug}`} className="group block">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-black tracking-tight group-hover:text-[#003D5C] mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
-                        <p className="text-sm text-gray-700">
-                          {locationLabel(j)} · {employmentLabel(j.employment_type)}
-                          {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
-                          {j.specialty ? ` · ${stripSalarySuffix(j.specialty)}` : ''}
-                        </p>
-                      </div>
-                      {(j.salary_min || j.salary_max) && (
-                        <div className="text-sm font-bold whitespace-nowrap shrink-0">
-                          {formatSalary(j.salary_min, j.salary_max)}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-              </ul>
+              <HubJobList jobs={pageJobs} />
+              <HubPagination
+                basePath={`/state/${hub.slug}`}
+                page={1}
+                totalPages={totalPages}
+                label={`${hub.name} jobs`}
+              />
             </>
           )}
 

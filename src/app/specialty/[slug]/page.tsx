@@ -6,14 +6,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
-import {
-  JOB_LIST_FIELDS,
-  type PublicJob,
-  formatSalary,
-  employmentLabel,
-  remoteLabel,
-  locationLabel,
-} from '@/lib/public-jobs'
+import { type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CAREER_PATHS } from '@/lib/career-paths'
@@ -25,9 +18,12 @@ import {
   aggregateSalariesOverall,
   fmtUsdCompact,
 } from '@/lib/salary-aggregates'
-import { stripSalarySuffix } from '@/lib/clean-labels'
+import { fetchSpecialtyHubJobs } from '@/lib/hub-job-queries'
+import { hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import HubJobList from '@/components/HubJobList'
+import HubPagination from '@/components/HubPagination'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
@@ -105,19 +101,12 @@ export async function generateMetadata(
   }
 }
 
-async function fetchJobsForHub(matchPatterns: string[]): Promise<PublicJob[]> {
-  const result = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .or(buildHubOrFilter(matchPatterns))
-    .order('created_at', { ascending: false })
-    .limit(300)
-  assertFreshOrThrow(result, 'fetchJobsForHub')
-  return (result.data ?? []) as PublicJob[]
-}
+// The list fetch used to live here as a local `fetchJobsForHub`. It moved to
+// src/lib/hub-job-queries.ts byte-identically (same fields, same filters, same
+// created_at ordering, same 300 cap) so that page 1 and the /p/<n>
+// continuations partition ONE consistently-ordered corpus. Two copies of this
+// query is how the specialty `.or()` filter drifted into the 2026-05-22
+// PostgREST bug (commit 6e2b839) — same lesson, applied before the bug.
 
 export default async function SpecialtyHubPage(
   { params }: { params: Promise<{ slug: string }> },
@@ -126,7 +115,18 @@ export default async function SpecialtyHubPage(
   const hub = getSpecialtyHub(slug)
   if (!hub) notFound()
 
-  const jobs = await fetchJobsForHub(hub.matchPatterns)
+  const jobs = await fetchSpecialtyHubJobs(hub.matchPatterns)
+
+  // 🔴 2026-08-19 CPU FIX — see src/lib/hub-pagination.ts. This page rendered
+  // all 300 fetched jobs inline, which made /specialty/respiratory-therapy's R2
+  // cache entry 1.40MB and cost ~7.16ms of interceptor CPU per request against
+  // a 10ms Workers-free-plan budget (72%). Only the rendered job list is
+  // sliced: `jobs` (the full fetched set) is still what the state linkbar, the
+  // per-state counts, the salary aggregates, the ItemList JSON-LD, the (N)
+  // count badge and the low-inventory banner all read, so nothing on the page
+  // starts lying about the corpus depending on which page you are on.
+  const totalPages = hubTotalPages(jobs.length)
+  const pageJobs: PublicJob[] = sliceHubPage(jobs, 1)
 
   // Viable matrix cells for THIS specialty — top state deep-links into the
   // /specialty/[slug]/[state] surface. Internal-linking-mesh layer 2.4: each
@@ -353,29 +353,13 @@ export default async function SpecialtyHubPage(
                   </p>
                 </div>
               )}
-              <ul className="border-t border-gray-200">
-              {jobs.map((j) => (
-                <li key={j.id} className="border-b border-black/10 py-5">
-                  <Link href={`/jobs/${j.slug}`} className="group block">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-black tracking-tight group-hover:text-[#003D5C] mb-1">{stripSalarySuffix(j.title) || j.title}</h2>
-                        <p className="text-sm text-gray-700">
-                          {locationLabel(j)} · {employmentLabel(j.employment_type)}
-                          {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
-                          {j.specialty ? ` · ${stripSalarySuffix(j.specialty)}` : ''}
-                        </p>
-                      </div>
-                      {(j.salary_min || j.salary_max) && (
-                        <div className="text-sm font-bold whitespace-nowrap shrink-0">
-                          {formatSalary(j.salary_min, j.salary_max)}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              ))}
-              </ul>
+              <HubJobList jobs={pageJobs} />
+              <HubPagination
+                basePath={`/specialty/${hub.slug}`}
+                page={1}
+                totalPages={totalPages}
+                label={`${hub.title} jobs`}
+              />
             </>
           )}
 

@@ -3,20 +3,20 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
-import {
-  JOB_LIST_FIELDS,
-  type PublicJob,
-  formatSalary,
-  employmentLabel,
-  remoteLabel,
-  locationLabel,
-} from '@/lib/public-jobs'
+import { type PublicJob } from '@/lib/public-jobs'
 import {
   findAgencyBySlug,
   agencyOrFilter,
 } from '@/lib/federal-agencies'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
+import {
+  fetchFederalAgencyStateJobs,
+  fetchFederalAgencyStateJobCount,
+} from '@/lib/hub-job-queries'
+import { HUB_PAGE_SIZE, hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
+import FederalJobList from '@/components/FederalJobList'
+import HubPagination from '@/components/HubPagination'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
@@ -106,37 +106,31 @@ export default async function FederalAgencyStatePage(
   const state = findStateBySlug(stateSlug)
   if (!agency || !state) notFound()
 
-  const nowIso = hourIso()
   // Same agency-keyword filter as the parent /jobs/federal/[agency] page,
-  // intersected with state. Two parallel queries: the rendered list (capped
-  // at 200 — agency × state pages are narrower than the global federal hub)
-  // and the total count for the header badge.
-  const baseQuery = () => supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('source', 'usajobs:federal')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', nowIso)
-    .eq('state', state.abbr)
-    .or(agencyOrFilter(agency))
-  const [jobsRes, countRes] = await Promise.all([
-    baseQuery()
-      .order('updated_at', { ascending: false })
-      .limit(200),
-    supabase
-      .from('public_jobs')
-      .select('id', { count: 'exact', head: true })
-      .eq('source', 'usajobs:federal')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso)
-      .eq('state', state.abbr)
-      .or(agencyOrFilter(agency)),
+  // intersected with state. Both queries now live in src/lib/hub-job-queries.ts
+  // so page 1 and every /p/<n> continuation fetch byte-identically (including
+  // the federal family's `.order('updated_at')`, which differs from the
+  // created_at ordering the state/specialty/city hubs use). If the two drifted,
+  // page 2 would slice a differently-ordered corpus than page 1 skipped and
+  // jobs would silently vanish from the middle of the series. The list stays
+  // capped at HUB_JOB_LIMITS.federalAgencyState = 200 (agency × state cells are
+  // narrower than the global federal hub); the count feeds the header badge.
+  const [jobs, cellCount] = await Promise.all([
+    fetchFederalAgencyStateJobs(agency, state.abbr),
+    fetchFederalAgencyStateJobCount(agency, state.abbr),
   ])
 
-  const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]
-  const totalCount = countRes.count ?? jobs.length
+  const totalCount = cellCount ?? jobs.length
+
+  // 🔴 2026-08-19 CPU FIX — see src/lib/hub-pagination.ts. This page rendered
+  // all 200 fetched jobs inline: /jobs/federal/va/texas measured a 1.20MB R2
+  // cache entry costing ~5.86ms of cache-interceptor CPU per request, 59% of
+  // the 10ms Workers-free-plan budget, and it grew with inventory forever.
+  // `jobs` (the FULL fetched set) is still what the count badge, the ItemList
+  // JSON-LD and the empty-state check below read — only the rendered <li> list
+  // is sliced, so nothing on the page starts lying.
+  const totalPages = hubTotalPages(jobs.length)
+  const pageJobs: PublicJob[] = sliceHubPage(jobs, 1)
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -253,51 +247,26 @@ export default async function FederalAgencyStatePage(
                 <p className="text-sm font-bold">
                   {totalCount.toLocaleString()}{' '}
                   {totalCount === 1 ? 'role' : 'roles'}
-                  {jobs.length < totalCount && ` · showing ${jobs.length}`}
+                  {pageJobs.length < totalCount && ` · showing ${pageJobs.length}`}
                 </p>
               </div>
-              <ul className="divide-y divide-gray-200 border-y border-gray-200">
-                {jobs.map((job) => {
-                  const loc = locationLabel(job)
-                  const sal = formatSalary(job.salary_min, job.salary_max)
-                  const rem = remoteLabel(job.remote_hybrid)
-                  const emp = employmentLabel(job.employment_type)
-                  return (
-                    <li key={job.id}>
-                      <Link
-                        href={`/jobs/${job.slug}`}
-                        className="grid grid-cols-12 gap-4 py-5 hover:bg-[#003D5C]/5 transition-colors"
-                      >
-                        <div className="col-span-12 md:col-span-5">
-                          <div className="font-bold">
-                            <span className="truncate">{job.title || job.role}</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
-                            {emp && <span>{emp}</span>}
-                            {rem && rem !== 'Onsite' && (
-                              <span className="text-[#003D5C] font-bold">{rem}</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-span-6 md:col-span-3 text-gray-700 self-center">
-                          {loc || '—'}
-                        </div>
-                        <div className="col-span-6 md:col-span-2 text-gray-700 text-sm self-center">
-                          {job.specialty || job.role || ''}
-                        </div>
-                        <div className="col-span-12 md:col-span-2 font-bold text-right self-center">
-                          {sal || ''}
-                        </div>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
+              {/* Shared with the parent agency hub and with every /p/<n>
+                  continuation so a paginated series draws identical rows.
+                  hoverClass is explicit: this cell page has always used the
+                  navy tint, while the parent uses the green one that
+                  FederalJobList defaults to. */}
+              <FederalJobList jobs={pageJobs} hoverClass="hover:bg-[#003D5C]/5" />
+              <HubPagination
+                basePath={`/jobs/federal/${agency.slug}/${state.slug}`}
+                page={1}
+                totalPages={totalPages}
+                label={`${agency.name} jobs in ${state.name}`}
+              />
               {jobs.length < totalCount && (
                 <p className="mt-6 text-center text-sm text-gray-500">
-                  Showing first {jobs.length.toLocaleString()} of{' '}
-                  {totalCount.toLocaleString()} {agency.name} jobs in {state.name}.
-                  For more, view{' '}
+                  Showing the newest {jobs.length.toLocaleString()} of{' '}
+                  {totalCount.toLocaleString()} {agency.name} jobs in {state.name}
+                  {totalPages > 1 && `, ${HUB_PAGE_SIZE} per page`}. For more, view{' '}
                   <Link
                     href={`/jobs/federal/${agency.slug}`}
                     className="underline hover:text-[#003D5C]"

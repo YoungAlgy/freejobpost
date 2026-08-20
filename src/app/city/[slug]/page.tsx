@@ -11,15 +11,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
-import {
-  JOB_LIST_FIELDS,
-  type PublicJob,
-  formatSalary,
-  locationLabel,
-  remoteLabel,
-  employmentLabel,
-} from '@/lib/public-jobs'
+import { type PublicJob } from '@/lib/public-jobs'
 import { CITY_HUBS, getCityHub } from '@/lib/city-slugs'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { findStateHubByAbbr } from '@/lib/state-slugs'
@@ -28,7 +20,11 @@ import {
   aggregateSalariesOverall,
   fmtUsdCompact,
 } from '@/lib/salary-aggregates'
+import { fetchCityHubJobCount, fetchCityHubJobs } from '@/lib/hub-job-queries'
+import { HUB_PAGE_SIZE, hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import HubJobList from '@/components/HubJobList'
+import HubPagination from '@/components/HubPagination'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
@@ -39,46 +35,12 @@ export async function generateStaticParams() {
   return CITY_HUBS.map((c) => ({ slug: c.slug }))
 }
 
-// Build a PostgREST `.or()` filter clause that matches any of the hub's
-// city patterns. Each pattern is a case-insensitive substring search.
-// Example: ['tampa', 'tampa bay'] → "city.ilike.%tampa%,city.ilike.%tampa bay%".
-function cityOrFilter(patterns: string[]): string {
-  return patterns.map((p) => `city.ilike.%${p}%`).join(',')
-}
-
-async function fetchJobCountForCity(
-  cityMatchPatterns: string[],
-  state: string,
-): Promise<number> {
-  const result = await supabase
-    .from('public_jobs')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'active')
-    .eq('state', state)
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .or(cityOrFilter(cityMatchPatterns))
-  assertFreshOrThrow(result, 'fetchJobCountForCity')
-  return result.count ?? 0
-}
-
-async function fetchJobsForCity(
-  cityMatchPatterns: string[],
-  state: string,
-): Promise<PublicJob[]> {
-  const result = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('status', 'active')
-    .eq('state', state)
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .or(cityOrFilter(cityMatchPatterns))
-    .order('created_at', { ascending: false })
-    .limit(200)
-  assertFreshOrThrow(result, 'fetchJobsForCity')
-  return (result.data ?? []) as PublicJob[]
-}
+// The city fetches used to live here as local `cityOrFilter` /
+// `fetchJobsForCity` / `fetchJobCountForCity` helpers. They moved verbatim into
+// src/lib/hub-job-queries.ts on 2026-08-19 so that this page and the
+// /city/[slug]/p/[page] continuations query one identical corpus — two copies
+// of a hub's filter is exactly how the specialty `.or()` clause drifted into
+// the 2026-05-22 PostgREST double-encoding bug.
 
 export async function generateMetadata(
   { params }: { params: Promise<{ slug: string }> },
@@ -118,9 +80,19 @@ export default async function CityHubPage(
   if (!hub) notFound()
 
   const [jobs, totalCount] = await Promise.all([
-    fetchJobsForCity(hub.cityMatchPatterns, hub.state),
-    fetchJobCountForCity(hub.cityMatchPatterns, hub.state),
+    fetchCityHubJobs(hub.cityMatchPatterns, hub.state),
+    fetchCityHubJobCount(hub.cityMatchPatterns, hub.state),
   ])
+
+  // 🔴 2026-08-19 CPU FIX — see src/lib/hub-pagination.ts. This page rendered
+  // all 200 fetched jobs inline. /city/new-york-ny's cache entry came out at
+  // 888KB and cost ~4.44ms of interceptor CPU per request, 44% of the 10ms
+  // Workers-free-plan budget, on a number that only grew with inventory.
+  // Only the rendered <li> list is sliced: `jobs` (the full fetched set) is
+  // still what the salary panel, the ItemList JSON-LD and the empty-state check
+  // below read, so nothing on the page starts lying about the metro.
+  const totalPages = hubTotalPages(jobs.length)
+  const pageJobs: PublicJob[] = sliceHubPage(jobs, 1)
 
   const cityName = hub.name.split(',')[0]
   const stateHub = findStateHubByAbbr(hub.state)
@@ -292,45 +264,29 @@ export default async function CityHubPage(
               <h2 className="text-sm font-bold tracking-widest text-gray-500 uppercase mb-4">
                 Open roles
               </h2>
-              <ul className="divide-y divide-gray-200 border-y border-gray-200">
-                {jobs.map((j) => {
-                  const loc = locationLabel(j)
-                  const sal = formatSalary(j.salary_min, j.salary_max)
-                  const emp = employmentLabel(j.employment_type)
-                  const rem = remoteLabel(j.remote_hybrid)
-                  return (
-                    <li key={j.id}>
-                      <Link
-                        href={`/jobs/${j.slug}`}
-                        className="block py-4 hover:bg-[#7FBC00]/10 transition-colors"
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold leading-tight">
-                              {stripSalarySuffix(j.title) || j.title}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-0.5">
-                              {loc || '—'}
-                              {emp && <> · <span>{emp}</span></>}
-                              {rem && rem !== 'Onsite' && <> · <span>{rem}</span></>}
-                            </p>
-                          </div>
-                          {sal && (
-                            <div className="text-sm font-bold tabular-nums shrink-0">
-                              {sal}
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
+              <HubJobList jobs={pageJobs} variant="compact" />
+              <HubPagination
+                basePath={`/city/${hub.slug}`}
+                page={1}
+                totalPages={totalPages}
+                label={`${hub.name} jobs`}
+              />
+              {/* Reach note. The old copy here said "Showing newest N of M",
+                  which described a truncation the /p/<n> pages have now
+                  resolved: every one of the `jobs` this hub fetched is
+                  reachable by following the pagination links above. What is
+                  still out of reach is the gap between that fetch cap
+                  (HUB_JOB_LIMITS.city) and the metro's real total, so that is
+                  all this claims now. */}
               {totalCount > jobs.length && (
                 <p className="text-xs text-gray-500 mt-3">
-                  Showing newest {jobs.length} of {totalCount.toLocaleString()},{' '}
+                  This hub carries the newest {jobs.length.toLocaleString()} of{' '}
+                  {totalCount.toLocaleString()} {hub.name} roles
+                  {totalPages > 1 &&
+                    `, ${HUB_PAGE_SIZE} per page across ${totalPages} pages`}
+                  . For the rest, use the main{' '}
                   <Link href="/jobs" className="underline hover:text-[#003D5C]">
-                    see all
+                    job search
                   </Link>
                   .
                 </p>

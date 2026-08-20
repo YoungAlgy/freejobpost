@@ -10,17 +10,12 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
-import {
-  JOB_LIST_FIELDS,
-  type PublicJob,
-  formatSalary,
-  employmentLabel,
-  remoteLabel,
-  locationLabel,
-} from '@/lib/public-jobs'
+import { type PublicJob } from '@/lib/public-jobs'
 import { getSpecialtyHub } from '@/lib/specialty-slugs'
 import { getStateHub } from '@/lib/state-slugs'
 import { computeViableCellsViaSql, getViableCellsCached } from '@/lib/specialty-state-matrix'
+import { fetchSpecialtyStateCellJobs } from '@/lib/hub-job-queries'
+import { hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 import {
   aggregateSalariesByGroup,
   aggregateSalariesOverall,
@@ -28,6 +23,8 @@ import {
 } from '@/lib/salary-aggregates'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import HubJobList from '@/components/HubJobList'
+import HubPagination from '@/components/HubPagination'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 // Filter-build moved to src/lib/specialty-filter.ts + unit-tested. See
@@ -59,20 +56,11 @@ export async function generateStaticParams(): Promise<Params[]> {
   return cells.slice(0, MAX_SSG_CELLS).map((c) => ({ slug: c.specialty.slug, state: c.state.slug }))
 }
 
-async function fetchCellJobs(matchPatterns: readonly string[], stateAbbr: string): Promise<PublicJob[]> {
-  const result = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .eq('state', stateAbbr)
-    .or(buildHubOrFilter(matchPatterns))
-    .order('created_at', { ascending: false })
-    .limit(200)
-  assertFreshOrThrow(result, 'fetchCellJobs (specialty/state)')
-  return (result.data ?? []) as PublicJob[]
-}
+// The rendered-list fetch used to live here as a local `fetchCellJobs`. It moved
+// to fetchSpecialtyStateCellJobs() in src/lib/hub-job-queries.ts (byte-identical
+// query, same 200 cap) when this family was paginated on 2026-08-19: page 1 and
+// every /p/<n> continuation MUST run the same query, or the two routes partition
+// two differently-ordered corpora and jobs silently disappear between pages.
 
 // Count-only query for the thin-cell noindex gate in generateMetadata.
 // head:true → no rows transferred, just the count.
@@ -135,13 +123,27 @@ export default async function SpecialtyStateMatrixPage(
   const stateHub = getStateHub(state)
   if (!specialty || !stateHub) notFound()
 
-  const jobs = await fetchCellJobs(specialty.matchPatterns, stateHub.abbr)
+  const jobs = await fetchSpecialtyStateCellJobs(specialty.matchPatterns, stateHub.abbr)
   // Hard 404 only when the cell is truly empty — guards against direct hits
   // on URLs that were never in generateStaticParams. Cells that DID build
   // but dropped below the threshold between deploys still render (with a
   // sparse-inventory message handled inline below), which is better UX
   // than 404'ing a previously-indexed URL.
+  //
+  // This guard reads the FULL fetched set on purpose. If it ever saw the page
+  // slice below it would 404 real cells.
   if (jobs.length === 0) notFound()
+
+  // 🔴 2026-08-19 CPU FIX — see src/lib/hub-pagination.ts. This page rendered
+  // all 200 fetched jobs inline: /specialty/registered-nurse/new-york came out
+  // at a 974KB cache entry costing ~4.65ms of interceptor CPU per request, 47%
+  // of the 10ms Workers-free-plan budget, and it grew with inventory forever.
+  // Only the rendered <li> list is sliced. Everything below — the empty-cell
+  // 404 above, the salary aggregates, the by-city linkbar, the ItemList JSON-LD
+  // and the headline count — still reads the full `jobs` array, so none of them
+  // change depending on which page you are on.
+  const totalPages = hubTotalPages(jobs.length)
+  const pageJobs: PublicJob[] = sliceHubPage(jobs, 1)
 
   // Salary aggregates within this cell. Grouped by role/specialty (sub-cell
   // breakdown) since state is already fixed.
@@ -309,32 +311,16 @@ export default async function SpecialtyStateMatrixPage(
             </section>
           )}
 
-          {/* Job list */}
-          <ul className="border-t border-gray-200">
-            {jobs.map((j) => (
-              <li key={j.id} className="border-b border-black/10 py-5">
-                <Link href={`/jobs/${j.slug}`} className="group block">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-lg font-black tracking-tight group-hover:text-[#003D5C] mb-1">
-                        {stripSalarySuffix(j.title) || j.title}
-                      </h2>
-                      <p className="text-sm text-gray-700">
-                        {locationLabel(j)} · {employmentLabel(j.employment_type)}
-                        {j.remote_hybrid ? ` · ${remoteLabel(j.remote_hybrid)}` : ''}
-                        {j.specialty ? ` · ${stripSalarySuffix(j.specialty)}` : ''}
-                      </p>
-                    </div>
-                    {(j.salary_min || j.salary_max) && (
-                      <div className="text-sm font-bold whitespace-nowrap shrink-0">
-                        {formatSalary(j.salary_min, j.salary_max)}
-                      </div>
-                    )}
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {/* Job list — page 1 only. The card markup moved verbatim into
+              HubJobList's `standard` variant so this page and its /p/<n>
+              continuations cannot drift apart. */}
+          <HubJobList jobs={pageJobs} />
+          <HubPagination
+            basePath={`/specialty/${specialty.slug}/${stateHub.slug}`}
+            page={1}
+            totalPages={totalPages}
+            label={`${specialty.title} jobs in ${stateHub.name}`}
+          />
 
           {/* Job-alert capture — highest-intent surface (specialty × state),
               so a strong place to convert lookers into a tagged CRM lead. */}

@@ -1,22 +1,21 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { supabase, hourIso } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
-import {
-  JOB_LIST_FIELDS,
-  type PublicJob,
-  formatSalary,
-  employmentLabel,
-  remoteLabel,
-  locationLabel,
-} from '@/lib/public-jobs'
+import { type PublicJob } from '@/lib/public-jobs'
 import {
   FEDERAL_AGENCIES,
   findAgencyBySlug,
-  agencyOrFilter,
 } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
+import {
+  fetchFederalAgencyJobs,
+  fetchFederalAgencyJobCount,
+} from '@/lib/hub-job-queries'
+import { HUB_PAGE_SIZE, hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
+import FederalJobList from '@/components/FederalJobList'
+import HubPagination from '@/components/HubPagination'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
@@ -69,10 +68,10 @@ export default async function AgencyJobsPage(
   const agency = findAgencyBySlug(slug)
   if (!agency) notFound()
 
-  const nowIso = hourIso()
   // Three parallel queries:
-  //  - rendered list of agency-matching jobs (capped at 500 — agency hubs are
-  //    narrower than the global /jobs index so a smaller cap is fine)
+  //  - rendered list of agency-matching jobs (capped at HUB_JOB_LIMITS
+  //    .federalAgency = 500 — agency hubs are narrower than the global /jobs
+  //    index so a smaller cap is fine)
   //  - the total count, for an honest header badge
   //  - the agency's state-matrix cells, so we can render in-page links to the
   //    /jobs/federal/[agency]/[state] leaves (≥5 jobs per cell) — gives crawlers
@@ -81,29 +80,21 @@ export default async function AgencyJobsPage(
   const stateCells = allCells
     .filter((c) => c.agency.slug === agency.slug)
     .sort((a, b) => b.count - a.count)
-  const [jobsRes, countRes] = await Promise.all([
-    supabase
-      .from('public_jobs')
-      .select(JOB_LIST_FIELDS)
-      .eq('source', 'usajobs:federal')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso)
-      .or(agencyOrFilter(agency))
-      .order('updated_at', { ascending: false })
-      .limit(500),
-    supabase
-      .from('public_jobs')
-      .select('id', { count: 'exact', head: true })
-      .eq('source', 'usajobs:federal')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso)
-      .or(agencyOrFilter(agency)),
+  const [jobs, agencyCount] = await Promise.all([
+    fetchFederalAgencyJobs(agency),
+    fetchFederalAgencyJobCount(agency),
   ])
 
-  const jobs: PublicJob[] = (jobsRes.data ?? []) as PublicJob[]
-  const totalCount = countRes.count ?? jobs.length
+  const totalCount = agencyCount ?? jobs.length
+
+  // 🔴 2026-08-19 CPU FIX — see src/lib/hub-pagination.ts. This page rendered
+  // all 500 fetched jobs inline, which made its R2 cache entry 2.68MB and cost
+  // ~10.06ms of interceptor CPU per request against a 10ms Workers-free-plan
+  // budget. It was over the wall, not near it. `jobs` (the full fetched set) is
+  // still what every count, badge and JSON-LD block below reads — only the
+  // rendered <li> list is sliced, so nothing on the page starts lying.
+  const totalPages = hubTotalPages(jobs.length)
+  const pageJobs: PublicJob[] = sliceHubPage(jobs, 1)
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -230,50 +221,21 @@ export default async function AgencyJobsPage(
                 <p className="text-sm font-bold">
                   {totalCount.toLocaleString()}{' '}
                   {totalCount === 1 ? 'role' : 'roles'}
-                  {jobs.length < totalCount && ` · showing ${jobs.length}`}
+                  {pageJobs.length < totalCount && ` · showing ${pageJobs.length}`}
                 </p>
               </div>
-              <ul className="divide-y divide-gray-200 border-y border-gray-200">
-                {jobs.map((job) => {
-                  const loc = locationLabel(job)
-                  const sal = formatSalary(job.salary_min, job.salary_max)
-                  const rem = remoteLabel(job.remote_hybrid)
-                  const emp = employmentLabel(job.employment_type)
-                  return (
-                    <li key={job.id}>
-                      <Link
-                        href={`/jobs/${job.slug}`}
-                        className="grid grid-cols-12 gap-4 py-5 hover:bg-[#7FBC00]/10 transition-colors"
-                      >
-                        <div className="col-span-12 md:col-span-5">
-                          <div className="font-bold">
-                            <span className="truncate">{job.title || job.role}</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
-                            {emp && <span>{emp}</span>}
-                            {rem && rem !== 'Onsite' && (
-                              <span className="text-[#003D5C] font-bold">{rem}</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-span-6 md:col-span-3 text-gray-700 self-center">
-                          {loc || '—'}
-                        </div>
-                        <div className="col-span-6 md:col-span-2 text-gray-700 text-sm self-center">
-                          {job.specialty || job.role || ''}
-                        </div>
-                        <div className="col-span-12 md:col-span-2 font-bold text-right self-center">
-                          {sal || ''}
-                        </div>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
+              <FederalJobList jobs={pageJobs} />
+              <HubPagination
+                basePath={`/jobs/federal/${agency.slug}`}
+                page={1}
+                totalPages={totalPages}
+                label={`${agency.name} jobs`}
+              />
               {jobs.length < totalCount && (
                 <p className="mt-6 text-center text-sm text-gray-500">
-                  Showing first {jobs.length.toLocaleString()} of{' '}
-                  {totalCount.toLocaleString()} {agency.name} jobs. Use the main{' '}
+                  Showing the newest {jobs.length.toLocaleString()} of{' '}
+                  {totalCount.toLocaleString()} {agency.name} jobs
+                  {totalPages > 1 && `, ${HUB_PAGE_SIZE} per page`}. Use the main{' '}
                   <Link href="/jobs" className="underline hover:text-[#003D5C]">
                     job search
                   </Link>{' '}

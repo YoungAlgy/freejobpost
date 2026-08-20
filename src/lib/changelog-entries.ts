@@ -17,6 +17,14 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
+  // ── August 2026 ──────────────────────────────────
+  {
+    date: "2026-08-19",
+    title: "Big job lists now come in pages, and load a lot faster",
+    body:
+      "State, specialty, city, and federal agency pages used to put every matching job on one screen. Some of them got heavy enough to time out and show an error instead of the jobs. Those lists now show 50 jobs at a time with page links at the bottom. Every page has its own web address, so nothing got hidden and search engines can still reach all the same jobs. The heaviest page on the site went from failing to loading in about a third of the time it is allowed.",
+    tag: "fixed",
+  },
   // ── July 2026 ────────────────────────────────────
   {
     date: "2026-07-01",

@@ -50,7 +50,9 @@
 //                                 and keeps its name — it just changes schema.
 //   /sitemaps/pages.xml           every non-job URL (static, specialty/state/
 //                                 city hubs, career paths, federal agencies,
-//                                 all 3 matrices, employers). ~1,000 URLs.
+//                                 all 3 matrices, the /p/<n> hub continuations
+//                                 added by the 2026-08-19 pagination fix, and
+//                                 employers). ~1,400 URLs.
 //   /sitemaps/jobs-0.xml          the ~33,000 /jobs/<slug> URLs, split into
 //     … through jobs-19.xml       JOB_SITEMAP_CHUNKS fixed buckets by slug hash.
 //
@@ -94,6 +96,9 @@ import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
 import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
+import { HUB_JOB_LIMITS } from '@/lib/hub-job-queries'
+import { hubPaginationUrls } from '@/lib/hub-pagination'
+import { getHubPageCountsCached, hubCountKey, type HubKind } from '@/lib/hub-page-counts'
 
 export const SITEMAP_BASE = 'https://freejobpost.co'
 
@@ -388,8 +393,9 @@ export async function buildJobChunkSitemap(chunk: number): Promise<string> {
 /**
  * Everything that is not a /jobs/<slug> detail page: static routes, the
  * specialty/state/city hubs, career-path guides, federal agency pages, all three
- * viable-cell matrices, and the verified employer directory. ~1,000 URLs / 184KB
- * / 0.88ms of interceptor CPU.
+ * viable-cell matrices, the /p/<n> hub continuations, and the verified employer
+ * directory. ~1,400 URLs — still comfortably the cheapest child in the family
+ * (the jobs-*.xml chunks are ~355KB / ~1.59ms and this stays well under them).
  *
  * Kept whole rather than folded into the job chunks because it changes for
  * entirely different reasons (hub config + matrix thresholds, not job ingest),
@@ -492,6 +498,82 @@ export async function buildPagesSitemap(): Promise<string> {
     lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.75,
   }))
 
+  // ─── Paginated hub continuations (/p/2 …) ──────────────────────────────────
+  //
+  // 2026-08-19: hub pages now cap how many jobs they render (see
+  // src/lib/hub-pagination.ts — they were blowing the 10ms Workers CPU budget).
+  // The overflow moved to real /p/<n> URLs, and those URLs carry job links that
+  // exist nowhere else on the hub, so they belong in the sitemap.
+  //
+  // Two rules held here:
+  //  1. NEVER advertise a page that does not exist. The count for each hub comes
+  //     from a real query (getHubPageCountsCached), clamped by the family's
+  //     `.limit()` because the route only ever paginates what it actually
+  //     fetches. A hub with no counted value contributes nothing rather than a
+  //     guessed page 2.
+  //  2. Lower priority than page 1 (0.5 vs 0.8). Continuations should not
+  //     compete with the hub page that is meant to rank.
+  //
+  // If the count scan is unavailable this whole block is simply empty for the
+  // cycle; the continuations stay crawlable via the on-page pagination nav.
+  const hubCounts = await getHubPageCountsCached(supabase)
+  const paginatedRoutes: SitemapUrl[] = []
+  const addPaginated = (
+    kind: HubKind,
+    slug: string,
+    basePath: string,
+    familyLimit: number,
+  ) => {
+    const counted = hubCounts.get(hubCountKey(kind, slug))
+    if (counted === undefined) return
+    for (const url of hubPaginationUrls(basePath, Math.min(counted, familyLimit))) {
+      paginatedRoutes.push({
+        url: `${base}${url}`,
+        lastModified: maxJobUpdate,
+        changeFrequency: 'daily',
+        priority: 0.5,
+      })
+    }
+  }
+
+  for (const s of STATE_HUBS) {
+    addPaginated('state', s.slug, `/state/${s.slug}`, HUB_JOB_LIMITS.state)
+  }
+  for (const s of SPECIALTY_HUBS) {
+    addPaginated('specialty', s.slug, `/specialty/${s.slug}`, HUB_JOB_LIMITS.specialty)
+  }
+  for (const c of CITY_HUBS) {
+    addPaginated('city', c.slug, `/city/${c.slug}`, HUB_JOB_LIMITS.city)
+  }
+  for (const a of FEDERAL_AGENCIES) {
+    addPaginated('federalAgency', a.slug, `/jobs/federal/${a.slug}`, HUB_JOB_LIMITS.federalAgency)
+  }
+
+  // The two matrix families get their counts for free from the viable-cell
+  // scans already awaited above — no extra queries.
+  for (const c of matrixCells) {
+    for (const url of hubPaginationUrls(
+      `/specialty/${c.specialty.slug}/${c.state.slug}`,
+      Math.min(c.count, HUB_JOB_LIMITS.specialtyState),
+    )) {
+      paginatedRoutes.push({
+        url: `${base}${url}`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.5,
+      })
+    }
+  }
+  for (const c of federalMatrixCells) {
+    for (const url of hubPaginationUrls(
+      `/jobs/federal/${c.agency.slug}/${c.state.slug}`,
+      Math.min(c.count, HUB_JOB_LIMITS.federalAgencyState),
+    )) {
+      paginatedRoutes.push({
+        url: `${base}${url}`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.5,
+      })
+    }
+  }
+  // /city/[slug]/[specialty] is deliberately absent: its `.limit(100)` already
+  // equals HUB_PAGE_SIZE, so it has exactly one page and no continuations exist.
+
   const employerRoutes: SitemapUrl[] = employers
     .filter(
       (e) =>
@@ -515,6 +597,7 @@ export async function buildPagesSitemap(): Promise<string> {
     ...federalMatrixRoutes,
     ...matrixRoutes,
     ...cityMatrixRoutes,
+    ...paginatedRoutes,
     ...employerRoutes,
   ])
 }

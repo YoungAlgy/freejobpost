@@ -60,16 +60,46 @@ export default defineCloudflareConfig({
   // 3KB <sitemapindex> plus 21 children of ~200-350KB, worst child measuring
   // 1.94ms (19% of budget). See src/lib/sitemap-chunks.ts for the full writeup.
   //
-  // ⚠️ STILL OUTSTANDING, same root cause, different routes: the heaviest HTML
-  // hub pages are now the largest cache entries on the site and are measured, not
-  // estimated —
-  //   /jobs/federal/va               2.68MB  ~8.9ms   89% of budget
-  //   /state/north-carolina          1.48MB  ~5.5ms   55%
-  //   /specialty/nurse-practitioner  1.43MB  ~5.0ms   50%
-  // (and ~40 more state/specialty hubs in the 1.4-1.5MB band). /jobs/federal/va
-  // has almost no headroom left and will start returning 503 exceededCpu the way
-  // the sitemap did, once it grows a little more. These need their rendered
-  // payload cut — cap the job list per hub page and paginate — which is a
-  // separate change from this one.
+  // ✅ RESOLVED 2026-08-19 (fix #3), same root cause, different routes: the
+  // heaviest HTML hub pages had become the largest cache entries on the site. A
+  // full sweep of the built cache — every entry, not just the known-bad three —
+  // found 93 of 477 at >= 35% of budget, and the worst was already OVER it:
+  //
+  //   route                          BEFORE               AFTER
+  //   /jobs/federal/va               2.68MB  10.06ms 101%  497KB  2.13ms  21%
+  //   /state/new-mexico              1.40MB   7.29ms  73%  519KB  2.41ms  24%
+  //   /specialty/respiratory-therapy 1.40MB   7.16ms  72%  514KB  1.93ms  19%
+  //   /state/north-carolina          1.48MB   5.94ms  59%  565KB  1.95ms  20%
+  //   /jobs/federal/va/texas         1.20MB   5.86ms  59%  425KB  2.25ms  22%
+  //   worst entry on the site       10.06ms (101%)        3.32ms (33%)
+  //   entries >= 60% of budget      10                    0
+  //   entries >= 35% of budget      93                    0
+  //
+  // /jobs/federal/va was not "close to the wall", it was measured at 101% before
+  // any interceptor or routing overhead. It was already failing.
+  //
+  // WHAT WAS ACTUALLY BIG — measured, not assumed. Not the chrome and not the
+  // JSON-LD (all three ld+json blocks are 0.8% of the HTML; the ItemList was
+  // already capped at 30). It was the job list, amplified ~5x by how Next stores
+  // an App Router page: the HTML holds the job rows once as markup and again in
+  // the inline RSC flight payload (34% + 62% of the HTML), `rsc` holds them a
+  // third time, and `segmentData` holds a BYTE-IDENTICAL copy of `rsc` under
+  // "/_full" plus a fourth near-copy under "…/__PAGE__". JSON.parse pays for all
+  // of it on every request; only `html` is ever served.
+  //
+  // The fix caps each hub at HUB_PAGE_SIZE rendered jobs and moves the rest to
+  // real crawlable /p/<n> URLs. See src/lib/hub-pagination.ts for the full
+  // writeup, the page-size reasoning, and the SEO argument. Per-request CPU for
+  // these routes is now O(1) in corpus size instead of growing with inventory
+  // forever, which is the part that actually retires this class of incident.
+  //
+  // ⚠️ NEXT LEVER IF THIS EVER GETS TIGHT AGAIN: `segmentData` is still ~40% of
+  // every cache entry sitewide and is dead weight for HTML requests — the
+  // interceptor only reads it when a request carries `next-router-segment-prefetch`,
+  // which no crawler and no cold page load ever sends. Dropping it at cache-write
+  // time (a thin wrapper over r2IncrementalCache) would cut ~40% off EVERY route,
+  // not just hubs, and the interceptor already falls back to `cachedValue.rsc`
+  // when a segment key is absent. Not done here: it changes client-nav prefetch
+  // behavior for the whole app and deserves its own change and its own testing.
   enableCacheInterception: true,
 });
