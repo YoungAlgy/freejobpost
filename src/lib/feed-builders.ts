@@ -252,15 +252,23 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
 }
 
 // Resolve company names for a batch of employer ids in one query.
+//
+// 2026-08-20: this read public_employers_directory_all, which does not exist in
+// the database. The error was swallowed, the map came back empty, and every job
+// without its own company_name fell through to the "Ava Health Partners"
+// default — 34k live jobs going out to Indeed / LinkedIn / Google under the
+// wrong company. All 23 employers those jobs point at are status='active' and
+// verified_healthcare_org=true, so public_employers_directory covers them.
 async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string, string>> {
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   const map = new Map<string, string>()
   if (employerIds.length === 0) return map
   type EmpRow = { id: string; company_name: string }
-  const { data: emps } = await supabase
-    .from('public_employers_directory_all')
+  const { data: emps, error: empErr } = await supabase
+    .from('public_employers_directory')
     .select('id, company_name')
     .in('id', employerIds)
+  if (empErr) console.error('employer name lookup failed:', empErr.message)
   for (const e of ((emps ?? []) as EmpRow[])) map.set(e.id, e.company_name)
   return map
 }

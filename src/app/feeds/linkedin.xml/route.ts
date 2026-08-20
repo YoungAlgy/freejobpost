@@ -155,14 +155,19 @@ export async function GET(): Promise<Response> {
   const allJobs = (data ?? []) as unknown as FeedJob[]
   const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
 
+  // 2026-08-20: this read public_employers_directory_all, a relation that does
+  // not exist. The error was swallowed, so the map stayed empty and every job
+  // without its own company_name published under the "Ava Health Partners"
+  // fallback. public_employers_directory covers all the employers involved.
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }
   const employerNameMap = new Map<string, string>()
   if (employerIds.length > 0) {
-    const { data: emps } = await supabase
-      .from('public_employers_directory_all')
+    const { data: emps, error: empErr } = await supabase
+      .from('public_employers_directory')
       .select('id, company_name')
       .in('id', employerIds)
+    if (empErr) console.error('employer name lookup failed:', empErr.message)
     for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
   }
 

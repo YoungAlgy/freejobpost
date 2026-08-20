@@ -175,18 +175,25 @@ export async function GET(req: NextRequest): Promise<Response> {
   const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
 
   // Resolve company names per employer in one batched query.
-  // Reads from public_employers_directory_all (anon-safe, unfiltered view) —
-  // ATS-imported employers need company-name resolution here even though
-  // they're excluded from the verified-badge view; the underlying
+  // Reads public_employers_directory (anon-safe view) — the underlying
   // public_employers table is internal-only because it carries contact PII.
+  //
+  // 2026-08-20: this pointed at public_employers_directory_all, which does not
+  // exist in the database. The error was swallowed, the map came back empty,
+  // and every job without its own company_name fell through to the
+  // "Ava Health Partners" default below — roughly half the live feed going out
+  // to Indeed / Google for Jobs / ZipRecruiter under the wrong company. Every
+  // employer those jobs point at is status='active' and
+  // verified_healthcare_org=true, so the existing directory view covers them.
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }
   const employerNameMap = new Map<string, string>()
   if (employerIds.length > 0) {
-    const { data: emps } = await supabase
-      .from('public_employers_directory_all')
+    const { data: emps, error: empErr } = await supabase
+      .from('public_employers_directory')
       .select('id, company_name')
       .in('id', employerIds)
+    if (empErr) console.error('employer name lookup failed:', empErr.message)
     for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
   }
 
