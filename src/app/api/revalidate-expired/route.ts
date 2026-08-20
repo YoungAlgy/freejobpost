@@ -9,13 +9,24 @@
 // 2026-05-28 ISR cost storm).
 //
 // Trigger: pg_cron (jobname freejob-revalidate-expired) every 4h, offset
-// after the ingest crons. Auth, dual-mode:
-//   - If CRON_SECRET is set in Vercel env: X-Cron-Token must match (the cron
-//     already sends the shared vault token, so setting CRON_SECRET to that
-//     value hardens this with zero cron changes).
-//   - Else: DB-side claim lock (claim_cron_run, 30-min min interval) bounds
-//     any abuse to one cheap pass per half hour. The work itself is harmless
-//     (revalidating public pages) — the lock is about cost, not safety.
+// after the ingest crons. pg_cron always attaches the shared
+// 'drip_scheduler_token' vault secret as the X-Cron-Token header, whether or
+// not CRON_SECRET is configured below -- so both auth modes ultimately check
+// the same secret:
+//   - If CRON_SECRET is set in Vercel env: X-Cron-Token must match it here,
+//     up front, before any DB call.
+//   - Else: the X-Cron-Token header is forwarded as p_token to
+//     claim_cron_run, which independently verifies it against that same
+//     vault secret before ever touching the lock table (2026-08-20
+//     hardening -- previously this RPC checked only job-name shape and the
+//     30-min interval, so anyone holding the public anon key could call
+//     /rest/v1/rpc/claim_cron_run directly and grief the lock, making this
+//     route's own legitimate claim silently no-op). A caller with a missing
+//     or wrong token gets the same "false" a rate-limited caller gets --
+//     this route never distinguishes auth failure from "ran recently" in its
+//     response, so it can't be used as an oracle. One side effect: a manual
+//     GET/POST with no X-Cron-Token header (e.g. hitting the URL directly in
+//     a browser while CRON_SECRET is unset) is now always a no-op skip.
 
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
@@ -43,6 +54,7 @@ async function handle(req: Request): Promise<NextResponse> {
     const { data: claimed, error: claimErr } = await sb.rpc('claim_cron_run', {
       p_job: 'freejob_revalidate_expired',
       p_min_minutes: 30,
+      p_token: req.headers.get('x-cron-token'),
     })
     if (claimErr) {
       console.error('claim_cron_run error:', claimErr.message)
