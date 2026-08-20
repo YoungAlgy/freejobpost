@@ -504,7 +504,7 @@ export default async function StateHubPage(
             <div className="mb-8">
               <ResumeMatchCTA locationLabel={hub.name} />
             </div>
-            <JobAlertCapture defaultState={hub.name} source="state_hub" />
+            <JobAlertCapture defaultState={hub.abbr} source="state_hub" />
           </div>
 
           {/* Other states — internal linking */}

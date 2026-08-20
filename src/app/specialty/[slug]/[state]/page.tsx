@@ -330,7 +330,7 @@ export default async function SpecialtyStateMatrixPage(
             </div>
             <JobAlertCapture
               defaultSpecialty={cleanSpecialtyTitle}
-              defaultState={stateHub.name}
+              defaultState={stateHub.abbr}
               source="specialty_state_matrix"
             />
           </div>

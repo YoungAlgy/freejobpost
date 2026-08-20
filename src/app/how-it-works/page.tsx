@@ -37,8 +37,8 @@ export default function HowItWorksPage() {
           <span className="text-[#003D5C]">No fees, no auction.</span>
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-12">
-          Ava Health is a plain utility. We don&apos;t charge employers, we don&apos;t auction
-          visibility, we don&apos;t sell candidate emails. Here&apos;s how it actually works.
+          Ava Health is a plain utility. We don&apos;t charge employers and we don&apos;t auction
+          visibility. Your candidates&apos; emails aren&apos;t for sale either. Here&apos;s how it actually works.
         </p>
 
         <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">For employers</h2>
@@ -122,7 +122,7 @@ export default function HowItWorksPage() {
         <p className="text-xs text-gray-600 mb-12">
           Every listing gets JobPosting JSON-LD for Google for Jobs, plus our{' '}
           <a href="/jobs.xml" className="underline hover:text-[#003D5C]">public XML/RSS feed</a>{' '}
-          for ZipRecruiter, Adzuna, Jooble, and other aggregators.
+          that aggregators like ZipRecruiter, Adzuna, and Jooble can pick up.
         </p>
 
         <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">Why is this free?</h2>
@@ -133,15 +133,15 @@ export default function HowItWorksPage() {
           monetize because the upstream business already does.
         </p>
         <p className="text-gray-700 leading-relaxed mb-12">
-          We don&apos;t spam your applicants. We don&apos;t cold-recruit your existing staff. We don&apos;t resell
-          your job posts to competing sites. Read our <Link href="/privacy" className="underline hover:text-[#003D5C]">privacy policy</Link> for the specifics.
+          We don&apos;t spam your applicants or cold-recruit your existing staff. We keep your job
+          posts off competing sites too. Read our <Link href="/privacy" className="underline hover:text-[#003D5C]">privacy policy</Link> for the specifics.
         </p>
 
         <h2 className="text-2xl font-black tracking-tight mb-3 text-[#003D5C]">FAQ</h2>
         <div className="space-y-6 mb-12">
           <div>
             <h3 className="font-black mb-1">Is it really free to post a job?</h3>
-            <p className="text-gray-700">Yes. No fees, no credit card, no trial period that quietly converts. We don&apos;t charge employers because the upstream Ava Health recruiting business already monetizes its candidate database. The job board feeds that database.</p>
+            <p className="text-gray-700">Yes. No fees or credit card, and no trial period that quietly converts. We don&apos;t charge employers because the upstream Ava Health recruiting business already monetizes its candidate database. The job board feeds that database.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">How long does a posted job stay live?</h3>
@@ -149,23 +149,23 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">Will my job appear on Indeed and Google for Jobs?</h3>
-            <p className="text-gray-700">Yes. Every job page includes JobPosting structured data that Google for Jobs indexes within hours. Indeed discovers listings through its own organic crawler. No separate submission needed. We also publish a public XML/RSS feed at /jobs.xml used by ZipRecruiter, Adzuna, Jooble, and other aggregators.</p>
+            <p className="text-gray-700">Yes. Every job page includes JobPosting structured data that Google for Jobs indexes within hours. Indeed discovers listings through its own organic crawler. No separate submission needed. We also publish a public XML/RSS feed at /jobs.xml for aggregators like ZipRecruiter, Adzuna, and Jooble to pick up.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">Do you sell my company name or contact info?</h3>
-            <p className="text-gray-700">No. We don&apos;t resell employer data, we don&apos;t cold-pitch your existing staff, and we don&apos;t hand your applicants to competing recruiters. See our privacy policy for the specifics.</p>
+            <p className="text-gray-700">No. We don&apos;t resell employer data or cold-pitch your existing staff. Your applicants don&apos;t go to competing recruiters either. See our privacy policy for the specifics.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">Who can post a job here?</h3>
-            <p className="text-gray-700">US-based healthcare employers: hospitals, private groups, FQHCs, urgent cares, telehealth providers, locum agencies, and pharmacies. We don&apos;t accept third-party staffing-agency reposts or expired roles.</p>
+            <p className="text-gray-700">US-based healthcare employers: hospitals, private groups, FQHCs, urgent cares, telehealth providers, locum agencies, and pharmacies. Agencies can post roles they&apos;re directly filling. We don&apos;t accept jobs scraped or reposted from other boards, or expired roles.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">What roles can I post?</h3>
-            <p className="text-gray-700">All clinical and clinical-adjacent nurse and allied-health roles: NPs, CRNAs, RNs, LPNs, CNAs, therapists (PT, OT, SLP, AuD), pharmacists, and allied health. We don&apos;t accept non-clinical roles (admin, accounting, marketing) at this time.</p>
+            <p className="text-gray-700">All clinical and clinical-adjacent nurse and allied-health roles: NPs, CRNAs, RNs, LPNs, CNAs, therapists (PT, OT, SLP, AuD), pharmacists, and other allied-health roles. We don&apos;t accept non-clinical roles (admin, accounting, marketing) at this time.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">How fast does my job get listed?</h3>
-            <p className="text-gray-700">Instant. Submit the form and it&apos;s live within seconds. Google for Jobs typically indexes new postings within a few hours. Aggregator feeds (ZipRecruiter, Adzuna, Jooble) pick up new listings within a few hours of posting.</p>
+            <p className="text-gray-700">Instant. Submit the form and it&apos;s live within seconds. Google for Jobs typically indexes new postings within a few hours. Our public feed is live for aggregators like ZipRecruiter, Adzuna, and Jooble, and pickup starts once each one accepts it.</p>
           </div>
         </div>
 

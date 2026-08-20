@@ -59,7 +59,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Where does my listing appear besides freejobpost.co?',
-    a: 'Every listing gets JobPosting JSON-LD for Google for Jobs (crawled directly by Google), plus our XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators. Indeed and Glassdoor discover listings through crawl. No separate submission needed. Active feed partners ingest within a few hours of posting.',
+    a: 'Every listing gets JobPosting JSON-LD for Google for Jobs (crawled directly by Google), plus our XML/RSS feeds for ZipRecruiter, Adzuna, Jooble, and other aggregators to pick up. Indeed and Glassdoor discover listings through crawl. No separate submission needed. Each feed partner starts ingesting once they accept our feed. Current status is in the Distribution section above.',
   },
   {
     q: 'Who applies, real people or scraped profiles?',
@@ -75,7 +75,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What roles can I post here?',
-    a: 'Clinical and clinical-adjacent US nurse and allied-health roles: NPs, CRNAs, RNs, LPNs, CNAs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and allied health. Non-clinical roles (admin, accounting, marketing) are out of scope.',
+    a: 'Clinical and clinical-adjacent US nurse and allied-health roles: NPs, CRNAs, RNs, LPNs, CNAs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and other allied-health roles. Non-clinical roles (admin, accounting, marketing) are out of scope.',
   },
   {
     q: 'How does freejobpost.co make money if posting is free?',
@@ -83,7 +83,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Will you cold-recruit my existing staff or sell applicant data?',
-    a: 'No. We don\'t cold-pitch your existing staff, we don\'t resell applicant contact info to third parties, and we don\'t license your job descriptions to competing boards. See our privacy policy for the full breakdown.',
+    a: 'No. We don\'t cold-pitch your existing staff or resell applicant contact info to third parties. Your job descriptions don\'t go to competing boards either. See our privacy policy for the full breakdown.',
   },
 ]
 
@@ -103,8 +103,8 @@ export default function ForEmployersPage() {
             <span className="text-[#7FBC00]">Keep every applicant.</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 max-w-2xl leading-snug mb-10">
-            No sponsored-bid auction. No per-applicant charge. No "unlock this resume"
-            fee. Post a role in 60 seconds and applicants hit your inbox directly.
+            No sponsored-bid auction and no per-applicant charge. No "unlock this resume" fee
+            either. Post a role in 60 seconds and applicants hit your inbox directly.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
@@ -301,9 +301,9 @@ export default function ForEmployersPage() {
               candidates to apply.
             </p>
             <p>
-              We don&apos;t cold-recruit your existing staff. We don&apos;t resell your applicants to
-              competing recruiters. We don&apos;t pitch every candidate we touch on working with us
-              exclusively. The incentives are clean.
+              We don&apos;t cold-recruit your existing staff or resell your applicants to competing
+              recruiters. We don&apos;t pitch every candidate we touch on working with us exclusively
+              either. The incentives are clean.
             </p>
           </div>
         </div>
@@ -336,7 +336,7 @@ export default function ForEmployersPage() {
             <span className="text-[#7FBC00]">60 seconds. $0.</span>
           </p>
           <p className="text-lg text-gray-300 max-w-xl mx-auto mb-10">
-            No account setup. No credit card. No sales call. Just fill the form and you&apos;re live.
+            No account setup and no credit card. Nobody calls you. Just fill the form and you&apos;re live.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
