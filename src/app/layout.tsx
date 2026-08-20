@@ -111,7 +111,7 @@ export default function RootLayout({
                 websiteDescription:
                   'Ava Health — free healthcare job board. Post jobs free. Apply free. No auction fees.',
                 organizationDescription:
-                  'Healthcare staffing and recruiting firm connecting physicians, nurses, and therapists with US healthcare employers. Operates a free healthcare job board with no posting fees and no auction pricing.',
+                  'Healthcare staffing and recruiting firm connecting nurses and allied health professionals with US healthcare employers. Operates a free healthcare job board with no posting fees and no auction pricing.',
                 searchActionTarget: 'https://freejobpost.co/jobs?q={search_term_string}',
                 additionalSameAs: ['https://www.linkedin.com/company/freejobpost/'],
               })
@@ -150,11 +150,11 @@ export default function RootLayout({
             <span className="text-gray-300">·</span>
             <Link href="/specialty/nurse-practitioner" className="hover:text-gray-900">NP jobs</Link>
             <span className="text-gray-300">·</span>
-            <Link href="/specialty/physician-assistant" className="hover:text-gray-900">PA jobs</Link>
+            <Link href="/specialty/crna" className="hover:text-gray-900">CRNA jobs</Link>
             <span className="text-gray-300">·</span>
-            <Link href="/specialty/family-medicine" className="hover:text-gray-900">Family medicine</Link>
+            <Link href="/specialty/lpn" className="hover:text-gray-900">LPN jobs</Link>
             <span className="text-gray-300">·</span>
-            <Link href="/specialty/cardiology" className="hover:text-gray-900">Cardiology</Link>
+            <Link href="/specialty/physical-therapy" className="hover:text-gray-900">Physical therapy</Link>
             <span className="text-gray-300">·</span>
             <Link href="/state/florida" className="hover:text-gray-900">Florida</Link>
             <span className="text-gray-300">·</span>

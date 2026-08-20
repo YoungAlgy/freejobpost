@@ -268,7 +268,7 @@ export default function PostJobForm() {
               type="text"
               value={values.title}
               onChange={(e) => update('title', e.target.value)}
-              placeholder="e.g. Family Medicine Physician, Tampa, FL"
+              placeholder="e.g. ICU Registered Nurse, Tampa, FL"
               maxLength={200}
               className={fieldStyle}
             />
@@ -278,7 +278,7 @@ export default function PostJobForm() {
               type="text"
               value={values.role}
               onChange={(e) => update('role', e.target.value)}
-              placeholder="Physician, RN, Therapist, Medical Assistant…"
+              placeholder="RN, NP, Therapist, Medical Assistant…"
               maxLength={100}
               className={fieldStyle}
             />

@@ -161,7 +161,7 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">What roles can I post?</h3>
-            <p className="text-gray-700">All clinical and clinical-adjacent healthcare roles: physicians, NPs, PAs, RNs, CRNAs, therapists (PT, OT, SLP, AuD), pharmacists, and allied health. We don&apos;t accept non-clinical roles (admin, accounting, marketing) at this time.</p>
+            <p className="text-gray-700">All clinical and clinical-adjacent nurse and allied-health roles: NPs, CRNAs, RNs, LPNs, CNAs, therapists (PT, OT, SLP, AuD), pharmacists, and allied health. We don&apos;t accept non-clinical roles (admin, accounting, marketing) at this time.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">How fast does my job get listed?</h3>

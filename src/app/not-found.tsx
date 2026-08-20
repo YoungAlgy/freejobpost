@@ -47,10 +47,10 @@ export default function NotFound() {
             { label: 'Florida jobs', href: '/state/florida' },
             { label: 'Texas jobs', href: '/state/texas' },
             { label: 'California jobs', href: '/state/california' },
-            { label: 'Family medicine', href: '/specialty/family-medicine' },
-            { label: 'Psychiatry', href: '/specialty/psychiatry' },
             { label: 'RN', href: '/specialty/registered-nurse' },
-            { label: 'Cardiology', href: '/specialty/cardiology' },
+            { label: 'NP', href: '/specialty/nurse-practitioner' },
+            { label: 'CRNA', href: '/specialty/crna' },
+            { label: 'Physical therapy', href: '/specialty/physical-therapy' },
             { label: 'How it works', href: '/how-it-works' },
           ].map((link) => (
             <Link

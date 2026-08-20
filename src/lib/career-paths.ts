@@ -126,40 +126,6 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     oneLiner: 'RN → MSN/DNP (FNP/AGNP/PMHNP/etc.) → national cert + state APRN license.',
   },
   {
-    slug: 'physician-assistant',
-    title: 'How to become a Physician Assistant (PA)',
-    abbreviation: 'PA',
-    metaDescription:
-      'How to become a Physician Assistant: undergrad → PA school (2-3 years) → PANCE + state license. Open PA jobs on freejobpost.co.',
-    lede:
-      'Physician Assistants (PAs, or in some states PAs are now formally Physician Associates) are licensed clinicians who diagnose, treat, and prescribe. The American Academy of Physician Associates reports about 178,000 PAs in clinical practice.',
-    sections: [
-      {
-        heading: 'Pre-PA prerequisites',
-        body:
-          'PA programs require a bachelor\'s degree + a defined set of prereq courses (general biology, anatomy + physiology, microbiology, organic chemistry, biochemistry, psychology, statistics) and most also require documented direct patient-care experience, commonly EMT/paramedic, medical assistant, scribe, or CNA roles totaling 1,000-3,000 hours.',
-      },
-      {
-        heading: 'PA school',
-        body:
-          'Programs are typically 24-27 months (some run 36 months) and award a Master\'s degree (MSPAS, MMS, or similar). The first year is didactic (basic + clinical sciences); the second year is rotational, covering family medicine, internal medicine, pediatrics, surgery, OB-GYN, emergency, psychiatry, and elective rotations. Admissions are competitive, recent cycle data from the PAEA shows acceptance rates around 20-30%.',
-      },
-      {
-        heading: 'Certification + licensing',
-        body:
-          'Graduates sit for the Physician Assistant National Certifying Exam (PANCE), administered by NCCPA. Pass = the PA-C credential (Certified). State licensure is administered separately through each state\'s medical or PA board. PAs maintain certification through CME and a recertification exam (PANRE) every 10 years.',
-      },
-      {
-        heading: 'Practice + collaboration',
-        body:
-          'PAs practice in a team-based model with a collaborating physician. Practice agreements vary by state, some states have moved toward Optimal Team Practice with reduced administrative oversight, others retain prescriptive supervision requirements. PAs work across every specialty: about a third in surgical subspecialties, with the rest spread across primary care, emergency medicine, hospital medicine, and various medical specialties.',
-      },
-    ],
-    specialtySlug: 'physician-assistant',
-    specialtyLabel: 'Physician Assistant jobs',
-    oneLiner: 'Bachelor\'s + 1-3k clinical hours → PA school (~27 mo) → PANCE + state license.',
-  },
-  {
     slug: 'crna',
     title: 'How to become a Certified Registered Nurse Anesthetist (CRNA)',
     abbreviation: 'CRNA',

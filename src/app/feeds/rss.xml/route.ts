@@ -108,7 +108,7 @@ export async function GET(): Promise<Response> {
     <title>freejobpost.co | Healthcare jobs</title>
     <link>https://freejobpost.co</link>
     <atom:link href="https://freejobpost.co/feeds/rss.xml" rel="self" type="application/rss+xml" />
-    <description>Open healthcare roles posted on freejobpost.co: physicians, nurses, therapists, and allied health. Updated hourly.</description>
+    <description>Open healthcare roles posted on freejobpost.co: nurses, therapists, and allied health. Updated hourly.</description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
     <ttl>60</ttl>

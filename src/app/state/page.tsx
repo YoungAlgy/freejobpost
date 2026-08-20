@@ -39,7 +39,7 @@ export default function StateIndexPage() {
           Healthcare jobs by state
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-          Pick a state to see every active opening in that market. Each hub aggregates physician, APP, nursing, and allied-health postings across every role type.
+          Pick a state to see every active opening in that market. Each hub aggregates nursing and allied-health postings across every role type.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

@@ -369,7 +369,7 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2 text-[#003D5C]">What healthcare roles can I post?</h3>
-              <p className="text-gray-700 leading-relaxed">Physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US healthcare staffing. Non-healthcare roles are out of scope.</p>
+              <p className="text-gray-700 leading-relaxed">NPs, CRNAs, RNs, LPNs, CNAs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and most allied roles. We focus on US nurse and allied-health staffing. Non-healthcare roles are out of scope.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2 text-[#003D5C]">How do candidates find my job?</h3>

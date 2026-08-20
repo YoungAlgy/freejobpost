@@ -8,7 +8,7 @@ import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Healthcare jobs by specialty',
-  description: 'Healthcare jobs organized by specialty: cardiology, ortho, hospitalist, EM, anesth, derm, GI, peds, OBGYN, CRNA, NP, PA, RN. Free to browse + apply.',
+  description: 'Nurse and allied-health jobs organized by specialty: RN, NP, CRNA, LPN, CNA, PT, OT, SLP, respiratory therapy, and more. Free to browse + apply.',
   alternates: { canonical: 'https://freejobpost.co/specialty' },
   openGraph: {
     title: 'Healthcare jobs by specialty | freejobpost.co',
@@ -39,7 +39,7 @@ export default function SpecialtyIndexPage() {
           Healthcare jobs by specialty
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-          Pick a specialty to see every active opening for that role on Ava Health. Each hub aggregates physician + APP + nursing + allied-health postings in one place.
+          Pick a specialty to see every active opening for that role on Ava Health. Each hub aggregates nursing and allied-health postings in one place.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

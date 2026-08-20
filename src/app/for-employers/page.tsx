@@ -6,7 +6,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
   title: 'Post healthcare jobs free. No auction, no per-applicant fees',
   description:
-    'Free healthcare job posting for hospitals, clinics, and staffing firms. Post RN, MD, NP, PA, PT roles in 60 seconds. No auction, no per-applicant fees.',
+    'Free healthcare job posting for hospitals, clinics, and staffing firms. Post RN, NP, CRNA, PT roles in 60 seconds. No auction, no per-applicant fees.',
   alternates: { canonical: 'https://freejobpost.co/for-employers' },
   openGraph: {
     title: 'Post healthcare jobs free | freejobpost.co',
@@ -32,12 +32,7 @@ const COST_ROWS = [
     freejobpost: '$0',
   },
   {
-    label: 'Physician (MD/DO)',
-    indeed: '$800-$2,500+ avg cost per hire',
-    freejobpost: '$0',
-  },
-  {
-    label: 'NP / PA',
+    label: 'NP / CRNA',
     indeed: '$500-$1,200 avg cost per hire',
     freejobpost: '$0',
   },
@@ -80,7 +75,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What roles can I post here?',
-    a: 'Clinical and clinical-adjacent US healthcare roles: physicians, NPs, PAs, RNs, CRNAs, LPNs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and allied health. Non-clinical roles (admin, accounting, marketing) are out of scope.',
+    a: 'Clinical and clinical-adjacent US nurse and allied-health roles: NPs, CRNAs, RNs, LPNs, CNAs, therapists (PT/OT/SLP/AuD), pharmacists, MAs, lab techs, sonographers, paramedics, and allied health. Non-clinical roles (admin, accounting, marketing) are out of scope.',
   },
   {
     q: 'How does freejobpost.co make money if posting is free?',

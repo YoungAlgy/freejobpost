@@ -36,7 +36,6 @@ const BRIDGED_SPECIALTY_SLUGS = new Set([
   'crna',
   'nurse-practitioner',
   'pharmacist',
-  'physician-assistant',
 ])
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — listing pages only

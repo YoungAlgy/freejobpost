@@ -6,7 +6,7 @@
 // active roles across multiple cities. With 99% seeded inventory, many
 // state hubs render with 0 or 1 job, but the static meta still claims
 // "Free Florida healthcare jobs — Tampa, Miami, Jacksonville, Orlando,
-// Naples. Physician, NP, PA, RN, CRNA roles..." That's an over-claim
+// Naples. NP, CRNA, RN, and allied health roles..." That's an over-claim
 // aggregator QA reviewers (Adzuna, Indeed) flag for "page content doesn't
 // match meta".
 //

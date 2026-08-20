@@ -70,7 +70,7 @@ export async function generateMetadata(
   const title = `${hub.name} healthcare jobs, page ${page}`
   const description =
     `Page ${page} of open ${hub.name} healthcare jobs on freejobpost.co. ` +
-    `Physician, NP, PA, RN, CRNA, and allied roles with real apply links. ` +
+    `NP, CRNA, RN, and allied health roles with real apply links. ` +
     `Free to browse, free to apply, no recruiter spam.`
   return {
     title,
