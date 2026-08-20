@@ -44,12 +44,55 @@ export async function getViableCityCellsCached(
   _supabase?: SupabaseClient,
 ): Promise<CityMatrixCell[]> {
   void _supabase // call-site compat; the cached scan uses the shared module client
-  return getOrComputeCached(
+  const cached = await getOrComputeCached(
     _moduleSupabase,
     CITY_MATRIX_CACHE_KEY,
     CITY_MATRIX_CACHE_TTL_SECONDS,
     _computeViableCityCellsUncached,
   )
+  return rehydrateCityCells(cached)
+}
+
+/**
+ * Re-resolve every cached cell against the in-memory hub constants and drop
+ * anything that doesn't match. Same contract as specialty-state-matrix.ts's
+ * hydrateCells(), and it exists for the same two reasons plus one more:
+ *
+ *  1. A cached payload written before a deploy that renamed or removed a
+ *     city/specialty hub stays safe to serve.
+ *  2. The value round-trips through jsonb, so a legacy or corrupt row can be
+ *     any JSON shape. Treat anything unexpected as a miss rather than
+ *     throwing inside a page render.
+ *  3. The cache row is anon-writable. `set_matrix_cache` is a SECURITY
+ *     DEFINER function with EXECUTE granted to `anon` (it has to be: the
+ *     server renders with the public anon key), and it only checks that the
+ *     value is a JSON array of objects under 1 MiB. It does NOT check what
+ *     is in those objects. So anyone holding the publishable anon key can
+ *     overwrite this row with arbitrary {city, specialty, count} objects.
+ *     Those flow straight into sitemap.xml URLs and generateStaticParams.
+ *     Re-resolving by slug here means an attacker can at worst drop cells or
+ *     lie about a count for one TTL window, never inject a slug or a URL.
+ *     The specialty matrix already had this guard. City and federal did not.
+ */
+function rehydrateCityCells(rows: unknown): CityMatrixCell[] {
+  if (!Array.isArray(rows)) return []
+
+  const cityBySlug = new Map<string, CityHub>(CITY_HUBS.map((c) => [c.slug, c]))
+  const specialtyBySlug = new Map<string, SpecialtyHub>(SPECIALTY_HUBS.map((s) => [s.slug, s]))
+
+  return rows
+    .map((row) => {
+      const cell = row as { city?: { slug?: unknown }; specialty?: { slug?: unknown }; count?: unknown }
+      const citySlug = cell?.city?.slug
+      const specialtySlug = cell?.specialty?.slug
+      if (typeof citySlug !== 'string' || typeof specialtySlug !== 'string') return null
+      const city = cityBySlug.get(citySlug)
+      const specialty = specialtyBySlug.get(specialtySlug)
+      if (!city || !specialty) return null
+      const count = typeof cell.count === 'number' && Number.isFinite(cell.count) ? cell.count : 0
+      return { city, specialty, count }
+    })
+    .filter((c): c is CityMatrixCell => c !== null)
 }
 
 // 🔴 2026-08-13 — same fix, same reasoning as specialty-state-matrix.ts's

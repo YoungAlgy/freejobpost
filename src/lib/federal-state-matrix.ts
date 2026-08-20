@@ -48,12 +48,48 @@ export async function getViableFederalCellsCached(
   _supabase?: SupabaseClient,
 ): Promise<FederalMatrixCell[]> {
   void _supabase // call-site compat; the cached scan uses the shared module client
-  return getOrComputeCached(
+  const cached = await getOrComputeCached(
     _moduleSupabase,
     FEDERAL_MATRIX_CACHE_KEY,
     FEDERAL_MATRIX_CACHE_TTL_SECONDS,
     _computeViableFederalCellsUncached,
   )
+  return rehydrateFederalCells(cached)
+}
+
+/**
+ * Re-resolve every cached cell against the in-memory hub constants and drop
+ * anything that doesn't match. Same contract and same reasoning as
+ * specialty-state-matrix.ts's hydrateCells() and city-specialty-matrix.ts's
+ * rehydrateCityCells() -- see the latter for the full note.
+ *
+ * Short version: `set_matrix_cache` is SECURITY DEFINER with EXECUTE granted
+ * to `anon`, and it validates only that the value is a JSON array of objects
+ * under 1 MiB, never what is inside those objects. Anyone with the publishable
+ * anon key can overwrite this row. Its contents feed sitemap.xml URLs
+ * (sitemap-chunks.ts builds `/jobs/federal/${c.agency.slug}/${c.state.slug}`
+ * straight from it) and generateStaticParams. Re-resolving by slug caps the
+ * damage at dropped cells or a wrong count for one TTL window.
+ */
+function rehydrateFederalCells(rows: unknown): FederalMatrixCell[] {
+  if (!Array.isArray(rows)) return []
+
+  const agencyBySlug = new Map<string, FederalAgency>(FEDERAL_AGENCIES.map((a) => [a.slug, a]))
+  const stateBySlug = new Map<string, StateHub>(STATE_HUBS.map((s) => [s.slug, s]))
+
+  return rows
+    .map((row) => {
+      const cell = row as { agency?: { slug?: unknown }; state?: { slug?: unknown }; count?: unknown }
+      const agencySlug = cell?.agency?.slug
+      const stateSlug = cell?.state?.slug
+      if (typeof agencySlug !== 'string' || typeof stateSlug !== 'string') return null
+      const agency = agencyBySlug.get(agencySlug)
+      const state = stateBySlug.get(stateSlug)
+      if (!agency || !state) return null
+      const count = typeof cell.count === 'number' && Number.isFinite(cell.count) ? cell.count : 0
+      return { agency, state, count }
+    })
+    .filter((c): c is FederalMatrixCell => c !== null)
 }
 
 /**

@@ -118,12 +118,23 @@ export async function submitPostJob(
         over_quota: boolean
         active_count: number | null
         quota: number | null
-        tier: string | null
+        error?: string
+      }
+      // The helper returns over_quota=true with null counts in two different
+      // cases, so check the reason before reading the numbers:
+      //  - error='rate_limited' means too many quota calls for this email in
+      //    a minute. Block it, otherwise the rate limiter does nothing.
+      //  - pro/enterprise tier is uncapped, counts are null on purpose. Allow.
+      if (quota.error === 'rate_limited') {
+        return {
+          success: false,
+          error: 'Too many posts from this email in a row. Wait a minute and try again.',
+        }
       }
       if (quota.over_quota && quota.active_count != null && quota.quota != null) {
         return {
           success: false,
-          error: `You're at ${quota.active_count} of ${quota.quota} active posts on the free tier. Archive one before posting another, or email info@avahealth.co and we'll uncap your account.`,
+          error: `You're at ${quota.active_count} of ${quota.quota} active posts on your plan. Archive one before posting another, or email info@avahealth.co and we'll uncap your account.`,
         }
       }
     }
