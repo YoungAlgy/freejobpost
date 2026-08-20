@@ -210,7 +210,7 @@ serve(async (req: Request) => {
     if (subErr) throw new Error(`subscribers query: ${subErr.message}`);
 
     let processed = 0, sent = 0, skipped_no_match = 0, skipped_claimed = 0;
-    const errors: Array<{ email: string; error: string }> = [];
+    const errors: Array<{ id: string; email: string; error: string }> = [];
 
     for (const sub of (subs ?? []) as Subscriber[]) {
       processed++;
@@ -228,7 +228,7 @@ serve(async (req: Request) => {
         .or(`last_alert_sent_at.is.null,last_alert_sent_at.lt.${sevenDaysAgo}`)
         .select("id");
       if (claim.error) {
-        errors.push({ email: sub.email, error: `claim: ${claim.error.message}` });
+        errors.push({ id: sub.id, email: sub.email, error: `claim: ${claim.error.message}` });
         continue;
       }
       if (!claim.data || claim.data.length === 0) {
@@ -292,7 +292,7 @@ serve(async (req: Request) => {
             });
             if (ins.error) console.error("email_sends insert:", ins.error.message);
           } else {
-            errors.push({ email: sub.email, error: JSON.stringify(rdata).slice(0, 200) });
+            errors.push({ id: sub.id, email: sub.email, error: JSON.stringify(rdata).slice(0, 200) });
           }
         } else {
           skipped_no_match++;
@@ -302,7 +302,7 @@ serve(async (req: Request) => {
         // iteration (claim-then-send, #10) — keeps the per-subscriber weekly cadence
         // and moves the next run's window forward even on a quiet (no-match) week.
       } catch (err) {
-        errors.push({ email: sub.email, error: err instanceof Error ? err.message : "unknown" });
+        errors.push({ id: sub.id, email: sub.email, error: err instanceof Error ? err.message : "unknown" });
       }
     }
 
@@ -313,9 +313,13 @@ serve(async (req: Request) => {
     // is not.
     const attempted = sent + errors.length;
     if (sent === 0 && attempted > 0) {
+      // PII: subscriber id, not raw email, in the outbound webhook body — see
+      // the same fix + note on apply-notify's alertOpsViaWebhook calls above.
+      // (The JSON response below still carries email for the DB-internal
+      // pg_cron net._http_response record, which isn't a third-party egress.)
       await alertOpsViaWebhook(
         `job-alert-digest: every send failed this run`,
-        `${attempted} subscriber(s) had matching jobs and a send was attempted; 0 succeeded.\n\nFirst few errors:\n${errors.slice(0, 5).map((e) => `${e.email}: ${e.error}`).join("\n")}\n\nThis cron ran "successfully" (200 ok:true) per cron_health_check, since individual send failures don't fail the job — this alert exists because that would otherwise make a full Resend outage invisible.`,
+        `${attempted} subscriber(s) had matching jobs and a send was attempted; 0 succeeded.\n\nFirst few errors:\n${errors.slice(0, 5).map((e) => `${e.id}: ${e.error}`).join("\n")}\n\nThis cron ran "successfully" (200 ok:true) per cron_health_check, since individual send failures don't fail the job — this alert exists because that would otherwise make a full Resend outage invisible.`,
       );
     }
 

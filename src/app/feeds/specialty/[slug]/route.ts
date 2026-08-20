@@ -105,6 +105,10 @@ export async function GET(
     })
     .join('\n')
 
+  // <ttl> is minutes-until-recommended-repoll per the RSS 2.0 spec. Was 15
+  // (stale from before the 2026-05-28 cost pass moved every feed's real
+  // Cache-Control to s-maxage=21600 = 6h) — same drift as the /feeds page
+  // copy that promised "15 minutes" while every route served 6h.
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0"
      xmlns:atom="http://www.w3.org/2005/Atom"
@@ -116,7 +120,7 @@ export async function GET(
     <description>${escapeXml(hub.shortDescription)}</description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
-    <ttl>15</ttl>
+    <ttl>360</ttl>
 ${items}
   </channel>
 </rss>`

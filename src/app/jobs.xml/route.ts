@@ -58,6 +58,19 @@ import {
   MIN_DESCRIPTION_CHARS,
 } from '@/lib/feed-builders'
 
+// HARD BYTE BUDGET (2026-08-20): every other Indeed-format feed gets this cap
+// via buildIndeedFormatFeed()'s MAX_FEED_BYTES (feed-builders.ts) — jobs.xml
+// reimplements the job loop inline instead of calling that shared builder (it
+// needs a dynamic per-request ?ref=<partner> URL suffix that the shared
+// builder's per-target jobUrlWithUtm() doesn't support) and so never got the
+// cap. This is the one heavy feed still on ISR (see `revalidate` below, NOT
+// force-dynamic), so an oversized render fails the production build outright
+// at Vercel's 19.07MB FALLBACK_BODY_TOO_LARGE limit — the same incident class
+// MAX_FEED_BYTES exists to prevent. Same 16MB figure as the shared builder:
+// 3MB headroom under the limit for the XML wrapper + future per-row growth.
+// Jobs are ordered updated_at DESC, so we keep the freshest and drop the tail.
+const MAX_FEED_BYTES = 16_000_000
+
 // Refresh every 6 hours. This is the heaviest feed (12-batch query +
 // ~35MB serialization per regen), and its consumers re-crawl on their own
 // far-slower schedules: Indeed ~4h, Google for Jobs ~24h, the rest daily+.
@@ -202,17 +215,22 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const now = rfc822(new Date())
 
-  const jobsXml = jobs
-    .map((job) => {
-      const loc = locationLabel(job)
-      const sal = formatSalary(job.salary_min, job.salary_max)
-      const title = job.title || job.role || 'Healthcare Role'
-      const posted = job.created_at ? iso8601DateTime(new Date(job.created_at)) : iso8601DateTime(new Date())
-      const validThrough = job.expires_at
-        ? iso8601Date(new Date(job.expires_at))
-        : iso8601Date(new Date(Date.now() + 60 * 86400_000))
-      const employerName = job.company_name || employerNameMap.get(job.employer_id) || 'Ava Health Partners'
-      return `  <job>
+  // Cap-and-break loop (see MAX_FEED_BYTES note above), mirroring
+  // buildIndeedFormatFeed's byte-budget logic. jobs is already ordered
+  // updated_at DESC, id DESC, so a break here always sheds the oldest tail.
+  const rows: string[] = []
+  let feedBytes = 0
+  let included = 0
+  for (const job of jobs) {
+    const loc = locationLabel(job)
+    const sal = formatSalary(job.salary_min, job.salary_max)
+    const title = job.title || job.role || 'Healthcare Role'
+    const posted = job.created_at ? iso8601DateTime(new Date(job.created_at)) : iso8601DateTime(new Date())
+    const validThrough = job.expires_at
+      ? iso8601Date(new Date(job.expires_at))
+      : iso8601Date(new Date(Date.now() + 60 * 86400_000))
+    const employerName = job.company_name || employerNameMap.get(job.employer_id) || 'Ava Health Partners'
+    const row = `  <job>
     <title>${cdata(title)}</title>
     <date>${cdata(posted)}</date>
     <expirationdate>${cdata(validThrough)}</expirationdate>
@@ -237,15 +255,24 @@ export async function GET(req: NextRequest): Promise<Response> {
     )}</remotetype>
     <location>${cdata(loc)}</location>
   </job>`
-    })
-    .join('\n')
+    feedBytes += Buffer.byteLength(row, 'utf8')
+    if (feedBytes > MAX_FEED_BYTES) {
+      console.warn(
+        `jobs.xml: byte budget hit — serialized ${included}/${jobs.length} jobs (~${Math.round(feedBytes / 1_000_000)}MB)`,
+      )
+      break
+    }
+    rows.push(row)
+    included++
+  }
+  const jobsXml = rows.join('\n')
 
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <source>
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>Free healthcare job feed. Operated by Ava Health Partners LLC. ${jobs.length} open positions.</description>
+  <description>Free healthcare job feed. Operated by Ava Health Partners LLC. ${included} open positions.</description>
 ${jobsXml}
 </source>`
 

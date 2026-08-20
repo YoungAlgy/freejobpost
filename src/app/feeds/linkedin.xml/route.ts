@@ -27,8 +27,23 @@ import {
   locationLabel,
   usableSalary,
 } from '@/lib/public-jobs'
-import { jobUrlWithUtm, hasUsableDescription, cdata, MIN_DESCRIPTION_CHARS } from '@/lib/feed-builders'
+import {
+  jobUrlWithUtm,
+  hasUsableDescription,
+  cdata,
+  descriptionHtml,
+  MIN_DESCRIPTION_CHARS,
+} from '@/lib/feed-builders'
 import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
+
+// HARD BYTE BUDGET (2026-08-20): every Indeed-format feed gets this via
+// buildIndeedFormatFeed()'s MAX_FEED_BYTES (feed-builders.ts) — linkedin.xml
+// predates that shared builder and never got wired to it (different field
+// names/date format/jobtype casing than the Indeed spec). It also used to
+// define its own local descriptionHtml() that skipped truncateForFeed()
+// entirely, shipping full unbounded descriptions; now imports the shared,
+// truncated one below. Same 16MB figure as the shared builder.
+const MAX_FEED_BYTES = 16_000_000
 
 // force-dynamic (2026-07-09): this feed runs its own ~60 batched Supabase
 // queries inline and serializes multi-MB XML. Prerendering it at build time
@@ -67,19 +82,10 @@ function linkedinSalary(minRaw: number | null, maxRaw: number | null): string {
   return `USD ${lo.toFixed(2)} ${hi.toFixed(2)} YEAR`
 }
 
-function descriptionHtml(job: PublicJob): string {
-  const src = (job.description ?? '')
-  const blocks = src.split(/\n\n+/).map((b) => {
-    const html = b
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br/>')
-    return `<p>${html}</p>`
-  })
-  return blocks.join('')
-}
+// descriptionHtml is imported from @/lib/feed-builders (shared helper, caps
+// each description at FEED_DESCRIPTION_MAX_CHARS via truncateForFeed — see
+// the MAX_FEED_BYTES note above for why this route used to have its own
+// unbounded local copy).
 
 // LinkedIn wants ISO 8601 (yyyy-mm-dd). Use UTC date so feed is deterministic.
 function iso8601Date(d: Date): string {
@@ -173,15 +179,20 @@ export async function GET(): Promise<Response> {
 
   const now = new Date().toUTCString()
 
-  const jobsXml = jobs
-    .map((job) => {
-      const loc = locationLabel(job)
-      const title = job.title || job.role || 'Healthcare Role'
-      const validThrough = job.expires_at
-        ? iso8601Date(new Date(job.expires_at))
-        : iso8601Date(new Date(Date.now() + 60 * 86400_000))
-      const employerName = employerNameMap.get(job.employer_id) || 'Ava Health Partners'
-      return `  <job>
+  // Cap-and-break loop (see MAX_FEED_BYTES note above). jobs is already
+  // ordered updated_at DESC, id DESC, so a break here always sheds the
+  // oldest tail, same pattern as jobs.xml and buildIndeedFormatFeed.
+  const rows: string[] = []
+  let feedBytes = 0
+  let included = 0
+  for (const job of jobs) {
+    const loc = locationLabel(job)
+    const title = job.title || job.role || 'Healthcare Role'
+    const validThrough = job.expires_at
+      ? iso8601Date(new Date(job.expires_at))
+      : iso8601Date(new Date(Date.now() + 60 * 86400_000))
+    const employerName = employerNameMap.get(job.employer_id) || 'Ava Health Partners'
+    const row = `  <job>
     <partnerJobId>${cdata(job.slug)}</partnerJobId>
     <company>${cdata(employerName)}</company>
     <title>${cdata(title)}</title>
@@ -197,15 +208,24 @@ export async function GET(): Promise<Response> {
     <salary>${cdata(linkedinSalary(job.salary_min, job.salary_max))}</salary>
     <category>${cdata(job.specialty ?? job.role ?? 'Healthcare')}</category>
   </job>`
-    })
-    .join('\n')
+    feedBytes += Buffer.byteLength(row, 'utf8')
+    if (feedBytes > MAX_FEED_BYTES) {
+      console.warn(
+        `linkedin.xml: byte budget hit — serialized ${included}/${jobs.length} jobs (~${Math.round(feedBytes / 1_000_000)}MB)`,
+      )
+      break
+    }
+    rows.push(row)
+    included++
+  }
+  const jobsXml = rows.join('\n')
 
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <source>
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>Free healthcare job feed, LinkedIn Job Wrapping spec. Operated by Ava Health Partners LLC. ${jobs.length} open positions.</description>
+  <description>Free healthcare job feed, LinkedIn Job Wrapping spec. Operated by Ava Health Partners LLC. ${included} open positions.</description>
 ${jobsXml}
 </source>`
 

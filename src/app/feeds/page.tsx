@@ -20,7 +20,7 @@ export default function FeedsPage() {
         <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#003D5C]">Job feeds.</h1>
         <p className="text-gray-700 mb-3 max-w-2xl">
           Public XML / RSS feeds you can pull to syndicate our healthcare jobs. All feeds are
-          open, no auth required, refreshed every 15 minutes.
+          open, no auth required, refreshed every 6 hours.
         </p>
         <p className="text-gray-700 mb-10 max-w-2xl">
           Each posted job has per-network opt-in checkboxes. You only see jobs the recruiter
@@ -104,7 +104,7 @@ export default function FeedsPage() {
           <ul className="text-sm text-gray-700 space-y-1 list-disc pl-5">
             <li>All listings link back to <code>freejobpost.co/jobs/[slug]</code> with full job description and apply form.</li>
             <li>Salary fields are present where the employer chose to disclose them.</li>
-            <li>Expired/removed jobs are dropped from the feed within 15 minutes (next ISR cycle).</li>
+            <li>Expired/removed jobs are dropped from the feed within 6 hours (next cache cycle).</li>
             <li>Each feed only lists jobs whose recruiter opted into that specific network. Empty feed is normal if no recruiter has opted in to your network yet.</li>
             <li>No duplicates across feeds. Each job appears once per network with a stable <code>slug</code> reference.</li>
           </ul>

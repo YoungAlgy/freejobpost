@@ -421,9 +421,15 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
       sentResults.push({ to: employerEmail, ok: empSendResult.ok });
       if (!empSendResult.ok) {
         console.error("employer notify failed:", empSendResult.status, empSendResult.error.slice(0, 200));
+        // PII: don't put raw employer/candidate email or name in an outbound
+        // webhook body (Discord/Slack, a third party outside our DB's RLS).
+        // application_id + candidate_id are enough for ops to look the
+        // record up in email_sends (written just below) without leaking PII
+        // to that channel. Same class of bug already fixed in book-interview
+        // and post-job-verify (2026-08 rounds) — this route just wasn't swept.
         await alertOpsViaWebhook(
           `apply-notify: employer notification failed`,
-          `Employer: ${employerEmail}\nCandidate: ${candidateName}\nJob: ${job.title}\nResend error: ${empSendResult.status} ${empSendResult.error.slice(0, 300)}\n\nThe employer never got notified of this applicant. Not covered by cron_health_check since this is invoked via fetch, not pg_cron.`,
+          `application_id: ${application_id}\ncandidate_id: ${candidate.id}\nJob: ${job.title}\nResend error: ${empSendResult.status} ${empSendResult.error.slice(0, 300)}\n\nThe employer never got notified of this applicant. Not covered by cron_health_check since this is invoked via fetch, not pg_cron.`,
         );
       }
 
@@ -490,9 +496,11 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
     sentResults.push({ to: candidate.email, ok: candSendResult.ok });
     if (!candSendResult.ok) {
       console.error("candidate notify failed:", candSendResult.status, candSendResult.error.slice(0, 200));
+      // PII: see the note on the employer-notify webhook above — no raw
+      // email/name into the outbound webhook body.
       await alertOpsViaWebhook(
         `apply-notify: candidate confirmation failed`,
-        `Candidate: ${candidateName}\nEmail: ${candidate.email}\nJob: ${job.title}\nResend error: ${candSendResult.status} ${candSendResult.error.slice(0, 300)}\n\nThe candidate never got their application-confirmation email. Not covered by cron_health_check since this is invoked via fetch, not pg_cron.`,
+        `application_id: ${application_id}\ncandidate_id: ${candidate.id}\nJob: ${job.title}\nResend error: ${candSendResult.status} ${candSendResult.error.slice(0, 300)}\n\nThe candidate never got their application-confirmation email. Not covered by cron_health_check since this is invoked via fetch, not pg_cron.`,
       );
     }
 

@@ -100,6 +100,10 @@ export async function GET(): Promise<Response> {
     })
     .join('\n')
 
+  // <ttl> is minutes-until-recommended-repoll per the RSS 2.0 spec. Was 60
+  // (stale from before the 2026-05-28 cost pass moved every feed's real
+  // Cache-Control to s-maxage=21600 = 6h) — RSS readers polling on the old
+  // 60-minute hint hit the same unchanged CDN response 5 times out of 6.
   const xml = `<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0"
      xmlns:atom="http://www.w3.org/2005/Atom"
@@ -111,7 +115,7 @@ export async function GET(): Promise<Response> {
     <description>Open healthcare roles posted on freejobpost.co: nurses, therapists, and allied health. Updated hourly.</description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
-    <ttl>60</ttl>
+    <ttl>360</ttl>
 ${items}
   </channel>
 </rss>`
