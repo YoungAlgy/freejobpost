@@ -32,7 +32,34 @@ const PHYSICIAN_OR_PA_PATTERNS: RegExp[] = [
   /\bobstetricians?\b/i,
   /\bgynecologists?\b/i,
   /\bpediatricians?\b/i,
+  // 2026-08-20 audit: "Medical Director" is a physician-role title in
+  // practice (an MD/DO overseeing clinical operations), not something a
+  // legitimate nurse/allied posting would use for the ROLE being hired —
+  // unlike "Clinical Director" or "Director of Nursing", which stay allowed
+  // because this pattern requires the literal "medical director" phrase.
+  // Mirrors PHYSICIAN_OR_PA_RE in supabase/functions/refresh-ats-imports/
+  // index.ts, which had the identical gap for the same reason: keep in sync.
+  /\bmedical directors?\b/i,
 ]
+
+// "Physician-Owned" / "Physician Owned" describes the EMPLOYER's ownership
+// structure (e.g. "RN — Physician-Owned Private Practice"), not the ROLE
+// being hired for — a real nurse/allied posting at a physician-owned
+// practice must not be rejected. \bphysicians?\b alone false-positives here
+// because a hyphen is a word-boundary character, so "Physician-Owned" reads
+// as the word "Physician" followed by a boundary. Strip just this exact
+// business-descriptor phrase before pattern-matching; it does not weaken
+// real physician-role detection because a genuine physician posting still
+// contains a standalone "Physician" outside this phrase (e.g. "Physician —
+// Physician-Owned Group Practice" still matches on the first word).
+// 2026-08-20 audit finding.
+const BUSINESS_DESCRIPTOR_PATTERNS: RegExp[] = [/\bphysician[\s-]owned\b/gi]
+
+function stripBusinessDescriptors(s: string): string {
+  let out = s
+  for (const re of BUSINESS_DESCRIPTOR_PATTERNS) out = out.replace(re, ' ')
+  return out
+}
 
 // Bare "MD"/"DO" credential markers (e.g. a role typed as "Family Medicine
 // MD") are real signals, but checking them against the title field produces
@@ -58,8 +85,8 @@ export function validateSpecialtyScope(
   role: string | null | undefined,
   specialty: string | null | undefined
 ): string | null {
-  const hay = `${title ?? ''} ${role ?? ''} ${specialty ?? ''}`
-  const credentialHay = `${role ?? ''} ${specialty ?? ''}`
+  const hay = stripBusinessDescriptors(`${title ?? ''} ${role ?? ''} ${specialty ?? ''}`)
+  const credentialHay = stripBusinessDescriptors(`${role ?? ''} ${specialty ?? ''}`)
   const isPhysicianOrPa =
     PHYSICIAN_OR_PA_PATTERNS.some((re) => re.test(hay)) ||
     MD_DO_CREDENTIAL_PATTERNS.some((re) => re.test(credentialHay))

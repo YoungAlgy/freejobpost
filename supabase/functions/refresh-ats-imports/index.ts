@@ -193,6 +193,19 @@ const PHYSICIAN_OR_PA_RE = [
   /\bobstetricians?\b/i,
   /\bgynecologists?\b/i,
   /\bpediatricians?\b/i,
+  // 2026-08-20 audit round 2: "Medical Director" slipped through. HC_RE
+  // above matches it via its own /\bmedical director\b/i inclusion stem
+  // (line ~143), and none of the exclusion patterns above matched the bare
+  // phrase "Medical Director" (only the -ologist suffixes and "physician"
+  // itself were covered) -- so ATS titles like "Medical Director,
+  // Cardiology" or "Regional Medical Director" kept importing as
+  // healthcare despite being physician roles. This is a physician-role
+  // title in practice, unlike "Clinical Director" / "Director of Nursing"
+  // (nurse-led department titles), which stay allowed because this pattern
+  // requires the literal "medical director" phrase, not just "director".
+  // Mirrors PHYSICIAN_OR_PA_PATTERNS in src/lib/specialty-scope.ts, updated
+  // the same day for the same gap: keep in sync.
+  /\bmedical directors?\b/i,
 ]
 const isHc = (title: string, dept: string | null) => {
   const hay = `${title} ${dept ?? ''}`
