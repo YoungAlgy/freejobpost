@@ -10,6 +10,7 @@ import {
   validatePayTransparency,
   validateSalaryRangeSanity,
 } from '@/lib/pay-transparency'
+import { validateSpecialtyScope } from '@/lib/specialty-scope'
 import TurnstileWidget from '@/components/TurnstileWidget'
 
 // US state list for the state dropdown. Mirrors the 2-letter format enforced by
@@ -111,7 +112,9 @@ export default function PostJobForm() {
     (!isRemote && validatePayTransparency(values.state, values.salary_min, values.salary_max)) ||
     validateSalaryRangeSanity(values.salary_min, values.salary_max)
 
-  const canAdvanceStep1 = values.title.trim().length >= 3 && values.role.trim().length > 0
+  const scopeValidationError = validateSpecialtyScope(values.title, values.role, values.specialty)
+  const canAdvanceStep1 =
+    values.title.trim().length >= 3 && values.role.trim().length > 0 && scopeValidationError === null
   const canAdvanceStep2 =
     values.description.trim().length >= 30 &&
     (values.remote_hybrid === 'remote' || values.state.length === 2) &&
@@ -209,7 +212,10 @@ export default function PostJobForm() {
         e.preventDefault()
         if (step === 1) {
           if (canAdvanceStep1) setStep(2)
-          else setStepError('Fill in the role and title to continue.')
+          else
+            setStepError(
+              scopeValidationError ? scopeValidationError : 'Fill in the role and title to continue.'
+            )
         } else if (step === 2) {
           if (canAdvanceStep2) setStep(3)
           else

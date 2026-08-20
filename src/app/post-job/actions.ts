@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { validatePayTransparency, validateSalaryRangeSanity } from '@/lib/pay-transparency'
+import { validateSpecialtyScope } from '@/lib/specialty-scope'
 import { track } from '@/lib/track'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -65,6 +66,14 @@ export async function submitPostJob(
     state: (input.state ?? '').trim().toUpperCase(),
     experience_required: (input.experience_required ?? '').trim(),
     apply_url: (input.apply_url ?? '').trim(),
+  }
+
+  // Specialty-scope check — mirrors the client-side gate so a forged
+  // FormData submit can't bypass it. See specialty-scope.ts for why this
+  // exists and why it's deliberately conservative.
+  const scopeErr = validateSpecialtyScope(normalized.title, normalized.role, normalized.specialty)
+  if (scopeErr) {
+    return { success: false, error: scopeErr }
   }
 
   // Pay-transparency check — reject postings in CA/CO/NY/WA/etc. that don't
