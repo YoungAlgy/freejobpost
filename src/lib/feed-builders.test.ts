@@ -3,6 +3,8 @@ import {
   cdata,
   jobUrlWithUtm,
   rfc822,
+  iso8601DateTime,
+  iso8601Date,
   indeedJobType,
   descriptionHtml,
   hasUsableDescription,
@@ -64,9 +66,28 @@ describe('jobUrlWithUtm', () => {
 })
 
 describe('rfc822', () => {
-  it('formats Date as RFC-822 (the spec the IndeedXML format requires)', () => {
+  it('formats Date as RFC-822 (used for <lastBuildDate>, not the per-job date fields)', () => {
     const d = new Date('2026-05-08T12:34:56Z')
     expect(rfc822(d)).toMatch(/^Fri, 08 May 2026 12:34:56 GMT$/)
+  })
+})
+
+describe('iso8601DateTime', () => {
+  it('formats Date as ISO-8601 with time, no milliseconds (Indeed spec for <date>)', () => {
+    const d = new Date('2026-05-08T12:34:56Z')
+    expect(iso8601DateTime(d)).toBe('2026-05-08T12:34:56Z')
+  })
+
+  it('strips sub-second precision', () => {
+    const d = new Date('2026-05-08T12:34:56.789Z')
+    expect(iso8601DateTime(d)).toBe('2026-05-08T12:34:56Z')
+  })
+})
+
+describe('iso8601Date', () => {
+  it('formats Date as a plain YYYY-MM-DD (Indeed spec for <expirationdate>)', () => {
+    const d = new Date('2026-05-08T12:34:56Z')
+    expect(iso8601Date(d)).toBe('2026-05-08')
   })
 })
 

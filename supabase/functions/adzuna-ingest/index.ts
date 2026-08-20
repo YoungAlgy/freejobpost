@@ -23,7 +23,10 @@
 //     (Trimmed from 4 categories / ~24 calls/day down to the 2 below —
 //     see the 2026-05-27 note ahead of ADZUNA_CATEGORIES.)
 //   - Healthcare categories: 'healthcare-nursing-jobs' is the biggest;
-//     'social-work-jobs' covers therapy + counseling.
+//     'social-work-jobs' covers therapy + counseling. Neither category is
+//     nursing/allied-health-exclusive on Adzuna's end, so fetchAdzunaCategory
+//     drops physician/PA titles via PHYSICIAN_OR_PA_RE before upserting
+//     (2026-08-20 — see the note by that array).
 //   - Each call fetches 50 results (Adzuna's per-page cap on free tier).
 //   - apply_url uses Adzuna's redirect_url — clicks attribute via
 //     the existing /click/[slug] tracking pipeline.
@@ -52,6 +55,35 @@ const ADZUNA_CATEGORIES = [
   { slug: 'healthcare-nursing-jobs',     label: 'Healthcare & Nursing' },
   { slug: 'social-work-jobs',            label: 'Social Work' },
 ] as const
+
+// Ava Health narrowed to nurse + allied health only, 2026-08-20 (physician
+// and PA roles moved to MASC Medical). Adzuna's 'healthcare-nursing-jobs'
+// category is a broad taxonomy bucket, not nursing-exclusive — it returns
+// physician/PA listings too. refresh-ats-imports/index.ts's isHc() gained
+// this same exclusion check for the other ATS boards (2026-08-14 audit,
+// commits b740784/7827f4c); this standalone function never had it. Mirrors
+// PHYSICIAN_OR_PA_RE there and PHYSICIAN_OR_PA_PATTERNS in
+// src/lib/specialty-scope.ts — keep all three in sync. Deliberately no bare
+// "MD"/"DO" markers — see the note on that array for why.
+const PHYSICIAN_OR_PA_RE = [
+  /\bphysicians?\b/i,
+  /\bsurgeons?\b/i,
+  /\bphysician\s+assistants?\b/i,
+  /\bpa-c\b/i,
+  /\bcardiologists?\b/i,
+  /\boncologists?\b/i,
+  /\bneurologists?\b/i,
+  /\bradiologists?\b/i,
+  /\banesthesiologists?\b/i,
+  /\bpsychiatrists?\b/i,
+  /\bdermatologists?\b/i,
+  /\bgastroenterologists?\b/i,
+  /\bobstetricians?\b/i,
+  /\bgynecologists?\b/i,
+  /\bpediatricians?\b/i,
+  /\bmedical directors?\b/i,
+]
+const isPhysicianOrPa = (title: string): boolean => PHYSICIAN_OR_PA_RE.some((r) => r.test(title))
 
 // US states map — keep in sync with the same dict in refresh-ats-imports.
 const STATES: Record<string, string> = {
@@ -132,6 +164,7 @@ async function fetchAdzunaCategory(appId: string, appKey: string, category: stri
   for (const j of raw) {
     if (!j.id || !j.title) continue
     if (!j.redirect_url) continue
+    if (isPhysicianOrPa(j.title)) continue
 
     // Parse state from location.area (Adzuna shape: ['US', 'Texas', 'Houston'])
     const area = j.location?.area ?? []

@@ -66,6 +66,23 @@ export function rfc822(d: Date): string {
   return d.toUTCString()
 }
 
+// Indeed's XML feed spec (docs.indeed.com/dev/reference/xml-feed, checked
+// 2026-08-20) requires <date> in ISO-8601 WITH time (worked example:
+// 2021-06-29T22:49:39Z) and <expirationdate> as a plain YYYY-MM-DD date
+// (worked example: 2021-11-08) — NOT the RFC-822 string rfc822() produces.
+// indeedFormatJobElement/buildOriginatedFeed use these two for those fields;
+// rfc822() itself is still correct for <lastBuildDate> on the wrapping
+// <source> envelope, which isn't part of Indeed's per-job field spec and
+// stays RFC-822 by RSS-adjacent convention. iso8601Date mirrors linkedin.xml's
+// own date-only helper (LinkedIn only ever wanted the date, never the time).
+export function iso8601DateTime(d: Date): string {
+  return d.toISOString().replace(/\.\d{3}Z$/, 'Z')
+}
+
+export function iso8601Date(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
 export function indeedJobType(t: PublicJob['employment_type']): string {
   switch (t) {
     case 'full_time': return 'fulltime'
@@ -284,10 +301,10 @@ function indeedFormatJobElement(
   const loc = locationLabel(job)
   const sal = formatSalary(job.salary_min, job.salary_max)
   const title = job.title || job.role || 'Healthcare Role'
-  const posted = job.created_at ? rfc822(new Date(job.created_at)) : rfc822(new Date())
+  const posted = job.created_at ? iso8601DateTime(new Date(job.created_at)) : iso8601DateTime(new Date())
   const validThrough = job.expires_at
-    ? rfc822(new Date(job.expires_at))
-    : rfc822(new Date(Date.now() + 60 * 86400_000))
+    ? iso8601Date(new Date(job.expires_at))
+    : iso8601Date(new Date(Date.now() + 60 * 86400_000))
   return `  <job>
     <title>${cdata(title)}</title>
     <date>${cdata(posted)}</date>
@@ -527,10 +544,10 @@ export async function buildOriginatedFeed(networkLabel: string): Promise<Respons
       const loc = locationLabel(job)
       const sal = formatSalary(job.salary_min, job.salary_max)
       const title = job.title || job.role || 'Healthcare Role'
-      const posted = job.created_at ? rfc822(new Date(job.created_at)) : rfc822(new Date())
+      const posted = job.created_at ? iso8601DateTime(new Date(job.created_at)) : iso8601DateTime(new Date())
       const validThrough = job.expires_at
-        ? rfc822(new Date(job.expires_at))
-        : rfc822(new Date(Date.now() + 60 * 86400_000))
+        ? iso8601Date(new Date(job.expires_at))
+        : iso8601Date(new Date(Date.now() + 60 * 86400_000))
       return `  <job>
     <title>${cdata(title)}</title>
     <date>${cdata(posted)}</date>

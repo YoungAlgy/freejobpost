@@ -39,17 +39,20 @@ import {
   locationLabel,
 } from '@/lib/public-jobs'
 import { normalizePartner } from '@/lib/partner-attribution'
-// All XML helpers (cdata, indeedJobType, descriptionHtml, rfc822) live in
-// feed-builders.ts. /jobs.xml previously had its own local copies that
-// silently drifted — e.g. rfc822() was a misnamed clone of rfc822() (there
-// is no such thing as ISO 822; the format Indeed/ZipRecruiter expect IS
-// RFC 822). Consolidating prevents future drift between the
-// per-partner feeds and this multi-publisher feed.
+// All XML helpers (cdata, indeedJobType, descriptionHtml, rfc822,
+// iso8601DateTime, iso8601Date) live in feed-builders.ts. /jobs.xml
+// previously had its own local copies that silently drifted. rfc822() is
+// only correct for <lastBuildDate> now — Indeed's own spec wants <date>/
+// <expirationdate> in ISO-8601, not RFC-822 (see feed-builders.ts's note by
+// iso8601DateTime, 2026-08-20). Consolidating prevents future drift between
+// the per-partner feeds and this multi-publisher feed.
 import {
   cdata,
   indeedJobType,
   descriptionHtml,
   rfc822,
+  iso8601DateTime,
+  iso8601Date,
   hasUsableDescription,
   isBuildPhase,
   MIN_DESCRIPTION_CHARS,
@@ -204,10 +207,10 @@ export async function GET(req: NextRequest): Promise<Response> {
       const loc = locationLabel(job)
       const sal = formatSalary(job.salary_min, job.salary_max)
       const title = job.title || job.role || 'Healthcare Role'
-      const posted = job.created_at ? rfc822(new Date(job.created_at)) : now
+      const posted = job.created_at ? iso8601DateTime(new Date(job.created_at)) : iso8601DateTime(new Date())
       const validThrough = job.expires_at
-        ? rfc822(new Date(job.expires_at))
-        : rfc822(new Date(Date.now() + 60 * 86400_000))
+        ? iso8601Date(new Date(job.expires_at))
+        : iso8601Date(new Date(Date.now() + 60 * 86400_000))
       const employerName = job.company_name || employerNameMap.get(job.employer_id) || 'Ava Health Partners'
       return `  <job>
     <title>${cdata(title)}</title>
