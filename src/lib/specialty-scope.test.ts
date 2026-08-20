@@ -31,6 +31,8 @@ describe('validateSpecialtyScope', () => {
     ['Doctor of Physical Therapy', 'DPT', ''],
     ['Family Medicine Nurse Practitioner', 'NP', 'Family Medicine'],
     ['RN, MDS Coordinator', 'RN', 'Long-Term Care'], // "MDS" must not false-positive on the MD pattern
+    ['RN - MD Anderson Cancer Center - Oncology Infusion', 'RN', 'Oncology'], // "MD Anderson" facility name must not false-positive on the MD pattern
+    ['ICU Registered Nurse, Baltimore, MD', 'RN', ''], // Maryland state abbreviation in the title must not false-positive on the MD pattern
   ])('does not reject a nurse/allied posting (title=%s, role=%s, specialty=%s)', (title, role, specialty) => {
     expect(validateSpecialtyScope(title, role, specialty)).toBeNull()
   })

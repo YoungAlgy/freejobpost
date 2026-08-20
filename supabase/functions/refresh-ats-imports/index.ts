@@ -164,7 +164,41 @@ const HC_RE = [
   /\b(clinic|hospital|hospice|home health|skilled nursing|long.term care)\b/i,
   /\bhealth ?information\b/i, /\b(certified|registered|licensed) nursing assistant\b/i, /\bcna\b/i,
 ]
-const isHc = (title: string, dept: string | null) => HC_RE.some((r) => r.test(`${title} ${dept ?? ''}`))
+// Ava Health narrowed to nurse + allied health only, 2026-08-20 (physician
+// and PA roles moved to MASC Medical — see src/lib/specialty-scope.ts, the
+// self-serve form's intake gate for this same brand split). HC_RE above is a
+// broad "is this healthcare at all" inclusion filter — it still matches
+// physician/PA/psychiatrist titles via its /\bphysician\b/i, /\bmedical
+// director\b/i and /\bpsychiatrist\b/i stems — so without this exclusion the
+// cron-scheduled ATS boards (Cleveland Clinic, Stanford, Mass General
+// Brigham, USAJobs, etc.) would keep importing physician content that the
+// self-serve form now rejects at intake. This mirrors
+// PHYSICIAN_OR_PA_PATTERNS in specialty-scope.ts: keep the two in sync.
+// Deliberately no bare "MD"/"DO" markers — ATS titles don't reliably
+// delimit a credential suffix the way a typed "Last Name, MD" would, and a
+// bare match could collide with a facility name (e.g. "MD Anderson").
+const PHYSICIAN_OR_PA_RE = [
+  /\bphysicians?\b/i,
+  /\bsurgeons?\b/i,
+  /\bphysician\s+assistants?\b/i,
+  /\bpa-c\b/i,
+  /\bcardiologists?\b/i,
+  /\boncologists?\b/i,
+  /\bneurologists?\b/i,
+  /\bradiologists?\b/i,
+  /\banesthesiologists?\b/i,
+  /\bpsychiatrists?\b/i,
+  /\bdermatologists?\b/i,
+  /\bgastroenterologists?\b/i,
+  /\bobstetricians?\b/i,
+  /\bgynecologists?\b/i,
+  /\bpediatricians?\b/i,
+]
+const isHc = (title: string, dept: string | null) => {
+  const hay = `${title} ${dept ?? ''}`
+  if (PHYSICIAN_OR_PA_RE.some((r) => r.test(hay))) return false
+  return HC_RE.some((r) => r.test(hay))
+}
 
 function htmlToText(html: string): string {
   if (!html) return ''

@@ -294,7 +294,7 @@ export default function PostJobForm() {
               type="text"
               value={values.specialty}
               onChange={(e) => update('specialty', e.target.value)}
-              placeholder="Family Medicine, ICU, Telehealth Psych…"
+              placeholder="ICU, Telehealth Psych, Med-Surg…"
               maxLength={100}
               className={fieldStyle}
             />

@@ -12,8 +12,8 @@
 // rejecting a real nurse/allied posting) is worse than a false negative (a
 // physician posting slipping through occasionally), so patterns that could
 // plausibly appear in a legitimate NP/RN/allied posting — "hospitalist",
-// bare "MD"/"DO"/"PA" without a credential delimiter, physician-adjacent
-// words like "medicine" or "surgical" — are deliberately NOT included here.
+// physician-adjacent words like "medicine" or "surgical" — are deliberately
+// NOT included here.
 // Tune this list if it's too aggressive or too lax in practice.
 
 const PHYSICIAN_OR_PA_PATTERNS: RegExp[] = [
@@ -21,8 +21,6 @@ const PHYSICIAN_OR_PA_PATTERNS: RegExp[] = [
   /\bsurgeons?\b/i,
   /\bphysician\s+assistants?\b/i,
   /\bpa-c\b/i,
-  /(^|[\s,/(])m\.?d\.?([\s,/)]|$)/i,
-  /(^|[\s,/(])d\.?o\.?([\s,/)]|$)/i,
   /\bcardiologists?\b/i,
   /\boncologists?\b/i,
   /\bneurologists?\b/i,
@@ -34,6 +32,19 @@ const PHYSICIAN_OR_PA_PATTERNS: RegExp[] = [
   /\bobstetricians?\b/i,
   /\bgynecologists?\b/i,
   /\bpediatricians?\b/i,
+]
+
+// Bare "MD"/"DO" credential markers (e.g. a role typed as "Family Medicine
+// MD") are real signals, but checking them against the title field produces
+// false positives: the title field's own placeholder ("e.g. ICU Registered
+// Nurse, Tampa, FL") encourages employers to suffix a city/state, and
+// two-letter "MD" is also the Maryland abbreviation ("Baltimore, MD") and a
+// substring of facility names ("MD Anderson Cancer Center"). Title has no
+// legitimate reason to carry a person's credential suffix, so these patterns
+// are checked against role/specialty only, never title.
+const MD_DO_CREDENTIAL_PATTERNS: RegExp[] = [
+  /(^|[\s,/(])m\.?d\.?([\s,/)]|$)/i,
+  /(^|[\s,/(])d\.?o\.?([\s,/)]|$)/i,
 ]
 
 /**
@@ -48,7 +59,10 @@ export function validateSpecialtyScope(
   specialty: string | null | undefined
 ): string | null {
   const hay = `${title ?? ''} ${role ?? ''} ${specialty ?? ''}`
-  const isPhysicianOrPa = PHYSICIAN_OR_PA_PATTERNS.some((re) => re.test(hay))
+  const credentialHay = `${role ?? ''} ${specialty ?? ''}`
+  const isPhysicianOrPa =
+    PHYSICIAN_OR_PA_PATTERNS.some((re) => re.test(hay)) ||
+    MD_DO_CREDENTIAL_PATTERNS.some((re) => re.test(credentialHay))
   if (!isPhysicianOrPa) return null
   return 'Ava Health posts nurse and allied-health roles only. Physician and PA roles are outside what we accept here.'
 }
