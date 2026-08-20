@@ -60,7 +60,7 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-black mt-8 mb-2">6. Content + intellectual property</h2>
           <p>
-            Job posts you submit remain yours; you grant us a non-exclusive license to display + syndicate
+            Job posts you submit remain yours. You grant us a non-exclusive license to display and syndicate
             them while they&apos;re active. Our site design, code, and content are owned by Ava Health Partners LLC.
           </p>
 
@@ -78,7 +78,7 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-black mt-8 mb-2">9. Changes to these terms</h2>
           <p>
-            We may update these terms; the &quot;Last updated&quot; date above will reflect the most recent revision.
+            We may update these terms. The &quot;Last updated&quot; date above will reflect the most recent revision.
             Continued use after changes constitutes acceptance.
           </p>
 

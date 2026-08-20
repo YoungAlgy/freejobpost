@@ -129,7 +129,7 @@ export default function HowItWorksPage() {
         <p className="text-gray-700 leading-relaxed mb-4">
           Ava Health is operated by Ava Health Partners LLC, a healthcare staffing firm. We
           maintain a candidate database for our placement business. The job board feeds candidates
-          into that database; the database fuels our recruiting. The board itself doesn&apos;t need to
+          into that database. That database fuels our recruiting. The board itself doesn&apos;t need to
           monetize because the upstream business already does.
         </p>
         <p className="text-gray-700 leading-relaxed mb-12">
@@ -145,7 +145,7 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">How long does a posted job stay live?</h3>
-            <p className="text-gray-700">60 days by default. You can repost the same role anytime. We don&apos;t cap the number of postings per employer.</p>
+            <p className="text-gray-700">60 days by default. You can repost the same role anytime. You can have up to 10 posts active at once. Expired and filled roles don&apos;t count toward that.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">Will my job appear on Indeed and Google for Jobs?</h3>

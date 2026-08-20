@@ -89,7 +89,7 @@ export default function PrivacyPage() {
           <p>
             Transactional emails (post verification, applicant notifications) are sent via Resend.
             We honor unsubscribe requests immediately and add the email to a permanent suppression list.
-            We do not run cold-email campaigns; if you receive unsolicited mail claiming to be from us,
+            We do not run cold-email campaigns. If you receive unsolicited mail claiming to be from us,
             forward it to <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>.
           </p>
 

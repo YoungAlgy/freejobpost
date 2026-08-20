@@ -36,6 +36,7 @@ type Employer = {
 }
 
 const FREE_QUOTA = 10
+const PLUS_QUOTA = 15
 
 export default function Dashboard({
   employer,
@@ -60,7 +61,9 @@ export default function Dashboard({
   const quota =
     employer.tier === 'pro' || employer.tier === 'enterprise'
       ? Infinity
-      : FREE_QUOTA
+      : employer.tier === 'plus'
+        ? PLUS_QUOTA
+        : FREE_QUOTA
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 md:py-10 space-y-8">

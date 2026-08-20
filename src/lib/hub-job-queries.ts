@@ -147,6 +147,7 @@ export async function fetchFederalAgencyJobs(
     .or(agencyOrFilter(agency))
     .order('updated_at', { ascending: false })
     .limit(HUB_JOB_LIMITS.federalAgency)
+  assertFreshOrThrow(result, 'fetchFederalAgencyJobs')
   return (result.data ?? []) as PublicJob[]
 }
 
@@ -161,6 +162,7 @@ export async function fetchFederalAgencyJobCount(
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
     .or(agencyOrFilter(agency))
+  assertFreshOrThrow(result, 'fetchFederalAgencyJobCount')
   return result.count ?? null
 }
 
@@ -181,6 +183,7 @@ export async function fetchFederalAgencyStateJobs(
     .or(agencyOrFilter(agency))
     .order('updated_at', { ascending: false })
     .limit(HUB_JOB_LIMITS.federalAgencyState)
+  assertFreshOrThrow(result, 'fetchFederalAgencyStateJobs')
   return (result.data ?? []) as PublicJob[]
 }
 
@@ -197,5 +200,6 @@ export async function fetchFederalAgencyStateJobCount(
     .gt('expires_at', hourIso())
     .eq('state', stateAbbr)
     .or(agencyOrFilter(agency))
+  assertFreshOrThrow(result, 'fetchFederalAgencyStateJobCount')
   return result.count ?? null
 }

@@ -209,9 +209,9 @@ export default function ForEmployersPage() {
             One post, multiple channels.
           </p>
           <p className="text-gray-700 leading-relaxed mb-10 max-w-2xl">
-            Every listing you check for syndication goes into our public XML feeds and gets
-            JobPosting JSON-LD for Google for Jobs. You control which networks see it via the
-            checkboxes in the posting form.
+            Check the syndication boxes on the posting form and your listing goes into our public
+            XML feeds. Every listing also gets JobPosting JSON-LD for Google for Jobs, no opt-in
+            needed. You control which partner networks see it.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[

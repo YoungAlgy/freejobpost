@@ -285,7 +285,7 @@ export default async function StateHubPage(
             <div className="mb-10">
               <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Major {hub.name} healthcare systems</h2>
               <p className="text-sm text-gray-700 leading-relaxed">
-                {hub.topEmployers.join(', ')}. Some listings come from these systems directly; others are placed by our recruiter book.
+                {hub.topEmployers.join(', ')}. Some listings come from these systems directly. Others are placed by our recruiter book.
               </p>
             </div>
           )}
@@ -388,7 +388,7 @@ export default async function StateHubPage(
                   <p className="text-sm text-gray-700 leading-relaxed">
                     Major {hub.name} employers in our inventory include{' '}
                     {hub.topEmployers.slice(0, 5).join(', ')}. Some listings come
-                    from these systems directly; others are placed by Ava Health
+                    from these systems directly. Others are placed by Ava Health
                     Partners&apos; recruiter book. Every posting has a real apply
                     link. No sponsored middleman.
                   </p>
@@ -463,7 +463,7 @@ export default async function StateHubPage(
                 </div>
               )}
               <p className="text-xs text-gray-500 mt-2">
-                Salary ranges are pulled from real published listings on freejobpost.co. Some roles publish a range, others don&apos;t; the table reflects only roles with both a floor and ceiling.
+                Salary ranges are pulled from real published listings on freejobpost.co. Some roles publish a range and some don&apos;t. The table only counts roles with both a floor and a ceiling.
               </p>
             </section>
           )}

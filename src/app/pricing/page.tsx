@@ -73,7 +73,7 @@ export default function PricingPage() {
             a={[
               'Email info@avahealth.co. We manually flip your account to uncapped. No credit card required during beta. We just need to know who we\'re working with.',
               'When paid checkout lands post-beta, the price is $29/month for unlimited posts and $299/month for full ATS integration + API + white-label. Grandfathered for anyone who signs up during beta.',
-              "We built this to be cheaper than every alternative (~$29/mo vs the sponsored boards' $3,000/mo typical for 10 sponsored roles). Our cost to serve you is a few pennies a month.",
+              "We built this to be cheaper than every alternative (about $29/mo vs the sponsored boards' typical $3,000/mo for 10 sponsored roles). Our cost to serve you is a few pennies a month.",
             ]}
           />
 
@@ -81,7 +81,7 @@ export default function PricingPage() {
             q="Why gate it on 'verified healthcare org' at all?"
             a={[
               'Because a totally-open free tier turns into a spam board overnight, and that wrecks the experience for candidates looking for real roles.',
-              'The verification check runs automatically against your email domain and company name. ~95% of real clinics verify in seconds. Edge cases go to a 1-day manual review by our team.',
+              'The verification check runs automatically against your email domain and company name. About 95% of real clinics verify in seconds. Edge cases go to a 1-day manual review by our team.',
               'No paperwork, no fax forms, no sales call.',
             ]}
           />
