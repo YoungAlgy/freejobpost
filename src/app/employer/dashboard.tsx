@@ -42,11 +42,14 @@ export default function Dashboard({
   employer,
   jobs,
   applications = [],
+  totalApplications,
   publicSlug = null,
 }: {
   employer: Employer
   jobs: Job[]
   applications?: Application[]
+  /** Real total across all of the employer's applications; may exceed applications.length (capped at 50). Falls back to applications.length if the backend hasn't started sending it yet. */
+  totalApplications?: number
   /** Slug for the public /employers/[slug] page — null until migration runs */
   publicSlug?: string | null
 }) {
@@ -140,7 +143,10 @@ export default function Dashboard({
 
       {/* Applications — always show this section so employers can find
           contact info even if the email notification was missed. */}
-      <ApplicationsSection applications={applications} />
+      <ApplicationsSection
+        applications={applications}
+        totalApplications={totalApplications ?? applications.length}
+      />
     </div>
   )
 }
@@ -301,9 +307,18 @@ function LogoutButton() {
 // Gives employers a fallback way to reach applicants if the email notification
 // was missed (e.g., during the SES sandbox period before AWS production access).
 
-function ApplicationsSection({ applications }: { applications: Application[] }) {
+function ApplicationsSection({
+  applications,
+  totalApplications,
+}: {
+  applications: Application[]
+  totalApplications: number
+}) {
   const [expanded, setExpanded] = useState(false)
   const PREVIEW = 5
+  // The backend caps the fetched list at 50, newest first. If the real total
+  // is bigger, older applicants exist that this dashboard cannot show yet.
+  const hasHiddenOlderApplications = totalApplications > applications.length
 
   if (applications.length === 0) {
     return (
@@ -327,7 +342,7 @@ function ApplicationsSection({ applications }: { applications: Application[] }) 
         <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase">
           Applications
           <span className="ml-2 text-gray-400 font-normal normal-case tracking-normal">
-            ({applications.length})
+            ({totalApplications})
           </span>
         </h2>
         <p className="text-xs text-gray-400">
@@ -352,6 +367,20 @@ function ApplicationsSection({ applications }: { applications: Application[] }) 
             ? 'Show fewer'
             : `Show all ${applications.length} applications`}
         </button>
+      )}
+
+      {hasHiddenOlderApplications && (
+        <p className="mt-3 text-xs text-gray-400">
+          Showing the {applications.length} most recent applications out of{' '}
+          {totalApplications}. Older applicants are not shown here. Email{' '}
+          <a
+            href="mailto:info@avahealth.co?subject=Older%20applications%20request"
+            className="underline hover:text-[#003D5C]"
+          >
+            info@avahealth.co
+          </a>{' '}
+          if you need the rest.
+        </p>
       )}
     </section>
   )

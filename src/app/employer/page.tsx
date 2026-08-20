@@ -67,6 +67,8 @@ async function loadSession(): Promise<{
   employer: Employer
   jobs: Job[]
   applications: Application[]
+  /** Real total across all of the employer's applications (may exceed applications.length, which is capped at 50). */
+  totalApplications: number
   /** Slug for the employer's public /employers/[slug] page. null pre-migration
    * or if the employer is seeded/unverified. */
   publicSlug: string | null
@@ -107,11 +109,20 @@ async function loadSession(): Promise<{
       .maybeSingle(),
   ])
 
-  const applications: Application[] =
+  const appsData =
     appsResult.status === 'fulfilled' && appsResult.value.data
-      ? ((appsResult.value.data as { success: boolean; applications?: Application[] })
-          .applications ?? [])
-      : []
+      ? (appsResult.value.data as {
+          success: boolean
+          applications?: Application[]
+          total_count?: number
+        })
+      : null
+
+  const applications: Application[] = appsData?.applications ?? []
+  // get_employer_applications_rpc caps at the 50 most recent applications.
+  // total_count is the real total; older RPC deployments won't send it, so
+  // fall back to applications.length (i.e. assume the array is complete).
+  const totalApplications: number = appsData?.total_count ?? applications.length
 
   let publicSlug: string | null = null
   if (slugResult.status === 'fulfilled') {
@@ -124,7 +135,7 @@ async function loadSession(): Promise<{
     }
   }
 
-  return { employer: r.employer, jobs: r.jobs ?? [], applications, publicSlug }
+  return { employer: r.employer, jobs: r.jobs ?? [], applications, totalApplications, publicSlug }
 }
 
 export default async function EmployerDashboardPage() {
@@ -137,6 +148,7 @@ export default async function EmployerDashboardPage() {
         employer={session.employer}
         jobs={session.jobs}
         applications={session.applications}
+        totalApplications={session.totalApplications}
         publicSlug={session.publicSlug}
       />
     </main>

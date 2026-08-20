@@ -64,7 +64,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing',
         body:
-          'Every state requires passing the NCLEX-RN, a standardized exam administered by the National Council of State Boards of Nursing (NCSBN). After passing, the candidate applies for licensure through their state board. The Nurse Licensure Compact (NLC) lets an RN licensed in one compact state practice in all other compact states without separate applications; 40+ states participate. Non-compact states (California, New York, Massachusetts, others) require a separate state-specific license.',
+          'Every state requires passing the NCLEX-RN, a standardized exam administered by the National Council of State Boards of Nursing (NCSBN). After passing, the candidate applies for licensure through their state board. The Nurse Licensure Compact (NLC) lets an RN licensed in one compact state practice in all other compact states without separate applications. 40+ states participate. Non-compact states (California, New York, Massachusetts, others) require a separate state-specific license.',
       },
       {
         heading: 'First job',
@@ -74,7 +74,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Typical timeline',
         body:
-          'From high-school start: 2-3 years to ADN + license, or 4-5 years to BSN + license. From career-change start (pre-existing bachelor\'s degree): Accelerated BSN programs run 12-18 months full-time. Total cost varies widely by school type, community-college ADN can land under $10,000; private-school BSN can exceed $80,000.',
+          'From high-school start: 2-3 years to ADN + license, or 4-5 years to BSN + license. From career-change start (pre-existing bachelor\'s degree): Accelerated BSN programs run 12-18 months full-time. Total cost varies widely by school type, community-college ADN can land under $10,000. Private-school BSN can exceed $80,000.',
       },
       {
         heading: 'What current openings look like',
@@ -113,12 +113,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Where NPs work',
         body:
-          'About 70% of NPs work in primary care; the rest spread across acute care, urgent care, specialty practices (cardiology, oncology, dermatology), telehealth, hospital medicine, and skilled nursing. Family-medicine groups, federally qualified health centers, and large primary-care employers (One Medical, ChenMed, Oak Street, VillageMD) are heavy NP employers, alongside hospital systems hiring AGACNP/AGNP for hospitalist + step-down roles.',
+          'About 70% of NPs work in primary care. The rest spread across acute care, urgent care, specialty practices (cardiology, oncology, dermatology), telehealth, hospital medicine, and skilled nursing. Family-medicine groups, federally qualified health centers, and large primary-care employers (One Medical, ChenMed, Oak Street, VillageMD) are heavy NP employers, alongside hospital systems hiring AGACNP/AGNP for hospitalist + step-down roles.',
       },
       {
         heading: 'Salary + growth',
         body:
-          'BLS lists Nurse Practitioner among the fastest-growing occupations in the US (projected 38% growth 2024-2034 vs ~7% across all occupations). Median annual salary is in the $120k-$135k range nationally per recent BLS data, with significant variance by specialty (CRNAs and Psych NPs sit higher; primary-care FNPs near the median).',
+          'BLS lists Nurse Practitioner among the fastest-growing occupations in the US (projected 38% growth 2024-2034 vs ~7% across all occupations). Median annual salary is in the $120k-$135k range nationally per recent BLS data, with significant variance by specialty (CRNAs and Psych NPs sit higher, primary-care FNPs near the median).',
       },
     ],
     specialtySlug: 'nurse-practitioner',
@@ -137,12 +137,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Prerequisites',
         body:
-          'Active RN license + a BSN (or equivalent bachelor\'s). Programs additionally require at least one year of full-time critical-care RN experience, typically ICU, with cardiothoracic, surgical, or neuro ICU favored over MICU at competitive programs. GPA + GRE scores are weighted heavily; the COA (Council on Accreditation of Nurse Anesthesia Educational Programs) requires admissions to consider the full applicant profile.',
+          'Active RN license + a BSN (or equivalent bachelor\'s). Programs additionally require at least one year of full-time critical-care RN experience, typically ICU, with cardiothoracic, surgical, or neuro ICU favored over MICU at competitive programs. GPA + GRE scores are weighted heavily. The COA (Council on Accreditation of Nurse Anesthesia Educational Programs) requires admissions to consider the full applicant profile.',
       },
       {
         heading: 'Doctoral nurse-anesthesia program',
         body:
-          'Per COA mandate, all CRNA programs entering students after 2022 must award a doctoral degree, either DNP (Doctor of Nursing Practice) or DNAP (Doctor of Nurse Anesthesia Practice). Programs run 36 months full-time, front-loaded with anesthesia pharmacology, advanced physiology, regional anesthesia, and pain management; the back half is full-time clinical anesthesia practice across rotations.',
+          'Per COA mandate, all CRNA programs entering students after 2022 must award a doctoral degree, either DNP (Doctor of Nursing Practice) or DNAP (Doctor of Nurse Anesthesia Practice). Programs run 36 months full-time, front-loaded with anesthesia pharmacology, advanced physiology, regional anesthesia, and pain management. The back half is full-time clinical anesthesia practice across rotations.',
       },
       {
         heading: 'Certification',
@@ -152,7 +152,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Practice settings',
         body:
-          'CRNAs work in hospital ORs, ambulatory surgery centers, pain-management clinics, dental + plastic-surgery practices, and rural settings where they\'re often the sole anesthesia provider. About 20+ states have opted out of federal physician-supervision requirements for CRNAs, allowing independent practice; others maintain anesthesiologist supervision agreements.',
+          'CRNAs work in hospital ORs, ambulatory surgery centers, pain-management clinics, dental + plastic-surgery practices, and rural settings where they\'re often the sole anesthesia provider. About 20+ states have opted out of federal physician-supervision requirements for CRNAs, allowing independent practice. Others maintain anesthesiologist supervision agreements.',
       },
       {
         heading: 'Compensation',
@@ -215,7 +215,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing',
         body:
-          'After program completion, candidates sit for the NCLEX-PN, the national exam administered by NCSBN. Pass = state-board application for licensure. Like RNs, LPN/LVN practice is governed by the Nurse Licensure Compact in 40+ states; non-compact states (CA, NY, MA, etc.) require state-specific licenses.',
+          'After program completion, candidates sit for the NCLEX-PN, the national exam administered by NCSBN. Pass = state-board application for licensure. Like RNs, LPN/LVN practice is governed by the Nurse Licensure Compact in 40+ states. Non-compact states (CA, NY, MA, etc.) require state-specific licenses.',
       },
       {
         heading: 'Scope of practice',
@@ -225,7 +225,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Where LPNs work',
         body:
-          'Roughly 35% in skilled-nursing facilities and continuing-care retirement communities, 20% in physician offices, 12% in home health, 12% in hospitals, with the rest spread across schools, correctional facilities, dialysis centers, and outpatient clinics. Hospitals have shifted away from LPN bedside roles toward all-RN staffing in many ICU/med-surg settings; long-term care and outpatient clinics remain the durable LPN job market.',
+          'Roughly 35% in skilled-nursing facilities and continuing-care retirement communities, 20% in physician offices, 12% in home health, 12% in hospitals, with the rest spread across schools, correctional facilities, dialysis centers, and outpatient clinics. Hospitals have shifted away from LPN bedside roles toward all-RN staffing in many ICU/med-surg settings. Long-term care and outpatient clinics remain the durable LPN job market.',
       },
       {
         heading: 'Career progression',
@@ -249,12 +249,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Training',
         body:
-          'Federal law (OBRA 1987) sets a minimum of 75 training hours; most states require 75-150 hours of state-approved curriculum split between classroom instruction (anatomy + physiology, infection control, patient rights, basic care skills) and supervised clinical practice. Programs are offered at community colleges, vocational schools, the American Red Cross, and many long-term care facilities directly (often free in exchange for an employment commitment).',
+          'Federal law (OBRA 1987) sets a minimum of 75 training hours. Most states require 75-150 hours of state-approved curriculum split between classroom instruction (anatomy + physiology, infection control, patient rights, basic care skills) and supervised clinical practice. Programs are offered at community colleges, vocational schools, the American Red Cross, and many long-term care facilities directly (often free in exchange for an employment commitment).',
       },
       {
         heading: 'Certification',
         body:
-          'After completing training, candidates sit for the state competency exam (written + hands-on skills demonstration). Passing both halves places the candidate on the state\'s Nurse Aide Registry, that registry listing is what employers verify before hiring. Some states use the Prometric or Pearson Vue NACES exam; others run their own.',
+          'After completing training, candidates sit for the state competency exam (written + hands-on skills demonstration). Passing both halves places the candidate on the state\'s Nurse Aide Registry, that registry listing is what employers verify before hiring. Some states use the Prometric or Pearson Vue NACES exam. Others run their own.',
       },
       {
         heading: 'Scope of practice',
@@ -264,12 +264,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Workplace',
         body:
-          'Skilled-nursing facilities (SNFs) and long-term care employ the majority of CNAs; hospitals (often as Patient Care Techs, a similar role with slightly broader scope) and home health agencies cover most of the rest. Workload is physically demanding and turnover is high, but the path provides direct patient-care experience often required for PA school + competitive nursing-school applications.',
+          'Skilled-nursing facilities (SNFs) and long-term care employ the majority of CNAs. Hospitals (often as Patient Care Techs, a similar role with slightly broader scope) and home health agencies cover most of the rest. Workload is physically demanding and turnover is high, but the path provides direct patient-care experience often required for PA school + competitive nursing-school applications.',
       },
       {
         heading: 'Career progression',
         body:
-          'CNA is widely used as the prerequisite patient-care experience for nursing school, PA school, and other clinical programs. Many CNAs progress to LPN (1-1.5 years additional training) or RN (2-4 years). PA-school programs typically require 1,000-3,000 hours of direct patient care; CNA work counts toward that requirement.',
+          'CNA is widely used as the prerequisite patient-care experience for nursing school, PA school, and other clinical programs. Many CNAs progress to LPN (1-1.5 years additional training) or RN (2-4 years). PA-school programs typically require 1,000-3,000 hours of direct patient care. CNA work counts toward that requirement.',
       },
     ],
     specialtySlug: 'cna',
@@ -288,7 +288,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Pre-PT undergraduate',
         body:
-          'Most DPT programs require a bachelor\'s degree plus specific prerequisite courses: anatomy + physiology, general + organic chemistry, physics, biology, statistics, psychology, and sometimes exercise physiology. Many candidates major in exercise science, kinesiology, or biology; the specific major is less important than the prereq GPA + observation hours (typically 100-200 hours of shadowing across multiple PT practice settings).',
+          'Most DPT programs require a bachelor\'s degree plus specific prerequisite courses: anatomy + physiology, general + organic chemistry, physics, biology, statistics, psychology, and sometimes exercise physiology. Many candidates major in exercise science, kinesiology, or biology. The specific major is less important than the prereq GPA + observation hours (typically 100-200 hours of shadowing across multiple PT practice settings).',
       },
       {
         heading: 'DPT program',
@@ -308,7 +308,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Compensation',
         body:
-          'BLS reports median annual PT salary in the $100k-$105k range nationally. Compensation varies by setting (outpatient orthopedic generally lower base + higher productivity bonus; home health + travel PT pay highest hourly) and geography.',
+          'BLS reports median annual PT salary in the $100k-$105k range nationally. Compensation varies by setting (outpatient orthopedic generally lower base + higher productivity bonus, home health + travel PT pay highest hourly) and geography.',
       },
     ],
     specialtySlug: 'physical-therapy',
@@ -327,7 +327,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Education',
         body:
-          'Two accredited pathways: an Associate of Science in Respiratory Therapy (typically 2 years at a community college) or a Bachelor of Science in Respiratory Therapy/Care (4 years). Both qualify the candidate to sit for the credentialing exams. CoARC (Commission on Accreditation for Respiratory Care) accredits programs; only graduates of CoARC programs are eligible for the NBRC exams.',
+          'Two accredited pathways: an Associate of Science in Respiratory Therapy (typically 2 years at a community college) or a Bachelor of Science in Respiratory Therapy/Care (4 years). Both qualify the candidate to sit for the credentialing exams. CoARC (Commission on Accreditation for Respiratory Care) accredits programs. Only graduates of CoARC programs are eligible for the NBRC exams.',
       },
       {
         heading: 'Credentialing',
@@ -337,7 +337,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'State license',
         body:
-          'After NBRC certification, candidates apply for state licensure (49 states + DC license RTs; Alaska does not). Renewal is typically every 2 years with continuing-education requirements.',
+          'After NBRC certification, candidates apply for state licensure (49 states + DC license RTs, Alaska does not). Renewal is typically every 2 years with continuing-education requirements.',
       },
       {
         heading: 'Specialties + advanced credentials',
@@ -347,7 +347,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Practice settings',
         body:
-          'Hospitals employ ~80% of RTs, ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19; demand remains elevated.',
+          'Hospitals employ ~80% of RTs, ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19. Demand remains elevated.',
       },
     ],
     specialtySlug: 'respiratory-therapy',
@@ -371,7 +371,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Certification',
         body:
-          'Multiple national credentials, each with its own exam: CMA (Certified Medical Assistant) by the AAMA, RMA (Registered Medical Assistant) by AMT, CCMA by NHA, NCMA by NCCT. The CMA from AAMA requires graduation from a CAAHEP/ABHES-accredited program; the others have more flexible eligibility. Hospitals and large primary-care groups generally prefer certified MAs and may pay $1-3/hr more.',
+          'Multiple national credentials, each with its own exam: CMA (Certified Medical Assistant) by the AAMA, RMA (Registered Medical Assistant) by AMT, CCMA by NHA, NCMA by NCCT. The CMA from AAMA requires graduation from a CAAHEP/ABHES-accredited program. The others have more flexible eligibility. Hospitals and large primary-care groups generally prefer certified MAs and may pay $1-3/hr more.',
       },
       {
         heading: 'Scope of practice',
@@ -386,7 +386,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Career progression',
         body:
-          'MA is a common stepping-stone to LPN/RN, PA school, or surgical-tech roles. The 1,000-3,000 clinical hours PA programs require are easily accumulated during MA work; MAs frequently apply to PA school after 2-3 years of practice.',
+          'MA is a common stepping-stone to LPN/RN, PA school, or surgical-tech roles. The 1,000-3,000 clinical hours PA programs require are easily accumulated during MA work. MAs frequently apply to PA school after 2-3 years of practice.',
       },
     ],
     specialtySlug: 'medical-assistant',
@@ -405,12 +405,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Training',
         body:
-          'Accredited programs run 12-24 months and award a certificate, diploma, or associate degree. Accreditation comes from CAAHEP or ABHES; only graduates of accredited programs are eligible for the leading certification (CST). Curriculum covers anatomy, microbiology, surgical procedures across specialties (general, ortho, cardio, neuro, ENT, OB-GYN, GU), sterile technique, and supervised OR clinical rotations.',
+          'Accredited programs run 12-24 months and award a certificate, diploma, or associate degree. Accreditation comes from CAAHEP or ABHES. Only graduates of accredited programs are eligible for the leading certification (CST). Curriculum covers anatomy, microbiology, surgical procedures across specialties (general, ortho, cardio, neuro, ENT, OB-GYN, GU), sterile technique, and supervised OR clinical rotations.',
       },
       {
         heading: 'Certification',
         body:
-          'The Certified Surgical Technologist (CST) credential is administered by the NBSTSA (National Board of Surgical Technology and Surgical Assisting) and is the standard credential most hospitals require. NCCT offers an alternative, the TS-C (Tech in Surgery, Certified). A few states (TX, NY, MA, IN, NJ, PA, SC, TN, WA) require state recognition or registration in addition to national cert; the rest defer to the national credential.',
+          'The Certified Surgical Technologist (CST) credential is administered by the NBSTSA (National Board of Surgical Technology and Surgical Assisting) and is the standard credential most hospitals require. NCCT offers an alternative, the TS-C (Tech in Surgery, Certified). A few states (TX, NY, MA, IN, NJ, PA, SC, TN, WA) require state recognition or registration in addition to national cert. The rest defer to the national credential.',
       },
       {
         heading: 'Specialization',
@@ -444,12 +444,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Education',
         body:
-          'Accredited radiologic-technology programs run 22-24 months and award an Associate of Science (AS) degree. Accreditation comes from JRCERT (Joint Review Committee on Education in Radiologic Technology); only JRCERT-accredited program graduates are ARRT-eligible. A small number of 4-year BS-level programs exist, often combined with management or sub-specialty tracks. Curriculum covers radiation physics, anatomy, patient positioning, radiation safety, imaging principles, and ~1,800-2,000 hours of supervised clinical practice.',
+          'Accredited radiologic-technology programs run 22-24 months and award an Associate of Science (AS) degree. Accreditation comes from JRCERT (Joint Review Committee on Education in Radiologic Technology). Only JRCERT-accredited program graduates are ARRT-eligible. A small number of 4-year BS-level programs exist, often combined with management or sub-specialty tracks. Curriculum covers radiation physics, anatomy, patient positioning, radiation safety, imaging principles, and ~1,800-2,000 hours of supervised clinical practice.',
       },
       {
         heading: 'ARRT certification',
         body:
-          'The American Registry of Radiologic Technologists (ARRT) administers the primary credentialing exam. Passing earns the R.T.(R)(ARRT) credential, "Radiography" certification, the entry-level RT credential. Most states (37 + DC) require state licensure in addition to ARRT certification; some states accept ARRT certification directly, others require a state-specific exam.',
+          'The American Registry of Radiologic Technologists (ARRT) administers the primary credentialing exam. Passing earns the R.T.(R)(ARRT) credential, "Radiography" certification, the entry-level RT credential. Most states (37 + DC) require state licensure in addition to ARRT certification. Some states accept ARRT certification directly, others require a state-specific exam.',
       },
       {
         heading: 'Modality specialties',
@@ -503,7 +503,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Compensation',
         body:
-          'BLS reports median annual OT salary around $93k-$98k. Home-health + travel OT pay highest hourly; school-based OT typically lowest (but with school-year schedule + benefits). Specialty hand therapy (CHT credential) commands a premium.',
+          'BLS reports median annual OT salary around $93k-$98k. Home-health + travel OT pay highest hourly. School-based OT typically lowest (but with school-year schedule + benefits). Specialty hand therapy (CHT credential) commands a premium.',
       },
     ],
     specialtySlug: 'occupational-therapy',
@@ -537,7 +537,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Licensing',
         body:
-          'All 50 states + DC require state licensure. Many states accept CCC-SLP directly; some require separate state exams. School-based SLPs may need an additional teaching credential depending on the state, some states require the educational SLP credential, others accept the clinical CCC-SLP for school employment.',
+          'All 50 states + DC require state licensure. Many states accept CCC-SLP directly. Some require separate state exams. School-based SLPs may need an additional teaching credential depending on the state, some states require the educational SLP credential, others accept the clinical CCC-SLP for school employment.',
       },
       {
         heading: 'Specialization',
@@ -581,7 +581,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Certification + licensure',
         body:
-          'The National Registry of Emergency Medical Technicians (NREMT) administers cognitive + psychomotor exams at each level (EMT, AEMT, Paramedic). NREMT certification + state-specific application = state license. About 47 states use NREMT as the basis for state licensure; the rest run their own state exams. NREMT recertification every 2 years requires continuing education + skills verification.',
+          'The National Registry of Emergency Medical Technicians (NREMT) administers cognitive + psychomotor exams at each level (EMT, AEMT, Paramedic). NREMT certification + state-specific application = state license. About 47 states use NREMT as the basis for state licensure. The rest run their own state exams. NREMT recertification every 2 years requires continuing education + skills verification.',
       },
       {
         heading: 'Practice settings + progression',
@@ -591,7 +591,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Compensation',
         body:
-          'BLS reports wide compensation ranges: EMT median around $42k, Paramedic median around $50k-$60k, flight paramedics + critical-care paramedics in the $70k-$95k range. Fire-based EMS pay tends to be higher than third-service or private; coastal + metropolitan systems pay above rural. Overtime is heavy in most 911 systems.',
+          'BLS reports wide compensation ranges: EMT median around $42k, Paramedic median around $50k-$60k, flight paramedics + critical-care paramedics in the $70k-$95k range. Fire-based EMS pay tends to be higher than third-service or private. Coastal + metropolitan systems pay above rural. Overtime is heavy in most 911 systems.',
       },
     ],
     specialtySlug: 'paramedic',
@@ -620,7 +620,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Practice settings',
         body:
-          'Hospital labs (in/outpatient), reference labs (LabCorp, Quest Diagnostics), physician offices + clinics, plasma + blood donation centers (Grifols, CSL Plasma, American Red Cross), mobile draw services, research facilities. Hospital phlebotomy is typically the highest-volume + most varied; reference-lab work is the most efficient + repetitive.',
+          'Hospital labs (in/outpatient), reference labs (LabCorp, Quest Diagnostics), physician offices + clinics, plasma + blood donation centers (Grifols, CSL Plasma, American Red Cross), mobile draw services, research facilities. Hospital phlebotomy is typically the highest-volume + most varied. Reference-lab work is the most efficient + repetitive.',
       },
       {
         heading: 'Career progression',
@@ -669,7 +669,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Compensation',
         body:
-          'BLS reports median annual RDH salary around $87k-$93k. RDH commonly ranks in the top 10 highest-paying associate-degree-only US careers. Compensation varies by state and practice setting, DSO + corporate groups typically structure as base + production bonus; private offices commonly hourly + benefits.',
+          'BLS reports median annual RDH salary around $87k-$93k. RDH commonly ranks in the top 10 highest-paying associate-degree-only US careers. Compensation varies by state and practice setting, DSO + corporate groups typically structure as base + production bonus. Private offices commonly pay hourly + benefits.',
       },
     ],
     specialtySlug: 'dental-hygienist',
@@ -693,12 +693,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Supervised practice',
         body:
-          'Candidates complete an ACEND-accredited supervised-practice rotation (formerly a "dietetic internship") totaling at least 1,000 hours across clinical, community, and food-service settings. Coordinated programs integrate the supervised practice into the master\'s curriculum; standalone internships run ~9-12 months post-degree. Match rates for standalone internships historically run 50-70%, coordinated programs avoid this risk.',
+          'Candidates complete an ACEND-accredited supervised-practice rotation (formerly a "dietetic internship") totaling at least 1,000 hours across clinical, community, and food-service settings. Coordinated programs integrate the supervised practice into the master\'s curriculum. Standalone internships run ~9-12 months post-degree. Match rates for standalone internships historically run 50-70%, coordinated programs avoid this risk.',
       },
       {
         heading: 'Examination + licensure',
         body:
-          'After supervised practice, candidates sit for the CDR registration exam. Passing = RDN credential. About 38 states + DC also require state licensure in addition to RDN, application requirements vary; some states accept CDR registration directly, others require a state-specific application + fee.',
+          'After supervised practice, candidates sit for the CDR registration exam. Passing = RDN credential. About 38 states + DC also require state licensure in addition to RDN, application requirements vary. Some states accept CDR registration directly, others require a state-specific application + fee.',
       },
       {
         heading: 'Practice settings',
@@ -727,7 +727,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Undergraduate',
         body:
-          'Most AuD programs accept candidates from any bachelor\'s major + completion of prerequisite courses (typically a year of biology, physics, chemistry, statistics, and several CSD or speech-and-hearing-sciences courses). Communication Sciences and Disorders (CSD) is the most direct undergraduate major; psychology + biology are also common.',
+          'Most AuD programs accept candidates from any bachelor\'s major + completion of prerequisite courses (typically a year of biology, physics, chemistry, statistics, and several CSD or speech-and-hearing-sciences courses). Communication Sciences and Disorders (CSD) is the most direct undergraduate major. Psychology + biology are also common.',
       },
       {
         heading: 'Doctoral program',
@@ -737,7 +737,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Credentialing + licensure',
         body:
-          'After graduation, candidates take the Praxis Examination in Audiology administered by ETS. Pass = eligible for the Certificate of Clinical Competence in Audiology (CCC-A) from ASHA, the standard credential most employers + insurers require. State licensure (all 50 states + DC) is separate; most states accept CCC-A directly.',
+          'After graduation, candidates take the Praxis Examination in Audiology administered by ETS. Pass = eligible for the Certificate of Clinical Competence in Audiology (CCC-A) from ASHA, the standard credential most employers + insurers require. State licensure (all 50 states + DC) is separate. Most states accept CCC-A directly.',
       },
       {
         heading: 'Practice settings',
@@ -747,7 +747,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Compensation',
         body:
-          'BLS reports median annual audiologist salary around $87k-$92k. VA + hospital settings + senior management roles command meaningfully more; private-practice owners earn highly variable income based on case mix + product fitting. Specialty certifications (Cochlear Implant, Vestibular Audiology) add a modest premium.',
+          'BLS reports median annual audiologist salary around $87k-$92k. VA + hospital settings + senior management roles command meaningfully more. Private-practice owners earn highly variable income based on case mix + product fitting. Specialty certifications (Cochlear Implant, Vestibular Audiology) add a modest premium.',
       },
     ],
     specialtySlug: 'audiologist',
@@ -776,7 +776,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Certification + licensure',
         body:
-          'After graduation, candidates sit for the ABGC (American Board of Genetic Counseling) certification exam. Pass = CGC credential. State licensure is jurisdiction-dependent, about half of US states + DC license genetic counselors, requiring ABGC certification + state-specific application; others rely solely on ABGC.',
+          'After graduation, candidates sit for the ABGC (American Board of Genetic Counseling) certification exam. Pass = CGC credential. State licensure is jurisdiction-dependent, about half of US states + DC license genetic counselors, requiring ABGC certification + state-specific application. Others rely solely on ABGC.',
       },
       {
         heading: 'Practice settings',
@@ -786,7 +786,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Compensation',
         body:
-          'NSGC professional-status survey reports median annual GC salary around $95k-$105k, with industry + telehealth + senior clinical roles trending higher ($110k-$150k+). Cost of entry (a 2-year master\'s) is moderate compared to AuD or DNP paths; growth rate is among the highest in healthcare per BLS (~16% over 2024-2034).',
+          'NSGC professional-status survey reports median annual GC salary around $95k-$105k, with industry + telehealth + senior clinical roles trending higher ($110k-$150k+). Cost of entry (a 2-year master\'s) is moderate compared to AuD or DNP paths. Growth rate is among the highest in healthcare per BLS (~16% over 2024-2034).',
       },
     ],
     specialtySlug: 'genetic-counselor',

@@ -19,7 +19,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: {
     template: '%s | Ava Health',
-    default: 'Healthcare Jobs — Post Free, Apply Free | Ava Health',
+    default: 'Healthcare Jobs - Post Free, Apply Free | Ava Health',
   },
   description:
     'Post and find healthcare jobs free on Ava Health. No credit card, no sponsored-bid auction, no paywall to see applicants. Where growing healthcare employers hire.',
@@ -109,7 +109,7 @@ export default function RootLayout({
                 websiteUrl: 'https://freejobpost.co',
                 websiteName: 'Ava Health',
                 websiteDescription:
-                  'Ava Health — free healthcare job board. Post jobs free. Apply free. No auction fees.',
+                  'Ava Health. Free healthcare job board. Post jobs free. Apply free. No auction fees.',
                 organizationDescription:
                   'Healthcare staffing and recruiting firm connecting nurses and allied health professionals with US healthcare employers. Operates a free healthcare job board with no posting fees and no auction pricing.',
                 searchActionTarget: 'https://freejobpost.co/jobs?q={search_term_string}',
