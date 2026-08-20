@@ -145,8 +145,9 @@ export default async function CareerPathPage({ params }: Props) {
               Looking for current openings?
             </p>
             <p className="text-sm text-gray-800 mb-3">
-              We aggregate {guide.specialtyLabel.toLowerCase()} from hospital ATS
-              feeds + direct employer postings. Updated continuously.
+              We pull {guide.specialtyLabel.toLowerCase()} from hospital career
+              sites and major job feeds, plus roles employers post here directly.
+              Updated continuously.
             </p>
             <Link
               href={`/specialty/${guide.specialtySlug}`}

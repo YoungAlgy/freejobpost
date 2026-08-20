@@ -134,7 +134,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Georgia Board of Nursing",
     nursingBoardUrl: "https://sos.ga.gov/georgia-board-nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Georgia is a Nurse Licensure Compact state. Atlanta-area systems (Emory, Piedmont, Wellstar, Northside) draw the heaviest compact-RN volume; Savannah and Augusta add coastal and military-adjacent demand.",
+    editorialNote: "Georgia is a Nurse Licensure Compact state. Atlanta-area systems (Emory, Piedmont, Wellstar, Northside) draw the heaviest compact-RN volume. Savannah and Augusta add coastal and military-adjacent demand.",
   },
   {
     slug: 'north-carolina',
@@ -147,7 +147,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "North Carolina Board of Nursing",
     nursingBoardUrl: "https://ncbon.com",
     nlcCompactStatus: 'compact',
-    editorialNote: "North Carolina is a Nurse Licensure Compact state. The Triangle (Duke / UNC) and Charlotte metro (Atrium / Novant) anchor most of the open compact-RN inventory; rural eastern NC remains an underserved corridor.",
+    editorialNote: "North Carolina is a Nurse Licensure Compact state. The Triangle (Duke / UNC) and Charlotte metro (Atrium / Novant) anchor most of the open compact-RN inventory. Rural eastern NC remains an underserved corridor.",
   },
   {
     slug: 'massachusetts',
@@ -186,7 +186,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "New Jersey Board of Nursing",
     nursingBoardUrl: "https://www.njconsumeraffairs.gov/nur/Pages/default.aspx",
     nlcCompactStatus: 'compact',
-    editorialNote: "New Jersey is a Nurse Licensure Compact state. RWJBarnabas, Hackensack Meridian, and Atlantic Health run the largest networks; NJ shares a labor pool with NYC but stays within the NJ compact-license market.",
+    editorialNote: "New Jersey is a Nurse Licensure Compact state. RWJBarnabas, Hackensack Meridian, and Atlantic Health run the largest networks. NJ shares a labor pool with NYC but stays within the NJ compact-license market.",
   },
   {
     slug: 'virginia',
@@ -199,7 +199,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Virginia Board of Nursing",
     nursingBoardUrl: "https://dhp.virginia.gov/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Virginia is a Nurse Licensure Compact state. Northern VA proximity to DC gives Inova and Adventist HealthCare access to a national RN pool; Hampton Roads adds heavy military and naval-adjacent healthcare demand.",
+    editorialNote: "Virginia is a Nurse Licensure Compact state. Northern VA proximity to DC gives Inova and Adventist HealthCare access to a national RN pool. Hampton Roads adds heavy military and naval-adjacent healthcare demand.",
   },
   {
     slug: 'arizona',
@@ -225,7 +225,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Washington State Nursing Care Quality Assurance Commission",
     nursingBoardUrl: "https://doh.wa.gov/licenses-permits-and-certificates/nursing-commission",
     nlcCompactStatus: 'compact',
-    editorialNote: "Washington is a Nurse Licensure Compact state. UW Medicine, Providence Swedish, and MultiCare anchor the Puget Sound corridor; Spokane shares a labor market with Idaho's panhandle.",
+    editorialNote: "Washington is a Nurse Licensure Compact state. UW Medicine, Providence Swedish, and MultiCare anchor the Puget Sound corridor. Spokane shares a labor market with Idaho's panhandle.",
   },
   {
     slug: 'tennessee',
@@ -238,7 +238,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Tennessee Board of Nursing",
     nursingBoardUrl: "https://tn.gov/health/health-program-areas/health-professional-boards/nursing-board.html",
     nlcCompactStatus: 'compact',
-    editorialNote: "Tennessee is a Nurse Licensure Compact state. Vanderbilt and HCA dominate Nashville; Memphis is anchored by Methodist Le Bonheur and Baptist Memorial. TN's compact status makes it a common landing spot for travelers from KY, NC, GA, and MS.",
+    editorialNote: "Tennessee is a Nurse Licensure Compact state. Vanderbilt and HCA dominate Nashville. Memphis is anchored by Methodist Le Bonheur and Baptist Memorial. TN's compact status makes it a common landing spot for travelers from KY, NC, GA, and MS.",
   },
   {
     slug: 'missouri',
@@ -251,7 +251,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Missouri State Board of Nursing",
     nursingBoardUrl: "https://pr.mo.gov/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Missouri is a Nurse Licensure Compact state. The Kansas City and St. Louis metros each support full BJC, Mercy, SSM, and Saint Luke's networks; Children's Mercy KC and St. Louis Children's run heavy pediatric travel cycles.",
+    editorialNote: "Missouri is a Nurse Licensure Compact state. The Kansas City and St. Louis metros each support full BJC, Mercy, SSM, and Saint Luke's networks. Children's Mercy KC and St. Louis Children's run heavy pediatric travel cycles.",
   },
   {
     slug: 'minnesota',
@@ -277,7 +277,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Wisconsin Board of Nursing",
     nursingBoardUrl: "https://dsps.wi.gov/boards/nur",
     nlcCompactStatus: 'compact',
-    editorialNote: "Wisconsin is a Nurse Licensure Compact state. Milwaukee (Advocate Aurora, Froedtert) and Madison (UW Health) host most open compact-RN inventory; rural northern Wisconsin remains an underserved corridor.",
+    editorialNote: "Wisconsin is a Nurse Licensure Compact state. Milwaukee (Advocate Aurora, Froedtert) and Madison (UW Health) host most open compact-RN inventory. Rural northern Wisconsin remains an underserved corridor.",
   },
   {
     slug: 'colorado',
@@ -290,7 +290,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Colorado State Board of Nursing",
     nursingBoardUrl: "https://dora.colorado.gov/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Colorado is a Nurse Licensure Compact state. Denver Front Range (UCHealth, HealthONE, Children's Colorado) is the high-volume corridor; ski-resort communities (Vail, Aspen, Steamboat) add seasonal RN demand.",
+    editorialNote: "Colorado is a Nurse Licensure Compact state. Denver Front Range (UCHealth, HealthONE, Children's Colorado) is the high-volume corridor. Ski-resort communities (Vail, Aspen, Steamboat) add seasonal RN demand.",
   },
   {
     slug: 'oregon',
@@ -303,7 +303,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Oregon State Board of Nursing",
     nursingBoardUrl: "https://oregon.gov/osbn",
     nlcCompactStatus: 'none',
-    editorialNote: "Oregon is not a Nurse Licensure Compact state. RNs licensed elsewhere must apply for OR endorsement before working, typically a 4-8 week wait. OHSU (Portland) and Providence anchor Portland metro; the I-5 corridor extends to Salem, Eugene, and Medford.",
+    editorialNote: "Oregon is not a Nurse Licensure Compact state. RNs licensed elsewhere must apply for OR endorsement before working, typically a 4-8 week wait. OHSU (Portland) and Providence anchor Portland metro. The I-5 corridor extends to Salem, Eugene, and Medford.",
   },
   {
     slug: 'oklahoma',
@@ -316,7 +316,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Oklahoma Board of Nursing",
     nursingBoardUrl: "https://nursing.ok.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Oklahoma is a Nurse Licensure Compact state. OU Health (OKC) and Saint Francis (Tulsa) anchor metro demand; rural OK's nurse-shortage zones make it one of the easier compact states to land travel contracts.",
+    editorialNote: "Oklahoma is a Nurse Licensure Compact state. OU Health (OKC) and Saint Francis (Tulsa) anchor metro demand. Rural OK's nurse-shortage zones make it one of the easier compact states to land travel contracts.",
   },
   {
     slug: 'kentucky',
@@ -329,7 +329,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Kentucky Board of Nursing",
     nursingBoardUrl: "https://kbn.ky.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Kentucky is a Nurse Licensure Compact state. UK HealthCare (Lexington), Norton (Louisville), and Baptist Health Kentucky drive most metro RN demand; Northern KY (St. Elizabeth) is functionally part of the Greater Cincinnati market.",
+    editorialNote: "Kentucky is a Nurse Licensure Compact state. UK HealthCare (Lexington), Norton (Louisville), and Baptist Health Kentucky drive most metro RN demand. Northern KY (St. Elizabeth) is functionally part of the Greater Cincinnati market.",
   },
   {
     slug: 'indiana',
@@ -342,7 +342,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Indiana State Board of Nursing",
     nursingBoardUrl: "https://in.gov/pla/nursing.htm",
     nlcCompactStatus: 'compact',
-    editorialNote: "Indiana is a Nurse Licensure Compact state. Indianapolis (IU Health, Community, Ascension St. Vincent) leads the state in RN openings; Northwest Indiana shares a labor pool with Chicagoland but stays within the IN compact license.",
+    editorialNote: "Indiana is a Nurse Licensure Compact state. Indianapolis (IU Health, Community, Ascension St. Vincent) leads the state in RN openings. Northwest Indiana shares a labor pool with Chicagoland but stays within the IN compact license.",
   },
   {
     slug: 'nevada',
@@ -368,7 +368,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Utah Board of Nursing",
     nursingBoardUrl: "https://dopl.utah.gov/nurse",
     nlcCompactStatus: 'compact',
-    editorialNote: "Utah is a Nurse Licensure Compact state. The Wasatch Front (Intermountain, U of Utah Health) hosts most metro RN inventory; St. George is the state's secondary growth corridor and adds Southern-Utah travel demand.",
+    editorialNote: "Utah is a Nurse Licensure Compact state. The Wasatch Front (Intermountain, U of Utah Health) hosts most metro RN inventory. St. George is the state's secondary growth corridor and adds Southern-Utah travel demand.",
   },
   {
     slug: 'alabama',
@@ -381,7 +381,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Alabama Board of Nursing",
     nursingBoardUrl: "https://abn.alabama.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Alabama is a Nurse Licensure Compact state. UAB (Birmingham) and Huntsville Hospital are the two largest systems; AL's compact status pairs naturally with neighboring TN, GA, FL, and MS for travelers.",
+    editorialNote: "Alabama is a Nurse Licensure Compact state. UAB (Birmingham) and Huntsville Hospital are the two largest systems. AL's compact status pairs naturally with neighboring TN, GA, FL, and MS for travelers.",
   },
   {
     slug: 'arkansas',
@@ -394,7 +394,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Arkansas State Board of Nursing",
     nursingBoardUrl: "https://arsbn.org",
     nlcCompactStatus: 'compact',
-    editorialNote: "Arkansas is a Nurse Licensure Compact state. UAMS (Little Rock) and Mercy / Washington Regional (NW Arkansas) anchor RN demand; Fayetteville-Springdale-Rogers is the state's fastest-growing metro.",
+    editorialNote: "Arkansas is a Nurse Licensure Compact state. UAMS (Little Rock) and Mercy / Washington Regional (NW Arkansas) anchor RN demand. Fayetteville-Springdale-Rogers is the state's fastest-growing metro.",
   },
   {
     slug: 'iowa',
@@ -407,7 +407,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Iowa Board of Nursing",
     nursingBoardUrl: "https://nursing.iowa.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Iowa is a Nurse Licensure Compact state. UnityPoint and MercyOne run the largest networks; University of Iowa Health Care (Iowa City) is the state's academic anchor and a heavy traveler destination during academic-year cycles.",
+    editorialNote: "Iowa is a Nurse Licensure Compact state. UnityPoint and MercyOne run the largest networks. University of Iowa Health Care (Iowa City) is the state's academic anchor and a heavy traveler destination during academic-year cycles.",
   },
   {
     slug: 'mississippi',
@@ -420,7 +420,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Mississippi Board of Nursing",
     nursingBoardUrl: "https://msbn.ms.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Mississippi is a Nurse Licensure Compact state. UMMC (Jackson) is the state's flagship academic medical center; the Gulf Coast (Singing River, Memorial) and Tupelo (North Mississippi Health Services) host most open RN inventory.",
+    editorialNote: "Mississippi is a Nurse Licensure Compact state. UMMC (Jackson) is the state's flagship academic medical center. The Gulf Coast (Singing River, Memorial) and Tupelo (North Mississippi Health Services) host most open RN inventory.",
   },
   {
     slug: 'connecticut',
@@ -433,7 +433,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Connecticut Board of Examiners for Nursing",
     nursingBoardUrl: "https://portal.ct.gov/DPH/Nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Connecticut is a Nurse Licensure Compact state. Yale New Haven Health and Hartford HealthCare run most networks; CT's compact status makes Northeast Corridor RN movement easier than it used to be.",
+    editorialNote: "Connecticut is a Nurse Licensure Compact state. Yale New Haven Health and Hartford HealthCare run most networks. CT's compact status makes Northeast Corridor RN movement easier than it used to be.",
   },
   {
     slug: 'south-carolina',
@@ -446,7 +446,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "South Carolina Board of Nursing",
     nursingBoardUrl: "https://llr.sc.gov/nurse",
     nlcCompactStatus: 'compact',
-    editorialNote: "South Carolina is a Nurse Licensure Compact state. MUSC (Charleston) and Prisma Health (Greenville-Columbia) lead the state; Myrtle Beach adds significant tourism-adjacent ER and acute-care demand.",
+    editorialNote: "South Carolina is a Nurse Licensure Compact state. MUSC (Charleston) and Prisma Health (Greenville-Columbia) lead the state. Myrtle Beach adds significant tourism-adjacent ER and acute-care demand.",
   },
   {
     slug: 'louisiana',
@@ -459,7 +459,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Louisiana State Board of Nursing",
     nursingBoardUrl: "https://lsbn.state.la.us",
     nlcCompactStatus: 'compact',
-    editorialNote: "Louisiana is a Nurse Licensure Compact state. New Orleans (Ochsner, LCMC, Tulane) and Baton Rouge (FMOL) host most metro RN openings; Shreveport-Bossier adds North LA demand. Hurricane-season surge contracts are a regional specialty.",
+    editorialNote: "Louisiana is a Nurse Licensure Compact state. New Orleans (Ochsner, LCMC, Tulane) and Baton Rouge (FMOL) host most metro RN openings. Shreveport-Bossier adds North LA demand. Hurricane-season surge contracts are a regional specialty.",
   },
   {
     slug: 'kansas',
@@ -472,7 +472,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Kansas State Board of Nursing",
     nursingBoardUrl: "https://ksbn.kansas.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Kansas is a Nurse Licensure Compact state. KU Health (KC metro), Ascension Via Christi (Wichita), and Stormont Vail (Topeka) anchor demand; the KC-area Kansas side functionally shares a labor pool with KC Missouri.",
+    editorialNote: "Kansas is a Nurse Licensure Compact state. KU Health (KC metro), Ascension Via Christi (Wichita), and Stormont Vail (Topeka) anchor demand. The KC-area Kansas side functionally shares a labor pool with KC Missouri.",
   },
   {
     slug: 'nebraska',
@@ -485,7 +485,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Nebraska Board of Nursing",
     nursingBoardUrl: "https://dhhs.ne.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Nebraska is a Nurse Licensure Compact state. Omaha (Nebraska Medicine, CHI Health, Children's Nebraska) hosts most open RN inventory; Lincoln (Bryan Health) is the secondary metro corridor.",
+    editorialNote: "Nebraska is a Nurse Licensure Compact state. Omaha (Nebraska Medicine, CHI Health, Children's Nebraska) hosts most open RN inventory. Lincoln (Bryan Health) is the secondary metro corridor.",
   },
   {
     slug: 'new-mexico',
@@ -498,7 +498,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "New Mexico Board of Nursing",
     nursingBoardUrl: "https://www.bon.nm.gov/",
     nlcCompactStatus: 'compact',
-    editorialNote: "New Mexico is a Nurse Licensure Compact state. Presbyterian (statewide) and UNM Hospital (Albuquerque) anchor most RN demand; Santa Fe (Christus St. Vincent) and the Four Corners region add northern NM volume.",
+    editorialNote: "New Mexico is a Nurse Licensure Compact state. Presbyterian (statewide) and UNM Hospital (Albuquerque) anchor most RN demand. Santa Fe (Christus St. Vincent) and the Four Corners region add northern NM volume.",
   },
   {
     slug: 'maryland',
@@ -511,7 +511,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Maryland Board of Nursing",
     nursingBoardUrl: "https://mbon.maryland.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Maryland is a Nurse Licensure Compact state. Johns Hopkins, MedStar, and UMMS anchor Baltimore metro; the DC suburbs (Montgomery County) host their own academic-adjacent demand and overlap with the DC / NoVA labor market.",
+    editorialNote: "Maryland is a Nurse Licensure Compact state. Johns Hopkins, MedStar, and UMMS anchor Baltimore metro. The DC suburbs (Montgomery County) host their own academic-adjacent demand and overlap with the DC / NoVA labor market.",
   },
   {
     slug: 'west-virginia',
@@ -524,7 +524,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "West Virginia Board of Registered Nurses",
     nursingBoardUrl: "https://wvrnboard.wv.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "West Virginia is a Nurse Licensure Compact state. WVU Medicine (Morgantown) and Charleston Area Medical Center (CAMC) are the two largest systems; rural WV's chronic nurse shortage makes it one of the easier compact states for travel placements.",
+    editorialNote: "West Virginia is a Nurse Licensure Compact state. WVU Medicine (Morgantown) and Charleston Area Medical Center (CAMC) are the two largest systems. Rural WV's chronic nurse shortage makes it one of the easier compact states for travel placements.",
   },
   {
     slug: 'maine',
@@ -537,7 +537,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Maine State Board of Nursing",
     nursingBoardUrl: "https://maine.gov/boardofnursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Maine is a Nurse Licensure Compact state. MaineHealth (Portland) and Northern Light Health (Bangor) run the largest networks; rural and Down East Maine consistently rank among the most underserved RN markets in New England.",
+    editorialNote: "Maine is a Nurse Licensure Compact state. MaineHealth (Portland) and Northern Light Health (Bangor) run the largest networks. Rural and Down East Maine consistently rank among the most underserved RN markets in New England.",
   },
   {
     slug: 'new-hampshire',
@@ -550,7 +550,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "New Hampshire Board of Nursing",
     nursingBoardUrl: "https://oplc.nh.gov/board-nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "New Hampshire is a Nurse Licensure Compact state. Dartmouth Health (Upper Valley) and Catholic Medical Center / Elliot Health (Manchester) anchor the state; proximity to Boston gives travelers an easy commute option vs Massachusetts (still pending NLC).",
+    editorialNote: "New Hampshire is a Nurse Licensure Compact state. Dartmouth Health (Upper Valley) and Catholic Medical Center / Elliot Health (Manchester) anchor the state. Proximity to Boston gives travelers an easy commute option vs Massachusetts (still pending NLC).",
   },
   {
     slug: 'vermont',
@@ -563,7 +563,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Vermont Board of Nursing",
     nursingBoardUrl: "https://sos.vermont.gov/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Vermont is a Nurse Licensure Compact state. UVM Medical Center (Burlington) is the academic anchor; rural Vermont's small-hospital network (Brattleboro Memorial, Copley, NW Medical Center) drives most non-Burlington travel contracts.",
+    editorialNote: "Vermont is a Nurse Licensure Compact state. UVM Medical Center (Burlington) is the academic anchor. Rural Vermont's small-hospital network (Brattleboro Memorial, Copley, NW Medical Center) drives most non-Burlington travel contracts.",
   },
   {
     slug: 'north-dakota',
@@ -576,7 +576,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "North Dakota Board of Nursing",
     nursingBoardUrl: "https://ndbon.org",
     nlcCompactStatus: 'compact',
-    editorialNote: "North Dakota is a Nurse Licensure Compact state. Sanford Health (Fargo + statewide) and Altru (Grand Forks) anchor the state; Bakken oil-region health systems (Williston, Minot) cycle significant travel-RN demand.",
+    editorialNote: "North Dakota is a Nurse Licensure Compact state. Sanford Health (Fargo + statewide) and Altru (Grand Forks) anchor the state. Bakken oil-region health systems (Williston, Minot) cycle significant travel-RN demand.",
   },
   {
     slug: 'south-dakota',
@@ -589,7 +589,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "South Dakota Board of Nursing",
     nursingBoardUrl: "https://doh.sd.gov/boards/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "South Dakota is a Nurse Licensure Compact state. Sanford (Sioux Falls) and Avera (statewide) dominate the eastern half; Monument Health (Rapid City) anchors the Black Hills and western SD.",
+    editorialNote: "South Dakota is a Nurse Licensure Compact state. Sanford (Sioux Falls) and Avera (statewide) dominate the eastern half. Monument Health (Rapid City) anchors the Black Hills and western SD.",
   },
   {
     slug: 'montana',
@@ -602,7 +602,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Montana Board of Nursing",
     nursingBoardUrl: "https://boards.bsd.dli.mt.gov/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Montana is a Nurse Licensure Compact state. Billings Clinic, Bozeman Health, and Logan Health (Kalispell) anchor most of the state's RN demand; rural and frontier Montana drive heavy travel and locum-style contracts.",
+    editorialNote: "Montana is a Nurse Licensure Compact state. Billings Clinic, Bozeman Health, and Logan Health (Kalispell) anchor most of the state's RN demand. Rural and frontier Montana drive heavy travel and locum-style contracts.",
   },
   {
     slug: 'idaho',
@@ -615,7 +615,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Idaho Board of Nursing",
     nursingBoardUrl: "https://ibn.idaho.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Idaho is a Nurse Licensure Compact state. St. Luke's (Boise) and Saint Alphonsus dominate the Treasure Valley; Kootenai Health (Coeur d'Alene) is the Idaho Panhandle anchor, sharing a labor market with Spokane WA.",
+    editorialNote: "Idaho is a Nurse Licensure Compact state. St. Luke's (Boise) and Saint Alphonsus dominate the Treasure Valley. Kootenai Health (Coeur d'Alene) is the Idaho Panhandle anchor, sharing a labor market with Spokane WA.",
   },
   {
     slug: 'wyoming',
@@ -628,7 +628,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Wyoming State Board of Nursing",
     nursingBoardUrl: "https://wsbn.wyo.gov",
     nlcCompactStatus: 'compact',
-    editorialNote: "Wyoming is a Nurse Licensure Compact state. The state has no academic medical center, Cheyenne Regional, Wyoming Medical Center (Casper, Banner), and SageWest run most inventory. Jackson (St. John's Health) adds resort-town demand year-round.",
+    editorialNote: "Wyoming is a Nurse Licensure Compact state. The state has no academic medical center. Cheyenne Regional, Wyoming Medical Center (Casper, Banner), and SageWest run most inventory. Jackson (St. John's Health) adds resort-town demand year-round.",
   },
   {
     slug: 'alaska',
@@ -641,7 +641,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Alaska Board of Nursing",
     nursingBoardUrl: "https://commerce.alaska.gov/web/cbpl",
     nlcCompactStatus: 'none',
-    editorialNote: "Alaska is not a Nurse Licensure Compact state. RNs licensed elsewhere must apply for AK endorsement before working, typically a 4-8 week wait. Providence Alaska (Anchorage), ANTHC, and Foundation Health Partners (Fairbanks) run most open RN inventory; rural and bush Alaska has chronic nurse shortages.",
+    editorialNote: "Alaska is not a Nurse Licensure Compact state. RNs licensed elsewhere must apply for AK endorsement before working, typically a 4-8 week wait. Providence Alaska (Anchorage), ANTHC, and Foundation Health Partners (Fairbanks) run most open RN inventory. Rural and bush Alaska has chronic nurse shortages.",
   },
   {
     slug: 'hawaii',
@@ -667,7 +667,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Rhode Island Board of Nurse Registration and Nursing Education",
     nursingBoardUrl: "https://health.ri.gov/boards/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Rhode Island is a Nurse Licensure Compact state. Lifespan (RIH, Miriam, Newport) and Care New England (Women & Infants, Kent) cover most networks; RI's compact status makes commuting from CT or MA along I-95 easier for multi-state-licensed travelers.",
+    editorialNote: "Rhode Island is a Nurse Licensure Compact state. Lifespan (RIH, Miriam, Newport) and Care New England (Women & Infants, Kent) cover most networks. RI's compact status makes commuting from CT or MA along I-95 easier for multi-state-licensed travelers.",
   },
   {
     slug: 'delaware',
@@ -680,7 +680,7 @@ export const STATE_HUBS: StateHub[] = [
     nursingBoardName: "Delaware Board of Nursing",
     nursingBoardUrl: "https://dpr.delaware.gov/boards/nursing",
     nlcCompactStatus: 'compact',
-    editorialNote: "Delaware is a Nurse Licensure Compact state. ChristianaCare dominates Wilmington and the I-95 corridor; Bayhealth (Dover) and Beebe (Lewes/Rehoboth) cover central and southern DE.",
+    editorialNote: "Delaware is a Nurse Licensure Compact state. ChristianaCare dominates Wilmington and the I-95 corridor. Bayhealth (Dover) and Beebe (Lewes/Rehoboth) cover central and southern DE.",
   },
 ]
 

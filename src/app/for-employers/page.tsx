@@ -217,7 +217,7 @@ export default function ForEmployersPage() {
             {[
               { name: 'Google for Jobs', status: 'Active', note: 'JobPosting JSON-LD on every listing page, auto-indexed by Google' },
               { name: 'Indeed', status: 'Active', note: 'Organic crawl of JobPosting JSON-LD, no sponsored required' },
-              { name: 'Glassdoor', status: 'Active', note: 'Indeed-owned; same auto-crawl pipeline' },
+              { name: 'Glassdoor', status: 'Active', note: 'Indeed-owned, same auto-crawl pipeline' },
               { name: 'Adzuna', status: 'Feed live', note: 'Feed submitted, partnership in review' },
               { name: 'ZipRecruiter', status: 'Feed live', note: 'Feed submitted, pending Open Network acceptance' },
               { name: 'Jooble', status: 'Feed live', note: 'Feed submitted, pending acceptance' },

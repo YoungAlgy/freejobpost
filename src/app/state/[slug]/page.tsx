@@ -208,7 +208,7 @@ export default async function StateHubPage(
             {hub.name} healthcare jobs <span className="text-[#7FBC00]">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 max-w-3xl">
-            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers. Every listing has a real apply link.
+            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles come from hospital career sites and major job feeds, with some placed by Ava Health Partners&apos; recruiter book. Every listing has a real apply link.
           </p>
 
           {/* Licensing + market notes — per-state factual content. Renders only when
@@ -285,7 +285,7 @@ export default async function StateHubPage(
             <div className="mb-10">
               <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Major {hub.name} healthcare systems</h2>
               <p className="text-sm text-gray-700 leading-relaxed">
-                {hub.topEmployers.join(', ')}. Some listings come from these systems directly. Others are placed by our recruiter book.
+                {hub.topEmployers.join(', ')}. These are the systems that anchor {hub.name} healthcare hiring. Inventory on the board shifts week to week, so not every system has an active listing here at any given moment.
               </p>
             </div>
           )}
@@ -386,11 +386,12 @@ export default async function StateHubPage(
                     Which {hub.name} healthcare systems hire on freejobpost.co?
                   </h3>
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    Major {hub.name} employers in our inventory include{' '}
-                    {hub.topEmployers.slice(0, 5).join(', ')}. Some listings come
-                    from these systems directly. Others are placed by Ava Health
-                    Partners&apos; recruiter book. Every posting has a real apply
-                    link. No sponsored middleman.
+                    The major {hub.name} systems are{' '}
+                    {hub.topEmployers.slice(0, 5).join(', ')}. Listings on the
+                    board come from hospital career sites and major job feeds,
+                    with some placed by Ava Health Partners&apos; recruiter book,
+                    so which systems appear shifts with live inventory. Every
+                    posting has a real apply link. No sponsored middleman.
                   </p>
                 </div>
               )}

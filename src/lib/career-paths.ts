@@ -79,12 +79,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'What current openings look like',
         body:
-          'Job listings on freejobpost.co lean heavily toward acute-care hospital RN roles: med-surg, telemetry, ICU, ED, perioperative, and L&D. Per-diem and travel-nursing roles also appear, as do ambulatory and clinic-based positions. The Florida + Texas + California metros carry the highest concentration of openings.',
+          'Job listings on freejobpost.co lean heavily toward acute-care hospital RN roles: med-surg, telemetry, ICU, ED, perioperative, and L&D. Per-diem and travel-nursing roles also appear, as do ambulatory and clinic-based positions. Florida carries the largest share of RN openings on the board by a wide margin.',
       },
     ],
     specialtySlug: 'registered-nurse',
     specialtyLabel: 'Registered Nurse jobs',
-    oneLiner: 'ADN or BSN → NCLEX-RN → state license. ~3.3M practicing RNs nationally.',
+    oneLiner: 'ADN or BSN → NCLEX-RN → state license. About 3.3M practicing RNs nationally.',
   },
   {
     slug: 'nurse-practitioner',
@@ -118,7 +118,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Salary + growth',
         body:
-          'BLS lists Nurse Practitioner among the fastest-growing occupations in the US (projected 38% growth 2024-2034 vs ~7% across all occupations). Median annual salary is in the $120k-$135k range nationally per recent BLS data, with significant variance by specialty (CRNAs and Psych NPs sit higher, primary-care FNPs near the median).',
+          'BLS lists Nurse Practitioner among the fastest-growing occupations in the US (projected 38% growth 2024-2034 vs about 7% across all occupations). Median annual salary is in the $120k-$135k range nationally per recent BLS data, with significant variance by specialty (Psych NPs and acute-care NPs sit higher, primary-care FNPs near the median).',
       },
     ],
     specialtySlug: 'nurse-practitioner',
@@ -230,7 +230,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Career progression',
         body:
-          'Common next step is an LPN-to-RN bridge program (~1-2 years to ADN, ~2-3 years to BSN). Many employers tuition-reimburse the bridge program for current LPN employees. From RN, further graduate paths open to NP / CRNA / educator roles.',
+          'Common next step is an LPN-to-RN bridge program (about 1-2 years to ADN, about 2-3 years to BSN). Many employers tuition-reimburse the bridge program for current LPN employees. From RN, further graduate paths open to NP / CRNA / educator roles.',
       },
     ],
     specialtySlug: 'lpn',
@@ -293,7 +293,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'DPT program',
         body:
-          'The Doctor of Physical Therapy is the only entry-level pathway since 2016, Masters-level PT degrees were phased out by CAPTE (the accrediting body). DPT programs run ~3 years (some 2.5, some 3.5) and award the DPT degree. Curriculum covers anatomy, kinesiology, neuroscience, biomechanics, therapeutic exercise, manual therapy, and ~30+ weeks of full-time clinical rotations across diverse settings.',
+          'The Doctor of Physical Therapy is the only entry-level pathway since 2016, Masters-level PT degrees were phased out by CAPTE (the accrediting body). DPT programs run about 3 years (some 2.5, some 3.5) and award the DPT degree. Curriculum covers anatomy, kinesiology, neuroscience, biomechanics, therapeutic exercise, manual therapy, and 30+ weeks of full-time clinical rotations across diverse settings.',
       },
       {
         heading: 'Licensing',
@@ -313,7 +313,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     ],
     specialtySlug: 'physical-therapy',
     specialtyLabel: 'Physical Therapy jobs',
-    oneLiner: 'Bachelor\'s + ~150 observation hours → DPT (3 yr) → NPTE → state license.',
+    oneLiner: 'Bachelor\'s + about 150 observation hours → DPT (3 yr) → NPTE → state license.',
   },
   {
     slug: 'respiratory-therapy',
@@ -347,7 +347,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Practice settings',
         body:
-          'Hospitals employ ~80% of RTs, ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19. Demand remains elevated.',
+          'Hospitals employ about 80% of RTs, ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19. Demand remains elevated.',
       },
     ],
     specialtySlug: 'respiratory-therapy',
@@ -359,7 +359,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Medical Assistant (MA)',
     abbreviation: 'MA',
     metaDescription:
-      'How to become a Medical Assistant: postsecondary certificate (~1 year) or on-the-job training → CMA/RMA cert. Open MA jobs on freejobpost.co.',
+      'How to become a Medical Assistant: postsecondary certificate (about 1 year) or on-the-job training → CMA/RMA cert. Open MA jobs on freejobpost.co.',
     lede:
       'Medical Assistants handle the administrative + clinical workflow of outpatient practices: rooming patients, taking vitals, drawing blood, doing EKGs, and managing referrals + records. About 760,000 MAs work nationally per BLS, almost entirely in physician offices, urgent care, and outpatient clinics. The role doesn\'t legally require certification in most states but credentialing significantly improves hiring + pay.',
     sections: [
@@ -391,14 +391,14 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     ],
     specialtySlug: 'medical-assistant',
     specialtyLabel: 'Medical Assistant jobs',
-    oneLiner: 'Postsecondary certificate (~12 mo) or on-the-job training → optional CMA/RMA cert.',
+    oneLiner: 'Postsecondary certificate (about 12 mo) or on-the-job training → optional CMA/RMA cert.',
   },
   {
     slug: 'surgical-technologist',
     title: 'How to become a Surgical Technologist (CST)',
     abbreviation: 'CST',
     metaDescription:
-      'How to become a Surgical Technologist (CST): accredited program (~12-24 mo) → NBSTSA cert → state recognition. Open surgical tech jobs on freejobpost.co.',
+      'How to become a Surgical Technologist (CST): accredited program (about 12-24 mo) → NBSTSA cert → state recognition. Open surgical tech jobs on freejobpost.co.',
     lede:
       'Surgical Technologists (scrub techs) prepare the operating room, assist the surgeon during procedures, and manage sterile fields + instruments. About 117,000 surgical techs work nationally per BLS, almost entirely in hospital ORs and ambulatory surgery centers. The role grew faster than overall healthcare hiring through 2020-2024.',
     sections: [
@@ -444,7 +444,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Education',
         body:
-          'Accredited radiologic-technology programs run 22-24 months and award an Associate of Science (AS) degree. Accreditation comes from JRCERT (Joint Review Committee on Education in Radiologic Technology). Only JRCERT-accredited program graduates are ARRT-eligible. A small number of 4-year BS-level programs exist, often combined with management or sub-specialty tracks. Curriculum covers radiation physics, anatomy, patient positioning, radiation safety, imaging principles, and ~1,800-2,000 hours of supervised clinical practice.',
+          'Accredited radiologic-technology programs run 22-24 months and award an Associate of Science (AS) degree. Accreditation comes from JRCERT (Joint Review Committee on Education in Radiologic Technology). Only JRCERT-accredited program graduates are ARRT-eligible. A small number of 4-year BS-level programs exist, often combined with management or sub-specialty tracks. Curriculum covers radiation physics, anatomy, patient positioning, radiation safety, imaging principles, and about 1,800-2,000 hours of supervised clinical practice.',
       },
       {
         heading: 'ARRT certification',
@@ -469,7 +469,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     ],
     specialtySlug: 'radiologic-technologist',
     specialtyLabel: 'Radiologic Technologist jobs',
-    oneLiner: 'AS in radiologic tech (~24 mo) → ARRT(R) exam → state license + modality specialty.',
+    oneLiner: 'AS in radiologic tech (about 24 mo) → ARRT(R) exam → state license + modality specialty.',
   },
   {
     slug: 'occupational-therapy',
@@ -478,17 +478,17 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     metaDescription:
       'How to become an Occupational Therapist: bachelor\'s → MOT or OTD → NBCOT cert → state license. Open OT jobs on freejobpost.co.',
     lede:
-      'Occupational Therapists help patients regain independence in activities of daily living (ADLs) after injury, illness, developmental delay, or aging: feeding, dressing, work tasks, school participation. About 152,000 OTs practice nationally per BLS, with growth projections among the highest of any healthcare profession (12% over 2024-2034).',
+      'Occupational Therapists help patients regain independence in activities of daily living (ADLs) after injury, illness, developmental delay, or aging: feeding, dressing, work tasks, school participation. About 152,000 OTs practice nationally per BLS, with projected growth (12% over 2024-2034) well above the all-occupation average.',
     sections: [
       {
         heading: 'Pre-OT undergraduate',
         body:
-          'Most OT programs require a bachelor\'s degree + specific prereq courses: anatomy + physiology, neuroscience, statistics, psychology (lifespan + abnormal), sociology, and ~40-60 hours of observation across multiple OT practice settings. Common undergraduate majors: psychology, kinesiology, exercise science, biology, though any major satisfying prereqs is acceptable.',
+          'Most OT programs require a bachelor\'s degree + specific prereq courses: anatomy + physiology, neuroscience, statistics, psychology (lifespan + abnormal), sociology, and about 40-60 hours of observation across multiple OT practice settings. Common undergraduate majors: psychology, kinesiology, exercise science, biology, though any major satisfying prereqs is acceptable.',
       },
       {
         heading: 'Graduate program',
         body:
-          'Two accredited entry-level paths since ACOTE\'s 2027 deadline removed: Master of Occupational Therapy (MOT, ~2-2.5 years) or Doctor of Occupational Therapy (OTD, ~3 years). Both qualify graduates for licensure. The OTD adds a 14-16 week doctoral capstone but is not currently required for general practice. Curriculum covers anatomy, kinesiology, neurology, occupational science, intervention planning, evidence-based practice, and 24+ weeks of full-time Level II fieldwork.',
+          'Two accredited entry-level paths exist since ACOTE dropped its planned doctoral-entry mandate: Master of Occupational Therapy (MOT, about 2-2.5 years) or Doctor of Occupational Therapy (OTD, about 3 years). Both qualify graduates for licensure. The OTD adds a 14-16 week doctoral capstone but is not currently required for general practice. Curriculum covers anatomy, kinesiology, neurology, occupational science, intervention planning, evidence-based practice, and 24+ weeks of full-time Level II fieldwork.',
       },
       {
         heading: 'Licensing',
@@ -559,19 +559,19 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become an EMT or Paramedic',
     abbreviation: 'EMT/Paramedic',
     metaDescription:
-      'How to become an EMT or Paramedic: EMT-B (~150h) or Paramedic (1-2 years) → NREMT cert → state license. Open EMT/paramedic jobs.',
+      'How to become an EMT or Paramedic: EMT-B (about 150h) or Paramedic (1-2 years) → NREMT cert → state license. Open EMT/paramedic jobs.',
     lede:
       'Emergency Medical Technicians and Paramedics provide pre-hospital + transport emergency care, from basic life support at the EMT level to advanced cardiac, airway, and trauma management at the Paramedic level. About 270,000 EMTs + paramedics work nationally per BLS, across 911 services, fire-rescue, hospital-based ambulance services, and critical-care transport.',
     sections: [
       {
         heading: 'EMT-Basic (entry level)',
         body:
-          'EMT-Basic (EMT) is the entry-level credential. Training is a ~120-200 hour state-approved program (typically 8-16 weeks part-time, or a 1-semester course at a community college). Coverage: patient assessment, CPR + AED, oxygen, basic airway management, trauma care, OB emergencies, hazmat awareness. Prereqs: high-school diploma, age 18+, and usually current CPR certification.',
+          'EMT-Basic (EMT) is the entry-level credential. Training is a about 120-200 hour state-approved program (typically 8-16 weeks part-time, or a 1-semester course at a community college). Coverage: patient assessment, CPR + AED, oxygen, basic airway management, trauma care, OB emergencies, hazmat awareness. Prereqs: high-school diploma, age 18+, and usually current CPR certification.',
       },
       {
         heading: 'Advanced + Intermediate EMT',
         body:
-          'Advanced EMT (AEMT, sometimes called EMT-I depending on state) adds IV access, limited medication administration, advanced airway adjuncts (King airway, supraglottic devices), and more advanced patient assessment. Training is ~150-250 hours beyond EMT-B. AEMT is heavily used in rural systems where Paramedic-staffed ambulances aren\'t economically feasible.',
+          'Advanced EMT (AEMT, sometimes called EMT-I depending on state) adds IV access, limited medication administration, advanced airway adjuncts (King airway, supraglottic devices), and more advanced patient assessment. Training is about 150-250 hours beyond EMT-B. AEMT is heavily used in rural systems where Paramedic-staffed ambulances aren\'t economically feasible.',
       },
       {
         heading: 'Paramedic',
@@ -596,7 +596,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     ],
     specialtySlug: 'paramedic',
     specialtyLabel: 'EMT + Paramedic jobs',
-    oneLiner: 'EMT-B (~150h) → AEMT (~250h) → Paramedic (1-2 yr) → NREMT cert + state license.',
+    oneLiner: 'EMT-B (about 150h) → AEMT (about 250h) → Paramedic (1-2 yr) → NREMT cert + state license.',
   },
   {
     slug: 'phlebotomist',
@@ -615,7 +615,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Certification',
         body:
-          'National certification is voluntary in most states but strongly preferred by employers. Multiple credentials exist: CPT (Certified Phlebotomy Technician) from ASCP, RPT (Registered Phlebotomy Technician) from AMT, CPT (Certified Phlebotomy Technician) from NHA, and PBT (Phlebotomy Technician) from ASCP. California, Louisiana, Nevada, and Washington require state-specific certification.',
+          'National certification is voluntary in most states but strongly preferred by employers. Multiple credentials exist: PBT (Phlebotomy Technician) from ASCP, RPT (Registered Phlebotomy Technician) from AMT, and CPT (Certified Phlebotomy Technician) from NHA. California, Louisiana, Nevada, and Washington require state-specific certification.',
       },
       {
         heading: 'Practice settings',
@@ -659,7 +659,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Scope of practice',
         body:
-          'RDHs perform prophy (cleaning) + scaling-and-root-planing (SRP), administer local anesthesia in ~46 states (state-dependent), take + interpret dental radiographs, place sealants, apply fluoride, conduct periodontal charting, and document oral findings. About 24 states allow some form of dental hygiene practice without on-site dentist supervision (varies widely, collaborative practice agreements, public-health hygiene, etc.).',
+          'RDHs perform prophy (cleaning) + scaling-and-root-planing (SRP), administer local anesthesia in about 46 states (state-dependent), take + interpret dental radiographs, place sealants, apply fluoride, conduct periodontal charting, and document oral findings. About 24 states allow some form of dental hygiene practice without on-site dentist supervision (varies widely, collaborative practice agreements, public-health hygiene, etc.).',
       },
       {
         heading: 'Practice settings',
@@ -683,7 +683,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     metaDescription:
       'How to become a Registered Dietitian: accredited bachelor\'s + master\'s (required 2024+) → internship → CDR exam → state license. Open RDN jobs.',
     lede:
-      'Registered Dietitian Nutritionists (RDNs) translate nutrition science into patient-care plans across clinical, community, sports, food-service, and outpatient settings. About 75,000 RDNs practice nationally per the Commission on Dietetic Registration. The credentialing requirements moved from bachelor\'s to master\'s as of January 2024.',
+      'Registered Dietitian Nutritionists (RDNs) translate nutrition science into patient-care plans across clinical, community, sports, food-service, and outpatient settings. About 75,000 dietitians and nutritionists work nationally per BLS. The credentialing requirements moved from bachelor\'s to master\'s as of January 2024.',
     sections: [
       {
         heading: 'Education',
@@ -693,7 +693,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Supervised practice',
         body:
-          'Candidates complete an ACEND-accredited supervised-practice rotation (formerly a "dietetic internship") totaling at least 1,000 hours across clinical, community, and food-service settings. Coordinated programs integrate the supervised practice into the master\'s curriculum. Standalone internships run ~9-12 months post-degree. Match rates for standalone internships historically run 50-70%, coordinated programs avoid this risk.',
+          'Candidates complete an ACEND-accredited supervised-practice rotation (formerly a "dietetic internship") totaling at least 1,000 hours across clinical, community, and food-service settings. Coordinated programs integrate the supervised practice into the master\'s curriculum. Standalone internships run about 9-12 months post-degree. Match rates for standalone internships historically run 50-70%, coordinated programs avoid this risk.',
       },
       {
         heading: 'Examination + licensure',
@@ -732,7 +732,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Doctoral program',
         body:
-          'The Doctor of Audiology (AuD) is a 4-year clinical doctorate accredited by CAA (Council on Academic Accreditation in Audiology and Speech-Language Pathology). Curriculum covers anatomy + physiology of the auditory + vestibular systems, audiometric testing, hearing aids + cochlear implants, pediatric audiology, vestibular assessment, electrophysiology, balance disorders, and ~1,820 hours of supervised clinical practicum culminating in a fourth-year externship.',
+          'The Doctor of Audiology (AuD) is a 4-year clinical doctorate accredited by CAA (Council on Academic Accreditation in Audiology and Speech-Language Pathology). Curriculum covers anatomy + physiology of the auditory + vestibular systems, audiometric testing, hearing aids + cochlear implants, pediatric audiology, vestibular assessment, electrophysiology, balance disorders, and about 1,820 hours of supervised clinical practicum culminating in a fourth-year externship.',
       },
       {
         heading: 'Credentialing + licensure',
@@ -759,7 +759,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
     title: 'How to become a Genetic Counselor (CGC)',
     abbreviation: 'CGC',
     metaDescription:
-      'How to become a Genetic Counselor: bachelor\'s + prereqs → master\'s in genetic counseling (~2 yr) → ABGC certification → state license. Open CGC jobs.',
+      'How to become a Genetic Counselor: bachelor\'s + prereqs → master\'s in genetic counseling (about 2 yr) → ABGC certification → state license. Open CGC jobs.',
     lede:
       'Genetic Counselors interpret genetic and genomic testing results for patients + clinicians. They translate risk, recurrence, and management implications into clinical guidance patients can act on. About 5,800 board-certified genetic counselors practice in the US per the American Board of Genetic Counseling. It is one of the fastest-growing healthcare professions per BLS.',
     sections: [
@@ -771,7 +771,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Master\'s program',
         body:
-          'Master of Science in Genetic Counseling accredited by ACGC (Accreditation Council for Genetic Counseling), typically 2 years (4 semesters + summer rotations). Curriculum: medical genetics, prenatal + pediatric + adult genetics, cancer genetics, cardiogenetics, neurogenetics, counseling theory, ethics, lab methods (NGS, microarray, karyotype), and ~50+ supervised clinical cases across multiple specialty areas. ACGC programs are competitive, historically <30% acceptance rates at established programs.',
+          'Master of Science in Genetic Counseling accredited by ACGC (Accreditation Council for Genetic Counseling), typically 2 years (4 semesters + summer rotations). Curriculum: medical genetics, prenatal + pediatric + adult genetics, cancer genetics, cardiogenetics, neurogenetics, counseling theory, ethics, lab methods (NGS, microarray, karyotype), and 50+ supervised clinical cases across multiple specialty areas. ACGC programs are competitive, historically <30% acceptance rates at established programs.',
       },
       {
         heading: 'Certification + licensure',
@@ -786,12 +786,12 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Compensation',
         body:
-          'NSGC professional-status survey reports median annual GC salary around $95k-$105k, with industry + telehealth + senior clinical roles trending higher ($110k-$150k+). Cost of entry (a 2-year master\'s) is moderate compared to AuD or DNP paths. Growth rate is among the highest in healthcare per BLS (~16% over 2024-2034).',
+          'NSGC professional-status survey reports median annual GC salary around $95k-$105k, with industry + telehealth + senior clinical roles trending higher ($110k-$150k+). Cost of entry (a 2-year master\'s) is moderate compared to AuD or DNP paths. Growth rate is among the highest in healthcare per BLS (about 16% over 2024-2034).',
       },
     ],
     specialtySlug: 'genetic-counselor',
     specialtyLabel: 'Genetic Counselor jobs',
-    oneLiner: 'Bachelor\'s + prereqs + counseling exposure → ACGC master\'s (~2 yr) → ABGC → license (jurisdiction-dependent).',
+    oneLiner: 'Bachelor\'s + prereqs + counseling exposure → ACGC master\'s (about 2 yr) → ABGC → license (jurisdiction-dependent).',
   },
 ]
 
