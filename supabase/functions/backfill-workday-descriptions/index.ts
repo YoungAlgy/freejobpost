@@ -1,3 +1,10 @@
+// SHARED FUNCTION: a copy of this function also lives in
+// avahealth-crm/supabase/functions/backfill-workday-descriptions/. Both repos deploy to Supabase project
+// tsruqbodyrmxqzhvxret under the same function slug, so only one copy is ever live.
+// AUTHORITATIVE DEPLOY SOURCE: this repo (freejobpost). The live function was
+// deployed from here. Edit here, deploy from here, then copy the file into
+// avahealth-crm so the two stay in step.
+// Everything below this header is identical in both copies. Last synced 2026-08-21.
 // backfill-workday-descriptions edge function
 // =============================================================================
 // One-shot rate-limited backfill for Workday jobs whose description was

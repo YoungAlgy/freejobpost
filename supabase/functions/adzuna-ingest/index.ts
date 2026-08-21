@@ -1,3 +1,16 @@
+// SHARED FUNCTION: a copy of this function also lives in
+// avahealth-crm/supabase/functions/adzuna-ingest/. Both repos deploy to Supabase project
+// tsruqbodyrmxqzhvxret under the same function slug, so only one copy is ever live.
+// AUTHORITATIVE DEPLOY SOURCE: this repo (freejobpost). The live function was
+// deployed from here. Edit here, deploy from here, then copy the file into
+// avahealth-crm so the two stay in step.
+// Everything below this header is identical in both copies. Last synced 2026-08-21.
+//
+// NOTE: avahealth-crm once carried a divergent multi-page fetch variant of this
+// file ("newest-N pagination v4", commit ed6ae74 in avahealth-crm, 2026-05-29)
+// that production never ran. It is deliberately NOT in this file. Recover it from
+// that commit if deeper Adzuna page coverage is ever wanted, and weigh the roughly
+// 3x jump in daily API calls before shipping it.
 // adzuna-ingest edge function
 // =============================================================================
 // Ingests US healthcare jobs from the Adzuna v1 search API. Adzuna aggregates

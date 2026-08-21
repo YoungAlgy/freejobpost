@@ -1,3 +1,10 @@
+// SHARED FUNCTION: a copy of this function also lives in
+// avahealth-crm/supabase/functions/refresh-ats-imports/. Both repos deploy to Supabase project
+// tsruqbodyrmxqzhvxret under the same function slug, so only one copy is ever live.
+// AUTHORITATIVE DEPLOY SOURCE: this repo (freejobpost). The live function was
+// deployed from here. Edit here, deploy from here, then copy the file into
+// avahealth-crm so the two stay in step.
+// Everything below this header is identical in both copies. Last synced 2026-08-21.
 // refresh-ats-imports edge function
 // v30 (2026-06-27 fix): two more can't-break correctness fixes vs v29.
 //   (1) parseUsLocation lost city/state on a "City, ST (Remote)" suffix — the
