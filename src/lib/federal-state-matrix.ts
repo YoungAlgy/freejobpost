@@ -22,7 +22,12 @@ export type FederalMatrixCell = {
   count: number
 }
 
-const MIN_JOBS_PER_CELL = 5
+// 🔴 2026-08-21 — raised 5 → 25, same reasoning as city-specialty-matrix.ts's
+// sibling comment: this intersection surface is one of the three matrix
+// families that has repeatedly driven this shared DB's CPU/disk-IO
+// exhaustion, and real freejobpost usage is near zero. Purely a
+// generation-threshold change — no listings are touched or removed.
+const MIN_JOBS_PER_CELL = 25
 
 /**
  * 🔴 2026-06 INCIDENT FIX (same root cause as specialty-state-matrix). The

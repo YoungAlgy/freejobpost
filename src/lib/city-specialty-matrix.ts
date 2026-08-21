@@ -1,6 +1,6 @@
 // Computes viable (city, specialty) cells for the /city/[slug]/[specialty]
-// matrix surface. A cell is viable when ≥5 active jobs match the
-// specialty's matchPatterns AND match the city's cityMatchPatterns
+// matrix surface. A cell is viable when ≥MIN_JOBS_PER_CELL active jobs match
+// the specialty's matchPatterns AND match the city's cityMatchPatterns
 // within the same state.
 //
 // Mirrors specialty-state-matrix.ts in structure. The two matrices live
@@ -21,7 +21,16 @@ export type CityMatrixCell = {
   count: number
 }
 
-const MIN_JOBS_PER_CELL = 5
+// 🔴 2026-08-21 — raised 5 → 25. This intersection surface (city×specialty,
+// up to ~700 theoretical combos) is one of the three matrix families that
+// has repeatedly driven this shared DB's CPU/disk-IO exhaustion (see
+// hub-job-queries.ts's incident comment). With real freejobpost usage near
+// zero (confirmed same-day: near-zero organic search/browse activity), the
+// long tail of barely-qualifying 5-job cells isn't earning its recurring
+// compute cost. A much higher floor cuts the page/cache-population count
+// substantially while keeping the cells with real content. Purely a
+// generation-threshold change — no listings are touched or removed.
+const MIN_JOBS_PER_CELL = 25
 
 export { MIN_JOBS_PER_CELL }
 
