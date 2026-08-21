@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
-import { FEDERAL_AGENCIES, agencyOrFilter } from '@/lib/federal-agencies'
+import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
+import { fetchTotalFederalJobCount, fetchFederalAgencyJobCount } from '@/lib/hub-job-queries'
 
 // Federal content is aggregate counts + agency blurbs, refreshed only by the
 // 4h ingest cron. 2026-05-28 cost pass: 300s → 1h → 6h, matching the sibling
@@ -26,34 +26,21 @@ export const metadata: Metadata = {
 }
 
 export default async function FederalJobsHubPage() {
-  // Total active federal headcount (status=active, future expires_at).
-  // Per-agency counts run in parallel via the agency's title-ILIKE filter.
-  const nowIso = hourIso()
-  const [totalRes, ...agencyResults] = await Promise.all([
-    supabase
-      .from('public_jobs')
-      .select('id', { count: 'exact', head: true })
-      .eq('source', 'usajobs:federal')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso),
-    ...FEDERAL_AGENCIES.map((agency) =>
-      supabase
-        .from('public_jobs')
-        .select('id', { count: 'exact', head: true })
-        .eq('source', 'usajobs:federal')
-        .eq('status', 'active')
-        .is('deleted_at', null)
-        .gt('expires_at', nowIso)
-        .or(agencyOrFilter(agency))
+  // 🔴 2026-08-21 CPU/disk-IO EXHAUSTION INCIDENT FIX — this used to fire 6
+  // parallel uncached counts on every render (1 total + 1 per agency, each up
+  // to 22 ILIKE clauses via agencyOrFilter), the direct cause of a multi-hour
+  // shared-DB outage. Both helpers below are now Postgres-cached (6h TTL) via
+  // getOrComputeCached, same pattern as every sibling matrix computation — see
+  // hub-job-queries.ts.
+  const [totalFederal, agencyCounts] = await Promise.all([
+    fetchTotalFederalJobCount(),
+    Promise.all(
+      FEDERAL_AGENCIES.map(async (agency) => ({
+        ...agency,
+        count: (await fetchFederalAgencyJobCount(agency)) ?? 0,
+      })),
     ),
   ])
-
-  const totalFederal = totalRes.count ?? 0
-  const agencyCounts = FEDERAL_AGENCIES.map((agency, i) => ({
-    ...agency,
-    count: agencyResults[i].count ?? 0,
-  }))
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',

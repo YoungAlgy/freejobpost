@@ -18,6 +18,27 @@ import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
 import { JOB_LIST_FIELDS, type PublicJob } from '@/lib/public-jobs'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 import { agencyOrFilter, type FederalAgency } from '@/lib/federal-agencies'
+import { getOrComputeCached } from '@/lib/db-cache'
+
+// 🔴 2026-08-21 CPU/disk-IO EXHAUSTION INCIDENT — the federal agency/agency+state
+// job list + count fetches below (agencyOrFilter expands to up to 22 ILIKE
+// clauses across title+description per call, e.g. DoD's 11 keywords × 2
+// columns) were the one query family in this hub-page surface that never got
+// the Postgres-backed cache wrapper its sibling matrix computations got after
+// nearly identical incidents on 2026-06 and 2026-08-13 (see
+// specialty-state-matrix.ts, city-specialty-matrix.ts, federal-state-matrix.ts).
+// Every render of /jobs/federal/[agency] and /jobs/federal/[agency]/[state]
+// (~50-80 agency×state combos) ran 1-2 of these uncached, and Next's
+// `revalidate` export has already been proven unreliable on this OpenNext/
+// Cloudflare deploy (see specialty-state-matrix.ts's 2026-08-13 note) — this
+// was the direct cause of a multi-hour shared-DB outage (CPU pegged 100%,
+// disk I/O budget exhausted, connection pool starved, real 504s on unrelated
+// job-detail lookups). Same fix as its siblings: wrap in getOrComputeCached,
+// 6h TTL. JOB_LIST_FIELDS has no `description`, so even the federalAgency cap
+// of 500 rows stays far under set_matrix_cache's 1 MiB limit (the exact cap
+// that broke the specialty matrix's cache on 2026-08-19 when it was caching
+// hydrated, description-bearing objects instead).
+const FEDERAL_AGENCY_CACHE_TTL_SECONDS = 21600 // 6h, matches every sibling matrix cache
 
 /**
  * Total jobs each hub family exposes across all of its pages. These are the
@@ -134,36 +155,76 @@ export async function fetchSpecialtyStateCellJobs(
 // The federal family orders by `updated_at` (USAJobs re-syncs bump it) where the
 // others order by `created_at`. Preserved exactly as it was.
 
+// set_matrix_cache requires its value to be a JSON array of objects (see the
+// 2026-08-20 shape-hardening migration) — counts are cached as a one-element
+// [{ count }] array to satisfy that, unwrapped immediately after.
+type CountRow = { count: number }
+
+export async function fetchTotalFederalJobCount(): Promise<number> {
+  const [row] = await getOrComputeCached<CountRow[]>(
+    supabase,
+    'federal_total_count',
+    FEDERAL_AGENCY_CACHE_TTL_SECONDS,
+    async () => {
+      const result = await supabase
+        .from('public_jobs')
+        .select('id', { count: 'exact', head: true })
+        .eq('source', 'usajobs:federal')
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+      assertFreshOrThrow(result, 'fetchTotalFederalJobCount')
+      return [{ count: result.count ?? 0 }]
+    },
+  )
+  return row?.count ?? 0
+}
+
 export async function fetchFederalAgencyJobs(
   agency: FederalAgency,
 ): Promise<PublicJob[]> {
-  const result = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('source', 'usajobs:federal')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .or(agencyOrFilter(agency))
-    .order('updated_at', { ascending: false })
-    .limit(HUB_JOB_LIMITS.federalAgency)
-  assertFreshOrThrow(result, 'fetchFederalAgencyJobs')
-  return (result.data ?? []) as PublicJob[]
+  return getOrComputeCached(
+    supabase,
+    `federal_agency_jobs:${agency.slug}`,
+    FEDERAL_AGENCY_CACHE_TTL_SECONDS,
+    async () => {
+      const result = await supabase
+        .from('public_jobs')
+        .select(JOB_LIST_FIELDS)
+        .eq('source', 'usajobs:federal')
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .or(agencyOrFilter(agency))
+        .order('updated_at', { ascending: false })
+        .limit(HUB_JOB_LIMITS.federalAgency)
+      assertFreshOrThrow(result, 'fetchFederalAgencyJobs')
+      return (result.data ?? []) as PublicJob[]
+    },
+  )
 }
 
 export async function fetchFederalAgencyJobCount(
   agency: FederalAgency,
 ): Promise<number | null> {
-  const result = await supabase
-    .from('public_jobs')
-    .select('id', { count: 'exact', head: true })
-    .eq('source', 'usajobs:federal')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .or(agencyOrFilter(agency))
-  assertFreshOrThrow(result, 'fetchFederalAgencyJobCount')
-  return result.count ?? null
+  const [row] = await getOrComputeCached<CountRow[]>(
+    supabase,
+    `federal_agency_count:${agency.slug}`,
+    FEDERAL_AGENCY_CACHE_TTL_SECONDS,
+    async () => {
+      const result = await supabase
+        .from('public_jobs')
+        .select('id', { count: 'exact', head: true })
+        .eq('source', 'usajobs:federal')
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .or(agencyOrFilter(agency))
+      assertFreshOrThrow(result, 'fetchFederalAgencyJobCount')
+      return [{ count: result.count ?? 0 }]
+    },
+  )
+  return row?.count ?? null
 }
 
 // ─── /jobs/federal/[agency]/[state] ──────────────────────────────────────────
@@ -172,34 +233,49 @@ export async function fetchFederalAgencyStateJobs(
   agency: FederalAgency,
   stateAbbr: string,
 ): Promise<PublicJob[]> {
-  const result = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('source', 'usajobs:federal')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .eq('state', stateAbbr)
-    .or(agencyOrFilter(agency))
-    .order('updated_at', { ascending: false })
-    .limit(HUB_JOB_LIMITS.federalAgencyState)
-  assertFreshOrThrow(result, 'fetchFederalAgencyStateJobs')
-  return (result.data ?? []) as PublicJob[]
+  return getOrComputeCached(
+    supabase,
+    `federal_agency_state_jobs:${agency.slug}:${stateAbbr}`,
+    FEDERAL_AGENCY_CACHE_TTL_SECONDS,
+    async () => {
+      const result = await supabase
+        .from('public_jobs')
+        .select(JOB_LIST_FIELDS)
+        .eq('source', 'usajobs:federal')
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .eq('state', stateAbbr)
+        .or(agencyOrFilter(agency))
+        .order('updated_at', { ascending: false })
+        .limit(HUB_JOB_LIMITS.federalAgencyState)
+      assertFreshOrThrow(result, 'fetchFederalAgencyStateJobs')
+      return (result.data ?? []) as PublicJob[]
+    },
+  )
 }
 
 export async function fetchFederalAgencyStateJobCount(
   agency: FederalAgency,
   stateAbbr: string,
 ): Promise<number | null> {
-  const result = await supabase
-    .from('public_jobs')
-    .select('id', { count: 'exact', head: true })
-    .eq('source', 'usajobs:federal')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .eq('state', stateAbbr)
-    .or(agencyOrFilter(agency))
-  assertFreshOrThrow(result, 'fetchFederalAgencyStateJobCount')
-  return result.count ?? null
+  const [row] = await getOrComputeCached<CountRow[]>(
+    supabase,
+    `federal_agency_state_count:${agency.slug}:${stateAbbr}`,
+    FEDERAL_AGENCY_CACHE_TTL_SECONDS,
+    async () => {
+      const result = await supabase
+        .from('public_jobs')
+        .select('id', { count: 'exact', head: true })
+        .eq('source', 'usajobs:federal')
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .eq('state', stateAbbr)
+        .or(agencyOrFilter(agency))
+      assertFreshOrThrow(result, 'fetchFederalAgencyStateJobCount')
+      return [{ count: result.count ?? 0 }]
+    },
+  )
+  return row?.count ?? null
 }
