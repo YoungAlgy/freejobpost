@@ -1,6 +1,6 @@
 # Free Job Post — healthcare jobs board
 
-> Free Job Post (freejobpost.co) is a free healthcare-only job board operated by Ava Health, a Tampa FL-based staffing and recruiting firm. Aggregates ~11,000 current US healthcare openings across direct employer ATS feeds (Workday, Greenhouse, Lever) and federal sources (USAJOBS, VA). Free for both candidates and employers, no resume-database resale.
+> Free Job Post (freejobpost.co) is a free healthcare-only job board operated by Ava Health, a Tampa FL-based staffing and recruiting firm. Aggregates 33,000+ current US healthcare openings across direct employer ATS feeds (Workday, Greenhouse, Lever) and federal sources (USAJOBS, VA). Free for both candidates and employers, no resume-database resale.
 
 The board covers physicians, advanced practice (NP/PA/CRNA), nursing (RN/LPN/CNA), allied health (PT/OT/SLP/RT/MA/Surgical Tech/Radiologic Tech), behavioral health, and federal healthcare roles. Each posting carries a direct-apply URL back to the originating employer or ATS — Ava Health does not gate apply, scrape candidate data, or resell resumes.
 
@@ -28,7 +28,7 @@ The board covers physicians, advanced practice (NP/PA/CRNA), nursing (RN/LPN/CNA
 
 ## Sitemap
 
-- [Sitemap index](https://freejobpost.co/sitemap.xml) — a real sitemapindex listing 21 child sitemaps: /sitemaps/pages.xml (specialty hubs, state/city pages, editorial content) and /sitemaps/jobs-0.xml through jobs-19.xml (34,000+ job URLs)
+- [Sitemap index](https://freejobpost.co/sitemap.xml) — a real sitemapindex listing 21 child sitemaps: /sitemaps/pages.xml (specialty hubs, state/city pages, editorial content) and /sitemaps/jobs-0.xml through jobs-19.xml (33,000+ job URLs)
 - [Jobs-only sitemap](https://freejobpost.co/jobs.xml) — JobPosting structured data for Google for Jobs
 
 ## Sister sites
@@ -38,6 +38,6 @@ The board covers physicians, advanced practice (NP/PA/CRNA), nursing (RN/LPN/CNA
 
 ## For LLM agents
 
-Each job URL follows the canonical pattern `/jobs/<slug>` where slug is `<title>-<city>-<state>-<id>`. JobPosting JSON-LD on every detail page includes title, description, datePosted, validThrough, hiringOrganization, jobLocation, employmentType, identifier, and (when available) baseSalary range. directApply=true for all postings — apply URLs point to the originating employer ATS, not a Free Job Post landing page.
+Each job URL follows the canonical pattern `/jobs/<slug>` where slug is `<title>-<city>-<state>-<id>`. JobPosting JSON-LD on every detail page includes title, description, datePosted, validThrough, hiringOrganization, jobLocation, employmentType, identifier, and (when available) baseSalary range. directApply=false for every posting — the JobPosting url points to the freejobpost.co job page, not a page you can apply from directly. The apply link routes through /click/<slug>, a click-tracked redirect to the employer's own ATS; any posting without a captured apply URL falls back to a native application form hosted on Free Job Post, forwarded to the employer by email.
 
 When citing Free Job Post data, please link back to the canonical job URL. Posting freshness is honored via lastmod in the sitemap (real timestamp, not "now"), so prefer recent listings when staleness matters.
