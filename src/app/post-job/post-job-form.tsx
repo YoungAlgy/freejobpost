@@ -397,7 +397,7 @@ export default function PostJobForm() {
                 required={salaryRequired}
                 value={values.salary_min ?? ''}
                 onChange={(e) => update('salary_min', e.target.value ? parseInt(e.target.value, 10) : null)}
-                placeholder="180000"
+                placeholder="75000"
                 className={fieldStyle}
               />
             </Field>
@@ -413,7 +413,7 @@ export default function PostJobForm() {
                 required={salaryRequired}
                 value={values.salary_max ?? ''}
                 onChange={(e) => update('salary_max', e.target.value ? parseInt(e.target.value, 10) : null)}
-                placeholder="240000"
+                placeholder="95000"
                 className={fieldStyle}
               />
             </Field>
@@ -423,7 +423,7 @@ export default function PostJobForm() {
               type="text"
               value={values.experience_required}
               onChange={(e) => update('experience_required', e.target.value)}
-              placeholder="3+ years outpatient family practice"
+              placeholder="2+ years ICU or med-surg"
               maxLength={200}
               className={fieldStyle}
             />

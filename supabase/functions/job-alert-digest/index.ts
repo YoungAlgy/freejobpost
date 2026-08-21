@@ -117,7 +117,7 @@ function esc(s: string | null | undefined): string {
 
 function fmtSalary(min: number | null, max: number | null): string {
   const k = (n: number) => (n >= 1000 ? `$${Math.round(n / 1000)}k` : `$${n}`);
-  if (min && max) return `${k(min)}–${k(max)}`;
+  if (min && max) return `${k(min)}-${k(max)}`;
   if (min) return `${k(min)}+`;
   if (max) return `up to ${k(max)}`;
   return "";
@@ -149,7 +149,7 @@ function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: str
   }).join("");
 
   const text = `New ${whatN} on freejobpost.co:\n\n` +
-    jobs.map((j) => `• ${j.title} — ${[j.city, j.state].filter(Boolean).join(", ")} — ${SITE}/jobs/${j.slug}`).join("\n") +
+    jobs.map((j) => `• ${j.title} - ${[j.city, j.state].filter(Boolean).join(", ")} - ${SITE}/jobs/${j.slug}`).join("\n") +
     `\n\nBrowse all: ${SITE}/jobs` +
     `\n\nNot seeing the right roles? Reply to this email and tell us what you're after. A real person reads every one.` +
     `\n\nUnsubscribe: ${unsubUrl}\n\n${ADDRESS}`;
@@ -164,10 +164,10 @@ function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: str
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${rows}</table>
       <p style="margin:24px 0 0"><a href="${SITE}/jobs" style="display:inline-block;background:#111;color:#fff;font-weight:700;text-decoration:none;padding:12px 22px">Browse all jobs →</a></p>
       <!-- Feedback CTA — routes replies to the monitored alex@avahealth.co inbox; this is the "feedback drives updates" loop. -->
-      <p style="margin:18px 0 0;color:#555;font-size:13px;line-height:1.6">Not seeing the right roles? <a href="mailto:${FEEDBACK_EMAIL}?subject=Job%20alert%20feedback" style="color:#15803d;font-weight:700;text-decoration:none">Reply and tell us what you&rsquo;re after</a>. A real person reads every one.</p>
+      <p style="margin:18px 0 0;color:#555;font-size:13px;line-height:1.6">Not seeing the right roles? <a href="mailto:${FEEDBACK_EMAIL}?subject=Job%20alert%20feedback" style="color:#15803d;font-weight:700;text-decoration:none">Reply and tell us what you're after</a>. A real person reads every one.</p>
     </td></tr>
     <tr><td style="padding:24px 28px;border-top:1px solid #e5e5e5">
-      <p style="margin:0;color:#999;font-size:12px;line-height:1.6">You&rsquo;re getting this because you subscribed to ${esc(whatGeneric)} alerts on freejobpost.co. <a href="${unsubUrl}" style="color:#666">Unsubscribe</a>.<br/>${esc(ADDRESS)}</p>
+      <p style="margin:0;color:#999;font-size:12px;line-height:1.6">You're getting this because you subscribed to ${esc(whatGeneric)} alerts on freejobpost.co. <a href="${unsubUrl}" style="color:#666">Unsubscribe</a>.<br/>${esc(ADDRESS)}</p>
     </td></tr>
   </table>
 </td></tr></table>

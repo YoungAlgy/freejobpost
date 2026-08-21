@@ -60,7 +60,7 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
   {
     slug: 'cna',
     title: 'CNA + Nursing Assistant Jobs',
-    metaDescription: 'Free CNA + nursing-assistant jobs, long-term care, hospitals, home health. Entry-level pathway into healthcare; apply free.',
+    metaDescription: 'Free CNA + nursing-assistant jobs, long-term care, hospitals, home health. Entry-level pathway into healthcare. Apply free.',
     shortDescription: 'Certified Nursing Assistant + nursing-aide roles in long-term care, skilled nursing, hospitals, and home health agencies.',
     matchPatterns: ['cna', 'certified nursing assistant', 'nursing assistant', 'nursing aide', 'patient care assistant', 'patient care tech'],
   },
