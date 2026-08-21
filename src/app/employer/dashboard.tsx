@@ -206,7 +206,7 @@ function JobRow({ job, actionable = false }: { job: Job; actionable?: boolean })
     setConfirmArchive(false)
     setErr(null)
     startTransition(async () => {
-      const r = await archiveJob(job.id, 'filled')
+      const r = await archiveJob(job.id, 'filled', job.slug)
       if (!r.success) setErr(r.error || 'Failed.')
     })
   }

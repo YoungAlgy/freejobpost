@@ -353,7 +353,7 @@ export default async function Home() {
             </div>
             <div>
               <h3 className="text-xl font-black mb-2 text-[#003D5C]">How long does a job stay live?</h3>
-              <p className="text-gray-700 leading-relaxed">60 days by default. If a job expires and you still need it filled, posting it again takes about two minutes. Filled roles come off the board when you tell us.</p>
+              <p className="text-gray-700 leading-relaxed">90 days by default. If a job expires and you still need it filled, posting it again takes about two minutes. Filled roles come off the board when you tell us.</p>
             </div>
             <div>
               <h3 className="text-xl font-black mb-2 text-[#003D5C]">Where else does my job get distributed?</h3>

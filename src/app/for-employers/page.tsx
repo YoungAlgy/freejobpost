@@ -55,7 +55,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How long does a job stay live?',
-    a: '60 days by default. You can repost the same role at any time. Expired roles don\'t count toward your 10-active-post limit. Filled roles can be marked "closed" to come off the board and free up a slot instantly.',
+    a: '90 days by default. You can repost the same role at any time. Expired roles don\'t count toward your 10-active-post limit. Filled roles can be marked "closed" to come off the board and free up a slot instantly.',
   },
   {
     q: 'Where does my listing appear besides freejobpost.co?',

@@ -145,7 +145,7 @@ export default function HowItWorksPage() {
           </div>
           <div>
             <h3 className="font-black mb-1">How long does a posted job stay live?</h3>
-            <p className="text-gray-700">60 days by default. You can repost the same role anytime. You can have up to 10 posts active at once. Expired and filled roles don&apos;t count toward that.</p>
+            <p className="text-gray-700">90 days by default. You can repost the same role anytime. You can have up to 10 posts active at once. Expired and filled roles don&apos;t count toward that.</p>
           </div>
           <div>
             <h3 className="font-black mb-1">Will my job appear on Indeed and Google for Jobs?</h3>

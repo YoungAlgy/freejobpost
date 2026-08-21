@@ -17,7 +17,8 @@ export async function logout() {
 
 export async function archiveJob(
   jobId: string,
-  status: 'filled' | 'expired'
+  status: 'filled' | 'expired',
+  jobSlug?: string
 ): Promise<{ success: boolean; error?: string }> {
   const store = await cookies()
   const token = store.get(COOKIE_NAME)?.value
@@ -47,5 +48,14 @@ export async function archiveJob(
   if (!r.success) return { success: false, error: r.error }
 
   revalidatePath('/employer')
+  // Also bust the public /jobs/[slug] ISR cache immediately. Without this,
+  // a job just marked filled/expired keeps serving its stale ACTIVE render
+  // (live Apply CTA + JobPosting JSON-LD telling Google the role is still
+  // open) for up to the 24h ISR window — the /api/revalidate-expired cron
+  // exists to close exactly this gap for the pipeline's own status flips,
+  // but it only fires on a 4h schedule and (separately) only ever looked at
+  // status='expired', never the 'filled' status this employer action
+  // produces. Revalidate here so the fix is immediate, not just eventual.
+  if (jobSlug) revalidatePath(`/jobs/${jobSlug}`)
   return { success: true }
 }

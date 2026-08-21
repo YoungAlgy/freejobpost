@@ -145,14 +145,46 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
 // noindex) instead of a hard 404. deleted_at IS NULL is required so we never
 // resurrect hard-removed rows (spam / employer takedown) — only legitimately
 // retired listings that were once live and indexed.
+//
+// This used to match status='expired' only. Broadened 2026-08-20 (two real
+// gaps found auditing the employer flow + expiration logic):
+//
+// 1. 'filled' — the ONLY employer-facing action wired up on /employer (the
+//    "Mark filled" button, see dashboard.tsx JobRow) calls
+//    archive_job_by_employer_rpc with p_status='filled', never 'expired'.
+//    A job an employer marked filled matched neither getJob (status !=
+//    active) nor the old 'expired'-only query here, so it hard-404'd
+//    instead of getting the closed-job recovery treatment.
+//
+// 2. status='active' rows whose expires_at has already lapsed — the only
+//    thing that ever flips a row's status to 'expired' is
+//    sweep_stale_ats_jobs(), and that function is hardcoded to a fixed list
+//    of ATS source strings (Greenhouse/Lever/Ashby/USAJobs/Workday
+//    tenants). A job with source='public_employer_post' (i.e. one an
+//    employer posted through /post-job) is NEVER touched by that sweep —
+//    its status sits at 'active' forever even after expires_at passes.
+//    getJob() already correctly excludes it from the live render
+//    (`.gt('expires_at', ...)`), but without this clause it also failed to
+//    match here, so a naturally-lapsed employer-posted job 404'd instead of
+//    showing "position closed" — the exact failure mode this function
+//    exists to prevent, just for a different trigger. (Low blast radius
+//    today — only 3 public_employer_post rows exist total, all under 90
+//    days old — but every one of them WILL hit this the day it lapses
+//    without the employer touching it, and the feature is meant to grow.)
+//
+// 'pending_review' and any future non-active/non-terminal status are
+// deliberately still excluded — those jobs were never live/indexed, so a
+// "position closed → see similar" recovery page would be misleading for
+// them (matches the deleted_at IS NULL reasoning above: only listings that
+// were actually once live get the recovery treatment).
 async function getClosedJob(slug: string): Promise<JobWithTargets | null> {
   if (!SLUG_RE.test(slug)) return null
   const { data } = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', employer_id')
     .eq('slug', slug)
-    .eq('status', 'expired')
     .is('deleted_at', null)
+    .or(`status.eq.expired,status.eq.filled,and(status.eq.active,expires_at.lte.${hourIso()})`)
     .maybeSingle()
   return (data as JobWithTargets | null) ?? null
 }

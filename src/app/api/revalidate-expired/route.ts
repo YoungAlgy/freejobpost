@@ -66,7 +66,13 @@ async function handle(req: Request): Promise<NextResponse> {
   }
 
   // Two flip populations in the last 26h (cron period 4h + slack):
-  //  - sweep/manual flips: status='expired' with a fresh updated_at
+  //  - sweep/manual flips: status in ('expired','filled') with a fresh updated_at
+  //    ('filled' added 2026-08-20 -- the employer dashboard's "Mark filled"
+  //    button is the only status-change action actually wired up on
+  //    /employer, and it produces this status, not 'expired'. archiveJob()
+  //    now revalidates the job's own page immediately on click, but this
+  //    cron sweep is the backstop for any flip that happens outside that
+  //    one code path -- same reasoning as the 'expired' backstop below.)
   //  - natural lapses: still status='active' but expires_at just passed
   const sinceIso = new Date(Date.now() - 26 * 3600_000).toISOString()
   const nowIso = new Date().toISOString()
@@ -74,7 +80,7 @@ async function handle(req: Request): Promise<NextResponse> {
     sb
       .from('public_jobs')
       .select('slug')
-      .eq('status', 'expired')
+      .in('status', ['expired', 'filled'])
       .is('deleted_at', null)
       .gt('updated_at', sinceIso)
       .limit(600),
