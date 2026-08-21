@@ -281,16 +281,19 @@ serve(async (req: Request) => {
           const rdata = await resp.json();
           if (resp.ok && rdata.id) {
             sent++;
-            // Audit row (best-effort), mirrors weekly-digest. Lets resend-webhook
-            // reconcile opens/bounces. candidate_type CHECK allows 'unknown'.
-            const ins = await sb.from("email_sends").insert({
-              campaign_id: null, user_id: null, candidate_id: null,
-              candidate_type: "unknown",
+            // Audit row (best-effort). 2026-08-21: moved off avahealth-crm's
+            // email_sends (this always wrote campaign_id/user_id as null,
+            // silently bypassing what those FKs are meant to enforce on a
+            // table this repo doesn't own) onto job_alert_sends, this repo's
+            // own table. No open/bounce reconciliation here — a job alert is
+            // fire-and-forget, not a tracked campaign; see the table's own
+            // migration comment for the reasoning.
+            const ins = await sb.from("job_alert_sends").insert({
               to_email: sub.email, from_email: FROM_EMAIL, from_name: FROM_NAME,
               subject, body_preview: "[job_alert] " + text.slice(0, 160),
               resend_id: rdata.id, status: "sent", sent_at: new Date().toISOString(),
             });
-            if (ins.error) console.error("email_sends insert:", ins.error.message);
+            if (ins.error) console.error("job_alert_sends insert:", ins.error.message);
           } else {
             errors.push({ id: sub.id, email: sub.email, error: JSON.stringify(rdata).slice(0, 200) });
           }
