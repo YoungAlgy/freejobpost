@@ -347,7 +347,7 @@ export const CAREER_PATHS: CareerPathGuide[] = [
       {
         heading: 'Practice settings',
         body:
-          'Hospitals employ about 80% of RTs, ICU, ED, NICU, PACU, and the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19. Demand remains elevated.',
+          'Hospitals employ about 80% of RTs, working in ICU, ED, NICU, PACU, and on the floor for cardiac/pulmonary monitoring. The rest spread across home respiratory care (CPAP/BiPAP, home oxygen), sleep labs, pulmonary rehab clinics, and dive-medicine + transport teams. The role expanded significantly during COVID-19. Demand remains elevated.',
       },
     ],
     specialtySlug: 'respiratory-therapy',
