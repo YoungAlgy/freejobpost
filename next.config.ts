@@ -15,6 +15,29 @@ const nextConfig: NextConfig = {
   // behavior is unchanged (feeds stay 6h ISR). If a feed ever needs >240s, that's
   // a real perf regression to investigate, not something to keep bumping.
   staticPageGenerationTimeout: 240,
+  // 2026-08-26: default worker count (experimental.cpus, CPU-derived --
+  // os.cpus().length - 1, 19 on this machine) x default
+  // staticGenerationMaxConcurrency (8) allows up to ~150 concurrent page
+  // generations, each firing its own Supabase requests. Confirmed via build log
+  // ("Timed out acquiring connection from connection pool") that this
+  // regularly outruns the Nano-tier project's connection pooler -- pages don't
+  // fail because Postgres is slow (a direct query during the same failure
+  // window returned in 159ms), they fail because so many builder workers are
+  // queued waiting for a pool slot that individual pages blow past the 240s
+  // ceiling above before ever reaching the database.
+  //
+  // staticGenerationMaxConcurrency/MinPagesPerWorker alone (first attempt)
+  // did NOT fix this -- they only govern the LATER "Generating static pages"
+  // phase. The build was actually failing in the EARLIER "Collecting page
+  // data" phase (generateStaticParams + initial data fetches), which reads
+  // `experimental.cpus` directly (see next/dist/build/index.js
+  // getNumberOfWorkers) and ignores the staticGeneration* options entirely.
+  // Capping cpus here is what actually bounds worker count in both phases.
+  experimental: {
+    cpus: 3,
+    staticGenerationMaxConcurrency: 2,
+    staticGenerationMinPagesPerWorker: 150,
+  },
   // Suppress the default `X-Powered-By: Next.js` response header. It's a
   // minor information leak — it tells attackers (and fingerprinting
   // services) exactly which framework + version-class we're on, which
