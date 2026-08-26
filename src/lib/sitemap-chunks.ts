@@ -45,7 +45,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // THE SHAPE
 // ─────────────────────────────────────────────────────────────────────────────
-//   /sitemap.xml                  <sitemapindex>, ~3KB, 21 children. The URL
+//   /sitemap.xml                  DB-free <sitemapindex>, ~3KB, 21 children. The URL
 //                                 already submitted to GSC + Bing keeps working
 //                                 and keeps its name — it just changes schema.
 //   /sitemaps/pages.xml           every non-job URL (static, specialty/state/
@@ -68,8 +68,7 @@
 // `updated_at DESC`, so with offset slicing every re-sync shifts jobs between
 // chunks and all 20 children churn completely on every regeneration. Hashing the
 // slug pins a job to one bucket for its entire life, so a child sitemap's
-// content (and its <lastmod> in the index) is stable and actually means
-// something to a crawler.
+// content is stable instead of churning completely on every regeneration.
 //
 // WHY 20: see the table above. 20 chunks lands each child at ~355KB / ~1.59ms of
 // size-scaled CPU — 16% of the 10ms budget, leaving ~8.4ms for the fixed
@@ -319,25 +318,6 @@ const _cachedSitemapData = unstable_cache(
   ['sitemap-jobs-and-employers-v1'],
   { revalidate: SITEMAP_REVALIDATE },
 )
-
-/**
- * De-duped job list. The batched .range() queries run concurrently and are
- * ordered by updated_at DESC. If a job's updated_at shifts mid-generation (e.g.
- * a concurrent ATS re-sync bumps it) it can land inside two overlapping batch
- * windows and appear twice. Rare (3 of 23,460 URLs, 2026-07-01 audit) but cheap
- * to close outright rather than resize the batching around a race that's
- * inherent to offset pagination over a table that's still being written to.
- */
-function dedupeJobs(jobs: readonly SitemapJobRow[]): SitemapJobRow[] {
-  const seen = new Set<string>()
-  const out: SitemapJobRow[] = []
-  for (const j of jobs) {
-    if (!j.slug || seen.has(j.slug)) continue
-    seen.add(j.slug)
-    out.push(j)
-  }
-  return out
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Builders
@@ -641,44 +621,19 @@ export async function buildChildSitemap(child: string): Promise<string | null> {
 /**
  * The <sitemapindex> served at /sitemap.xml. ~3KB regardless of inventory.
  *
- * Per-child <lastmod> is worth the extra pass: it lets Googlebot skip children
- * that have not changed, which is the entire point of splitting. Job chunks get
- * the max updated_at of the jobs actually IN that chunk — which is meaningful
- * precisely because hash bucketing pins a job to one chunk for life.
- *
- * FAIL SOFT: <lastmod> is optional in the sitemapindex schema, so if the job
- * fetch comes back empty we still emit a complete, valid index listing all 21
- * children — just without timestamps. /sitemap.xml is the single most important
- * URL on the site; it must never fail or shrink because the DB hiccuped.
+ * Deliberately database-independent. <lastmod> is optional in a sitemap index,
+ * and every child already carries meaningful per-URL timestamps. The previous
+ * implementation scanned the full active-job corpus only to compute optional
+ * child timestamps. That scan flowed through _cachedSitemapData, whose payload
+ * is known to exceed Next's 2MB cache-entry limit, so a cold index request could
+ * reassemble the whole corpus and exceed the Worker's CPU budget before a
+ * try/catch could run. /sitemap.xml is the discovery root for every child and
+ * must remain a pure in-memory response.
  */
 export async function buildSitemapIndex(): Promise<string> {
-  let lastmods: (string | undefined)[] = SITEMAP_CHILDREN.map(() => undefined)
-  try {
-    const { jobs } = await _cachedSitemapData()
-    if (jobs.length > 0) {
-      const deduped = dedupeJobs(jobs)
-      const newest = deduped[0]?.updated_at
-      const perChunk = new Array<string | undefined>(JOB_SITEMAP_CHUNKS)
-      for (const j of deduped) {
-        const c = sitemapChunkForSlug(j.slug)
-        const cur = perChunk[c]
-        if (cur === undefined || j.updated_at > cur) perChunk[c] = j.updated_at
-      }
-      lastmods = SITEMAP_CHILDREN.map((child) => {
-        if (child === PAGES_SITEMAP_CHILD) return newest
-        const m = /^jobs-(\d+)\.xml$/.exec(child)
-        return m ? perChunk[Number(m[1])] : undefined
-      })
-    }
-  } catch (err) {
-    // Never let a data problem take down the index itself.
-    console.error('[sitemap-index] lastmod computation failed, emitting index without timestamps:', err)
-  }
-
   return renderSitemapIndex(
-    SITEMAP_CHILDREN.map((child, i) => ({
+    SITEMAP_CHILDREN.map((child) => ({
       url: sitemapChildUrl(child),
-      lastModified: lastmods[i],
     })),
   )
 }

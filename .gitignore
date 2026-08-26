@@ -50,3 +50,4 @@ NIGHT_LOG.md
 .open-next/
 cloudflare-env.d.ts
 .temp/
+.secrets/

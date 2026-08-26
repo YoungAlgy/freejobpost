@@ -5,6 +5,7 @@ import {
   SITEMAP_BASE,
   SITEMAP_CHILDREN,
   SITEMAP_REVALIDATE,
+  buildSitemapIndex,
   parseSitemapChild,
   renderSitemapIndex,
   renderUrlset,
@@ -176,12 +177,21 @@ describe('renderSitemapIndex', () => {
     expect(xml).not.toContain('<url>')
   })
 
-  // lastmod is optional in the sitemapindex schema — this is the fail-soft path
-  // when the job fetch comes back empty. The index must still list every child.
+  // lastmod is optional in the sitemapindex schema. The production index omits
+  // it so the discovery root never needs a database query.
   it('is valid with no lastmod at all', () => {
     const xml = renderSitemapIndex(SITEMAP_CHILDREN.map((c) => ({ url: sitemapChildUrl(c) })))
     expect(xml).not.toContain('<lastmod>')
     expect(xml.match(/<sitemap>/g)).toHaveLength(SITEMAP_CHILDREN.length)
+  })
+
+  it('keeps the production index database-independent and omits optional child lastmods', async () => {
+    const xml = await buildSitemapIndex()
+    expect(xml).not.toContain('<lastmod>')
+    expect(xml.match(/<sitemap>/g)).toHaveLength(SITEMAP_CHILDREN.length)
+    for (const child of SITEMAP_CHILDREN) {
+      expect(xml).toContain(`<loc>${sitemapChildUrl(child)}</loc>`)
+    }
   })
 
   it('stays tiny — this file is served on every crawl inside a 10ms CPU budget', () => {

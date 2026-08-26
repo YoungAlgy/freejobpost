@@ -38,7 +38,9 @@
 // generateSitemaps output and squatting on it invites a future collision.
 //
 // Cost: ~3KB body, ~0.014ms of size-scaled interceptor CPU. It is effectively a
-// static file that happens to carry per-child <lastmod>.
+// static file and deliberately never touches the database. Child <lastmod>
+// values are optional, while every URL inside each child carries its own real
+// timestamp.
 
 import { buildSitemapIndex, xmlResponse } from '@/lib/sitemap-chunks'
 
