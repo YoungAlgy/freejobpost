@@ -10,11 +10,10 @@
 ## Who to target first (Phase 1 priority list)
 
 1. **Mid-market health systems** — 50–500 employees, Florida/Texas/California first (highest job density)
-2. **Independent physician groups** — 10–100 physician practices, especially surgical, hospitalist, EM
-3. **Behavioral health / substance use** — LCSW/LMHC shortages, often priced out of Indeed
-4. **Long-term care / SNF operators** — perpetually short-staffed, heavy Indeed spend
-5. **Ambulatory surgery centers** — tight budgets, highly motivated to reduce HR costs
-6. **Travel nursing agencies** — high volume posters, feed could drive significant listing count
+2. **Behavioral health / substance use** — LCSW/LMHC shortages, often priced out of Indeed
+3. **Long-term care / SNF operators** — perpetually short-staffed, heavy Indeed spend
+4. **Ambulatory surgery centers** — tight budgets, highly motivated to reduce HR costs
+5. **Travel nursing agencies** — high volume posters, feed could drive significant listing count
 
 **Research method:** LinkedIn search `[role] hiring manager [city] site:linkedin.com/in`, Indeed/Glassdoor employer profiles in target markets, state healthcare association member directories.
 
@@ -58,7 +57,7 @@ Hi [First name],
 
 Quick note — we run freejobpost.co, a free job board for healthcare employers. Zero cost to post, no auction pricing, no paywall on applicants.
 
-Works well for physician groups and clinics that are tired of the Indeed per-click model. Your listings syndicate to Google for Jobs and candidate-matching at freeresumepost.co automatically.
+Works well for clinics and care operators that are tired of the Indeed per-click model. Your listings syndicate to Google for Jobs and candidate-matching at freeresumepost.co automatically.
 
 Post a role in 60 seconds at freejobpost.co/post-job if you want to try it.
 

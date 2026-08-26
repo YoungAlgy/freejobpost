@@ -69,17 +69,17 @@ What real, live freejobpost.co inventory looks like in week one:
 🩺 Lead Echo Sonographer — Naples, FL
 $35-56/hr (~$72K-116K annual), $7-10K sign-on, relocation, lead-track role at a major Naples-area hospital system
 
-🏥 Primary Care Physician — Sarasota, FL
-Full-time outpatient, multiple openings across Florida primary care
-
 👶 Labor & Delivery RN — Naples, FL
 $32-59/hr, full-time, women's services
+
+🧑‍⚕️ Physical Therapist — Sarasota, FL
+Full-time outpatient, multiple openings across Florida
 
 These are seeded by Ava Health Partners while we onboard recruiter posts. Real people, real comp, real apply links.
 
 Post your role free at freejobpost.co.
 
-#HealthcareJobs #HealthcareStaffing #NursingJobs #PhysicianJobs
+#HealthcareJobs #HealthcareStaffing #NursingJobs #AlliedHealthJobs
 ```
 
 ---
@@ -90,13 +90,13 @@ Post your role free at freejobpost.co.
 ```
 For healthcare candidates: we built freeresumepost.co.
 
-Upload your resume once. We extract your credentials, specialty, license state, and years of experience client-side (the PDF never leaves your browser). Then we match you to active openings on freejobpost.co — RN, MD, NP, PA, CRNA, PT, OT, SLP, pharmacist, MA, RadTech, RT, BCBA, sleep tech, dental hygienist, all of it.
+Upload your resume once. We extract your credentials, specialty, license state, and years of experience client-side (the PDF never leaves your browser). Then we match you to active openings on freejobpost.co — RN, NP, CRNA, PT, OT, SLP, pharmacist, MA, RadTech, RT, BCBA, sleep tech, dental hygienist, all of it.
 
 No recruiter spam. No resume databases sold to the highest bidder. No "premium" tier you have to upgrade to.
 
 If you're hunting healthcare roles, start at freeresumepost.co. If you're hiring, start at freejobpost.co. Both free, full stop.
 
-#HealthcareJobs #NursingCareers #PhysicianCareers #Healthcare
+#HealthcareJobs #NursingCareers #AlliedHealthCareers #Healthcare
 ```
 
 ---
@@ -198,7 +198,7 @@ The candidate-matching side is free too. We're not a marketplace that charges bo
 
 freejobpost.co for hiring. freeresumepost.co for candidates.
 
-#HealthcareRecruiting #HealthcareJobs #NursingCareers #PhysicianCareers
+#HealthcareRecruiting #HealthcareJobs #NursingCareers #AlliedHealthCareers
 ```
 
 ---

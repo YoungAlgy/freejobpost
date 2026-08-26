@@ -139,7 +139,7 @@ export default async function SpecialtyStateMatrixPaginatedPage(
 
   // Same fetch as page 1, from the shared module, so the pages partition one
   // consistently-ordered corpus instead of two independently-built ones.
-  const jobs = await fetchSpecialtyStateCellJobs(specialty.matchPatterns, stateHub.abbr)
+  const jobs = await fetchSpecialtyStateCellJobs(specialty.slug, specialty.matchPatterns, stateHub.abbr)
   const totalPages = hubTotalPages(jobs.length)
   if (page > totalPages) notFound()
 

@@ -2,12 +2,12 @@
 
 > Free Job Post (freejobpost.co) is a free healthcare-only job board operated by Ava Health, a Tampa FL-based staffing and recruiting firm. Aggregates 33,000+ current US healthcare openings across direct employer ATS feeds (Workday, Greenhouse, Lever) and federal sources (USAJOBS, VA). Free for both candidates and employers, no resume-database resale.
 
-The board covers physicians, advanced practice (NP/PA/CRNA), nursing (RN/LPN/CNA), allied health (PT/OT/SLP/RT/MA/Surgical Tech/Radiologic Tech), behavioral health, and federal healthcare roles. Each posting carries a direct-apply URL back to the originating employer or ATS — Ava Health does not gate apply, scrape candidate data, or resell resumes.
+The board covers nursing (RN/LPN/CNA), advanced practice (NP/CRNA), allied health (PT/OT/SLP/RT/MA/Surgical Tech/Radiologic Tech), behavioral health, and federal healthcare roles. Each posting carries a direct-apply URL back to the originating employer or ATS — Ava Health does not gate apply, scrape candidate data, or resell resumes.
 
 ## Core entry points
 
 - [Browse all jobs](https://freejobpost.co/jobs): Full searchable index of current healthcare openings
-- [Browse by specialty](https://freejobpost.co/specialty): 40+ healthcare specialty hubs (RN, NP, PA, PT, RT, etc.) with live pay-range data computed from current inventory
+- [Browse by specialty](https://freejobpost.co/specialty): 19 healthcare specialty hubs (RN, NP, PT, RT, etc.) with live pay-range data computed from current inventory
 - [Browse by state](https://freejobpost.co/state): All 50 states + DC, with state-specific salary and inventory context
 - [Browse by city](https://freejobpost.co/city): Major metro pages with local healthcare employer concentration
 - [Federal healthcare jobs](https://freejobpost.co/jobs/federal): VA, IHS, DoD, BOP openings sourced from USAJOBS

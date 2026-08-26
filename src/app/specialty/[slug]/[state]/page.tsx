@@ -9,12 +9,12 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { type PublicJob } from '@/lib/public-jobs'
 import { getSpecialtyHub } from '@/lib/specialty-slugs'
 import { getStateHub } from '@/lib/state-slugs'
 import { computeViableCellsViaSql, getViableCellsCached } from '@/lib/specialty-state-matrix'
-import { fetchSpecialtyStateCellJobs } from '@/lib/hub-job-queries'
+import { fetchSpecialtyStateCellJobs, fetchSpecialtyStateCellCount } from '@/lib/hub-job-queries'
 import { hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 import {
   aggregateSalariesByGroup,
@@ -27,10 +27,6 @@ import HubJobList from '@/components/HubJobList'
 import HubPagination from '@/components/HubPagination'
 import JobAlertCapture from '@/components/JobAlertCapture'
 import ResumeMatchCTA from '@/components/ResumeMatchCTA'
-// Filter-build moved to src/lib/specialty-filter.ts + unit-tested. See
-// the shared helper for the full bug write-up (commit 6e2b839,
-// 2026-05-22 critical PostgREST .or() double-encoding fix).
-import { buildSpecialtyOrFilter as buildHubOrFilter } from '@/lib/specialty-filter'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 86400
@@ -62,21 +58,6 @@ export async function generateStaticParams(): Promise<Params[]> {
 // every /p/<n> continuation MUST run the same query, or the two routes partition
 // two differently-ordered corpora and jobs silently disappear between pages.
 
-// Count-only query for the thin-cell noindex gate in generateMetadata.
-// head:true → no rows transferred, just the count.
-async function fetchCellCount(matchPatterns: readonly string[], stateAbbr: string): Promise<number> {
-  const result = await supabase
-    .from('public_jobs')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .eq('state', stateAbbr)
-    .or(buildHubOrFilter(matchPatterns))
-  assertFreshOrThrow(result, 'fetchCellCount (specialty/state)')
-  return result.count ?? 0
-}
-
 // SEO viability floor — matches the city×specialty sibling's ≥5 gate. A
 // specialty×state cell with 1-4 jobs renders (good UX + internal links +
 // the sparse-inventory message) but is noindex'd so Google doesn't index
@@ -97,7 +78,7 @@ export async function generateMetadata(
   // Thin-cell noindex gate (see MIN_CELL_JOBS_FOR_INDEX). Cells with 1-4
   // jobs render but aren't indexed; ≥5 index normally. Self-heals as
   // inventory grows (6h revalidate re-evaluates).
-  const cellCount = await fetchCellCount(specialty.matchPatterns, stateHub.abbr)
+  const cellCount = await fetchSpecialtyStateCellCount(specialty.slug, specialty.matchPatterns, stateHub.abbr)
   const isThinCell = cellCount > 0 && cellCount < MIN_CELL_JOBS_FOR_INDEX
   return {
     title,
@@ -123,7 +104,7 @@ export default async function SpecialtyStateMatrixPage(
   const stateHub = getStateHub(state)
   if (!specialty || !stateHub) notFound()
 
-  const jobs = await fetchSpecialtyStateCellJobs(specialty.matchPatterns, stateHub.abbr)
+  const jobs = await fetchSpecialtyStateCellJobs(specialty.slug, specialty.matchPatterns, stateHub.abbr)
   // Hard 404 only when the cell is truly empty — guards against direct hits
   // on URLs that were never in generateStaticParams. Cells that DID build
   // but dropped below the threshold between deploys still render (with a

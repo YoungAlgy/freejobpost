@@ -132,33 +132,82 @@ export async function fetchCityHubJobCount(
 
 // ─── /specialty/[slug]/[state] ───────────────────────────────────────────────
 
+// 2026-08-26: same class of bug as the federal fix above (see the block
+// comment there) -- this is the actual per-cell job-list fetch behind
+// /specialty/[slug]/[state], and unlike its "is this cell viable" sibling
+// in specialty-state-matrix.ts, it never got the cache wrapper. The .or()
+// filter cost is the same shape (buildSpecialtyOrFilter expands to multiple
+// ILIKE clauses per call), and it's called at least twice per SSG page
+// (once for generateMetadata's count, once for the render) across up to
+// MAX_SSG_CELLS=150 pre-built cells -- confirmed as the direct cause of
+// build failures on the highest-volume cells (e.g. physical-therapy in
+// populous states) even after the federal fix and even with build
+// concurrency capped. 6h TTL, same as every sibling matrix cache.
+const SPECIALTY_STATE_CELL_CACHE_TTL_SECONDS = 21600
+
 export async function fetchSpecialtyStateCellJobs(
+  specialtySlug: string,
   matchPatterns: readonly string[],
   stateAbbr: string,
 ): Promise<PublicJob[]> {
-  const result = await supabase
-    .from('public_jobs')
-    .select(JOB_LIST_FIELDS)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .eq('state', stateAbbr)
-    .or(buildSpecialtyOrFilter(matchPatterns))
-    .order('created_at', { ascending: false })
-    .limit(HUB_JOB_LIMITS.specialtyState)
-  assertFreshOrThrow(result, 'fetchSpecialtyStateCellJobs')
-  return (result.data ?? []) as PublicJob[]
+  return getOrComputeCached<PublicJob[]>(
+    supabase,
+    `specialty_state_cell_jobs:${specialtySlug}:${stateAbbr}`,
+    SPECIALTY_STATE_CELL_CACHE_TTL_SECONDS,
+    async () => {
+      const result = await supabase
+        .from('public_jobs')
+        .select(JOB_LIST_FIELDS)
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .eq('state', stateAbbr)
+        .or(buildSpecialtyOrFilter(matchPatterns))
+        .order('created_at', { ascending: false })
+        .limit(HUB_JOB_LIMITS.specialtyState)
+      assertFreshOrThrow(result, 'fetchSpecialtyStateCellJobs')
+      return (result.data ?? []) as PublicJob[]
+    },
+  )
+}
+
+// set_matrix_cache requires its value to be a JSON array of objects (see the
+// 2026-08-20 shape-hardening migration) — counts are cached as a one-element
+// [{ count }] array to satisfy that, unwrapped immediately after.
+type CountRow = { count: number }
+
+// generateMetadata's thin-cell noindex gate (see the page file) ran this same
+// .or() filter uncached on every SSG page, on top of the render fetch above --
+// same fix, same reasoning.
+export async function fetchSpecialtyStateCellCount(
+  specialtySlug: string,
+  matchPatterns: readonly string[],
+  stateAbbr: string,
+): Promise<number> {
+  const [row] = await getOrComputeCached<CountRow[]>(
+    supabase,
+    `specialty_state_cell_count:${specialtySlug}:${stateAbbr}`,
+    SPECIALTY_STATE_CELL_CACHE_TTL_SECONDS,
+    async () => {
+      const result = await supabase
+        .from('public_jobs')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .eq('state', stateAbbr)
+        .or(buildSpecialtyOrFilter(matchPatterns))
+      assertFreshOrThrow(result, 'fetchSpecialtyStateCellCount')
+      return [{ count: result.count ?? 0 }]
+    },
+  )
+  return row.count
 }
 
 // ─── /jobs/federal/[agency] ──────────────────────────────────────────────────
 //
 // The federal family orders by `updated_at` (USAJobs re-syncs bump it) where the
 // others order by `created_at`. Preserved exactly as it was.
-
-// set_matrix_cache requires its value to be a JSON array of objects (see the
-// 2026-08-20 shape-hardening migration) — counts are cached as a one-element
-// [{ count }] array to satisfy that, unwrapped immediately after.
-type CountRow = { count: number }
 
 export async function fetchTotalFederalJobCount(): Promise<number> {
   const [row] = await getOrComputeCached<CountRow[]>(

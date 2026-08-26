@@ -116,14 +116,14 @@ export const CHANGELOG_ENTRIES: ChangelogEntry[] = [
     date: '2026-05-29',
     title: 'Browse related jobs across specialties + states',
     body:
-      'Every "[specialty] jobs in [state]" page now links to its closest neighbors: the same specialty in other states, plus other in-demand specialties in the same state, each tagged with a live open-job count. Jump straight from, say, RN jobs in Texas to RN jobs in Florida, or to PA / NP / family-medicine jobs in Texas, without back-tracking through search. Every link points to a page with real open inventory (5+ jobs), so you never land on an empty result.',
+      'Every "[specialty] jobs in [state]" page now links to its closest neighbors: the same specialty in other states, plus other in-demand specialties in the same state, each tagged with a live open-job count. Jump straight from, say, RN jobs in Texas to RN jobs in Florida, or to NP / PT jobs in Texas, without back-tracking through search. Every link points to a page with real open inventory (5+ jobs), so you never land on an empty result.',
     tag: 'improved',
   },
   {
     date: '2026-05-27',
     title: '2 more major health systems added: Intermountain Health + Cigna',
     body:
-      'Intermountain Health (~1,271 jobs across UT, ID, NV) brings their full clinical roster including physicians, imaging, RN/LPN, allied health, and clinic ops. Cigna (~630 jobs) adds the insurance side: utilization management, case managers, provider contracting clinicians, behavioral health clinicians, and Accredo specialty pharmacy. Bringing total Workday board count to 12, total active inventory above 12,000 healthcare jobs across all sources.',
+      'Intermountain Health (~1,271 jobs across UT, ID, NV) brings their full nursing and allied health roster including RN/LPN, imaging, and clinic ops. Cigna (~630 jobs) adds the insurance side: utilization management, case managers, provider contracting clinicians, behavioral health clinicians, and Accredo specialty pharmacy. Bringing total Workday board count to 12, total active inventory above 12,000 healthcare jobs across all sources.',
     tag: 'new',
   },
   {

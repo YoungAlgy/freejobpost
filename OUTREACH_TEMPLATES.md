@@ -37,7 +37,7 @@ flagged for sender reputation.
 
 ## Template 1 — Small private practice / clinic owner
 
-**Profile:** 5–25 employees. Owner-operator or solo physician + small admin team.
+**Profile:** 5–25 employees. Owner-operator practice + small admin team.
 Pain point: Indeed costs eat margins. Owner makes the decision themselves.
 
 **Subject pool (pick one — vary across sends):**
@@ -173,8 +173,8 @@ Three things that may matter for your team:
   Jooble, Google for Jobs, and RSS, with per-network controls.
   (LinkedIn Job Wrapping in progress — Talent Solutions gated.)
 - Operated by a working healthcare staffing firm (Ava Health Partners).
-  We talk to physicians, RNs, NPs, PAs, and therapists every day; the
-  posting form is designed around what they actually look for.
+  We talk to RNs, NPs, and therapists every day; the posting form is
+  designed around what they actually look for.
 
 LinkedIn Job Wrapping is in progress — happy to walk through how it
 integrates with your existing Talent Solutions setup whenever your team

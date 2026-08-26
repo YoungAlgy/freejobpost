@@ -146,21 +146,22 @@ export function descriptionHtml(job: PublicJob): string {
 }
 
 // avaCategoryHashtag — maps a job to Ava Health's Indeed category code, appended to
-// ORIGINATED job descriptions in the partner feed (see buildOriginatedFeed). Mirrors how
-// MASC Medical stamps #MASC1xx at the bottom of each posting: the code rides into Indeed
-// (which indexes the description text), so you can search/filter Indeed by category and
-// group sponsored campaigns by bucket. Buckets: 101 Nurses · 102 Primary Care / Advanced
-// Practice · 103 Specialties · 104 Allied Health. Returns null when a role doesn't classify
-// (we don't mislabel). Keyword lists are intentionally simple — tune them with the recruiting team.
+// ORIGINATED job descriptions in the partner feed (see buildOriginatedFeed). The code
+// rides into Indeed (which indexes the description text), so you can search/filter
+// Indeed by category and group sponsored campaigns by bucket. Buckets: 101 Nurses ·
+// 102 Advanced Practice · 103 Dental/Specialty · 104 Allied Health. Physician/PA roles
+// are excluded at intake (see submit_public_job_rpc), so this only ever classifies
+// nurse and allied-health postings. Returns null when a role doesn't classify (we
+// don't mislabel). Keyword lists are intentionally simple — tune them with the
+// recruiting team.
 export function avaCategoryHashtag(job: PublicJob): string | null {
   const hay = `${job.role ?? ''} ${job.specialty ?? ''} ${job.title ?? ''}`.toLowerCase()
   const has = (re: RegExp) => re.test(hay)
-  // Advanced-practice providers first (their titles contain "nurse"/"physician" substrings).
-  if (has(/nurse practitioner|\bnp\b|physician assistant|\bpa-c\b|\baprn\b/)) return '#AVA102'
+  // Advanced-practice nurses first (their titles contain "nurse" substrings).
+  if (has(/nurse practitioner|\bnp\b|\baprn\b/)) return '#AVA102'
   if (has(/\bnurse\b|registered nurse|\brn\b|\blpn\b|\blvn\b|\bcna\b|crna/)) return '#AVA101'
   if (has(/therap(ist|y)|pharmac(ist|y)|technolog(ist|y)|technician|sonograph|radiograph|imaging|x-ray|laborator|phlebotom|respiratory|dietit|nutrition|medical assistant|paramedic|\bemt\b|surgical tech/)) return '#AVA104'
-  if (has(/primary care|family (medicine|practice)|internal medicine|general practi|\bpcp\b|hospitalist|pediatrician/)) return '#AVA102'
-  if (has(/physician|surgeon|cardiolog|oncolog|neurolog|radiolog|anesthesiolog|psychiatr|dermatolog|orthopedic|gastroenterolog|\w+ologist|physiatr|dentist|dental|orthodont|endodont|periodont|\bpain\b|ob\/?gyn|obstetric|gynecolog|specialist/)) return '#AVA103'
+  if (has(/dentist|dental|orthodont|endodont|periodont/)) return '#AVA103'
   return null
 }
 
