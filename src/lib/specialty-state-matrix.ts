@@ -99,14 +99,15 @@ type MatrixCellRow = {
 }
 
 export async function getViableCellsCached(
-  _supabase?: SupabaseClient,
+  db: SupabaseClient = _moduleSupabase,
+  options: { signal?: AbortSignal } = {},
 ): Promise<MatrixCell[]> {
-  void _supabase // call-site compat; the cached scan uses the shared module client
   const rows = await getOrComputeCached(
-    _moduleSupabase,
+    db,
     MATRIX_CACHE_KEY,
     MATRIX_CACHE_TTL_SECONDS,
-    _computeViableCellRowsUncached,
+    (signal) => _computeViableCellRowsUncached(db, signal),
+    options,
   )
   return hydrateCells(rows)
 }
@@ -165,12 +166,16 @@ export { getViableCellsCached as computeViableCellsViaSql }
  * Only ever invoked by `getViableCellsCached` (≤ once / 6h globally, via
  * the Postgres-backed cache above).
  */
-async function _computeViableCellRowsUncached(): Promise<MatrixCellRow[]> {
-  const { data, error } = await _moduleSupabase.rpc('compute_viable_matrix_cells', {
+async function _computeViableCellRowsUncached(
+  db: SupabaseClient,
+  signal?: AbortSignal,
+): Promise<MatrixCellRow[]> {
+  const query = db.rpc('compute_viable_matrix_cells', {
     specialties: SPECIALTY_HUBS.map((s) => ({ slug: s.slug, patterns: s.matchPatterns })),
     states: STATE_HUBS.map((s) => ({ slug: s.slug, abbr: s.abbr })),
     min_jobs: MIN_JOBS_PER_CELL,
   })
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
 
   if (error) {
     // Same reasoning as the old batch-scan version: don't let a failure

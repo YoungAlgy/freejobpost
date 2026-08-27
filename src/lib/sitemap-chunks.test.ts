@@ -4,6 +4,7 @@ import {
   PAGES_SITEMAP_CHILD,
   SITEMAP_BASE,
   SITEMAP_CHILDREN,
+  SITEMAP_DATA_TIMEOUT_MS,
   SITEMAP_REVALIDATE,
   buildJobChunkSitemap,
   buildPagesSitemap,
@@ -12,12 +13,17 @@ import {
   parseSitemapChild,
   renderSitemapIndex,
   renderUrlset,
+  runSitemapLoaderWithDeadline,
   sitemapChildUrl,
   sitemapJobIdRange,
   type PagesSitemapDependencies,
   type SitemapJobPageFetcher,
   type SitemapJobRow,
 } from '@/lib/sitemap-chunks'
+import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
+import { STATE_HUBS } from '@/lib/state-slugs'
+import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
+import { CITY_HUBS } from '@/lib/city-slugs'
 
 // Next rejects an imported identifier in a route's segment config ("Invalid
 // segment configuration export detected" — it fails the whole build), so
@@ -28,6 +34,115 @@ import {
 describe('SITEMAP_REVALIDATE', () => {
   it('matches the inline `export const revalidate` literal in both sitemap routes', () => {
     expect(SITEMAP_REVALIDATE).toBe(21600)
+  })
+})
+
+describe('runSitemapLoaderWithDeadline', () => {
+  it('aborts at the deadline and waits for request settlement before rejecting', async () => {
+    vi.useFakeTimers()
+    let aborted = false
+    let abortReasonName: string | undefined
+    let requestSettled = false
+    let loaderSettled = false
+
+    try {
+      const resultPromise = runSitemapLoaderWithDeadline(
+        'test sitemap loader',
+        (signal) =>
+          new Promise<string>((_resolve, reject) => {
+            signal.addEventListener(
+              'abort',
+              () => {
+                aborted = true
+                abortReasonName = (signal.reason as { name?: string } | undefined)?.name
+                setTimeout(() => {
+                  requestSettled = true
+                  reject(new DOMException('Request aborted', 'AbortError'))
+                }, 25)
+              },
+              { once: true },
+            )
+          }),
+        SITEMAP_DATA_TIMEOUT_MS,
+      )
+      const tracked = resultPromise.then(
+        () => {
+          loaderSettled = true
+        },
+        () => {
+          loaderSettled = true
+        },
+      )
+      const assertion = expect(resultPromise).rejects.toThrow(
+        `test sitemap loader timed out after ${SITEMAP_DATA_TIMEOUT_MS}ms`,
+      )
+
+      await vi.advanceTimersByTimeAsync(SITEMAP_DATA_TIMEOUT_MS)
+      expect(aborted).toBe(true)
+      expect(abortReasonName).toBe('AbortError')
+      expect(requestSettled).toBe(false)
+      expect(loaderSettled).toBe(false)
+
+      await vi.advanceTimersByTimeAsync(25)
+      await assertion
+      await tracked
+      expect(requestSettled).toBe(true)
+      expect(loaderSettled).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('normalizes an upstream timeout for PostgREST and waits for loader settlement', async () => {
+    vi.useFakeTimers()
+    const requestController = new AbortController()
+    let loaderAbortReasonName: string | undefined
+    let requestSettled = false
+    let loaderSettled = false
+
+    try {
+      const resultPromise = runSitemapLoaderWithDeadline(
+        'request-bound sitemap loader',
+        (signal) =>
+          new Promise<string>((_resolve, reject) => {
+            signal.addEventListener(
+              'abort',
+              () => {
+                loaderAbortReasonName = (signal.reason as { name?: string } | undefined)?.name
+                setTimeout(() => {
+                  requestSettled = true
+                  reject(new DOMException('Request aborted', 'AbortError'))
+                }, 25)
+              },
+              { once: true },
+            )
+          }),
+        SITEMAP_DATA_TIMEOUT_MS,
+        requestController.signal,
+      )
+      const tracked = resultPromise.then(
+        () => {
+          loaderSettled = true
+        },
+        () => {
+          loaderSettled = true
+        },
+      )
+      const assertion = expect(resultPromise).rejects.toMatchObject({ name: 'TimeoutError' })
+
+      requestController.abort(new DOMException('ISR request timed out', 'TimeoutError'))
+      expect(loaderAbortReasonName).toBe('AbortError')
+      expect(requestSettled).toBe(false)
+      expect(loaderSettled).toBe(false)
+
+      await vi.advanceTimersByTimeAsync(25)
+      await assertion
+      await tracked
+      expect(requestSettled).toBe(true)
+      expect(loaderSettled).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 
@@ -119,6 +234,7 @@ describe('fetchSitemapJobChunkRows', () => {
   it('keyset-paginates one UUID range without fetching the full corpus', async () => {
     const rows = Array.from({ length: 1001 }, (_, index) => sitemapJobRow(index))
     const requests: Parameters<SitemapJobPageFetcher>[0][] = []
+    const controller = new AbortController()
     const fetchPage: SitemapJobPageFetcher = async (request) => {
       requests.push(request)
       return {
@@ -127,7 +243,9 @@ describe('fetchSitemapJobChunkRows', () => {
       }
     }
 
-    await expect(fetchSitemapJobChunkRows(1, fetchPage)).resolves.toEqual(rows)
+    await expect(
+      fetchSitemapJobChunkRows(1, fetchPage, controller.signal),
+    ).resolves.toEqual(rows)
     expect(requests).toHaveLength(2)
     expect(requests[0]).toMatchObject({
       ...sitemapJobIdRange(1),
@@ -140,6 +258,7 @@ describe('fetchSitemapJobChunkRows', () => {
       limit: 1000,
     })
     expect(requests[1].nowIso).toBe(requests[0].nowIso)
+    expect(requests.every((request) => request.signal === controller.signal)).toBe(true)
   })
 
   it('fails the child when PostgREST reports an error', async () => {
@@ -228,6 +347,47 @@ describe('buildJobChunkSitemap', () => {
       }),
     ).rejects.toThrow('query failed')
   })
+
+  it('throws on an empty runtime child so ISR retains the last good XML', async () => {
+    await expect(buildJobChunkSitemap(4, async () => [])).rejects.toThrow(
+      '0 jobs fetched',
+    )
+  })
+
+  it('passes request cancellation into the job-child loader', async () => {
+    const requestController = new AbortController()
+    const xml = await buildJobChunkSitemap(
+      4,
+      async (chunk, requestSignal) => {
+        expect(chunk).toBe(4)
+        expect(requestSignal).toBe(requestController.signal)
+        return [sitemapJobRow(1, 'registered-nurse-tampa')]
+      },
+      requestController.signal,
+    )
+
+    expect(xml).toContain('/jobs/registered-nurse-tampa')
+  })
+
+  it('throws when nonempty rows produce no valid job URLs', async () => {
+    await expect(
+      buildJobChunkSitemap(4, async () => [sitemapJobRow(1, '')]),
+    ).rejects.toThrow('0 valid job URLs after slug filtering')
+  })
+
+  it('uses the valid one-URL fallback at build time after slug filtering', async () => {
+    const previousPhase = process.env.NEXT_PHASE
+    process.env.NEXT_PHASE = 'phase-production-build'
+
+    try {
+      const xml = await buildJobChunkSitemap(4, async () => [sitemapJobRow(1, '')])
+      expect(xml.match(/<url>/g)).toHaveLength(1)
+      expect(xml).toContain('<loc>https://freejobpost.co/jobs</loc>')
+    } finally {
+      if (previousPhase === undefined) delete process.env.NEXT_PHASE
+      else process.env.NEXT_PHASE = previousPhase
+    }
+  })
 })
 
 function pagesDependencies(
@@ -236,9 +396,15 @@ function pagesDependencies(
   return {
     loadLatestJobUpdatedAt: async () => null,
     loadEmployers: async () => [],
-    loadFederalMatrixCells: async () => [],
-    loadMatrixCells: async () => [],
-    loadCityMatrixCells: async () => [],
+    loadFederalMatrixCells: async () => [
+      { agency: FEDERAL_AGENCIES[0], state: STATE_HUBS[0], count: 25 },
+    ],
+    loadMatrixCells: async () => [
+      { specialty: SPECIALTY_HUBS[0], state: STATE_HUBS[0], count: 25 },
+    ],
+    loadCityMatrixCells: async () => [
+      { city: CITY_HUBS[0], specialty: SPECIALTY_HUBS[0], count: 25 },
+    ],
     loadHubCounts: async () => new Map(),
     ...overrides,
   }
@@ -265,6 +431,36 @@ describe('buildPagesSitemap', () => {
     expect(xml).toContain('<loc>https://freejobpost.co/employers/county-health</loc>')
   })
 
+  it('passes request cancellation into every pages-child loader', async () => {
+    const requestController = new AbortController()
+    const seenSignals: Array<AbortSignal | undefined> = []
+    const track = <T>(value: T) => async (requestSignal?: AbortSignal): Promise<T> => {
+      seenSignals.push(requestSignal)
+      return value
+    }
+
+    await buildPagesSitemap(
+      pagesDependencies({
+        loadLatestJobUpdatedAt: track(null),
+        loadEmployers: track([]),
+        loadFederalMatrixCells: track([
+          { agency: FEDERAL_AGENCIES[0], state: STATE_HUBS[0], count: 25 },
+        ]),
+        loadMatrixCells: track([
+          { specialty: SPECIALTY_HUBS[0], state: STATE_HUBS[0], count: 25 },
+        ]),
+        loadCityMatrixCells: track([
+          { city: CITY_HUBS[0], specialty: SPECIALTY_HUBS[0], count: 25 },
+        ]),
+        loadHubCounts: track(new Map<string, number>()),
+      }),
+      requestController.signal,
+    )
+
+    expect(seenSignals).toHaveLength(6)
+    expect(seenSignals.every((signal) => signal === requestController.signal)).toBe(true)
+  })
+
   it('throws on runtime sitemap-defining loader failures after all loaders settle', async () => {
     let hubLoaderSettled = false
     const failure = new Error('employer directory offline')
@@ -284,6 +480,16 @@ describe('buildPagesSitemap', () => {
       ),
     ).rejects.toBe(failure)
     expect(hubLoaderSettled).toBe(true)
+  })
+
+  it('throws on an empty required matrix so ISR retains the last good pages sitemap', async () => {
+    await expect(
+      buildPagesSitemap(
+        pagesDependencies({
+          loadFederalMatrixCells: async () => [],
+        }),
+      ),
+    ).rejects.toThrow('federal matrix returned 0 rows')
   })
 
   it('keeps hub pagination counts optional at runtime', async () => {
@@ -335,6 +541,40 @@ describe('buildPagesSitemap', () => {
       if (previousPhase === undefined) delete process.env.NEXT_PHASE
       else process.env.NEXT_PHASE = previousPhase
       errorSpy.mockRestore()
+    }
+  })
+
+  it('does not retain a build-only matrix fallback for a later runtime load', async () => {
+    const previousPhase = process.env.NEXT_PHASE
+    let attempts = 0
+    const dependencies = pagesDependencies({
+      loadMatrixCells: async () => {
+        attempts++
+        if (process.env.NEXT_PHASE === 'phase-production-build') {
+          return []
+        }
+        return [{ specialty: SPECIALTY_HUBS[0], state: STATE_HUBS[0], count: 25 }]
+      },
+    })
+
+    try {
+      process.env.NEXT_PHASE = 'phase-production-build'
+      const buildXml = await buildPagesSitemap(dependencies)
+      expect(buildXml).not.toContain(
+        `/specialty/${SPECIALTY_HUBS[0].slug}/${STATE_HUBS[0].slug}`,
+      )
+
+      if (previousPhase === undefined) delete process.env.NEXT_PHASE
+      else process.env.NEXT_PHASE = previousPhase
+
+      const runtimeXml = await buildPagesSitemap(dependencies)
+      expect(runtimeXml).toContain(
+        `/specialty/${SPECIALTY_HUBS[0].slug}/${STATE_HUBS[0].slug}`,
+      )
+      expect(attempts).toBe(2)
+    } finally {
+      if (previousPhase === undefined) delete process.env.NEXT_PHASE
+      else process.env.NEXT_PHASE = previousPhase
     }
   })
 })

@@ -24,6 +24,7 @@
 
 import {
   SITEMAP_CHILDREN,
+  SITEMAP_ISR_REQUEST_TIMEOUT_MS,
   buildChildSitemap,
   xmlResponse,
 } from '@/lib/sitemap-chunks'
@@ -41,17 +42,71 @@ export function generateStaticParams(): { chunk: string }[] {
   return SITEMAP_CHILDREN.map((chunk) => ({ chunk }))
 }
 
+type SitemapRequestScope = {
+  signal: AbortSignal
+  cleanup: () => void
+}
+
+function sitemapRequestScope(req: Request): SitemapRequestScope {
+  // OpenNext's queue revalidation is a HEAD self-fetch. Use the method instead
+  // of reading request headers, because headers are a dynamic API and would
+  // disable build-time prerendering for all 21 concrete child paths.
+  if (req.method !== 'HEAD') {
+    return { signal: req.signal, cleanup: () => {} }
+  }
+
+  const controller = new AbortController()
+  const isrTimeoutError = new DOMException(
+    `Sitemap ISR request timed out after ${SITEMAP_ISR_REQUEST_TIMEOUT_MS}ms`,
+    'TimeoutError',
+  )
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+  const cleanup = () => {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+      timeoutId = undefined
+    }
+    req.signal.removeEventListener('abort', abortFromRequest)
+  }
+  const abortFromRequest = () => {
+    cleanup()
+    controller.abort(req.signal.reason)
+  }
+
+  if (req.signal.aborted) {
+    abortFromRequest()
+  } else {
+    req.signal.addEventListener('abort', abortFromRequest, { once: true })
+    timeoutId = setTimeout(() => {
+      cleanup()
+      controller.abort(isrTimeoutError)
+    }, SITEMAP_ISR_REQUEST_TIMEOUT_MS)
+  }
+
+  return { signal: controller.signal, cleanup }
+}
+
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ chunk: string }> },
 ): Promise<Response> {
   const { chunk } = await params
-  const xml = await buildChildSitemap(chunk)
-  if (xml === null) {
-    return new Response('Not found', {
-      status: 404,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-    })
+  const scope = sitemapRequestScope(req)
+
+  try {
+    const xml = await buildChildSitemap(chunk, scope.signal)
+    if (xml === null) {
+      return new Response('Not found', {
+        status: 404,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      })
+    }
+    return xmlResponse(xml)
+  } finally {
+    // Let loader failures throw through Next's ISR error path. Returning a 503
+    // Response here would still create an APP_ROUTE cache entry and could replace
+    // the last-good XML with that error response.
+    scope.cleanup()
   }
-  return xmlResponse(xml)
 }

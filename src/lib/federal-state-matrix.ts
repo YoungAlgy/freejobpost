@@ -50,14 +50,15 @@ const FEDERAL_MATRIX_CACHE_KEY = 'federal_state_matrix'
 const FEDERAL_MATRIX_CACHE_TTL_SECONDS = 21600 // 6h, same freshness bar as before
 
 export async function getViableFederalCellsCached(
-  _supabase?: SupabaseClient,
+  db: SupabaseClient = _moduleSupabase,
+  options: { signal?: AbortSignal } = {},
 ): Promise<FederalMatrixCell[]> {
-  void _supabase // call-site compat; the cached scan uses the shared module client
   const cached = await getOrComputeCached(
-    _moduleSupabase,
+    db,
     FEDERAL_MATRIX_CACHE_KEY,
     FEDERAL_MATRIX_CACHE_TTL_SECONDS,
-    _computeViableFederalCellsUncached,
+    (signal) => _computeViableFederalCellsUncached(db, signal),
+    options,
   )
   return rehydrateFederalCells(cached)
 }
@@ -105,8 +106,12 @@ function rehydrateFederalCells(rows: unknown): FederalMatrixCell[] {
  * deterministic order. Only ever invoked by `getViableFederalCellsCached`
  * (≤ once / 6h globally, via the Postgres-backed cache above).
  */
-async function _computeViableFederalCellsUncached(): Promise<FederalMatrixCell[]> {
-  const { data, error } = await _moduleSupabase.rpc('federal_jobs_for_match')
+async function _computeViableFederalCellsUncached(
+  db: SupabaseClient,
+  signal?: AbortSignal,
+): Promise<FederalMatrixCell[]> {
+  const query = db.rpc('federal_jobs_for_match')
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
   if (error) {
     // Same reasoning as specialty-state-matrix.ts: don't let a failure
     // collapse to a cached false-empty result for 6h. Throw at runtime so

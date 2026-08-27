@@ -50,14 +50,15 @@ const CITY_MATRIX_CACHE_KEY = 'city_specialty_matrix'
 const CITY_MATRIX_CACHE_TTL_SECONDS = 21600 // 6h, same freshness bar as before
 
 export async function getViableCityCellsCached(
-  _supabase?: SupabaseClient,
+  db: SupabaseClient = _moduleSupabase,
+  options: { signal?: AbortSignal } = {},
 ): Promise<CityMatrixCell[]> {
-  void _supabase // call-site compat; the cached scan uses the shared module client
   const cached = await getOrComputeCached(
-    _moduleSupabase,
+    db,
     CITY_MATRIX_CACHE_KEY,
     CITY_MATRIX_CACHE_TTL_SECONDS,
-    _computeViableCityCellsUncached,
+    (signal) => _computeViableCityCellsUncached(db, signal),
+    options,
   )
   return rehydrateCityCells(cached)
 }
@@ -112,12 +113,16 @@ function rehydrateCityCells(rows: unknown): CityMatrixCell[] {
 // highest-traffic route. Delegates to compute_viable_city_matrix_cells
 // (migration 20260813), a single indexed SQL aggregate, so a cache miss
 // here is now cheap regardless.
-async function _computeViableCityCellsUncached(): Promise<CityMatrixCell[]> {
-  const { data, error } = await _moduleSupabase.rpc('compute_viable_city_matrix_cells', {
+async function _computeViableCityCellsUncached(
+  db: SupabaseClient,
+  signal?: AbortSignal,
+): Promise<CityMatrixCell[]> {
+  const query = db.rpc('compute_viable_city_matrix_cells', {
     cities: CITY_HUBS.map((c) => ({ slug: c.slug, state: c.state, patterns: c.cityMatchPatterns })),
     specialties: SPECIALTY_HUBS.map((s) => ({ slug: s.slug, patterns: s.matchPatterns })),
     min_jobs: MIN_JOBS_PER_CELL,
   })
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
 
   if (error) {
     console.error('[city-specialty-matrix] compute_viable_city_matrix_cells RPC failed:', error)

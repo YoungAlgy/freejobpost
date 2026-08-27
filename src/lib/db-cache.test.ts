@@ -11,24 +11,32 @@ type AbortableRpcPromise = Promise<RpcResult> & {
   abortSignal: (signal: AbortSignal) => AbortableRpcPromise
 }
 
-function abortableRpc(promise: Promise<RpcResult>): AbortableRpcPromise {
+function abortableRpc(
+  promise: Promise<RpcResult>,
+  abortDelayMs = 0,
+): AbortableRpcPromise {
   const query = promise as AbortableRpcPromise
   query.abortSignal = (signal) => {
     const aborted = new Promise<RpcResult>((_, reject) => {
-      const rejectAbort = () => reject(new DOMException('Request aborted', 'AbortError'))
+      const rejectAbort = () => {
+        const rejectRequest = () => reject(new DOMException('Request aborted', 'AbortError'))
+        if (abortDelayMs > 0) setTimeout(rejectRequest, abortDelayMs)
+        else rejectRequest()
+      }
       if (signal.aborted) rejectAbort()
       else signal.addEventListener('abort', rejectAbort, { once: true })
     })
-    return abortableRpc(Promise.race([promise, aborted]))
+    return abortableRpc(Promise.race([promise, aborted]), abortDelayMs)
   }
   return query
 }
 
 function fakeClient(
   rpc: (name: string, args: Record<string, unknown>) => Promise<RpcResult>,
+  abortDelayMs = 0,
 ): { db: SupabaseClient; rpc: ReturnType<typeof vi.fn> } {
   const rpcSpy = vi.fn((name: string, args: Record<string, unknown>) =>
-    abortableRpc(rpc(name, args)),
+    abortableRpc(rpc(name, args), abortDelayMs),
   )
   return {
     db: { rpc: rpcSpy } as unknown as SupabaseClient,
@@ -53,6 +61,39 @@ describe('getOrComputeCached', () => {
       p_key: 'matrix',
       p_max_age_seconds: 3600,
     })
+  })
+
+  it('treats a cached empty array as a miss and recomputes it', async () => {
+    const { db, rpc } = fakeClient(async (name) =>
+      name === 'get_matrix_cache'
+        ? { data: [], error: null }
+        : { data: null, error: null },
+    )
+    const compute = vi.fn(async () => [{ slug: 'fresh' }])
+
+    await expect(getOrComputeCached(db, 'matrix', 3600, compute)).resolves.toEqual([
+      { slug: 'fresh' },
+    ])
+    expect(compute).toHaveBeenCalledTimes(1)
+    expect(rpc).toHaveBeenCalledTimes(2)
+    expect(rpc).toHaveBeenLastCalledWith('set_matrix_cache', {
+      p_key: 'matrix',
+      p_value: [{ slug: 'fresh' }],
+    })
+  })
+
+  it('passes a caller abort signal into the cache read', async () => {
+    const controller = new AbortController()
+    const { db } = fakeClient(async () => new Promise<RpcResult>(() => undefined))
+    const compute = vi.fn(async () => [{ slug: 'fresh' }])
+    const resultPromise = getOrComputeCached(db, 'matrix', 3600, compute, {
+      signal: controller.signal,
+    })
+
+    controller.abort()
+
+    await expect(resultPromise).rejects.toMatchObject({ name: 'AbortError' })
+    expect(compute).not.toHaveBeenCalled()
   })
 
   it('awaits the cache write before resolving a fresh value', async () => {
@@ -143,6 +184,38 @@ describe('getOrComputeCached', () => {
 
       await vi.advanceTimersByTimeAsync(DB_CACHE_WRITE_TIMEOUT_MS)
       await expect(resultPromise).resolves.toEqual({ value: 'fresh' })
+      expect(errorSpy).toHaveBeenCalledWith(
+        `[db-cache] set_matrix_cache(matrix) timed out after ${DB_CACHE_WRITE_TIMEOUT_MS}ms`,
+      )
+    } finally {
+      errorSpy.mockRestore()
+      vi.useRealTimers()
+    }
+  })
+
+  it('waits for the aborted cache write to settle before returning fresh data', async () => {
+    vi.useFakeTimers()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const { db } = fakeClient(async (name) => {
+      if (name === 'get_matrix_cache') return { data: null, error: null }
+      return new Promise<RpcResult>(() => undefined)
+    }, 25)
+    let settled = false
+
+    try {
+      const resultPromise = getOrComputeCached(db, 'matrix', 3600, async () => ({
+        value: 'fresh',
+      })).then((result) => {
+        settled = true
+        return result
+      })
+
+      await vi.advanceTimersByTimeAsync(DB_CACHE_WRITE_TIMEOUT_MS)
+      expect(settled).toBe(false)
+
+      await vi.advanceTimersByTimeAsync(25)
+      await expect(resultPromise).resolves.toEqual({ value: 'fresh' })
+      expect(settled).toBe(true)
       expect(errorSpy).toHaveBeenCalledWith(
         `[db-cache] set_matrix_cache(matrix) timed out after ${DB_CACHE_WRITE_TIMEOUT_MS}ms`,
       )

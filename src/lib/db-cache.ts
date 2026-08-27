@@ -2,6 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const DB_CACHE_WRITE_TIMEOUT_MS = 2000
 
+export type DbCacheOptions = {
+  signal?: AbortSignal
+}
+
 // Postgres-backed replacement for unstable_cache() (2026-08-13). Next's Data
 // Cache wasn't persisting on this OpenNext/Cloudflare deploy for the viable-
 // matrix-cells family -- confirmed via the D1 tag-cache having zero entries
@@ -19,19 +23,23 @@ export async function getOrComputeCached<T>(
   db: SupabaseClient,
   key: string,
   maxAgeSeconds: number,
-  compute: () => Promise<T>,
+  compute: (signal?: AbortSignal) => Promise<T>,
+  options: DbCacheOptions = {},
 ): Promise<T> {
-  const { data: cached, error: readError } = await db.rpc('get_matrix_cache', {
+  const read = db.rpc('get_matrix_cache', {
     p_key: key,
     p_max_age_seconds: maxAgeSeconds,
   })
+  const { data: cached, error: readError } = await (options.signal
+    ? read.abortSignal(options.signal)
+    : read)
   if (readError) {
     console.error(`[db-cache] get_matrix_cache(${key}) failed:`, readError.message)
-  } else if (cached != null) {
+  } else if (cached != null && !(Array.isArray(cached) && cached.length === 0)) {
     return cached as T
   }
 
-  const fresh = await compute()
+  const fresh = await compute(options.signal)
 
   // Never persist an empty result. compute() degrades to [] instead of throwing
   // during `phase-production-build` (see the matrix helpers), so without this a
@@ -48,26 +56,40 @@ export async function getOrComputeCached<T>(
   // boundary, while awaiting without a limit can turn a cache write into a
   // response hang. Abort after a short deadline. The fresh value remains valid
   // even when its best-effort cache write fails.
+  if (options.signal?.aborted) return fresh
+
   const controller = new AbortController()
-  let timeoutId: ReturnType<typeof setTimeout> | undefined
-  const deadline = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => {
-      controller.abort()
-      reject(new Error(`cache write timed out after ${DB_CACHE_WRITE_TIMEOUT_MS}ms`))
-    }, DB_CACHE_WRITE_TIMEOUT_MS)
-  })
+  let timedOut = false
+  const timeoutId = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, DB_CACHE_WRITE_TIMEOUT_MS)
+
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, controller.signal])
+    : controller.signal
 
   try {
-    const write = db
-      .rpc('set_matrix_cache', {
-        p_key: key,
-        p_value: fresh as object,
-      })
-      .abortSignal(controller.signal)
-    const { error } = await Promise.race([write, deadline])
-    if (error) console.error(`[db-cache] set_matrix_cache(${key}) failed:`, error.message)
+    // PostgREST builders are thenables. Normalize exactly once so awaiting the
+    // abort settlement cannot execute the RPC a second time.
+    const write = Promise.resolve(
+      db
+        .rpc('set_matrix_cache', {
+          p_key: key,
+          p_value: fresh as object,
+        })
+        .abortSignal(signal),
+    )
+    const { error } = await write
+    if (timedOut) {
+      console.error(
+        `[db-cache] set_matrix_cache(${key}) timed out after ${DB_CACHE_WRITE_TIMEOUT_MS}ms`,
+      )
+    } else if (error) {
+      console.error(`[db-cache] set_matrix_cache(${key}) failed:`, error.message)
+    }
   } catch (err) {
-    if (controller.signal.aborted) {
+    if (timedOut) {
       console.error(
         `[db-cache] set_matrix_cache(${key}) timed out after ${DB_CACHE_WRITE_TIMEOUT_MS}ms`,
       )
@@ -75,7 +97,7 @@ export async function getOrComputeCached<T>(
       console.error(`[db-cache] set_matrix_cache(${key}) threw:`, err)
     }
   } finally {
-    if (timeoutId !== undefined) clearTimeout(timeoutId)
+    clearTimeout(timeoutId)
   }
 
   return fresh

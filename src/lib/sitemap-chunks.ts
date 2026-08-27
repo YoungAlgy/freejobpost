@@ -81,8 +81,8 @@
 // at 2x — too close to the wall to ship. Google's own ceiling (50,000 URLs per
 // sitemap) is nowhere near binding at ~1,700 URLs/chunk.
 
-import { unstable_cache } from 'next/cache'
-import { supabase, hourIso } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+import { hourIso } from '@/lib/supabase'
 import {
   MIN_INDEXABLE_DESCRIPTION_CHARS,
   escapeXml,
@@ -107,9 +107,37 @@ export const SITEMAP_BASE = 'https://freejobpost.co'
 // one window and shares one underlying data fetch.
 export const SITEMAP_REVALIDATE = 21600
 
+export const SITEMAP_DATA_TIMEOUT_MS = 8000
+
+// OpenNext's Durable Object ends an ISR self-fetch after 3,000ms (wrangler.jsonc).
+// Workerd does not propagate that fetch cancellation to the route Request.signal,
+// so the route needs its own earlier deadline or its PostgREST work can outlive
+// the revalidation request. Keep enough margin for Next to handle the thrown ISR
+// error before the outer Durable Object deadline.
+export const SITEMAP_ISR_REQUEST_TIMEOUT_MS = 2000
+
 export const JOB_SITEMAP_CHUNKS = 20
 
 export const PAGES_SITEMAP_CHILD = 'pages.xml'
+
+const sitemapSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const sitemapSupabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!sitemapSupabaseUrl || !sitemapSupabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables for sitemap generation.')
+}
+
+// Keep the Supabase fetch TTL aligned with the child route's six-hour ISR TTL.
+// The shared app client uses a one-hour floor, which would silently shorten the
+// route's revalidation window. `no-store` is also wrong here because Next treats
+// any route containing that fetch mode as dynamic and would disable ISR.
+const sitemapSupabase = createClient(sitemapSupabaseUrl, sitemapSupabaseAnonKey, {
+  auth: { persistSession: false },
+  global: {
+    fetch: (url, options = {}) =>
+      fetch(url, { ...options, next: { revalidate: SITEMAP_REVALIDATE } } as RequestInit),
+  },
+})
 
 /**
  * The complete, fixed child list. SINGLE SOURCE OF TRUTH — read by:
@@ -232,6 +260,64 @@ export function xmlResponse(xml: string): Response {
 // Data
 // ─────────────────────────────────────────────────────────────────────────────
 
+export async function runSitemapLoaderWithDeadline<T>(
+  label: string,
+  load: (signal: AbortSignal) => Promise<T>,
+  timeoutMs = SITEMAP_DATA_TIMEOUT_MS,
+  requestSignal?: AbortSignal,
+): Promise<T> {
+  const controller = new AbortController()
+  const timeoutError = new Error(`${label} timed out after ${timeoutMs}ms`)
+  let timedOut = false
+  let requestAborted = requestSignal?.aborted ?? false
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+  const abortFromRequest = () => {
+    requestAborted = true
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+      timeoutId = undefined
+    }
+    // Normalize an upstream TimeoutError to the standard AbortError signal that
+    // postgrest-js recognizes as canceled and will not retry.
+    controller.abort()
+  }
+
+  if (requestSignal) {
+    if (requestSignal.aborted) abortFromRequest()
+    else requestSignal.addEventListener('abort', abortFromRequest, { once: true })
+  }
+
+  if (!requestAborted) timeoutId = setTimeout(() => {
+    timedOut = true
+    // Keep the standard AbortError reason. postgrest-js suppresses retries only
+    // for AbortError/ABORT_ERR, so aborting with timeoutError would retry GET and
+    // HEAD requests on an already-aborted signal.
+    controller.abort()
+  }, timeoutMs)
+
+  try {
+    // Every production loader below passes this signal into its PostgREST
+    // builder. Await the abort settlement so no request-bound I/O is detached
+    // when the route finishes.
+    const value = await load(controller.signal)
+    if (timedOut) throw timeoutError
+    if (requestAborted) {
+      throw requestSignal?.reason ?? new DOMException('Request aborted', 'AbortError')
+    }
+    return value
+  } catch (err) {
+    if (timedOut) throw timeoutError
+    if (requestAborted) {
+      throw requestSignal?.reason ?? new DOMException('Request aborted', 'AbortError')
+    }
+    throw err
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId)
+    requestSignal?.removeEventListener('abort', abortFromRequest)
+  }
+}
+
 export type SitemapJobRow = { id: string; slug: string; updated_at: string }
 type SitemapEmployerRow = {
   slug: string
@@ -247,6 +333,7 @@ export type SitemapJobPageRequest = SitemapJobIdRange & {
   afterId: string | null
   nowIso: string
   limit: number
+  signal?: AbortSignal
 }
 
 export type SitemapJobPageResult = {
@@ -261,7 +348,7 @@ export type SitemapJobPageFetcher = (
 async function fetchJobPageFromSupabase(
   request: SitemapJobPageRequest,
 ): Promise<SitemapJobPageResult> {
-  let query = supabase
+  let query = sitemapSupabase
     .from('public_jobs')
     .select('id, slug, updated_at')
     .eq('status', 'active')
@@ -280,7 +367,9 @@ async function fetchJobPageFromSupabase(
     query = query.lt('id', request.upperExclusive)
   }
 
-  const { data, error } = await query
+  const { data, error } = await (request.signal
+    ? query.abortSignal(request.signal)
+    : query)
   return {
     rows: (data ?? []) as SitemapJobRow[],
     error: error ? { message: error.message } : null,
@@ -301,6 +390,7 @@ async function fetchJobPageFromSupabase(
 export async function fetchSitemapJobChunkRows(
   chunk: number,
   fetchPage: SitemapJobPageFetcher = fetchJobPageFromSupabase,
+  signal?: AbortSignal,
 ): Promise<SitemapJobRow[]> {
   const range = sitemapJobIdRange(chunk)
   const nowIso = hourIso()
@@ -317,6 +407,7 @@ export async function fetchSitemapJobChunkRows(
       afterId,
       nowIso,
       limit,
+      signal,
     })
     if (result.error) {
       throw new Error(`sitemaps/jobs-${chunk}.xml query failed: ${result.error.message}`)
@@ -342,6 +433,7 @@ export async function fetchSitemapJobChunkRows(
     afterId,
     nowIso,
     limit: 1,
+    signal,
   })
   if (overflow.error) {
     throw new Error(`sitemaps/jobs-${chunk}.xml query failed: ${overflow.error.message}`)
@@ -353,19 +445,21 @@ export async function fetchSitemapJobChunkRows(
   )
 }
 
-// The wrapper is intentionally one child at a time. Next 16.3 treats fetches
-// inside unstable_cache as no-store, avoiding the separate stale fetch-cache
-// layer while preserving static generation and route ISR. If the OpenNext
-// fetch-cache write is dropped, the uncached fallback is still only one bounded
-// UUID range instead of the old full-corpus scan.
-const fetchCachedSitemapJobChunkRows = unstable_cache(
-  (chunk: number) => fetchSitemapJobChunkRows(chunk),
-  ['sitemap-job-child-v2'],
-  { revalidate: SITEMAP_REVALIDATE },
-)
+type SitemapJobLoader = (
+  chunk: number,
+  requestSignal?: AbortSignal,
+) => Promise<SitemapJobRow[]>
 
-async function fetchLatestJobUpdatedAt(): Promise<string | null> {
-  const { data, error } = await supabase
+const loadSitemapJobChunkRows: SitemapJobLoader = (chunk, requestSignal) =>
+  runSitemapLoaderWithDeadline(
+    `sitemaps/jobs-${chunk}.xml data load`,
+    (signal) => fetchSitemapJobChunkRows(chunk, fetchJobPageFromSupabase, signal),
+    SITEMAP_DATA_TIMEOUT_MS,
+    requestSignal,
+  )
+
+async function fetchLatestJobUpdatedAt(signal?: AbortSignal): Promise<string | null> {
+  const query = sitemapSupabase
     .from('public_jobs')
     .select('updated_at')
     .eq('status', 'active')
@@ -375,83 +469,95 @@ async function fetchLatestJobUpdatedAt(): Promise<string | null> {
     .order('updated_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(1)
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
 
   if (error) throw new Error(`pages sitemap latest-job query failed: ${error.message}`)
   const row = (data?.[0] ?? null) as { updated_at?: string } | null
   return typeof row?.updated_at === 'string' ? row.updated_at : null
 }
 
-async function fetchSitemapEmployers(): Promise<SitemapEmployerRow[]> {
-  const { data, error } = await supabase
+async function fetchSitemapEmployers(signal?: AbortSignal): Promise<SitemapEmployerRow[]> {
+  const query = sitemapSupabase
     .from('public_employers_directory')
     .select('slug, verified_via, company_name, verified_at')
     .not('verified_at', 'is', null)
+  const { data, error } = await (signal ? query.abortSignal(signal) : query)
 
   if (error) throw new Error(`pages sitemap employer query failed: ${error.message}`)
   return (data ?? []) as SitemapEmployerRow[]
 }
 
-const fetchCachedLatestJobUpdatedAt = unstable_cache(
-  fetchLatestJobUpdatedAt,
-  ['sitemap-pages-latest-job-v2'],
-  { revalidate: SITEMAP_REVALIDATE },
-)
-
-const fetchCachedSitemapEmployers = unstable_cache(
-  fetchSitemapEmployers,
-  ['sitemap-pages-employers-v2'],
-  { revalidate: SITEMAP_REVALIDATE },
-)
-
-const fetchCachedFederalMatrixCells = unstable_cache(
-  () => getViableFederalCellsCached(supabase),
-  ['sitemap-pages-federal-matrix-v2'],
-  { revalidate: SITEMAP_REVALIDATE },
-)
-
-const fetchCachedMatrixCells = unstable_cache(
-  () => computeViableCellsViaSql(supabase),
-  ['sitemap-pages-specialty-state-matrix-v2'],
-  { revalidate: SITEMAP_REVALIDATE },
-)
-
-const fetchCachedCityMatrixCells = unstable_cache(
-  () => getViableCityCellsCached(supabase),
-  ['sitemap-pages-city-matrix-v2'],
-  { revalidate: SITEMAP_REVALIDATE },
-)
-
-const fetchCachedHubCountEntries = unstable_cache(
-  async () => [...(await getHubPageCountsCached(supabase)).entries()] as [string, number][],
-  ['sitemap-pages-hub-counts-v2'],
-  { revalidate: SITEMAP_REVALIDATE },
-)
-
 export type PagesSitemapDependencies = {
-  loadLatestJobUpdatedAt: () => Promise<string | null>
-  loadEmployers: () => Promise<SitemapEmployerRow[]>
-  loadFederalMatrixCells: () => Promise<FederalMatrixCell[]>
-  loadMatrixCells: () => Promise<MatrixCell[]>
-  loadCityMatrixCells: () => Promise<CityMatrixCell[]>
-  loadHubCounts: () => Promise<Map<string, number>>
+  loadLatestJobUpdatedAt: (requestSignal?: AbortSignal) => Promise<string | null>
+  loadEmployers: (requestSignal?: AbortSignal) => Promise<SitemapEmployerRow[]>
+  loadFederalMatrixCells: (requestSignal?: AbortSignal) => Promise<FederalMatrixCell[]>
+  loadMatrixCells: (requestSignal?: AbortSignal) => Promise<MatrixCell[]>
+  loadCityMatrixCells: (requestSignal?: AbortSignal) => Promise<CityMatrixCell[]>
+  loadHubCounts: (requestSignal?: AbortSignal) => Promise<Map<string, number>>
 }
 
 const defaultPagesSitemapDependencies: PagesSitemapDependencies = {
-  loadLatestJobUpdatedAt: fetchCachedLatestJobUpdatedAt,
-  loadEmployers: fetchCachedSitemapEmployers,
-  loadFederalMatrixCells: fetchCachedFederalMatrixCells,
-  loadMatrixCells: fetchCachedMatrixCells,
-  loadCityMatrixCells: fetchCachedCityMatrixCells,
-  loadHubCounts: async () => new Map(await fetchCachedHubCountEntries()),
+  loadLatestJobUpdatedAt: (requestSignal) =>
+    runSitemapLoaderWithDeadline(
+      'pages sitemap latest-job query',
+      fetchLatestJobUpdatedAt,
+      SITEMAP_DATA_TIMEOUT_MS,
+      requestSignal,
+    ),
+  loadEmployers: (requestSignal) =>
+    runSitemapLoaderWithDeadline(
+      'pages sitemap employer query',
+      fetchSitemapEmployers,
+      SITEMAP_DATA_TIMEOUT_MS,
+      requestSignal,
+    ),
+  loadFederalMatrixCells: (requestSignal) =>
+    runSitemapLoaderWithDeadline(
+      'pages sitemap federal matrix',
+      (signal) => getViableFederalCellsCached(sitemapSupabase, { signal }),
+      SITEMAP_DATA_TIMEOUT_MS,
+      requestSignal,
+    ),
+  loadMatrixCells: (requestSignal) =>
+    runSitemapLoaderWithDeadline(
+      'pages sitemap specialty-state matrix',
+      (signal) => computeViableCellsViaSql(sitemapSupabase, { signal }),
+      SITEMAP_DATA_TIMEOUT_MS,
+      requestSignal,
+    ),
+  loadCityMatrixCells: (requestSignal) =>
+    runSitemapLoaderWithDeadline(
+      'pages sitemap city-specialty matrix',
+      (signal) => getViableCityCellsCached(sitemapSupabase, { signal }),
+      SITEMAP_DATA_TIMEOUT_MS,
+      requestSignal,
+    ),
+  loadHubCounts: (requestSignal) =>
+    runSitemapLoaderWithDeadline(
+      'pages sitemap hub counts',
+      (signal) => getHubPageCountsCached(sitemapSupabase, { signal }),
+      SITEMAP_DATA_TIMEOUT_MS,
+      requestSignal,
+    ),
 }
 
 function sitemapDatasetOrFallback<T>(
   result: PromiseSettledResult<T>,
   label: string,
   fallback: T,
-  options: { allowRuntimeFallback?: boolean } = {},
+  options: { allowRuntimeFallback?: boolean; requireNonEmpty?: boolean } = {},
 ): T {
-  if (result.status === 'fulfilled') return result.value
+  if (result.status === 'fulfilled') {
+    if (
+      options.requireNonEmpty &&
+      !isBuildPhase() &&
+      Array.isArray(result.value) &&
+      result.value.length === 0
+    ) {
+      throw new Error(`[sitemap-pages] ${label} returned 0 rows, retaining last-good ISR`)
+    }
+    return result.value
+  }
   if (!isBuildPhase() && !options.allowRuntimeFallback) {
     throw result.reason
   }
@@ -481,11 +587,12 @@ function sitemapDatasetOrFallback<T>(
  */
 export async function buildJobChunkSitemap(
   chunk: number,
-  loadJobs: (chunk: number) => Promise<SitemapJobRow[]> = fetchCachedSitemapJobChunkRows,
+  loadJobs: SitemapJobLoader = loadSitemapJobChunkRows,
+  requestSignal?: AbortSignal,
 ): Promise<string> {
   let jobs: SitemapJobRow[]
   try {
-    jobs = await loadJobs(chunk)
+    jobs = await loadJobs(chunk, requestSignal)
   } catch (err) {
     if (!isBuildPhase()) throw err
     console.error(`[sitemaps/jobs-${chunk}.xml] build-time query failed, using fallback:`, err)
@@ -518,6 +625,18 @@ export async function buildJobChunkSitemap(
       priority: 0.7,
     })
   }
+
+  if (entries.length === 0) {
+    if (!isBuildPhase()) {
+      throw new Error(
+        `sitemaps/jobs-${chunk}.xml: 0 valid job URLs after slug filtering. ` +
+        `Refusing to cache an empty sitemap. Serving last-good ISR cache instead.`,
+      )
+    }
+    return renderUrlset([
+      { url: `${SITEMAP_BASE}/jobs`, changeFrequency: 'hourly', priority: 0.9 },
+    ])
+  }
   return renderUrlset(entries)
 }
 
@@ -534,6 +653,7 @@ export async function buildJobChunkSitemap(
  */
 export async function buildPagesSitemap(
   deps: PagesSitemapDependencies = defaultPagesSitemapDependencies,
+  requestSignal?: AbortSignal,
 ): Promise<string> {
   const base = SITEMAP_BASE
   const [
@@ -544,12 +664,12 @@ export async function buildPagesSitemap(
     cityMatrixCellsResult,
     hubCountsResult,
   ] = await Promise.allSettled([
-    deps.loadLatestJobUpdatedAt(),
-    deps.loadEmployers(),
-    deps.loadFederalMatrixCells(),
-    deps.loadMatrixCells(),
-    deps.loadCityMatrixCells(),
-    deps.loadHubCounts(),
+    deps.loadLatestJobUpdatedAt(requestSignal),
+    deps.loadEmployers(requestSignal),
+    deps.loadFederalMatrixCells(requestSignal),
+    deps.loadMatrixCells(requestSignal),
+    deps.loadCityMatrixCells(requestSignal),
+    deps.loadHubCounts(requestSignal),
   ])
   const latestJobUpdatedAt = sitemapDatasetOrFallback(
     latestJobUpdatedAtResult,
@@ -561,16 +681,19 @@ export async function buildPagesSitemap(
     federalMatrixCellsResult,
     'federal matrix',
     [],
+    { requireNonEmpty: true },
   )
   const matrixCells = sitemapDatasetOrFallback(
     matrixCellsResult,
     'specialty-state matrix',
     [],
+    { requireNonEmpty: true },
   )
   const cityMatrixCells = sitemapDatasetOrFallback(
     cityMatrixCellsResult,
     'city-specialty matrix',
     [],
+    { requireNonEmpty: true },
   )
   // Continuation pages remain discoverable through their on-page pagination
   // links. Omitting only these URLs for one failed count cycle is intentional.
@@ -799,12 +922,15 @@ export function parseSitemapChild(child: string): SitemapChild | null {
 }
 
 /** Dispatch a /sitemaps/<child> path to the right builder. */
-export async function buildChildSitemap(child: string): Promise<string | null> {
+export async function buildChildSitemap(
+  child: string,
+  requestSignal?: AbortSignal,
+): Promise<string | null> {
   const parsed = parseSitemapChild(child)
   if (parsed === null) return null
   return parsed.kind === 'pages'
-    ? buildPagesSitemap()
-    : buildJobChunkSitemap(parsed.chunk)
+    ? buildPagesSitemap(defaultPagesSitemapDependencies, requestSignal)
+    : buildJobChunkSitemap(parsed.chunk, loadSitemapJobChunkRows, requestSignal)
 }
 
 /**

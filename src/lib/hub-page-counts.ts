@@ -12,7 +12,7 @@
 //
 // COST: one head-count per hub across the four top-level families
 // (50 states + 33 specialties + 32 cities + 5 federal agencies = ~120 queries).
-// They run through runBatchesConcurrencyCapped so this is 8-at-a-time, never a
+// They run through runCountTasksSettled so this is 8-at-a-time, never a
 // 120-wide burst at the shared Nano Postgres — the failure mode
 // active-batch-count.ts was written to prevent. The whole set is then cached in
 // Postgres for 6h via getOrComputeCached, the pattern this repo settled on after
@@ -27,7 +27,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { hourIso } from '@/lib/supabase'
 import { getOrComputeCached } from '@/lib/db-cache'
 import { hubPageStaticParams } from '@/lib/hub-pagination'
-import { runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
+import { BATCH_CONCURRENCY } from '@/lib/active-batch-count'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
@@ -47,17 +47,47 @@ export type HubCount = { kind: HubKind; slug: string; count: number }
 
 type CountTask = { kind: HubKind; slug: string; run: () => PromiseLike<{ count: number | null }> }
 
-function buildTasks(db: SupabaseClient): CountTask[] {
+export async function runCountTasksSettled<T>(
+  tasks: readonly (() => PromiseLike<T>)[],
+  concurrency = BATCH_CONCURRENCY,
+): Promise<T[]> {
+  if (!Number.isInteger(concurrency) || concurrency < 1) {
+    throw new RangeError('count task concurrency must be a positive integer')
+  }
+
+  const results: T[] = []
+  for (let start = 0; start < tasks.length; start += concurrency) {
+    // Start the whole bounded batch before observing any failure. allSettled
+    // keeps one rejection from returning while sibling request I/O is active.
+    const settled = await Promise.allSettled(
+      tasks
+        .slice(start, start + concurrency)
+        .map((run) => Promise.resolve().then(() => run())),
+    )
+    const failure = settled.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    )
+    if (failure) throw failure.reason
+    for (const result of settled) {
+      if (result.status === 'fulfilled') results.push(result.value)
+    }
+  }
+  return results
+}
+
+function buildTasks(db: SupabaseClient, signal?: AbortSignal): CountTask[] {
   const nowIso = hourIso()
   // Hour-stable timestamp so each PostgREST URL is byte-identical within the
   // hour and these counts can actually hit a cache (the F52 lesson).
-  const base = () =>
-    db
+  const base = () => {
+    const query = db
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
+    return signal ? query.abortSignal(signal) : query
+  }
 
   const tasks: CountTask[] = []
 
@@ -90,9 +120,9 @@ function buildTasks(db: SupabaseClient): CountTask[] {
   return tasks
 }
 
-async function computeHubCounts(db: SupabaseClient): Promise<HubCount[]> {
-  const tasks = buildTasks(db)
-  const results = await runBatchesConcurrencyCapped(tasks.length, (i) => tasks[i].run())
+async function computeHubCounts(db: SupabaseClient, signal?: AbortSignal): Promise<HubCount[]> {
+  const tasks = buildTasks(db, signal)
+  const results = await runCountTasksSettled(tasks.map((task) => task.run))
 
   const out: HubCount[] = []
   for (let i = 0; i < tasks.length; i++) {
@@ -118,10 +148,17 @@ async function computeHubCounts(db: SupabaseClient): Promise<HubCount[]> {
  */
 export async function getHubPageCountsCached(
   db: SupabaseClient,
+  options: { signal?: AbortSignal } = {},
 ): Promise<Map<string, number>> {
   let rows: HubCount[] = []
   try {
-    rows = await getOrComputeCached(db, 'hub-page-counts-v1', 21600, () => computeHubCounts(db))
+    rows = await getOrComputeCached(
+      db,
+      'hub-page-counts-v1',
+      21600,
+      (signal) => computeHubCounts(db, signal),
+      options,
+    )
   } catch (err) {
     console.error('[hub-page-counts] count scan failed, omitting paginated sitemap URLs:', err)
     return new Map()
