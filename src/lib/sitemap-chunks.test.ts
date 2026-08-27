@@ -1,16 +1,22 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   JOB_SITEMAP_CHUNKS,
   PAGES_SITEMAP_CHILD,
   SITEMAP_BASE,
   SITEMAP_CHILDREN,
   SITEMAP_REVALIDATE,
+  buildJobChunkSitemap,
+  buildPagesSitemap,
   buildSitemapIndex,
+  fetchSitemapJobChunkRows,
   parseSitemapChild,
   renderSitemapIndex,
   renderUrlset,
   sitemapChildUrl,
-  sitemapChunkForSlug,
+  sitemapJobIdRange,
+  type PagesSitemapDependencies,
+  type SitemapJobPageFetcher,
+  type SitemapJobRow,
 } from '@/lib/sitemap-chunks'
 
 // Next rejects an imported identifier in a route's segment config ("Invalid
@@ -66,55 +72,269 @@ describe('SITEMAP_CHILDREN', () => {
   })
 })
 
-describe('sitemapChunkForSlug', () => {
-  const slugs = Array.from(
-    { length: 20000 },
-    (_, i) => `registered-nurse-icu-${i}-tampa-fl-wd-RQ${i * 7919}`,
+describe('sitemapJobIdRange', () => {
+  const ranges = Array.from(
+    { length: JOB_SITEMAP_CHUNKS },
+    (_, chunk) => sitemapJobIdRange(chunk),
   )
 
-  // If this ever returned NaN, a negative, or a value >= the chunk count, the
-  // affected jobs would silently vanish from every sitemap — the exact failure
-  // mode (silent under-coverage) that cost this site ~8,000 indexed URLs in
-  // 2026-05 and ~2.6K again in 2026-05-28.
-  it('always lands in [0, JOB_SITEMAP_CHUNKS)', () => {
-    for (const slug of slugs) {
-      const c = sitemapChunkForSlug(slug)
-      expect(Number.isInteger(c)).toBe(true)
-      expect(c).toBeGreaterThanOrEqual(0)
-      expect(c).toBeLessThan(JOB_SITEMAP_CHUNKS)
+  it('covers the UUID keyspace with contiguous, non-overlapping ranges', () => {
+    expect(ranges[0].lowerInclusive).toBeNull()
+    expect(ranges.at(-1)?.upperExclusive).toBeNull()
+    for (let chunk = 0; chunk < ranges.length - 1; chunk++) {
+      expect(ranges[chunk].upperExclusive).toBe(ranges[chunk + 1].lowerInclusive)
     }
   })
 
-  it('is deterministic', () => {
-    for (const slug of slugs.slice(0, 200)) {
-      expect(sitemapChunkForSlug(slug)).toBe(sitemapChunkForSlug(slug))
+  it('assigns every possible first UUID byte to exactly one range', () => {
+    for (let byte = 0; byte < 256; byte++) {
+      const prefix = byte.toString(16).padStart(2, '0')
+      const id = `${prefix}000000-0000-0000-0000-000000000000`
+      const matches = ranges.filter(
+        (range) =>
+          (range.lowerInclusive === null || id >= range.lowerInclusive) &&
+          (range.upperExclusive === null || id < range.upperExclusive),
+      )
+      expect(matches, `first byte ${prefix}`).toHaveLength(1)
     }
   })
 
-  it('partitions: every slug lands in exactly one chunk and none are lost', () => {
-    const counts = new Array(JOB_SITEMAP_CHUNKS).fill(0)
-    for (const slug of slugs) counts[sitemapChunkForSlug(slug)]++
-    expect(counts.reduce((a, b) => a + b, 0)).toBe(slugs.length)
+  it('rejects invalid chunk inputs', () => {
+    expect(() => sitemapJobIdRange(-1)).toThrow(RangeError)
+    expect(() => sitemapJobIdRange(JOB_SITEMAP_CHUNKS)).toThrow(RangeError)
+    expect(() => sitemapJobIdRange(0, 0)).toThrow(RangeError)
+    expect(() => sitemapJobIdRange(0, 257)).toThrow(RangeError)
+  })
+})
+
+function sitemapJobRow(index: number, slug = `job-${index}`): SitemapJobRow {
+  return {
+    id: `10000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}`,
+    slug,
+    updated_at: '2026-08-27T12:00:00.000Z',
+  }
+}
+
+describe('fetchSitemapJobChunkRows', () => {
+  it('keyset-paginates one UUID range without fetching the full corpus', async () => {
+    const rows = Array.from({ length: 1001 }, (_, index) => sitemapJobRow(index))
+    const requests: Parameters<SitemapJobPageFetcher>[0][] = []
+    const fetchPage: SitemapJobPageFetcher = async (request) => {
+      requests.push(request)
+      return {
+        rows: request.afterId === null ? rows.slice(0, 1000) : rows.slice(1000),
+        error: null,
+      }
+    }
+
+    await expect(fetchSitemapJobChunkRows(1, fetchPage)).resolves.toEqual(rows)
+    expect(requests).toHaveLength(2)
+    expect(requests[0]).toMatchObject({
+      ...sitemapJobIdRange(1),
+      afterId: null,
+      limit: 1000,
+    })
+    expect(requests[1]).toMatchObject({
+      ...sitemapJobIdRange(1),
+      afterId: rows[999].id,
+      limit: 1000,
+    })
+    expect(requests[1].nowIso).toBe(requests[0].nowIso)
   })
 
-  // Even distribution is what keeps every child sitemap inside the CPU budget.
-  // A badly-skewed hash would put a disproportionate share into one chunk and
-  // re-create the oversized-body problem for that one file.
-  it('distributes within 25% of even', () => {
-    const counts = new Array(JOB_SITEMAP_CHUNKS).fill(0)
-    for (const slug of slugs) counts[sitemapChunkForSlug(slug)]++
-    const expected = slugs.length / JOB_SITEMAP_CHUNKS
-    for (const c of counts) {
-      expect(c).toBeGreaterThan(expected * 0.75)
-      expect(c).toBeLessThan(expected * 1.25)
+  it('fails the child when PostgREST reports an error', async () => {
+    const fetchPage: SitemapJobPageFetcher = async () => ({
+      rows: [],
+      error: { message: 'database unavailable' },
+    })
+
+    await expect(fetchSitemapJobChunkRows(0, fetchPage)).rejects.toThrow(
+      'sitemaps/jobs-0.xml query failed: database unavailable',
+    )
+  })
+
+  it('rejects a non-advancing keyset cursor', async () => {
+    const repeatedPage = Array.from({ length: 1000 }, () => sitemapJobRow(1))
+    const fetchPage: SitemapJobPageFetcher = async () => ({
+      rows: repeatedPage,
+      error: null,
+    })
+
+    await expect(fetchSitemapJobChunkRows(0, fetchPage)).rejects.toThrow(
+      'did not advance its UUID cursor',
+    )
+  })
+
+  it('accepts exactly 50,000 rows after an empty overflow probe', async () => {
+    let call = 0
+    const fetchPage: SitemapJobPageFetcher = async (request) => {
+      const page = call++
+      if (request.limit === 1) return { rows: [], error: null }
+      return {
+        rows: Array.from(
+          { length: request.limit },
+          (_, index) => sitemapJobRow(page * 1000 + index),
+        ),
+        error: null,
+      }
+    }
+
+    const rows = await fetchSitemapJobChunkRows(0, fetchPage)
+    expect(rows).toHaveLength(50000)
+    expect(call).toBe(51)
+  })
+
+  it('rejects a child with more than 50,000 rows', async () => {
+    let call = 0
+    const fetchPage: SitemapJobPageFetcher = async (request) => {
+      const page = call++
+      if (request.limit === 1) return { rows: [sitemapJobRow(50000)], error: null }
+      return {
+        rows: Array.from(
+          { length: request.limit },
+          (_, index) => sitemapJobRow(page * 1000 + index),
+        ),
+        error: null,
+      }
+    }
+
+    await expect(fetchSitemapJobChunkRows(0, fetchPage)).rejects.toThrow(
+      'reached the 50000-URL protocol limit',
+    )
+  })
+})
+
+describe('buildJobChunkSitemap', () => {
+  it('renders only the injected child rows and de-duplicates slugs', async () => {
+    const xml = await buildJobChunkSitemap(4, async (chunk) => {
+      expect(chunk).toBe(4)
+      return [
+        sitemapJobRow(1, 'registered-nurse-tampa'),
+        sitemapJobRow(2, 'registered-nurse-tampa'),
+        sitemapJobRow(3, 'medical-assistant-orlando'),
+      ]
+    })
+
+    expect(xml.match(/<url>/g)).toHaveLength(2)
+    expect(xml.match(/registered-nurse-tampa/g)).toHaveLength(1)
+    expect(xml).toContain('<loc>https://freejobpost.co/jobs/medical-assistant-orlando</loc>')
+    expect(xml).toContain('<lastmod>2026-08-27T12:00:00.000Z</lastmod>')
+  })
+
+  it('throws on a runtime loader failure so ISR can retain the last good child', async () => {
+    await expect(
+      buildJobChunkSitemap(4, async () => {
+        throw new Error('query failed')
+      }),
+    ).rejects.toThrow('query failed')
+  })
+})
+
+function pagesDependencies(
+  overrides: Partial<PagesSitemapDependencies> = {},
+): PagesSitemapDependencies {
+  return {
+    loadLatestJobUpdatedAt: async () => null,
+    loadEmployers: async () => [],
+    loadFederalMatrixCells: async () => [],
+    loadMatrixCells: async () => [],
+    loadCityMatrixCells: async () => [],
+    loadHubCounts: async () => new Map(),
+    ...overrides,
+  }
+}
+
+describe('buildPagesSitemap', () => {
+  it('loads the newest timestamp and employer directory independently', async () => {
+    const xml = await buildPagesSitemap(
+      pagesDependencies({
+        loadLatestJobUpdatedAt: async () => '2026-08-27T13:00:00.000Z',
+        loadEmployers: async () => [
+          {
+            slug: 'county-health',
+            verified_via: 'manual',
+            company_name: 'County Health',
+            verified_at: '2026-08-27T10:00:00.000Z',
+          },
+        ],
+      }),
+    )
+
+    expect(xml).toContain('<loc>https://freejobpost.co/</loc>')
+    expect(xml).toContain('<lastmod>2026-08-27T13:00:00.000Z</lastmod>')
+    expect(xml).toContain('<loc>https://freejobpost.co/employers/county-health</loc>')
+  })
+
+  it('throws on runtime sitemap-defining loader failures after all loaders settle', async () => {
+    let hubLoaderSettled = false
+    const failure = new Error('employer directory offline')
+
+    await expect(
+      buildPagesSitemap(
+        pagesDependencies({
+          loadEmployers: async () => {
+            throw failure
+          },
+          loadHubCounts: async () => {
+            await Promise.resolve()
+            hubLoaderSettled = true
+            return new Map()
+          },
+        }),
+      ),
+    ).rejects.toBe(failure)
+    expect(hubLoaderSettled).toBe(true)
+  })
+
+  it('keeps hub pagination counts optional at runtime', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    try {
+      const xml = await buildPagesSitemap(
+        pagesDependencies({
+          loadHubCounts: async () => {
+            throw new Error('counts offline')
+          },
+        }),
+      )
+
+      expect(xml).toContain('<loc>https://freejobpost.co/</loc>')
+      expect(xml).toContain('<loc>https://freejobpost.co/jobs</loc>')
+      expect(errorSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      errorSpy.mockRestore()
     }
   })
 
-  it('handles empty and unicode slugs without throwing', () => {
-    for (const s of ['', 'a', 'ünïcodé-slug', '中文-slug', '-'.repeat(500)]) {
-      const c = sitemapChunkForSlug(s)
-      expect(c).toBeGreaterThanOrEqual(0)
-      expect(c).toBeLessThan(JOB_SITEMAP_CHUNKS)
+  it('uses the DB-independent fallback set during a production build', async () => {
+    const previousPhase = process.env.NEXT_PHASE
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const fail = async (): Promise<never> => {
+      throw new Error('offline')
+    }
+    process.env.NEXT_PHASE = 'phase-production-build'
+
+    try {
+      const xml = await buildPagesSitemap(
+        pagesDependencies({
+          loadLatestJobUpdatedAt: fail,
+          loadEmployers: fail,
+          loadFederalMatrixCells: fail,
+          loadMatrixCells: fail,
+          loadCityMatrixCells: fail,
+          loadHubCounts: fail,
+        }),
+      )
+
+      expect(xml).toContain('<loc>https://freejobpost.co/</loc>')
+      expect(xml).toContain('<loc>https://freejobpost.co/jobs</loc>')
+      expect(xml).toContain('<loc>https://freejobpost.co/terms</loc>')
+      expect(xml).not.toContain('<lastmod>')
+      expect(errorSpy).toHaveBeenCalledTimes(6)
+    } finally {
+      if (previousPhase === undefined) delete process.env.NEXT_PHASE
+      else process.env.NEXT_PHASE = previousPhase
+      errorSpy.mockRestore()
     }
   })
 })

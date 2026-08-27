@@ -53,8 +53,8 @@
 //                                 all 3 matrices, the /p/<n> hub continuations
 //                                 added by the 2026-08-19 pagination fix, and
 //                                 employers). ~1,400 URLs.
-//   /sitemaps/jobs-0.xml          the ~33,000 /jobs/<slug> URLs, split into
-//     … through jobs-19.xml       JOB_SITEMAP_CHUNKS fixed buckets by slug hash.
+//   /sitemaps/jobs-0.xml          the /jobs/<slug> URLs, split into
+//     … through jobs-19.xml       JOB_SITEMAP_CHUNKS stable UUID ranges.
 //
 // WHY A FIXED CHUNK COUNT: the child list has to be known to robots.ts and to
 // the index route WITHOUT either of them touching the database. robots.ts is
@@ -64,11 +64,13 @@
 // read from — so it is structurally impossible for robots.txt to advertise a
 // sitemap that does not exist, or for a child to exist that nothing links to.
 //
-// WHY HASH BUCKETING, not offset slicing: the job query is ordered
-// `updated_at DESC`, so with offset slicing every re-sync shifts jobs between
-// chunks and all 20 children churn completely on every regeneration. Hashing the
-// slug pins a job to one bucket for its entire life, so a child sitemap's
-// content is stable instead of churning completely on every regeneration.
+// WHY UUID RANGES, not offset slicing: public_jobs.id is a random UUID generated
+// once when the row is created. Splitting the UUID keyspace into fixed,
+// contiguous ranges pins every job to one child for life and lets PostgREST use
+// the primary-key index to fetch ONLY that child. Offset slicing would shift
+// jobs between children whenever an earlier row expired, while the previous
+// FNV slug hash required every child to download the entire active corpus and
+// discard 19/20 of it in JavaScript.
 //
 // WHY 20: see the table above. 20 chunks lands each child at ~355KB / ~1.59ms of
 // size-scaled CPU — 16% of the 10ms budget, leaving ~8.4ms for the fixed
@@ -81,7 +83,6 @@
 
 import { unstable_cache } from 'next/cache'
 import { supabase, hourIso } from '@/lib/supabase'
-import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
 import {
   MIN_INDEXABLE_DESCRIPTION_CHARS,
   escapeXml,
@@ -91,10 +92,10 @@ import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
 import { CAREER_PATHS } from '@/lib/career-paths'
-import { computeViableCellsViaSql } from '@/lib/specialty-state-matrix'
-import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
+import { computeViableCellsViaSql, type MatrixCell } from '@/lib/specialty-state-matrix'
+import { getViableCityCellsCached, type CityMatrixCell } from '@/lib/city-specialty-matrix'
 import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
-import { getViableFederalCellsCached } from '@/lib/federal-state-matrix'
+import { getViableFederalCellsCached, type FederalMatrixCell } from '@/lib/federal-state-matrix'
 import { HUB_JOB_LIMITS } from '@/lib/hub-job-queries'
 import { hubPaginationUrls } from '@/lib/hub-pagination'
 import { getHubPageCountsCached, hubCountKey, type HubKind } from '@/lib/hub-page-counts'
@@ -126,19 +127,41 @@ export function sitemapChildUrl(child: string): string {
   return `${SITEMAP_BASE}/sitemaps/${child}`
 }
 
+export type SitemapJobIdRange = {
+  lowerInclusive: string | null
+  upperExclusive: string | null
+}
+
+function uuidBoundary(firstByte: number): string {
+  const prefix = firstByte.toString(16).padStart(2, '0')
+  return `${prefix}000000-0000-0000-0000-000000000000`
+}
+
 /**
- * FNV-1a 32-bit. Picked because it is dependency-free, identical in Node and in
- * workerd, and stable forever — a job must not migrate between child sitemaps
- * just because the runtime changed. Math.imul keeps the multiply in int32 so the
- * result cannot drift into float territory on long slugs.
+ * One stable, contiguous slice of the UUID keyspace.
+ *
+ * public_jobs.id is `uuid DEFAULT gen_random_uuid()`, so the first byte is
+ * uniformly distributed and backed by the table's primary-key index. The
+ * boundaries use ceil(i * 256 / chunks), giving every possible first byte to
+ * exactly one child with bucket widths that differ by at most one byte value.
  */
-export function sitemapChunkForSlug(slug: string, chunks: number = JOB_SITEMAP_CHUNKS): number {
-  let h = 0x811c9dc5
-  for (let i = 0; i < slug.length; i++) {
-    h ^= slug.charCodeAt(i)
-    h = Math.imul(h, 0x01000193)
+export function sitemapJobIdRange(
+  chunk: number,
+  chunks: number = JOB_SITEMAP_CHUNKS,
+): SitemapJobIdRange {
+  if (!Number.isInteger(chunks) || chunks < 1 || chunks > 256) {
+    throw new RangeError(`Invalid sitemap chunk count: ${chunks}`)
   }
-  return (h >>> 0) % chunks
+  if (!Number.isInteger(chunk) || chunk < 0 || chunk >= chunks) {
+    throw new RangeError(`Invalid sitemap chunk: ${chunk}`)
+  }
+
+  const lowerByte = Math.ceil((chunk * 256) / chunks)
+  const upperByte = Math.ceil(((chunk + 1) * 256) / chunks)
+  return {
+    lowerInclusive: chunk === 0 ? null : uuidBoundary(lowerByte),
+    upperExclusive: chunk === chunks - 1 ? null : uuidBoundary(upperByte),
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -209,7 +232,7 @@ export function xmlResponse(xml: string): Response {
 // Data
 // ─────────────────────────────────────────────────────────────────────────────
 
-type SitemapJobRow = { slug: string; updated_at: string }
+export type SitemapJobRow = { id: string; slug: string; updated_at: string }
 type SitemapEmployerRow = {
   slug: string
   verified_via: string | null
@@ -217,115 +240,232 @@ type SitemapEmployerRow = {
   verified_at: string
 }
 
-// Pull job inventory + employer directory for the sitemap family. We use the
-// first job row's updated_at as the lastmod signal for every route that
-// aggregates the job table (homepage, /jobs, hub indexes, individual
-// state/specialty hubs).
-//
-// Jobs: batched .range() pattern (PostgREST anon caps a single .limit(>1000)
-// at 1,000 silently; with ~9,616 active jobs we'd ship a sitemap covering
-// only 11% of inventory without batching). Verified 2026-05-19 — pre-fix
-// sitemap had been missing ~8,000 URLs from Google's index for weeks.
-// Bumped 9 → 12 on 2026-05-21 to match /jobs.xml + feed-builders, then 12 → 30
-// on 2026-05-28 (the 12K ceiling silently dropped ~2.6K oldest jobs at 14.6K
-// active inventory — same deindex failure mode, re-armed by growth). The count
-// is now derived from a real COUNT of the active corpus (active-batch-count.ts)
-// so it tracks inventory growth on its own and cannot be out-grown again.
-//
-// 🔴 2026-07-23 INCIDENT FIX (same root cause as city-specialty-matrix.ts's
-// 2026-06 incident, see its comment): the route was force-dynamic, which
-// disables the Data Cache for every fetch inside it — so these 30+ parallel
-// range() batches + the employer scan were firing on EVERY crawl hit, uncached.
-// Fine against the old Micro-compute Postgres; it started 504ing outright once
-// the DB moved to Nano compute (shared CPU), and appears to have also starved
-// the homepage sharing the same pool. Wrapped in Next's data cache: ≤ one full
-// scan per 6h globally, regardless of crawl frequency.
-async function _fetchSitemapDataUncached(): Promise<{
-  jobs: SitemapJobRow[]
-  employers: SitemapEmployerRow[]
-}> {
-  const numBatches = await activeJobBatchCount(supabase)
-  const SITEMAP_BATCH_SIZE = 1000
-  // hourIso (not a raw new Date()) keeps the PostgREST URL stable within the
-  // hour so these batch fetches actually hit the Next Data Cache (F52).
-  const nowIso = hourIso()
-  // description_usable_chars >= MIN_INDEXABLE_DESCRIPTION_CHARS (250) mirrors the
-  // /jobs/[slug] noindex gate exactly — a sitemap must not submit URLs that
-  // declare noindex (F62: 11.5K thin jobs were being submitted). Uses the SHARED
-  // constant, not a literal 250, so this floor and the page gate can't drift
-  // (they did on 2026-06-15 when the feed bar moved to 600 and dragged the page
-  // gate with it while this literal stayed 250). Generated column + partial
-  // index added 2026-06 (migration add_description_usable_chars_to_public_jobs).
-  const baseJobs = () => supabase
-    .from('public_jobs')
-    .select('slug, updated_at')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', nowIso)
-    .gte('description_usable_chars', MIN_INDEXABLE_DESCRIPTION_CHARS)
-    .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  // 2026-08-12 — this fired all `numBatches` (up to 30+) job-range queries
-  // PLUS the employer query in a single Promise.all, an uncapped burst on
-  // every 6h cache-cold hit (worse: it can stack with city-specialty-
-  // matrix.ts's own uncapped burst if both caches are cold at once — see
-  // active-batch-count.ts's note). Job batches now route through the shared
-  // runBatchesConcurrencyCapped helper; the employer query still runs
-  // alongside the first chunk since it's one lightweight query, not a burst.
-  const [employersRes, jobsBatches] = await Promise.all([
-    // Employer pages — only verified non-seeded employers with at least 1 active job
-    // (the page itself enforces the job-count gate, but pre-filtering here keeps
-    // the sitemap clean and avoids surfacing empty 404-bound pages to crawlers)
-    supabase
-      .from('public_employers_directory')
-      .select('slug, verified_via, company_name, verified_at')
-      .not('verified_at', 'is', null),
-    runBatchesConcurrencyCapped(numBatches, (i) =>
-      baseJobs().range(i * SITEMAP_BATCH_SIZE, (i + 1) * SITEMAP_BATCH_SIZE - 1)
-    ),
-  ])
+const SITEMAP_JOB_PAGE_SIZE = 1000
+const MAX_SITEMAP_URLS_PER_CHILD = 50000
 
-  const jobs = jobsBatches.flatMap(
-    (b) => (b.data ?? []) as SitemapJobRow[]
-  )
-  const employers = (employersRes.data ?? []) as SitemapEmployerRow[]
-  return { jobs, employers }
+export type SitemapJobPageRequest = SitemapJobIdRange & {
+  afterId: string | null
+  nowIso: string
+  limit: number
 }
 
-// ⚠️ KNOWN LIMITATION, documented rather than worked around (2026-08-19): Next's
-// fetch cache refuses any single entry over 2MB
-// (next/dist/server/lib/incremental-cache/index.js: "items over 2MB can not be
-// cached"). At 34K jobs this payload serializes to ~3.5MB, so THIS wrapper's
-// write is dropped with a build-time warning and every consumer re-runs
-// _fetchSitemapDataUncached.
-//
-// That is survivable, and it is why the wrapper is kept rather than deleted: the
-// layer that actually protects Postgres is one level down. Every PostgREST batch
-// request goes through the shared `supabase` client, which sets
-// `next: { revalidate: 3600 }` on its fetch, and hourIso() keeps each batch URL
-// byte-stable within the hour. Each batch response is ~150KB — comfortably under
-// 2MB — so the 21 sitemap routes prerendered in one build share ONE set of
-// cached batch responses and the database sees a single scan. What repeats per
-// route is the JS reassembly (a flatMap + a filter over ~34K tiny rows, tens of
-// milliseconds), not the query.
-//
-// If this payload ever needs to genuinely cache as one unit, the established
-// pattern in this repo is src/lib/db-cache.ts (Postgres-backed
-// getOrComputeCached), which was introduced on 2026-08-13 for exactly this class
-// of problem after Next's Data Cache was found not to persist at all on this
-// OpenNext/Cloudflare deploy for the matrix helpers.
-const _cachedSitemapData = unstable_cache(
-  _fetchSitemapDataUncached,
-  ['sitemap-jobs-and-employers-v1'],
+export type SitemapJobPageResult = {
+  rows: SitemapJobRow[]
+  error: { message: string } | null
+}
+
+export type SitemapJobPageFetcher = (
+  request: SitemapJobPageRequest,
+) => Promise<SitemapJobPageResult>
+
+async function fetchJobPageFromSupabase(
+  request: SitemapJobPageRequest,
+): Promise<SitemapJobPageResult> {
+  let query = supabase
+    .from('public_jobs')
+    .select('id, slug, updated_at')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', request.nowIso)
+    .gte('description_usable_chars', MIN_INDEXABLE_DESCRIPTION_CHARS)
+    .order('id', { ascending: true })
+    .limit(request.limit)
+
+  if (request.afterId) {
+    query = query.gt('id', request.afterId)
+  } else if (request.lowerInclusive) {
+    query = query.gte('id', request.lowerInclusive)
+  }
+  if (request.upperExclusive) {
+    query = query.lt('id', request.upperExclusive)
+  }
+
+  const { data, error } = await query
+  return {
+    rows: (data ?? []) as SitemapJobRow[],
+    error: error ? { message: error.message } : null,
+  }
+}
+
+/**
+ * Fetch one child directly from its UUID range with keyset pagination.
+ *
+ * The old implementation put the full jobs and employers corpus inside one
+ * module-level unstable_cache call. On the installed Next 16.3 and OpenNext
+ * stack, a cache hit parsed that multi-megabyte object and a miss ran at least
+ * 60 PostgREST range queries. Fetches nested inside unstable_cache are also
+ * forced to no-store, so the claimed one-hour per-batch protection never
+ * existed. One child now reads only its own indexed range and relies on the
+ * route's six-hour ISR output cache.
+ */
+export async function fetchSitemapJobChunkRows(
+  chunk: number,
+  fetchPage: SitemapJobPageFetcher = fetchJobPageFromSupabase,
+): Promise<SitemapJobRow[]> {
+  const range = sitemapJobIdRange(chunk)
+  const nowIso = hourIso()
+  const rows: SitemapJobRow[] = []
+  let afterId: string | null = null
+
+  while (rows.length < MAX_SITEMAP_URLS_PER_CHILD) {
+    const limit = Math.min(
+      SITEMAP_JOB_PAGE_SIZE,
+      MAX_SITEMAP_URLS_PER_CHILD - rows.length,
+    )
+    const result = await fetchPage({
+      ...range,
+      afterId,
+      nowIso,
+      limit,
+    })
+    if (result.error) {
+      throw new Error(`sitemaps/jobs-${chunk}.xml query failed: ${result.error.message}`)
+    }
+    if (result.rows.length > limit) {
+      throw new Error(`sitemaps/jobs-${chunk}.xml query exceeded its requested page size`)
+    }
+
+    rows.push(...result.rows)
+    if (result.rows.length < limit) return rows
+
+    const nextCursor = result.rows[result.rows.length - 1]?.id
+    if (!nextCursor || nextCursor === afterId) {
+      throw new Error(`sitemaps/jobs-${chunk}.xml query did not advance its UUID cursor`)
+    }
+    afterId = nextCursor
+  }
+
+  // Exactly 50,000 URLs is valid. Probe one row past the last cursor to tell
+  // that case apart from a child that exceeds the sitemap protocol limit.
+  const overflow = await fetchPage({
+    ...range,
+    afterId,
+    nowIso,
+    limit: 1,
+  })
+  if (overflow.error) {
+    throw new Error(`sitemaps/jobs-${chunk}.xml query failed: ${overflow.error.message}`)
+  }
+  if (overflow.rows.length === 0) return rows
+
+  throw new Error(
+    `sitemaps/jobs-${chunk}.xml reached the ${MAX_SITEMAP_URLS_PER_CHILD}-URL protocol limit`,
+  )
+}
+
+// The wrapper is intentionally one child at a time. Next 16.3 treats fetches
+// inside unstable_cache as no-store, avoiding the separate stale fetch-cache
+// layer while preserving static generation and route ISR. If the OpenNext
+// fetch-cache write is dropped, the uncached fallback is still only one bounded
+// UUID range instead of the old full-corpus scan.
+const fetchCachedSitemapJobChunkRows = unstable_cache(
+  (chunk: number) => fetchSitemapJobChunkRows(chunk),
+  ['sitemap-job-child-v2'],
   { revalidate: SITEMAP_REVALIDATE },
 )
+
+async function fetchLatestJobUpdatedAt(): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('public_jobs')
+    .select('updated_at')
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', hourIso())
+    .gte('description_usable_chars', MIN_INDEXABLE_DESCRIPTION_CHARS)
+    .order('updated_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(1)
+
+  if (error) throw new Error(`pages sitemap latest-job query failed: ${error.message}`)
+  const row = (data?.[0] ?? null) as { updated_at?: string } | null
+  return typeof row?.updated_at === 'string' ? row.updated_at : null
+}
+
+async function fetchSitemapEmployers(): Promise<SitemapEmployerRow[]> {
+  const { data, error } = await supabase
+    .from('public_employers_directory')
+    .select('slug, verified_via, company_name, verified_at')
+    .not('verified_at', 'is', null)
+
+  if (error) throw new Error(`pages sitemap employer query failed: ${error.message}`)
+  return (data ?? []) as SitemapEmployerRow[]
+}
+
+const fetchCachedLatestJobUpdatedAt = unstable_cache(
+  fetchLatestJobUpdatedAt,
+  ['sitemap-pages-latest-job-v2'],
+  { revalidate: SITEMAP_REVALIDATE },
+)
+
+const fetchCachedSitemapEmployers = unstable_cache(
+  fetchSitemapEmployers,
+  ['sitemap-pages-employers-v2'],
+  { revalidate: SITEMAP_REVALIDATE },
+)
+
+const fetchCachedFederalMatrixCells = unstable_cache(
+  () => getViableFederalCellsCached(supabase),
+  ['sitemap-pages-federal-matrix-v2'],
+  { revalidate: SITEMAP_REVALIDATE },
+)
+
+const fetchCachedMatrixCells = unstable_cache(
+  () => computeViableCellsViaSql(supabase),
+  ['sitemap-pages-specialty-state-matrix-v2'],
+  { revalidate: SITEMAP_REVALIDATE },
+)
+
+const fetchCachedCityMatrixCells = unstable_cache(
+  () => getViableCityCellsCached(supabase),
+  ['sitemap-pages-city-matrix-v2'],
+  { revalidate: SITEMAP_REVALIDATE },
+)
+
+const fetchCachedHubCountEntries = unstable_cache(
+  async () => [...(await getHubPageCountsCached(supabase)).entries()] as [string, number][],
+  ['sitemap-pages-hub-counts-v2'],
+  { revalidate: SITEMAP_REVALIDATE },
+)
+
+export type PagesSitemapDependencies = {
+  loadLatestJobUpdatedAt: () => Promise<string | null>
+  loadEmployers: () => Promise<SitemapEmployerRow[]>
+  loadFederalMatrixCells: () => Promise<FederalMatrixCell[]>
+  loadMatrixCells: () => Promise<MatrixCell[]>
+  loadCityMatrixCells: () => Promise<CityMatrixCell[]>
+  loadHubCounts: () => Promise<Map<string, number>>
+}
+
+const defaultPagesSitemapDependencies: PagesSitemapDependencies = {
+  loadLatestJobUpdatedAt: fetchCachedLatestJobUpdatedAt,
+  loadEmployers: fetchCachedSitemapEmployers,
+  loadFederalMatrixCells: fetchCachedFederalMatrixCells,
+  loadMatrixCells: fetchCachedMatrixCells,
+  loadCityMatrixCells: fetchCachedCityMatrixCells,
+  loadHubCounts: async () => new Map(await fetchCachedHubCountEntries()),
+}
+
+function sitemapDatasetOrFallback<T>(
+  result: PromiseSettledResult<T>,
+  label: string,
+  fallback: T,
+  options: { allowRuntimeFallback?: boolean } = {},
+): T {
+  if (result.status === 'fulfilled') return result.value
+  if (!isBuildPhase() && !options.allowRuntimeFallback) {
+    throw result.reason
+  }
+  console.error(`[sitemap-pages] ${label} failed, omitting that data:`, result.reason)
+  return fallback
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Builders
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * One job chunk: every active, indexable /jobs/<slug> whose slug hashes to
- * `chunk`.
+ * One job chunk: every active, indexable /jobs/<slug> whose immutable job UUID
+ * falls inside `chunk`'s fixed key range.
  *
  * FAIL SOFT, carefully. An EMPTY <urlset> is both schema-invalid (the sitemaps
  * 0.9 schema requires at least one <url>) and the worst thing to cache — it
@@ -339,8 +479,20 @@ const _cachedSitemapData = unstable_cache(
  *     harmless — the sitemaps protocol explicitly permits the same <loc> in more
  *     than one sitemap. It self-heals on the next healthy revalidate.
  */
-export async function buildJobChunkSitemap(chunk: number): Promise<string> {
-  const { jobs } = await _cachedSitemapData()
+export async function buildJobChunkSitemap(
+  chunk: number,
+  loadJobs: (chunk: number) => Promise<SitemapJobRow[]> = fetchCachedSitemapJobChunkRows,
+): Promise<string> {
+  let jobs: SitemapJobRow[]
+  try {
+    jobs = await loadJobs(chunk)
+  } catch (err) {
+    if (!isBuildPhase()) throw err
+    console.error(`[sitemaps/jobs-${chunk}.xml] build-time query failed, using fallback:`, err)
+    return renderUrlset([
+      { url: `${SITEMAP_BASE}/jobs`, changeFrequency: 'hourly', priority: 0.9 },
+    ])
+  }
 
   if (jobs.length === 0) {
     if (!isBuildPhase()) {
@@ -359,7 +511,6 @@ export async function buildJobChunkSitemap(chunk: number): Promise<string> {
   for (const j of jobs) {
     if (!j.slug || seen.has(j.slug)) continue
     seen.add(j.slug)
-    if (sitemapChunkForSlug(j.slug) !== chunk) continue
     entries.push({
       url: `${SITEMAP_BASE}/jobs/${j.slug}`,
       lastModified: j.updated_at,
@@ -381,15 +532,60 @@ export async function buildJobChunkSitemap(chunk: number): Promise<string> {
  * entirely different reasons (hub config + matrix thresholds, not job ingest),
  * and because the hub roots are the DB-independent core we fall back to.
  */
-export async function buildPagesSitemap(): Promise<string> {
+export async function buildPagesSitemap(
+  deps: PagesSitemapDependencies = defaultPagesSitemapDependencies,
+): Promise<string> {
   const base = SITEMAP_BASE
-  const { jobs, employers } = await _cachedSitemapData()
+  const [
+    latestJobUpdatedAtResult,
+    employersResult,
+    federalMatrixCellsResult,
+    matrixCellsResult,
+    cityMatrixCellsResult,
+    hubCountsResult,
+  ] = await Promise.allSettled([
+    deps.loadLatestJobUpdatedAt(),
+    deps.loadEmployers(),
+    deps.loadFederalMatrixCells(),
+    deps.loadMatrixCells(),
+    deps.loadCityMatrixCells(),
+    deps.loadHubCounts(),
+  ])
+  const latestJobUpdatedAt = sitemapDatasetOrFallback(
+    latestJobUpdatedAtResult,
+    'latest-job timestamp',
+    null,
+  )
+  const employers = sitemapDatasetOrFallback(employersResult, 'employer directory', [])
+  const federalMatrixCells = sitemapDatasetOrFallback(
+    federalMatrixCellsResult,
+    'federal matrix',
+    [],
+  )
+  const matrixCells = sitemapDatasetOrFallback(
+    matrixCellsResult,
+    'specialty-state matrix',
+    [],
+  )
+  const cityMatrixCells = sitemapDatasetOrFallback(
+    cityMatrixCellsResult,
+    'city-specialty matrix',
+    [],
+  )
+  // Continuation pages remain discoverable through their on-page pagination
+  // links. Omitting only these URLs for one failed count cycle is intentional.
+  const hubCounts = sitemapDatasetOrFallback(
+    hubCountsResult,
+    'hub page counts',
+    new Map<string, number>(),
+    { allowRuntimeFallback: true },
+  )
 
   // Aggregator routes all render slices of the job inventory, so they share the
   // freshest job timestamp. Truly static routes (terms/privacy/post-job/pricing/
   // how-it-works/for-employers) omit lastModified entirely — their content
   // rarely changes and emitting a moving timestamp is the lie pattern we avoid.
-  const maxJobUpdate = jobs[0]?.updated_at ? new Date(jobs[0].updated_at) : new Date()
+  const maxJobUpdate = latestJobUpdatedAt ?? undefined
 
   // /employer is intentionally excluded — it's auth-gated (redirects to
   // /employer/login when no session) and blocked by robots.txt. /employers
@@ -457,12 +653,6 @@ export async function buildPagesSitemap(): Promise<string> {
   // The three viable-cell matrices. Each only emits cells with >= 5 active
   // matching jobs — the same threshold the routes' generateStaticParams
   // enforce, so the sitemap and the actually-renderable URLs stay in lockstep.
-  const [federalMatrixCells, matrixCells, cityMatrixCells] = await Promise.all([
-    getViableFederalCellsCached(supabase),
-    computeViableCellsViaSql(supabase),
-    getViableCityCellsCached(supabase),
-  ])
-
   const federalMatrixRoutes: SitemapUrl[] = federalMatrixCells.map((c) => ({
     url: `${base}/jobs/federal/${c.agency.slug}/${c.state.slug}`,
     lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.75,
@@ -496,7 +686,6 @@ export async function buildPagesSitemap(): Promise<string> {
   //
   // If the count scan is unavailable this whole block is simply empty for the
   // cycle; the continuations stay crawlable via the on-page pagination nav.
-  const hubCounts = await getHubPageCountsCached(supabase)
   const paginatedRoutes: SitemapUrl[] = []
   const addPaginated = (
     kind: HubKind,

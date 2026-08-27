@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+export const DB_CACHE_WRITE_TIMEOUT_MS = 2000
+
 // Postgres-backed replacement for unstable_cache() (2026-08-13). Next's Data
 // Cache wasn't persisting on this OpenNext/Cloudflare deploy for the viable-
 // matrix-cells family -- confirmed via the D1 tag-cache having zero entries
@@ -41,20 +43,40 @@ export async function getOrComputeCached<T>(
   // 5-byte [] — when the oversized-write bug was found on 2026-08-19.)
   if (Array.isArray(fresh) && fresh.length === 0) return fresh
 
-  // Fire-and-forget: a cache-write failure shouldn't fail the response that
-  // already has a good value to return. Both branches (RPC resolves with an
-  // error field, or the call itself rejects e.g. on a network fault) are
-  // caught here so neither surfaces as an unhandled promise rejection.
-  // supabase-js's .rpc() returns a PromiseLike, not a real Promise -- it has
-  // no .catch(), so both branches are handled via .then()'s two-argument form.
-  db.rpc('set_matrix_cache', { p_key: key, p_value: fresh as object }).then(
-    ({ error }) => {
-      if (error) console.error(`[db-cache] set_matrix_cache(${key}) failed:`, error.message)
-    },
-    (err) => {
+  // Workers can terminate an invocation as soon as its response resolves.
+  // Leaving this RPC detached lets request-bound I/O continue past that
+  // boundary, while awaiting without a limit can turn a cache write into a
+  // response hang. Abort after a short deadline. The fresh value remains valid
+  // even when its best-effort cache write fails.
+  const controller = new AbortController()
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      controller.abort()
+      reject(new Error(`cache write timed out after ${DB_CACHE_WRITE_TIMEOUT_MS}ms`))
+    }, DB_CACHE_WRITE_TIMEOUT_MS)
+  })
+
+  try {
+    const write = db
+      .rpc('set_matrix_cache', {
+        p_key: key,
+        p_value: fresh as object,
+      })
+      .abortSignal(controller.signal)
+    const { error } = await Promise.race([write, deadline])
+    if (error) console.error(`[db-cache] set_matrix_cache(${key}) failed:`, error.message)
+  } catch (err) {
+    if (controller.signal.aborted) {
+      console.error(
+        `[db-cache] set_matrix_cache(${key}) timed out after ${DB_CACHE_WRITE_TIMEOUT_MS}ms`,
+      )
+    } else {
       console.error(`[db-cache] set_matrix_cache(${key}) threw:`, err)
     }
-  )
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId)
+  }
 
   return fresh
 }

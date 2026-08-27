@@ -2,7 +2,7 @@
 //
 //   /sitemaps/pages.xml       ~1,000 non-job URLs (hubs, static, matrices, employers)
 //   /sitemaps/jobs-0.xml      the /jobs/<slug> corpus, split into JOB_SITEMAP_CHUNKS
-//     … through jobs-19.xml   fixed buckets by FNV-1a hash of the slug
+//     … through jobs-19.xml   fixed, contiguous UUID ranges
 //
 // ONE dynamic route rather than 21 near-identical folders. That is a deliberate
 // correctness choice, not brevity: generateStaticParams, the <sitemapindex>, and
