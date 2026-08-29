@@ -1,9 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { PHASE_PRODUCTION_BUILD } from 'next/constants'
 
 export const DB_CACHE_WRITE_TIMEOUT_MS = 2000
 
 export type DbCacheOptions = {
   signal?: AbortSignal
+}
+
+export function dbCacheWritesAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD
 }
 
 // Postgres-backed replacement for unstable_cache() (2026-08-13). Next's Data
@@ -50,6 +55,12 @@ export async function getOrComputeCached<T>(
   // (The specialty_state_matrix row was sitting at exactly this value — a
   // 5-byte [] — when the oversized-write bug was found on 2026-08-19.)
   if (Array.isArray(fresh) && fresh.length === 0) return fresh
+
+  // `next build` sets NEXT_PHASE before starting its static workers. Those
+  // workers may need current rows to prerender pages, but a build must remain
+  // read-only. Runtime requests do not use this phase and keep the normal
+  // Postgres-backed cache write below.
+  if (!dbCacheWritesAllowed()) return fresh
 
   // Workers can terminate an invocation as soon as its response resolves.
   // Leaving this RPC detached lets request-bound I/O continue past that

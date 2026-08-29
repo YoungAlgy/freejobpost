@@ -1,7 +1,11 @@
-# CRM ↔ free* Bridging Spec (draft)
+# CRM to free properties bridging spec (retired)
 
 Date: 2026-05-27
-Status: **DRAFT — not yet implemented.** Captures the design after the Q2 strategy decision to pursue the bridging path. Implementation gated on Algy's go-ahead because it touches the paid CRM.
+Status: **RETIRED 2026-08-28. DO NOT IMPLEMENT.** Free Job Post,
+FreeResumePost, and Ava CRM now have separate product boundaries. This file is
+kept only as historical decision evidence. Its cross-product data flows,
+candidate matching, CRM enrichment, and shared marketplace positioning are no
+longer approved product plans.
 
 ## Goal
 

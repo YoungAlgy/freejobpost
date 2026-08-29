@@ -1,176 +1,212 @@
-# Deploy notes — freejobpost.co
+# Cloudflare release runbook - freejobpost.co
 
-**Historical document, last refreshed 2026-05-22.** Written for the Vercel
-deploy this app used at the time; it has since migrated to Cloudflare
-Workers (`npm run cf:deploy`, see the main README). The commit history
-and bug-fix context below are still accurate as a record of that
-session — only the "Vercel env vars" deploy mechanics section is stale.
+**Current as of 2026-08-29.** This runbook covers the standalone,
+direct-employer release. Free Job Post runs on Cloudflare Workers through
+OpenNext. Supabase migrations and Edge Functions use a separate release path.
 
-Pre-push checklist for the Vercel deploy. Last refreshed 2026-05-22 after the
-overnight audit-pass session that uncovered + fixed several critical bugs in
-the SEO surface. Every commit on `origin/main` since `42d9c5e` is covered.
+## Release scope
 
-## Most important commits (skim these before deploy)
+This release includes:
 
-| Commit | What | Why it matters |
-|---|---|---|
-| `6e2b839` | **fix(critical): specialty hub + matrix .or() double-encoding** | THE bug of the session. encodeURIComponent inside the runtime filter caused space-containing matchPatterns (PA, RN, family-medicine, internal-medicine, hospital-medicine, ER, OB-GYN, etc.) to silently return 0 jobs at runtime. Build-time + sitemap thought the cells existed; runtime 404'd them. Fix unlocks 150+ matrix cells + 6 specialty hub pages that were silent zeroes. |
-| `aee278f` | feat: 5 more career-path guides + per-{specialty,state} RSS | 79 new SEO surfaces |
-| `c0a55ab` | feat: /city/[slug] hub pages — 32 US healthcare metros | New long-tail surface between state hubs + per-job pages |
-| `f7e930b` | feat: city×specialty matrix + JSON-LD validator + typo redirects | ~30+ new long-tail pages + 26 protective unit tests catching JobPosting markup regressions |
-| `41c8366` | feat: ATS edge function pings Google Indexing API on new jobs | Indexing latency for ATS-imported jobs drops from ~24h to ~15min once GCP setup is done |
-| `2bc6587` | feat: Google Indexing API integration (Next.js side) | Same as above but for /post-job/verify flow |
-| `6f207bf` | fix: correct remote-job JobPosting JSON-LD | Remote jobs were emitting both `jobLocation` + `jobLocationType:TELECOMMUTE` — Google rejects that |
-| `4d6a2d9` | fix: partner_attribution_daily view recognizes service_role | /admin/attribution would have rendered empty in prod without this |
-| `94997ca` | fix: empty-array syndication_targets semantics | 655 ATS jobs were silently missing from Google for Jobs + every partner feed |
-| `120691f` | fix: thin-description filter on partner feeds | 24% of corpus had empty descriptions polluting partner feeds |
+- Public pages, search, feeds, sitemaps, applications, alerts, expiry handling,
+  and employer tools scoped to `public_employer_post` jobs.
+- Ava-family vanity redirects removed from the Free Job Post Worker.
+- Production builds blocked from calling `set_matrix_cache`.
+- `20260828_scope_employer_applications_to_direct_posts.sql` applied to the
+  shared Supabase project.
+- `apply-notify` and `job-alert-digest` Edge Functions deployed with their
+  direct-employer source checks.
 
-## Full commit list
+Legacy ATS importers, federal inventory, candidate matching, and old backfill
+jobs are outside this release. Do not redeploy or restart them as part of this
+runbook.
 
-Run `git log --oneline 42d9c5e~1..HEAD --reverse` for the complete chronological log. ~50 commits, no breaking schema changes, fully backward-compatible.
+## Hard release gates
 
-## Vercel env vars to set BEFORE first deploy
+Stop the release if any item below is false:
 
-Both server-side only. Mark as not-public in Vercel project settings.
+- The latest Supabase backup succeeded, or a fresh on-demand backup completed.
+- The migration ledger is readable and its pending list is understood.
+- Supabase has no active database incident or repeated connection timeout.
+- The focused build-write test passes.
+- Build cleanup reports that the old fetch cache and OpenNext output were
+  cleared.
+- The full tests and TypeScript checks pass.
+- Changed-file lint and the scoped diff check pass.
+- The previous Cloudflare Worker version ID is recorded.
+- The migration and Edge Function source in the release match the frontend.
 
-| Var | Why | How to generate |
-|---|---|---|
-| `SUPABASE_SERVICE_ROLE_KEY` | `/admin/attribution` reads `partner_attribution_daily` via service-role to bypass RLS | Supabase Dashboard → Project Settings → API → service_role key |
-| `ADMIN_DASHBOARD_KEY` | Query-param gate for `/admin/attribution?key=…` | `openssl rand -hex 24` once, bookmark the URL+key combo |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` (optional) | Activates Google Indexing API pings on every new job verify — drops Google for Jobs indexing latency from ~24h to ~15 min | GCP service-account JSON key. Full setup playbook in `docs/GOOGLE_FOR_JOBS.md`. Safe to leave unset — code is a no-op without it. |
+The protected root migration helper is outside this release. Do not include it
+in inspection, staging, build helpers, or deployment commands.
 
-If `SUPABASE_SERVICE_ROLE_KEY` or `ADMIN_DASHBOARD_KEY` is missing, `/admin/attribution` 404s rather than 500ing — no information leakage. So a partial deploy is safe; the dashboard just won't work until both are set. `GOOGLE_SERVICE_ACCOUNT_JSON` is fully optional — verify-page flow runs normally without it.
+## 1. Local verification
 
-## Supabase migrations to apply
+Run these from the repository root:
 
-Run via `supabase db push` or apply manually in the SQL editor. Order matters (alphabetical date prefix):
-
-1. `20260520_ats_import_syndication_targets_default.sql` — **new this batch**, fixes `ats_import_upsert_jobs` RPC default + backfills 655 empty rows + catches up 8,961 rows with `careerjet`.
-2. `20260520_partner_attribution_daily_view.sql` — `partner_attribution_daily` view powering `/admin/attribution`. **Updated this batch** to recognize `service_role` JWT (the original would have returned 0 rows under the service-role client).
-3. `20260520_syndication_targets_add_careerjet.sql` — no-op after #1 (idempotent).
-4. `20260520_syndication_targets_backfill_volume_partners.sql` — no-op after #1 (idempotent).
-5. `20260521_set_pending_job_syndication_targets_add_careerjet.sql` — **new this batch**, adds `'careerjet'` to the RPC's v_known whitelist so explicit recruiter opt-ins via /post-job survive sanitization. Without this, recruiters checking the Careerjet box have their choice silently stripped.
-
-All 5 are safe to re-run (CREATE OR REPLACE + idempotent backfills). #3 + #4 stay in the tree for audit trail.
-
-## Post-deploy smoke tests
-
-```
-# All feeds — counts should land here:
-curl -s https://freejobpost.co/feeds/indeed.xml       | grep -c '<job>'   # expect ≥425 (strict)
-curl -s https://freejobpost.co/feeds/linkedin.xml     | grep -c '<job>'   # expect ≥425 (strict)
-curl -s https://freejobpost.co/feeds/ziprecruiter.xml | grep -c '<job>'   # expect ≥425 (strict)
-curl -s https://freejobpost.co/feeds/talent.xml       | grep -c '<job>'   # expect ≥7,300 (volume, post-thin-filter)
-curl -s https://freejobpost.co/feeds/careerjet.xml    | grep -c '<job>'   # expect ≥7,300 AFTER migration #1
-curl -s https://freejobpost.co/jobs.xml               | grep -c '<job>'   # expect ≥7,300
-
-# Sitemap (2026-08-19: now an index + 21 children, NOT one giant urlset —
-# see src/lib/sitemap-chunks.ts. The old `grep -c '<loc>'` on /sitemap.xml
-# now returns 21, which is correct, not a regression.)
-curl -s https://freejobpost.co/sitemap.xml | grep -c '<sitemap>'          # expect 21
-curl -s https://freejobpost.co/sitemaps/pages.xml | grep -c '<loc>'       # expect ≥900
-for i in $(seq 0 19); do
-  printf 'jobs-%s.xml ' "$i"
-  curl -s "https://freejobpost.co/sitemaps/jobs-$i.xml" | grep -c '<loc>' # expect ~1,600 each
-done
-# Total across all children should be ≥9,000. Each child must also be well
-# under ~1MB or it is back over the 10ms Workers CPU budget:
-for i in $(seq 0 19); do
-  curl -sI "https://freejobpost.co/sitemaps/jobs-$i.xml" | grep -i content-length
-done
-
-# Per-job page (real ATS slug — Workday uppercase)
-curl -s -o /dev/null -w "%{http_code}\n" https://freejobpost.co/jobs/mammography-technologist-wd-RQ4052378
-# expect 200
-
-# Click attribution flow
-curl -sI "https://freejobpost.co/click/<real-slug>?p=talent"
-# expect 302 with Location: <employer ATS URL>
-
-# Admin gate
-curl -s -o /dev/null -w "%{http_code}\n" https://freejobpost.co/admin/attribution
-# expect 404
-curl -s -o /dev/null -w "%{http_code}\n" "https://freejobpost.co/admin/attribution?key=<the-real-key>"
-# expect 200 (with the real key)
-
-# Robots header on private surfaces
-curl -sI https://freejobpost.co/admin/attribution    | grep -i x-robots-tag  # noindex, nofollow
-curl -sI https://freejobpost.co/employer/login       | grep -i x-robots-tag  # noindex, nofollow
-curl -sI https://freejobpost.co/                      | grep -i x-robots-tag  # index, follow
-
-# Favicon redirect
-curl -sI https://freejobpost.co/favicon.ico | head -3
-# expect 308 → Location: /icon
+```powershell
+npx vitest run src/lib/db-cache.test.ts
+npm test -- --run
+npx tsc --noEmit
+npx eslint src/lib/db-cache.ts src/lib/db-cache.test.ts next.config.ts
+git diff --check -- src public docs supabase package.json next.config.ts open-next.config.ts wrangler.jsonc
 ```
 
-Then check `apply_clicks` table after 24h:
+The focused test named `never writes a fresh value during a Next production
+build` must pass. Next sets `NEXT_PHASE=phase-production-build` before its
+static workers start. `getOrComputeCached` returns the computed value during
+that phase and never reaches `set_matrix_cache`. Runtime requests have no build
+phase and keep normal Postgres cache writes.
+
+The package scripts remove `.next/cache/fetch-cache` before every Next build.
+Cloudflare builds also remove `.open-next` before packaging. This keeps stale or
+malformed data-cache files out of a new Worker while preserving the compiler
+cache. Stop if OpenNext still reports a fetch-cache JSON parse warning.
+
+## 2. Database preflight
+
+Use the approved read-only connection to record:
+
+- Current deployed migration ledger.
+- Current function definition for
+  `public.get_employer_applications_rpc(uuid, text)`.
+- Counts in `public_jobs` grouped by `source` and `status`.
+- Count of applications joined to jobs outside `public_employer_post`.
+- Existing schedule and deployed version for `job-alert-digest`.
+
+Review the migration file directly:
+
+`supabase/migrations/20260828_scope_employer_applications_to_direct_posts.sql`
+
+It replaces one RPC and does not delete or rewrite jobs, candidates, or
+applications. Its public response shape stays compatible and adds
+`scope: "public_employer_post"`.
+
+Run the existing migration dry-run workflow. Apply only this reviewed pending
+migration when its plan matches the file. Read the function definition again
+afterward and confirm both job joins require:
 
 ```sql
-SELECT partner, COUNT(*), COUNT(DISTINCT ip_hash) AS unique_ips, COUNT(DISTINCT job_slug) AS unique_jobs
-FROM apply_clicks
-WHERE created_at > now() - interval '24 hours'
-GROUP BY partner
-ORDER BY COUNT(*) DESC;
+pj.source = 'public_employer_post'
 ```
 
-First non-zero `partner='talent'` / `'adzuna'` / `'jooble'` row is the signal that a partner has successfully ingested + a candidate has clicked through.
+## 3. Edge Functions
 
-## Post-deploy: redeploy the ATS edge function
+Deploy both functions without JWT verification. Their own request checks stay
+in place:
 
-Vercel auto-deploys the Next.js side on `git push`. The Supabase Edge
-Functions under `supabase/functions/` are NOT auto-deployed — they live
-in a separate deploy path. After this push, redeploy two functions:
-
-```bash
-supabase functions deploy refresh-ats-imports
-supabase functions deploy backfill-workday-descriptions
+```powershell
+supabase functions deploy apply-notify --no-verify-jwt
+supabase functions deploy job-alert-digest --no-verify-jwt
 ```
 
-`refresh-ats-imports` picks up the new Google Indexing API integration
-(commit `41c8366`) — pings Google's Indexing API for every newly-inserted
-ATS job, capped 30/cycle = ~180/day total. No-op until
-`GOOGLE_SERVICE_ACCOUNT_JSON` is set in Supabase Functions Secrets.
+Do not trigger either function during deployment. Verify the deployed source
+or function metadata, then leave the existing digest schedule unchanged.
 
-`backfill-workday-descriptions` is unchanged but worth redeploying to
-make sure the latest version is running before invoking it (next section).
+## 4. Safe production builds
 
-To set the `GOOGLE_SERVICE_ACCOUNT_JSON` secret in Supabase:
+Run the focused build-write test again immediately before either build. A build
+can read current direct-employer listing data for prerendering. The build phase
+guard prevents Postgres cache writes.
 
-```bash
-supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON='<paste-the-full-json>'
+```powershell
+npx vitest run src/lib/db-cache.test.ts
+npm run build
+npm run cf:build
 ```
 
-Same JSON contents as the Vercel env var with the same name — the
-service account is shared by both sides.
+Hold the release if either build reports a Supabase timeout, missing required
+data, a `set_matrix_cache` call, a fetch-cache parse warning, or a
+static-generation failure. Do not use OpenNext's `--skipNextBuild` flag for a
+release. A plain Next build does not contain the standalone files OpenNext
+needs.
 
-## Post-deploy: drain the Workday description backlog
+## 5. Preview
 
-The `backfill-workday-descriptions` edge function + its SECURITY DEFINER RPCs were deployed on 2026-05-17 but never invoked operationally. ~2,300 active Workday jobs still carry empty / <300-char descriptions left over from the pre-v10 shallow-refresh era. Those rows are currently invisible to Google for Jobs (suppressed by the thin-description JobPosting JSON-LD guard) and excluded from every per-partner feed (the thin-description filter from commit `120691f`).
+Use the already-built OpenNext output:
 
-After Vercel deploys + migrations apply, **run this once locally**:
-
-```bash
-# Dry-run first to see what would change:
-node scripts/backfill-workday-descriptions.mjs --dry-run
-
-# Then drain the backlog for real (paces ~1 invocation/sec; ~15 min wall time
-# at 2,300 candidates / 200 per invocation / 1s pacing):
-node scripts/backfill-workday-descriptions.mjs
+```powershell
+npx opennextjs-cloudflare preview
 ```
 
-The script reads `.env.local` for `SUPABASE_SERVICE_ROLE_KEY` (same one the
-admin dashboard uses). Expected output: ~12 invocations until `candidates`
-hits 0, ~2,300 rows updated total.
+Check the preview on mobile and desktop:
 
-After the backfill: those 2,300 jobs start emitting valid JobPosting JSON-LD
-+ re-enter all per-partner feeds on the next ISR cycle (max 15 min).
+- `/`
+- `/jobs`
+- `/post-job`
+- `/employers`
+- `/employer/login`
+- One active direct-employer job and its application path
+- `/sitemap.xml`
+- `/jobs.xml`
+- `/feeds/originated.xml`
 
-## Known limitations (NOT blockers for this deploy)
+Confirm `/resumes`, `/providers`, and `/recruiters` return the Free Job Post
+404 response. They must not redirect to another product.
 
-- **ATS imports going forward STILL need the v10+ enrichment to keep
-  populating descriptions.** The existing edge function at
-  `supabase/functions/refresh-ats-imports/index.ts:373-409` ALREADY does
-  this for NEW Workday rows (capped at 100/board/cron tick). So once the
-  backlog is drained, the cron handles the steady state automatically.
-  No further code change needed.
-- **Careerjet feed empty until migration #1 applies.** Pre-migration the feed serves only 655 jobs (post-2026-05-20 ATS imports with empty `syndication_targets`). Post-migration: jumps to ~7,300 just like the other volume partners.
+## 6. Record rollback target and deploy
+
+Record the current production version before changing traffic:
+
+```powershell
+npx wrangler deployments status --json
+```
+
+Save the active version ID in the release log. Deploy the OpenNext output only
+after the preview passes:
+
+```powershell
+npx opennextjs-cloudflare deploy
+```
+
+## 7. Production smoke tests
+
+Repeat the preview paths against `https://freejobpost.co`. Also confirm:
+
+- A public search result and every sitemap job URL use
+  `public_employer_post` inventory.
+- A direct employer can open the dashboard and see only applications to their
+  direct posts.
+- Imported or federal job IDs do not render as public job detail pages.
+- No public navigation or metadata promotes Ava CRM or FreeResumePost.
+- No application or digest error spike appears in the first 15 minutes.
+- Response times stay near the pre-release baseline.
+
+Keep the release open for a 15-minute watch. Record errors, latency, and the
+final Worker version ID.
+
+## Rollback
+
+### Worker rollback
+
+Send 100 percent of traffic back to the recorded version:
+
+```powershell
+npx wrangler versions deploy <previous-version-id>@100 --message "Rollback Free Job Post standalone release"
+```
+
+Smoke-test the previous version after traffic changes.
+
+### Edge Function rollback
+
+Redeploy the prior reviewed source for `apply-notify` or `job-alert-digest` if
+the new function fails. Do not change the digest schedule during a code
+rollback.
+
+### Database rollback
+
+The migration filters reads and leaves stored rows untouched. Keep it in place
+during an ordinary Worker rollback. Restore the prior RPC definition only if a
+confirmed compatibility failure requires it, and save the failing function
+definition before replacement.
+
+## Rollback triggers
+
+Roll back the affected layer when any of these occurs:
+
+- Direct job browsing, posting, applications, or the employer dashboard fails.
+- A public surface exposes a job whose source is outside
+  `public_employer_post`.
+- An employer can read an application tied to another source or employer.
+- Application notifications expose the wrong job or recipient.
+- Error rate or latency rises sharply and stays above the prior baseline.
+- The Worker starts returning repeated 5xx responses on core routes.

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { describe, expect, it, vi } from 'vitest'
+import { PHASE_PRODUCTION_BUILD } from 'next/constants'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DB_CACHE_WRITE_TIMEOUT_MS, getOrComputeCached } from '@/lib/db-cache'
 
 type RpcResult = {
@@ -45,6 +46,10 @@ function fakeClient(
 }
 
 describe('getOrComputeCached', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it('returns a cached value without computing or writing', async () => {
     const { db, rpc } = fakeClient(async () => ({
       data: [{ slug: 'cached' }],
@@ -230,5 +235,22 @@ describe('getOrComputeCached', () => {
 
     await expect(getOrComputeCached(db, 'matrix', 3600, async () => [])).resolves.toEqual([])
     expect(rpc).toHaveBeenCalledTimes(1)
+  })
+
+  it('never writes a fresh value during a Next production build', async () => {
+    vi.stubEnv('NEXT_PHASE', PHASE_PRODUCTION_BUILD)
+    const { db, rpc } = fakeClient(async () => ({ data: null, error: null }))
+    const compute = vi.fn(async () => [{ slug: 'fresh' }])
+
+    await expect(getOrComputeCached(db, 'matrix', 3600, compute)).resolves.toEqual([
+      { slug: 'fresh' },
+    ])
+    expect(compute).toHaveBeenCalledTimes(1)
+    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(rpc).toHaveBeenCalledWith('get_matrix_cache', {
+      p_key: 'matrix',
+      p_max_age_seconds: 3600,
+    })
+    expect(rpc).not.toHaveBeenCalledWith('set_matrix_cache', expect.anything())
   })
 })

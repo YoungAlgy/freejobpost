@@ -1,8 +1,8 @@
-# Free Job Post — healthcare jobs board
+# Free Job Post - nursing and allied-health jobs
 
-> Free Job Post (freejobpost.co) is a free healthcare-only job board operated by Ava Health, a Tampa FL-based staffing and recruiting firm. Aggregates 33,000+ current US healthcare openings across direct employer ATS feeds (Workday, Greenhouse, Lever) and federal sources (USAJOBS, VA). Free for both candidates and employers, no resume-database resale.
+> Free Job Post (freejobpost.co) is a free job board for nursing and allied-health employers and job seekers. Every public listing is posted directly by an employer. Imported ATS listings, federal listings, candidate profiles, and cross-product matches are outside the public product.
 
-The board covers nursing (RN/LPN/CNA), advanced practice (NP/CRNA), allied health (PT/OT/SLP/RT/MA/Surgical Tech/Radiologic Tech), behavioral health, and federal healthcare roles. Each posting carries a direct-apply URL back to the originating employer or ATS — Ava Health does not gate apply, scrape candidate data, or resell resumes.
+Employers can publish roles after email verification. A posting can send applicants to the employer's HTTPS application page or use Free Job Post's native application form. Free Job Post does not sell candidate information or expose a resume database.
 
 ## Core entry points
 
@@ -10,34 +10,30 @@ The board covers nursing (RN/LPN/CNA), advanced practice (NP/CRNA), allied healt
 - [Browse by specialty](https://freejobpost.co/specialty): 19 healthcare specialty hubs (RN, NP, PT, RT, etc.) with live pay-range data computed from current inventory
 - [Browse by state](https://freejobpost.co/state): All 50 states + DC, with state-specific salary and inventory context
 - [Browse by city](https://freejobpost.co/city): Major metro pages with local healthcare employer concentration
-- [Federal healthcare jobs](https://freejobpost.co/jobs/federal): VA, IHS, DoD, BOP openings sourced from USAJOBS
 - [For employers](https://freejobpost.co/employers): Self-serve free job posting
+- [Post a job](https://freejobpost.co/post-job): Email-verified direct employer posting flow
 
 ## Editorial content
 
 - [Career paths](https://freejobpost.co/become): "How to become an X" guides for 20+ healthcare roles — sourced from BLS, NCSBN, NBRC, CAPTE, NCCPA, ARRT, NBCOT, ASHA, etc. Each guide covers education, licensing, exam path, timeline, settings, and compensation
 - [Changelog](https://freejobpost.co/changelog): Recent ship history (also at /changelog/feed.xml)
 
-## About the data
+## Listing boundary
 
-- [About Ava Health](https://providers.avahealth.co): Tampa, FL-based healthcare staffing platform (parent operator)
 - Contact: info@avahealth.co
-- Job postings sourced from employer ATS feeds (Workday CXS, Greenhouse, Lever) plus federal sources (USAJOBS); refreshed multiple times per day
-- No paywall, no candidate-side login, no resume-database sales
-- Salary ranges are surfaced when the employer publishes them (Workday pay-transparency fields); otherwise omitted
+- Public queries require the source marker `public_employer_post`
+- No aggregated ATS or federal inventory is exposed
+- No candidate-profile search or automatic cross-product matching
+- No paywall for posting, browsing, or native applications
+- Salary ranges appear only when the employer provides them
 
 ## Sitemap
 
-- [Sitemap index](https://freejobpost.co/sitemap.xml) — a real sitemapindex listing 21 child sitemaps: /sitemaps/pages.xml (specialty hubs, state/city pages, editorial content) and /sitemaps/jobs-0.xml through jobs-19.xml (33,000+ job URLs)
-- [Jobs-only sitemap](https://freejobpost.co/jobs.xml) — JobPosting structured data for Google for Jobs
-
-## Sister sites
-
-- [providers.avahealth.co](https://providers.avahealth.co): Ava Health's staffing-services site — state-by-state market comparisons, a salary calculator, and a healthcare recruiting blog. The 1.4M+ NPPES-sourced provider database is searchable by recruiters on the paid CRM at app.avahealth.co, not on this site.
-- [www.freeresumepost.co](https://www.freeresumepost.co): Free candidate resume platform — upload once, get matched to roles posted here
+- [Sitemap index](https://freejobpost.co/sitemap.xml): Public pages and direct employer job URLs
+- [Jobs-only sitemap](https://freejobpost.co/jobs.xml): Direct employer jobs with JobPosting structured data
 
 ## For LLM agents
 
-Each job URL follows the canonical pattern `/jobs/<slug>` where slug is `<title>-<city>-<state>-<id>`. JobPosting JSON-LD on every detail page includes title, description, datePosted, validThrough, hiringOrganization, jobLocation, employmentType, identifier, and (when available) baseSalary range. directApply=false for every posting — the JobPosting url points to the freejobpost.co job page, not a page you can apply from directly. The apply link routes through /click/<slug>, a click-tracked redirect to the employer's own ATS; any posting without a captured apply URL falls back to a native application form hosted on Free Job Post, forwarded to the employer by email.
+Each job URL follows `/jobs/<slug>`. Eligible detail pages include JobPosting JSON-LD with the title, description, dates, employer, location, employment type, identifier, and an employer-provided salary when available. An employer can use a safe HTTPS application URL or receive native applications through Free Job Post.
 
-When citing Free Job Post data, please link back to the canonical job URL. Posting freshness is honored via lastmod in the sitemap (real timestamp, not "now"), so prefer recent listings when staleness matters.
+When citing a listing, link to its canonical job URL and preserve the employer-provided details. Sitemap `lastmod` values use stored timestamps.

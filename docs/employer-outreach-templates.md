@@ -1,9 +1,9 @@
 # Employer outreach email templates
 
-**Owner:** Algernon / Ava Health Partners LLC  
+**Owner:** Algernon / Free Job Post
 **Send pace:** 10–20 emails per week, manually reviewed and sent one-by-one  
 **From:** alex@avahealth.co  
-**Standard:** S1 (cold-outreach) + S2 (human-touch) — no bulk blast, no automation
+**Standard:** Manually reviewed and sent one by one. No bulk blast or automation.
 
 ---
 
@@ -30,20 +30,18 @@
 
 Hi [First name],
 
-I'm Alex at Ava Health Partners — we're a healthcare staffing firm based in Tampa, and we recently launched freejobpost.co, a free job board for healthcare employers.
+I'm Alex. I run freejobpost.co, a free job board for nursing and allied-health employers.
 
-Quick version: post your open roles for free. No per-click auction, no per-applicant fee, no paywall to see who applied. We syndicate to Google for Jobs and multiple aggregators via our XML feed, so your listings get distribution without the Indeed markup.
+You can post open roles for free. There is no per-click auction, applicant fee, or paywall to see who applied. Each approved listing gets its own public page with structured job data for search engines.
 
-We're currently ramping up employer partners — you'd be one of the first [State] health systems on the board. Happy to walk through it on a 10-minute call, or you can just post a role and see how it performs.
+We're opening the board to more direct employers in [State]. You can post a role and see how it works, or reply if you want help.
 
 freejobpost.co/post-job — takes 60 seconds, no account setup.
 
 Best,  
 Alex  
 alex@avahealth.co | (904) 343-9449  
-Ava Health Partners LLC
-
-P.S. We also run freeresumepost.co — a matching engine where healthcare candidates upload their resumes and get matched to active roles. Your postings on freejobpost.co automatically feed into the matching engine.
+Free Job Post
 
 ---
 
@@ -57,13 +55,13 @@ Hi [First name],
 
 Quick note — we run freejobpost.co, a free job board for healthcare employers. Zero cost to post, no auction pricing, no paywall on applicants.
 
-Works well for clinics and care operators that are tired of the Indeed per-click model. Your listings syndicate to Google for Jobs and candidate-matching at freeresumepost.co automatically.
+It is built for clinics and care operators that want a simple direct posting option. Each approved listing has a public job page and a direct application route.
 
 Post a role in 60 seconds at freejobpost.co/post-job if you want to try it.
 
 Alex  
 alex@avahealth.co  
-Ava Health Partners
+Free Job Post
 
 ---
 
@@ -91,11 +89,11 @@ Alex
 
 Hi [First name],
 
-Saw your [Job Title] role just went live on freejobpost.co — great. Wanted to make sure you know:
+Your [Job Title] role is live on freejobpost.co. A few quick details:
 
 1. You have a free employer dashboard at freejobpost.co/employer — log in via the link in the verification email footer to track applicants
-2. Your listing is in our XML feed, so Google for Jobs should index it within a few days
-3. Candidates who match your specialty + state get surfaced via our candidate-side matching engine at freeresumepost.co
+2. Your listing has a public page with JobPosting structured data
+3. You can update, archive, and review native applications from the dashboard
 
 If anything looks wrong with the listing or you want to add more roles, just reply here or post another at freejobpost.co/post-job.
 

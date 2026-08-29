@@ -1,14 +1,15 @@
 # freejobpost.co
 
-**A free, two-sided healthcare hiring marketplace** — the employer side, paired with its candidate-side sibling [freeresumepost.co](https://github.com/YoungAlgy/freeresumepost). Built and operated solo.
+**A free nursing and allied-health job board for direct employer posts.** Built and operated solo.
 
 🔗 **Live:** [freejobpost.co](https://freejobpost.co)
 
 ## What it does
-- **Thousands of active job listings**, kept fresh via **reciprocal ATS bridging** — pulls and normalizes postings across **Greenhouse, Lever, Workday, and Ashby** APIs into one schema.
-- **Two-sided marketplace:** employers post here; candidates live on the sibling app; the two cross-match.
-- **SEO-first architecture** — indexable per-job pages, sitemaps, structured data — built to rank, not just exist.
-- Email-verified employer post flow, authed employer dashboard, public search + filtering.
+- Email-verified employers post nursing and allied-health jobs for free.
+- Candidates browse direct employer listings and apply through the employer's chosen route.
+- Employers manage their posts and native applications from a private dashboard.
+- Public job pages include sitemaps and JobPosting structured data.
+- The public product is limited to `public_employer_post` inventory. Imported and federal inventory is not shown.
 
 ## Architecture / stack
 - **Next.js 16** (app router) + **React 19** + **TypeScript**
@@ -18,8 +19,9 @@
 - Vitest test suite
 
 ## Engineering notes
-- The interesting problem here is **heterogeneous-source normalization**: Greenhouse, Lever, Workday, and Ashby each model jobs differently — the ingestion layer maps all four into one canonical schema, with dedup + idempotent re-runs so refreshes don't double-write.
-- ISR revalidation windows tuned per source to balance freshness against Worker-invocation cost across thousands of pages.
+- Every public reader applies the same direct-employer source boundary.
+- Build-time static generation can read current listing data, but it cannot write the Postgres matrix cache.
+- ISR and Postgres-backed runtime caching keep repeated hub and sitemap queries bounded on Cloudflare.
 
 ## Dev
 ```bash
@@ -28,6 +30,6 @@ cp .env.example .env.local   # add your own Supabase anon key
 npm run dev                  # http://localhost:3000
 ```
 
-## Related
-- [freeresumepost.co](https://github.com/YoungAlgy/freeresumepost) — the candidate side of the marketplace
-- Part of a broader healthcare-data + hiring stack I build and operate solo. More at [youngalgy.com](https://youngalgy.com).
+## Deployment
+
+The current Cloudflare release process and rollback steps are in [`docs/DEPLOY_NOTES.md`](docs/DEPLOY_NOTES.md).
