@@ -20,6 +20,7 @@ import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
   type PublicJob,
 } from '@/lib/public-jobs'
 import { unstable_cache } from 'next/cache'
@@ -61,7 +62,7 @@ const getVerifiedEmployerIds = unstable_cache(
       .select('id')
       .not('verified_at', 'is', null)
       .not('verified_via', 'in', '(seeded,ats_import)')
-      .not('company_name', 'ilike', 'Ava Health%')
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     if (error) throw new Error(`verified employer lookup failed: ${error.message}`)
     return ((data ?? []) as Array<{ id: string }>).map((e) => e.id)
   },
@@ -86,6 +87,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     .from('public_jobs')
     .select(JOB_LIST_FIELDS, { count: 'exact' })
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)

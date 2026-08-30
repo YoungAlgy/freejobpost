@@ -6,7 +6,10 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
-import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
+} from '@/lib/public-jobs'
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
@@ -34,6 +37,7 @@ async function fetchJobCountForState(abbr: string): Promise<number> {
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .eq('state', abbr)
     .is('deleted_at', null)

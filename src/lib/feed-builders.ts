@@ -10,6 +10,7 @@ import type { PublicJob } from './public-jobs'
 import {
   JOB_DETAIL_FIELDS,
   PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
   formatSalary,
   locationLabel,
 } from './public-jobs'
@@ -194,6 +195,7 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
@@ -390,6 +392,7 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at')
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)

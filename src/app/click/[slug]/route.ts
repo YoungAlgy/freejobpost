@@ -21,7 +21,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { looksLikeBot } from '@/lib/bot-filter'
 import { supabase, hourIso } from '@/lib/supabase'
-import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
+} from '@/lib/public-jobs'
 
 export const dynamic = 'force-dynamic'
 // Don't statically generate this; every hit must run the handler.
@@ -88,6 +91,7 @@ export async function GET(
     .select('apply_url')
     .eq('slug', slug)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())

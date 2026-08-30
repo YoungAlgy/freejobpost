@@ -6,7 +6,11 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
-import { PUBLIC_EMPLOYER_JOB_SOURCE, type PublicJob } from '@/lib/public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
+  type PublicJob,
+} from '@/lib/public-jobs'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CAREER_PATHS } from '@/lib/career-paths'
@@ -46,6 +50,7 @@ async function fetchJobCountForSpecialty(matchPatterns: string[]): Promise<numbe
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())

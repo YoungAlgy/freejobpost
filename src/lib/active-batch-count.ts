@@ -1,6 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { hourIso } from './supabase'
-import { PUBLIC_EMPLOYER_JOB_SOURCE } from './public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
+} from './public-jobs'
 
 // Number of 1,000-row range batches used by outbound partner feeds. The former
 // aggregate product kept a 60-batch floor, which meant 60 database queries even
@@ -31,6 +34,7 @@ export async function activeJobBatchCount(supabase: SupabaseClient): Promise<num
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
       .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
       .eq('status', 'active')
       .is('deleted_at', null)
       // hourIso, not a raw new Date(): a per-render timestamp changes the

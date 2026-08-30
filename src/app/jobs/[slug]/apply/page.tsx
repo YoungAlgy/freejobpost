@@ -5,6 +5,7 @@ import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
   type PublicJob,
   locationLabel,
 } from '@/lib/public-jobs'
@@ -28,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .select('title')
     .eq('slug', slug)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -48,6 +50,7 @@ async function getJob(slug: string): Promise<PublicJob | null> {
     .select(JOB_DETAIL_FIELDS)
     .eq('slug', slug)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())

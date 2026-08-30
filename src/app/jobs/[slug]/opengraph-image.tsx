@@ -11,6 +11,7 @@ import { ImageResponse } from 'next/og'
 import { supabase } from '@/lib/supabase'
 import {
   PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
   formatSalary,
   employmentLabel,
   locationLabel,
@@ -59,6 +60,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       .select(OG_FIELDS)
       .eq('slug', slug)
       .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
       .eq('status', 'active')
       .is('deleted_at', null)
       .maybeSingle()

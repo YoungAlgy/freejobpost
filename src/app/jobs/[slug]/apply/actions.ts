@@ -5,7 +5,10 @@ import { headers } from 'next/headers'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { sanitizeResumeUrl } from '@/lib/sanitize-resume-url'
 import { track } from '@/lib/track'
-import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
+} from '@/lib/public-jobs'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -63,6 +66,7 @@ export async function submitApplication(
     .select('id')
     .eq('id', input.job_id)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', new Date().toISOString())

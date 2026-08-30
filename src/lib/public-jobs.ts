@@ -30,6 +30,10 @@ export type PublicJob = {
 // historical and internal use, but they are outside the public product.
 export const PUBLIC_EMPLOYER_JOB_SOURCE = 'public_employer_post' as const
 
+// The legal operator's own recruiting inventory is outside the standalone
+// job board, even if an older row carries the direct-post source marker.
+export const PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN = 'Ava Health%' as const
+
 export function isPublicEmployerJob(
   job: Pick<PublicJob, 'source'>,
 ): boolean {

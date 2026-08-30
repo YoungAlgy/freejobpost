@@ -6,6 +6,7 @@ import {
   JOB_DETAIL_FIELDS,
   JOB_LIST_FIELDS,
   PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
   type PublicJob,
   formatSalary,
   employmentLabel,
@@ -101,6 +102,7 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
     .select(JOB_DETAIL_FIELDS + ', syndication_targets')
     .eq('slug', slug)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -113,6 +115,7 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
     .select(JOB_DETAIL_FIELDS)
     .eq('slug', slug)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -181,6 +184,7 @@ async function getClosedJob(slug: string): Promise<JobWithTargets | null> {
     .select(JOB_DETAIL_FIELDS)
     .eq('slug', slug)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .is('deleted_at', null)
     .or(`status.eq.expired,status.eq.filled,and(status.eq.active,expires_at.lte.${hourIso()})`)
     .maybeSingle()
@@ -244,6 +248,7 @@ async function getRelated(job: PublicJob): Promise<PublicJob[]> {
     // page. 2026-05-29 over-fetch audit.
     .select(JOB_LIST_FIELDS)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())

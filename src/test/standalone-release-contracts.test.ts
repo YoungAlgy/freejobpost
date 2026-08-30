@@ -150,6 +150,44 @@ describe('standalone FreeJobPost release contracts', () => {
     }
   })
 
+  it('excludes internal operator inventory from every public job query', () => {
+    expect(read('src/lib/public-jobs.ts')).toContain(
+      "PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN = 'Ava Health%'",
+    )
+    const publicQueryPaths = [
+      'src/app/api/jobs/search/route.ts',
+      'src/app/click/[slug]/route.ts',
+      'src/app/feeds/linkedin.xml/route.ts',
+      'src/app/feeds/rss.xml/route.ts',
+      'src/app/feeds/specialty/[slug]/route.ts',
+      'src/app/feeds/state/[slug]/route.ts',
+      'src/app/jobs.xml/route.ts',
+      'src/app/jobs/[slug]/apply/actions.ts',
+      'src/app/jobs/[slug]/apply/page.tsx',
+      'src/app/jobs/[slug]/opengraph-image.tsx',
+      'src/app/jobs/[slug]/page.tsx',
+      'src/app/jobs/page.tsx',
+      'src/app/specialty/[slug]/page.tsx',
+      'src/app/state/[slug]/page.tsx',
+      'src/lib/active-batch-count.ts',
+      'src/lib/feed-builders.ts',
+      'src/lib/hub-job-queries.ts',
+      'src/lib/sitemap-chunks.ts',
+    ]
+    for (const path of publicQueryPaths) {
+      const contents = read(path)
+      const sourceFilters = contents.match(/\.eq\('source', PUBLIC_EMPLOYER_JOB_SOURCE\)/g) ?? []
+      const companyFilters =
+        contents.match(
+          /\.not\('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN\)/g,
+        ) ?? []
+      expect(companyFilters.length, path).toBeGreaterThanOrEqual(sourceFilters.length)
+    }
+    expect(read('src/lib/hub-page-counts.ts')).toContain(
+      ".not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)",
+    )
+  })
+
   it('keeps the legal E-Verify record outside the indexed product surface', () => {
     const page = read('src/app/e-verify/page.tsx')
     const sitemap = read('src/lib/sitemap-chunks.ts')

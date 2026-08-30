@@ -28,7 +28,10 @@ import { STATE_HUBS } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
 import { cityOrFilter } from '@/lib/hub-job-queries'
-import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
+} from '@/lib/public-jobs'
 
 export type HubKind = 'state' | 'specialty' | 'city'
 
@@ -75,6 +78,7 @@ function buildTasks(db: SupabaseClient, signal?: AbortSignal): CountTask[] {
     const query = db
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', nowIso)

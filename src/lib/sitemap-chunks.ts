@@ -17,7 +17,10 @@ import { CAREER_PATHS } from '@/lib/career-paths'
 import { HUB_JOB_LIMITS } from '@/lib/hub-job-queries'
 import { hubPaginationUrls } from '@/lib/hub-pagination'
 import { getHubPageCountsCached, hubCountKey, type HubKind } from '@/lib/hub-page-counts'
-import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
+} from '@/lib/public-jobs'
 
 export const SITEMAP_BASE = 'https://freejobpost.co'
 
@@ -274,6 +277,7 @@ async function fetchJobPageFromSupabase(
     .from('public_jobs')
     .select('id, slug, updated_at')
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', request.nowIso)
@@ -386,6 +390,7 @@ async function fetchLatestJobUpdatedAt(signal?: AbortSignal): Promise<string | n
     .from('public_jobs')
     .select('updated_at')
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -405,6 +410,7 @@ async function fetchSitemapEmployers(signal?: AbortSignal): Promise<SitemapEmplo
     .from('public_jobs')
     .select('employer_id')
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())

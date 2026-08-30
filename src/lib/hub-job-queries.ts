@@ -6,6 +6,7 @@ import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
   PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
   type PublicJob,
 } from '@/lib/public-jobs'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
@@ -26,6 +27,7 @@ export async function fetchStateHubJobs(stateAbbr: string): Promise<PublicJob[]>
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .eq('state', stateAbbr)
     .is('deleted_at', null)
@@ -43,6 +45,7 @@ export async function fetchSpecialtyHubJobs(
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -61,6 +64,7 @@ export async function fetchCityHubJobs(
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .eq('state', stateAbbr)
     .is('deleted_at', null)
@@ -80,6 +84,7 @@ export async function fetchCityHubJobCount(
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .eq('state', stateAbbr)
     .is('deleted_at', null)

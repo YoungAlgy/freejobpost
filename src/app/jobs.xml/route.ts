@@ -35,6 +35,7 @@ import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-b
 import {
   JOB_DETAIL_FIELDS,
   PUBLIC_EMPLOYER_JOB_SOURCE,
+  PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
   type PublicJob,
   formatSalary,
   locationLabel,
@@ -121,6 +122,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at')
     .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
