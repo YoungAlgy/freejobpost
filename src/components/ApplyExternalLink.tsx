@@ -1,7 +1,20 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useSyncExternalStore, type ReactNode } from 'react'
 import { normalizePartner } from '@/lib/partner-attribution'
+
+function subscribeToLocation(onStoreChange: () => void) {
+  window.addEventListener('popstate', onStoreChange)
+  return () => window.removeEventListener('popstate', onStoreChange)
+}
+
+function getLocationSearch() {
+  return window.location.search
+}
+
+function getServerLocationSearch() {
+  return ''
+}
 
 /**
  * Outbound "Apply on employer site" link.
@@ -35,11 +48,13 @@ export default function ApplyExternalLink({
   className?: string
   children: ReactNode
 }) {
-  const [href, setHref] = useState(`/click/${slug}?p=internal`)
-  useEffect(() => {
-    const ref = new URLSearchParams(window.location.search).get('ref')
-    setHref(`/click/${slug}?p=${encodeURIComponent(normalizePartner(ref))}`)
-  }, [slug])
+  const search = useSyncExternalStore(
+    subscribeToLocation,
+    getLocationSearch,
+    getServerLocationSearch,
+  )
+  const ref = new URLSearchParams(search).get('ref')
+  const href = `/click/${slug}?p=${encodeURIComponent(normalizePartner(ref))}`
   return (
     <a href={href} target="_blank" rel="noopener noreferrer nofollow" className={className}>
       {children}

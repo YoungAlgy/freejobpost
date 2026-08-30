@@ -1,6 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
+
+function subscribeToShareSupport() {
+  return () => undefined
+}
+
+function getShareSupport() {
+  return typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+}
+
+function getServerShareSupport() {
+  return false
+}
 
 /**
  * Lightweight share affordance — copy-link + X / LinkedIn / Facebook intents,
@@ -18,12 +30,13 @@ type Props = {
 
 export default function ShareButtons({ url, title, className = '' }: Props) {
   const [copied, setCopied] = useState(false)
-  // navigator.share is device-dependent; detect after mount so server and first
-  // client render agree (both render without the button, then it appears).
-  const [canNativeShare, setCanNativeShare] = useState(false)
-  useEffect(() => {
-    setCanNativeShare(typeof navigator !== 'undefined' && typeof navigator.share === 'function')
-  }, [])
+  // navigator.share is device-dependent. useSyncExternalStore keeps the
+  // server snapshot stable, then reads browser support after hydration.
+  const canNativeShare = useSyncExternalStore(
+    subscribeToShareSupport,
+    getShareSupport,
+    getServerShareSupport,
+  )
 
   const enc = encodeURIComponent
   const xHref = `https://twitter.com/intent/tweet?text=${enc(title)}&url=${enc(url)}`
