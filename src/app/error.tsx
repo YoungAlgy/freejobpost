@@ -14,6 +14,7 @@
 
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 export default function Error({
   error,
@@ -32,7 +33,7 @@ export default function Error({
 
   return (
     <main className="max-w-3xl mx-auto px-6 py-20 text-center">
-      <h1 className="text-6xl font-black tracking-tight mb-4 text-[#003D5C]">Whoops</h1>
+      <h1 className="text-6xl font-black tracking-tight mb-4 text-[#17324D]">Whoops</h1>
       <h2 className="text-2xl font-bold text-gray-800 mb-4">
         Something went wrong on our end
       </h2>
@@ -51,13 +52,13 @@ export default function Error({
         <button
           type="button"
           onClick={() => reset()}
-          className="inline-flex justify-center items-center bg-[#7FBC00] text-white px-6 py-3 font-black rounded-md hover:bg-[#6DA300] transition-colors"
+          className="inline-flex justify-center items-center bg-[#276749] text-white px-6 py-3 font-black rounded-md hover:bg-[#1F563B] transition-colors"
         >
           Try again
         </button>
         <Link
           href="/jobs"
-          className="inline-flex justify-center items-center bg-white text-black px-6 py-3 font-bold rounded-md border border-gray-200 hover:bg-[#003D5C] hover:text-white transition-colors"
+          className="inline-flex justify-center items-center bg-white text-black px-6 py-3 font-bold rounded-md border border-gray-200 hover:bg-[#17324D] hover:text-white transition-colors"
         >
           Browse all jobs
         </Link>
@@ -70,13 +71,13 @@ export default function Error({
       </div>
 
       <div className="text-left rounded-xl border border-gray-200 bg-gray-50 p-6 shadow-sm">
-        <h3 className="text-xs font-black tracking-wider uppercase mb-4 text-[#003D5C]">
+        <h3 className="text-xs font-black tracking-wider uppercase mb-4 text-[#17324D]">
           If it keeps happening
         </h3>
         <p className="text-sm text-gray-700">
           Email{' '}
-          <a href="mailto:info@avahealth.co" className="underline font-bold hover:text-[#003D5C]">
-            info@avahealth.co
+          <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline font-bold hover:text-[#17324D]">
+            {FREEJOBPOST_SUPPORT_EMAIL}
           </a>{' '}
           and include the error id above (if shown). We respond within 24
           hours during the weekday, usually faster.

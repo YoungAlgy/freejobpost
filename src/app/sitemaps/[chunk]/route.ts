@@ -1,15 +1,5 @@
-// /sitemaps/<child> — every child sitemap listed in the /sitemap.xml index.
-//
-//   /sitemaps/pages.xml       ~1,000 non-job URLs (hubs, static, matrices, employers)
-//   /sitemaps/jobs-0.xml      the /jobs/<slug> corpus, split into JOB_SITEMAP_CHUNKS
-//     … through jobs-19.xml   fixed, contiguous UUID ranges
-//
-// ONE dynamic route rather than 21 near-identical folders. That is a deliberate
-// correctness choice, not brevity: generateStaticParams, the <sitemapindex>, and
-// robots.txt all read the SAME SITEMAP_CHILDREN constant, so robots.txt cannot
-// advertise a sitemap that was never generated, and a generated child cannot go
-// unlinked. With 21 hand-written folders those three lists drift the first time
-// someone changes the chunk count.
+// /sitemaps/<child> serves every child listed in /sitemap.xml. One dynamic route
+// keeps generateStaticParams, the index, and robots.txt on the same fixed list.
 //
 // These are fully prerendered at build (every param is enumerated below), so
 // each one lands in the prerender manifest as a concrete path and is served
@@ -50,7 +40,7 @@ type SitemapRequestScope = {
 function sitemapRequestScope(req: Request): SitemapRequestScope {
   // OpenNext's queue revalidation is a HEAD self-fetch. Use the method instead
   // of reading request headers, because headers are a dynamic API and would
-  // disable build-time prerendering for all 21 concrete child paths.
+    // disable build-time prerendering for the concrete child paths.
   if (req.method !== 'HEAD') {
     return { signal: req.signal, cleanup: () => {} }
   }

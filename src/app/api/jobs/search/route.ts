@@ -12,14 +12,16 @@
 // real human interaction (bots don't operate the filter UI), so it adds
 // negligible invocation cost while removing the giant payload.
 //
-// public_jobs is ~14K active rows and well-indexed (status+created_at,
-// state+role, specialty, specialty_trgm, employer), so these filtered/paged
-// queries return in single-digit ms — this is NOT the 1.4M-row providers
-// directory that saturated the shared DB; no MV needed here.
+// The direct-employer corpus is small, but every filter is still validated and
+// bounded before it reaches PostgREST.
 
 import { type NextRequest, NextResponse } from 'next/server'
 import { supabase, hourIso } from '@/lib/supabase'
-import { JOB_LIST_FIELDS, type PublicJob } from '@/lib/public-jobs'
+import {
+  JOB_LIST_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  type PublicJob,
+} from '@/lib/public-jobs'
 import { unstable_cache } from 'next/cache'
 
 // Per-filter, human-triggered — never statically cached.
@@ -54,12 +56,13 @@ function sanitizeQ(raw: string): string {
 // public_employers_directory on the shared DB. Same definition as the /jobs page.
 const getVerifiedEmployerIds = unstable_cache(
   async (): Promise<string[]> => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('public_employers_directory')
       .select('id')
       .not('verified_at', 'is', null)
       .not('verified_via', 'in', '(seeded,ats_import)')
       .not('company_name', 'ilike', 'Ava Health%')
+    if (error) throw new Error(`verified employer lookup failed: ${error.message}`)
     return ((data ?? []) as Array<{ id: string }>).map((e) => e.id)
   },
   ['verified-employer-ids'],
@@ -69,8 +72,9 @@ const getVerifiedEmployerIds = unstable_cache(
 export async function GET(req: NextRequest): Promise<Response> {
   const sp = req.nextUrl.searchParams
   const q = sanitizeQ(sp.get('q') ?? '')
-  const role = (sp.get('role') ?? '').trim()
-  const state = (sp.get('state') ?? '').trim()
+  const role = (sp.get('role') ?? '').trim().slice(0, 100)
+  const rawState = (sp.get('state') ?? '').trim().toUpperCase()
+  const state = /^[A-Z]{2}$/.test(rawState) ? rawState : ''
   const remote = (sp.get('remote') ?? '').trim()
   const type = (sp.get('type') ?? '').trim()
   const verifiedOnly = sp.get('verified') === '1'
@@ -81,6 +85,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   let query = supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS, { count: 'exact' })
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
@@ -113,9 +118,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     query = query.in('employer_id', ids)
   }
 
-  // Match the /jobs server order (updated_at DESC bubbles re-touched ATS rows
-  // to the top each ingest tick; keeps the listing lively without a big
-  // single-source ingest monopolising the front page).
+  // Match the /jobs server order so recently updated direct posts appear first.
   query = query
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
     .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
@@ -132,7 +135,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     { jobs: (data ?? []) as PublicJob[], total: count ?? 0 },
     // CDN-cache at the edge (2026-05-28 audit). The response is 100% public
     // job-listing data — no per-user/PII content — and is keyed by the full
-    // query string, so the Vercel edge can safely serve repeated identical
+    // query string, so the edge can safely serve repeated identical
     // filter combos (the common case: everyone clicking "registered-nurse + FL",
     // or a script/attacker looping one URL) WITHOUT re-running the exact count +
     // 5-way ILIKE against the SHARED Postgres each time. This is the real

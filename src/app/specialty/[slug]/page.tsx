@@ -6,11 +6,10 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
-import { type PublicJob } from '@/lib/public-jobs'
+import { PUBLIC_EMPLOYER_JOB_SOURCE, type PublicJob } from '@/lib/public-jobs'
 import { SPECIALTY_HUBS, getSpecialtyHub } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CAREER_PATHS } from '@/lib/career-paths'
-import { getViableCellsCached } from '@/lib/specialty-state-matrix'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 import {
@@ -24,19 +23,6 @@ import { hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import HubJobList from '@/components/HubJobList'
 import HubPagination from '@/components/HubPagination'
-import JobAlertCapture from '@/components/JobAlertCapture'
-import ResumeMatchCTA from '@/components/ResumeMatchCTA'
-
-// Slugs that exist on BOTH freejobpost and freeresumepost specialty hubs.
-// When the current hub is in this set, the cross-link points to the matching
-// specialty hub on the sister site instead of the homepage. Bidirectional
-// authority transfer + better-matched candidate flow.
-const BRIDGED_SPECIALTY_SLUGS = new Set([
-  'registered-nurse',
-  'crna',
-  'nurse-practitioner',
-  'pharmacist',
-])
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — listing pages only
 // change when jobs are added (4h ingest cron), so 6h is fresh enough and
@@ -59,6 +45,7 @@ async function fetchJobCountForSpecialty(matchPatterns: string[]): Promise<numbe
   const result = await supabase
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -76,13 +63,13 @@ export async function generateMetadata(
   const count = await fetchJobCountForSpecialty(hub.matchPatterns)
   const description = composeHubMetaDescription({
     count,
-    staticDescription: hub.metaDescription,
     label: hub.title,
     kind: 'specialty',
   })
   return {
     title: hub.title,
     description,
+    robots: { index: count > 0, follow: true },
     alternates: {
       canonical: `https://freejobpost.co/specialty/${hub.slug}`,
       // RSS alternate so feed-reader browser extensions auto-discover
@@ -127,15 +114,6 @@ export default async function SpecialtyHubPage(
   const totalPages = hubTotalPages(jobs.length)
   const pageJobs: PublicJob[] = sliceHubPage(jobs, 1)
 
-  // Viable matrix cells for THIS specialty — top state deep-links into the
-  // /specialty/[slug]/[state] surface. Internal-linking-mesh layer 2.4: each
-  // specialty hub passes authority down to the matrix pages it parents.
-  // Top 8 cells by job count.
-  const allCells = await getViableCellsCached(supabase)
-  const matrixCellsForSpecialty = allCells
-    .filter((c) => c.specialty.slug === hub.slug)
-    .slice(0, 8)
-
   // States represented in the result set — used for the "by state" linkbar
   const states = Array.from(
     new Set(jobs.map((j) => j.state?.trim()).filter((s): s is string => !!s))
@@ -161,12 +139,6 @@ export default async function SpecialtyHubPage(
     .sort((a, b) => b.count - a.count)
     .slice(0, 10)
   const salaryOverall = aggregateSalariesOverall(jobs)
-
-  // Deep-link to the sister freeresumepost specialty hub when the slug bridges
-  // both sites. Otherwise fall back to the freeresumepost homepage.
-  const resumeHubUrl = BRIDGED_SPECIALTY_SLUGS.has(hub.slug)
-    ? `https://www.freeresumepost.co/specialty/${hub.slug}`
-    : 'https://www.freeresumepost.co'
 
   // NOTE: JobPosting JSON-LD is intentionally NOT emitted here.
   // Each individual /jobs/[slug] page already emits accurate per-job JSON-LD
@@ -220,26 +192,19 @@ export default async function SpecialtyHubPage(
       <main className="min-h-screen bg-white text-black">
         <article className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+            <Link href="/" className="hover:text-[#17324D]">Home</Link>
             {' / '}
-            <Link href="/specialty" className="hover:text-[#003D5C]">Specialties</Link>
+            <Link href="/specialty" className="hover:text-[#17324D]">Specialties</Link>
             {' / '}
             <span className="text-black font-medium">{hub.title}</span>
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-            {hub.title} <span className="text-[#7FBC00]">({jobs.length})</span>
+            {hub.title} <span className="text-[#276749]">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles are placed by Ava Health Partners&apos; recruiter book or directly by US healthcare employers. Every listing has a real apply link.
+            {hub.shortDescription} Browse current roles posted directly by healthcare employers. Every listing has a real apply link.
           </p>
-
-          {/* Conversion bridge → freeresumepost.co, contextual to this
-              specialty. High-intent browse page (they searched this specialty),
-              so it's the natural place to offer "upload once → get matched". */}
-          <div className="mb-10 max-w-3xl">
-            <ResumeMatchCTA specialtyLabel={hub.title.replace(/ Jobs$/, '')} />
-          </div>
 
           {/* By-state linkbar for internal linking density */}
           {states.length > 0 && (
@@ -249,38 +214,11 @@ export default async function SpecialtyHubPage(
                 <Link
                   key={s}
                   href={`/jobs?state=${encodeURIComponent(s)}`}
-                  className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#003D5C] hover:text-white"
+                  className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#17324D] hover:text-white"
                 >
                   {s} ({stateCounts.get(s) ?? 0})
                 </Link>
               ))}
-            </div>
-          )}
-
-          {/* Matrix deep-links — Layer 2.4 internal linking mesh.
-              Viable (this-specialty × state) cells, deep-linked into the
-              /specialty/[slug]/[state] surface. Each card has ≥5 matching
-              jobs (guaranteed by getViableCellsCached) so users land on a
-              page with real inventory, not a stub. */}
-          {matrixCellsForSpecialty.length > 0 && (
-            <div className="mb-10">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
-                Top states for {hub.title.replace(/ Jobs$/, '').toLowerCase()} roles
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {matrixCellsForSpecialty.map((c) => (
-                  <Link
-                    key={`${c.specialty.slug}-${c.state.slug}`}
-                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
-                    className="flex items-baseline justify-between gap-3 text-sm border border-gray-200 rounded-lg px-3 py-2 hover:bg-[#003D5C] hover:text-white"
-                  >
-                    <span className="font-medium truncate">
-                      {hub.title.replace(/ Jobs$/, '')} in {c.state.name}
-                    </span>
-                    <span className="text-xs tabular-nums opacity-70 shrink-0">{c.count}</span>
-                  </Link>
-                ))}
-              </div>
             </div>
           )}
 
@@ -332,10 +270,9 @@ export default async function SpecialtyHubPage(
           {jobs.length === 0 ? (
             <div className="border border-gray-200 rounded-lg p-8 text-center">
               <p className="text-lg font-bold mb-2">No active {hub.title.toLowerCase()} right now.</p>
-              <p className="text-gray-700 mb-4">This specialty&apos;s inventory is still ramping up on freejobpost.co. Browse the full national board in the meantime, or upload your resume so we can match you the moment a {hub.title.toLowerCase().replace(/ jobs$/, '')} role opens.</p>
+              <p className="text-gray-700 mb-4">Direct employer inventory for this specialty is still growing. Browse the full board in the meantime.</p>
               <div className="flex flex-wrap gap-3 justify-center">
-                <Link href="/jobs" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#6DA300]">Browse all jobs →</Link>
-                <a href={resumeHubUrl} className="inline-block border border-gray-200 rounded-lg font-bold px-6 py-2 hover:bg-[#003D5C] hover:text-white">Get matched →</a>
+                <Link href="/jobs" className="inline-block bg-[#276749] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1F563B]">Browse all jobs →</Link>
               </div>
             </div>
           ) : (
@@ -345,10 +282,7 @@ export default async function SpecialtyHubPage(
                   <p className="text-sm text-gray-800">
                     <span className="font-bold">Limited {hub.title.toLowerCase().replace(/ jobs$/, '')} inventory right now.</span>{' '}
                     Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}.{' '}
-                    <Link href="/jobs" className="underline font-medium hover:text-[#003D5C]">See all healthcare jobs</Link>{' '}
-                    or{' '}
-                    <a href={resumeHubUrl} className="underline font-medium hover:text-[#003D5C]">upload your resume</a>{' '}
-                    to be matched as new roles open.
+                    <Link href="/jobs" className="underline font-medium hover:text-[#17324D]">See all nursing and allied health jobs</Link>.
                   </p>
                 </div>
               )}
@@ -362,17 +296,6 @@ export default async function SpecialtyHubPage(
             </>
           )}
 
-          {/* Job-alert capture — converts the passive majority (visitors who
-              won't apply on visit 1) into a re-contactable CRM lead tagged with
-              this specialty's intent. Shown for both populated and empty
-              inventory (empty = the highest-value moment to capture). */}
-          <div className="mt-12 max-w-3xl">
-            <JobAlertCapture
-              defaultSpecialty={hub.title.replace(/ Jobs$/, '')}
-              source="specialty_hub"
-            />
-          </div>
-
           {/* Other specialties — internal linking */}
           <h2 className="text-2xl font-black tracking-tight mt-16 mb-4">Browse other specialties</h2>
           <div className="flex flex-wrap gap-2 mb-8">
@@ -380,7 +303,7 @@ export default async function SpecialtyHubPage(
               <Link
                 key={s.slug}
                 href={`/specialty/${s.slug}`}
-                className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#003D5C] hover:text-white font-medium"
+                className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#17324D] hover:text-white font-medium"
               >
                 {s.title.replace(/ Jobs$/, '')}
               </Link>
@@ -403,7 +326,7 @@ export default async function SpecialtyHubPage(
                   Read our plain-English guide:{' '}
                   <Link
                     href={`/become/${guide.slug}`}
-                    className="font-bold underline hover:text-[#003D5C]"
+                    className="font-bold underline hover:text-[#17324D]"
                   >
                     {guide.title}
                   </Link>{' '}
@@ -420,7 +343,7 @@ export default async function SpecialtyHubPage(
               <Link
                 key={s.slug}
                 href={`/state/${s.slug}`}
-                className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#003D5C] hover:text-white"
+                className="text-sm border border-gray-200 px-3 py-1.5 hover:bg-[#17324D] hover:text-white"
               >
                 {s.name}
               </Link>

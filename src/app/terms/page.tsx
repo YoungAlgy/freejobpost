@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 export const metadata: Metadata = {
   title: 'Terms of Use',
-  description: 'Ava Health terms of use. Healthcare job board operated by Ava Health Partners LLC.',
+  description: 'FreeJobPost terms of use. FreeJobPost is owned and operated by Ava Health Partners LLC.',
   alternates: { canonical: 'https://freejobpost.co/terms' },
   robots: { index: true, follow: true },
 }
@@ -12,13 +13,13 @@ export default function TermsPage() {
   return (
     <main className="min-h-screen bg-white text-black">
       <article className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#003D5C]">Terms of Use</h1>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#17324D]">Terms of Use</h1>
         <p className="text-sm text-gray-600 mb-10">Last updated April 27, 2026</p>
 
         <div className="space-y-6 text-gray-800 leading-relaxed">
           <p>
-            Welcome to <strong>freejobpost.co</strong>, a healthcare job board operated by
-            Ava Health Partners LLC (&quot;Ava Health,&quot; &quot;we,&quot; &quot;us&quot;).
+            Welcome to <strong>FreeJobPost</strong> at freejobpost.co, a healthcare job board owned
+            and operated by Ava Health Partners LLC (&quot;we,&quot; &quot;us&quot;).
             By using freejobpost.co you agree to these Terms of Use.
           </p>
 
@@ -84,11 +85,11 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-black mt-8 mb-2">10. Contact</h2>
           <p>
-            Questions? <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>
+            Questions? <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline hover:text-[#17324D]">{FREEJOBPOST_SUPPORT_EMAIL}</a>
           </p>
 
           <p className="mt-10 text-sm text-gray-600">
-            See also: <Link href="/privacy" className="underline hover:text-[#003D5C]">Privacy Policy</Link>
+            See also: <Link href="/privacy" className="underline hover:text-[#17324D]">Privacy Policy</Link>
           </p>
         </div>
       </article>

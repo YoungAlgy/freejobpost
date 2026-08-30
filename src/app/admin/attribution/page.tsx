@@ -115,7 +115,7 @@ export default async function AttributionDashboard({ searchParams }: Props) {
         {/* Summary tile */}
         <section className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
           <p className="text-xs font-bold tracking-wider text-gray-500">TOTAL APPLY CLICKS (30D)</p>
-          <p className="text-5xl font-black mt-2 tabular-nums text-[#003D5C]">{grandTotal.toLocaleString()}</p>
+          <p className="text-5xl font-black mt-2 tabular-nums text-[#17324D]">{grandTotal.toLocaleString()}</p>
           <p className="text-xs text-gray-500 mt-2">
             across {byPartner.size} {byPartner.size === 1 ? 'partner' : 'partners'}
           </p>
@@ -139,7 +139,7 @@ export default async function AttributionDashboard({ searchParams }: Props) {
         ) : (
           <section className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-[#003D5C] text-white text-xs uppercase tracking-wider">
+              <thead className="bg-[#17324D] text-white text-xs uppercase tracking-wider">
                 <tr>
                   <th className="text-left px-4 py-3">Partner</th>
                   <th className="text-right px-4 py-3">Clicks (30d)</th>
@@ -149,7 +149,7 @@ export default async function AttributionDashboard({ searchParams }: Props) {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {partnerTotals.map((p) => (
-                  <tr key={p.partner} className="hover:bg-[#7FBC00]/10">
+                  <tr key={p.partner} className="hover:bg-[#276749]/10">
                     <td className="px-4 py-3 font-bold">{p.partner}</td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {p.totalClicks.toLocaleString()}

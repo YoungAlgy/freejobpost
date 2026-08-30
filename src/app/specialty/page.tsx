@@ -30,16 +30,16 @@ export default function SpecialtyIndexPage() {
     <main className="min-h-screen bg-white text-black">
       <article className="max-w-6xl mx-auto px-6 py-12">
         <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-          <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+          <Link href="/" className="hover:text-[#17324D]">Home</Link>
           {' / '}
-          <span className="text-[#003D5C] font-medium">Specialties</span>
+          <span className="text-[#17324D] font-medium">Specialties</span>
         </nav>
 
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#003D5C]">
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#17324D]">
           Healthcare jobs by specialty
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-          Pick a specialty to see every active opening for that role on Ava Health. Each hub aggregates nursing and allied-health postings in one place.
+          Pick a specialty to browse current nursing and allied-health roles posted directly by healthcare employers.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -47,7 +47,7 @@ export default function SpecialtyIndexPage() {
             <Link
               key={s.slug}
               href={`/specialty/${s.slug}`}
-              className="block rounded-xl border border-gray-200 shadow-sm p-4 hover:bg-[#003D5C] hover:text-white transition-colors"
+              className="block rounded-xl border border-gray-200 shadow-sm p-4 hover:bg-[#17324D] hover:text-white transition-colors"
             >
               <h2 className="font-black text-lg tracking-tight mb-1">{s.title}</h2>
               <p className="text-sm">{s.shortDescription}</p>

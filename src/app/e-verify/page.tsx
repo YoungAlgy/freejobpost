@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { E_VERIFY } from '@/lib/e-verify-config'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 export const metadata: Metadata = {
   title: 'E-Verify Participation',
@@ -14,7 +14,7 @@ export default function EVerifyPage() {
   return (
     <main className="min-h-screen bg-white text-black">
       <article className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#003D5C]">E-Verify Participation</h1>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#17324D]">E-Verify Participation</h1>
         <p className="text-sm text-gray-600 mb-8">Ava Health Partners LLC &middot; operator of freejobpost.co</p>
 
         {/* Status card — pulls live from src/lib/e-verify-config.ts. */}
@@ -87,7 +87,7 @@ export default function EVerifyPage() {
             <li>
               <a
                 href="https://www.e-verify.gov/sites/default/files/everify/posters/EVerifyParticipationPoster.pdf"
-                className="text-[#003D5C] underline hover:text-[#002A40]"
+                className="text-[#17324D] underline hover:text-[#17324D]"
               >
                 E-Verify Participation poster (English / Spanish)
               </a>
@@ -95,7 +95,7 @@ export default function EVerifyPage() {
             <li>
               <a
                 href="https://www.e-verify.gov/sites/default/files/everify/posters/IER_RighttoWorkPoster.pdf"
-                className="text-[#003D5C] underline hover:text-[#002A40]"
+                className="text-[#17324D] underline hover:text-[#17324D]"
               >
                 Right to Work poster (English / Spanish)
               </a>
@@ -105,11 +105,11 @@ export default function EVerifyPage() {
           <h2 className="text-xl font-black mt-8 mb-2">Questions</h2>
           <p>
             Questions about Ava Health&apos;s E-Verify participation:{' '}
-            <a href="mailto:info@avahealth.co" className="text-[#003D5C] underline hover:text-[#002A40]">
-              info@avahealth.co
+            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="text-[#17324D] underline hover:text-[#17324D]">
+              {FREEJOBPOST_SUPPORT_EMAIL}
             </a>
             . General E-Verify support: 1-888-464-4218 or{' '}
-            <a href="https://www.e-verify.gov" className="text-[#003D5C] underline hover:text-[#002A40]">
+            <a href="https://www.e-verify.gov" className="text-[#17324D] underline hover:text-[#17324D]">
               e-verify.gov
             </a>
             .

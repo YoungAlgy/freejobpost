@@ -38,7 +38,7 @@ export default function HubPagination({
   const pages = [...nums].filter((n) => n >= 1 && n <= totalPages).sort((a, b) => a - b)
 
   const linkBase =
-    'inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-bold border border-gray-200 rounded-md hover:bg-[#003D5C] hover:text-white transition-colors'
+    'inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-bold border border-gray-200 rounded-md hover:bg-[#17324D] hover:text-white transition-colors'
 
   return (
     <nav
@@ -73,7 +73,7 @@ export default function HubPagination({
             {n === current ? (
               <span
                 aria-current="page"
-                className="inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-bold border border-[#003D5C] bg-[#003D5C] text-white rounded-md"
+                className="inline-flex items-center justify-center min-w-10 px-3 py-2 text-sm font-bold border border-[#17324D] bg-[#17324D] text-white rounded-md"
               >
                 {n}
               </span>

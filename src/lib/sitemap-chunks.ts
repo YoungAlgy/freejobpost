@@ -1,85 +1,7 @@
-// Chunked sitemap builder — the shared engine behind /sitemap.xml (the index)
-// and every /sitemaps/*.xml child.
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// 🔴 2026-08-19 INCIDENT FIX #2 — WHY THIS FILE EXISTS
-// ─────────────────────────────────────────────────────────────────────────────
-// /sitemap.xml used to be a single Next `app/sitemap.ts` emitting ONE <urlset>
-// with every URL on the site. Two earlier fixes landed the same day and neither
-// was enough on its own:
-//
-//   1. force-dynamic → `revalidate = 21600` (ccc122c). Removed the per-request
-//      re-render. Not enough: the response was still 6.8MB.
-//   2. `enableCacheInterception` in open-next.config.ts. Removed the 7-9ms
-//      "enter the Next.js server" floor for cached routes. Not enough either,
-//      for the reason measured below.
-//
-// This Worker is on the Workers FREE plan: 10ms CPU per HTTP request. For a
-// cached `type: "route"` entry the interceptor's hot path (see
-// @opennextjs/aws/dist/core/routing/cacheInterceptor.js) does THREE things whose
-// cost scales linearly with body size, on every single request:
-//
-//     r2Object.json()              -> JSON.parse(entire cache object)
-//     computeCacheControl()        -> md5 over the ENTIRE body (the ETag)
-//     toReadableStream(body)       -> TextEncoder().encode(entire body)
-//
-// Measured locally (node 24, 25 reps, against the real .open-next cache file
-// produced by a real `npm run cf:build`):
-//
-//   body size    cacheObj      JSON.parse   md5      encode    TOTAL
-//   6.80 MB      7,343,682 B   10.33 ms     11.63 ms 10.39 ms  32.35 ms   ← old
-//   355 KB         354,798 B    0.50 ms      0.61 ms  0.48 ms   1.59 ms   ← now
-//   184 KB         184,280 B    0.32 ms      0.31 ms  0.25 ms   0.88 ms
-//   ~3 KB            2,997 B    0.004 ms     0.006 ms 0.004 ms  0.014 ms
-//
-// 32ms of unavoidable per-request CPU against a 10ms budget is a 3.2x overrun,
-// which is exactly what prod showed: `wrangler tail` caught /sitemap.xml
-// returning 503 `exceededCpu`, killed at cpu=10ms, on 3 of 3 probes. The route
-// was 100% down for Googlebot — not intermittent.
-//
-// NOTE the earlier note in open-next.config.ts blamed md5 alone (~12ms). That
-// under-counted by ~3x: JSON.parse and the UTF-8 encode each cost about as much
-// as the hash. The real number is ~32ms. Splitting the body is the only fix that
-// touches all three at once, because all three are O(body).
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// THE SHAPE
-// ─────────────────────────────────────────────────────────────────────────────
-//   /sitemap.xml                  DB-free <sitemapindex>, ~3KB, 21 children. The URL
-//                                 already submitted to GSC + Bing keeps working
-//                                 and keeps its name — it just changes schema.
-//   /sitemaps/pages.xml           every non-job URL (static, specialty/state/
-//                                 city hubs, career paths, federal agencies,
-//                                 all 3 matrices, the /p/<n> hub continuations
-//                                 added by the 2026-08-19 pagination fix, and
-//                                 employers). ~1,400 URLs.
-//   /sitemaps/jobs-0.xml          the /jobs/<slug> URLs, split into
-//     … through jobs-19.xml       JOB_SITEMAP_CHUNKS stable UUID ranges.
-//
-// WHY A FIXED CHUNK COUNT: the child list has to be known to robots.ts and to
-// the index route WITHOUT either of them touching the database. robots.ts is
-// itself CPU-sensitive (it measured 7-9ms on prod pre-interception), so it must
-// stay a pure in-memory string build. A fixed count makes SITEMAP_CHILDREN a
-// compile-time constant that robots.ts, the index, and generateStaticParams all
-// read from — so it is structurally impossible for robots.txt to advertise a
-// sitemap that does not exist, or for a child to exist that nothing links to.
-//
-// WHY UUID RANGES, not offset slicing: public_jobs.id is a random UUID generated
-// once when the row is created. Splitting the UUID keyspace into fixed,
-// contiguous ranges pins every job to one child for life and lets PostgREST use
-// the primary-key index to fetch ONLY that child. Offset slicing would shift
-// jobs between children whenever an earlier row expired, while the previous
-// FNV slug hash required every child to download the entire active corpus and
-// discard 19/20 of it in JavaScript.
-//
-// WHY 20: see the table above. 20 chunks lands each child at ~355KB / ~1.59ms of
-// size-scaled CPU — 16% of the 10ms budget, leaving ~8.4ms for the fixed
-// interceptor + routing overhead we cannot measure off-platform. It also has
-// room to grow: this corpus went 9.6K → 14.6K → 34K URLs in about three months,
-// and even at 2x today's inventory a chunk is only ~710KB / ~3.2ms. 10 chunks
-// (the original back-of-envelope guess) would be 722KB / 3.42ms TODAY and ~6.8ms
-// at 2x — too close to the wall to ship. Google's own ceiling (50,000 URLs per
-// sitemap) is nowhere near binding at ~1,700 URLs/chunk.
+// Shared sitemap engine for /sitemap.xml and /sitemaps/*.xml. The index has one
+// pages child and one jobs child. A fixed child list keeps robots.txt and route
+// generation database-free. The jobs loader still uses UUID keyset pagination,
+// so it can split again later without changing query semantics.
 
 import { createClient } from '@supabase/supabase-js'
 import { hourIso } from '@/lib/supabase'
@@ -92,13 +14,10 @@ import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
 import { CAREER_PATHS } from '@/lib/career-paths'
-import { computeViableCellsViaSql, type MatrixCell } from '@/lib/specialty-state-matrix'
-import { getViableCityCellsCached, type CityMatrixCell } from '@/lib/city-specialty-matrix'
-import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
-import { getViableFederalCellsCached, type FederalMatrixCell } from '@/lib/federal-state-matrix'
 import { HUB_JOB_LIMITS } from '@/lib/hub-job-queries'
 import { hubPaginationUrls } from '@/lib/hub-pagination'
 import { getHubPageCountsCached, hubCountKey, type HubKind } from '@/lib/hub-page-counts'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 
 export const SITEMAP_BASE = 'https://freejobpost.co'
 
@@ -116,7 +35,10 @@ export const SITEMAP_DATA_TIMEOUT_MS = 8000
 // error before the outer Durable Object deadline.
 export const SITEMAP_ISR_REQUEST_TIMEOUT_MS = 2000
 
-export const JOB_SITEMAP_CHUNKS = 20
+// Direct-employer inventory is intentionally small enough for one child.
+// Keeping the aggregate-era 20-way split produced mostly empty children and
+// could preserve stale imported-job URLs in old ISR caches.
+export const JOB_SITEMAP_CHUNKS = 1
 
 export const PAGES_SITEMAP_CHILD = 'pages.xml'
 
@@ -351,6 +273,7 @@ async function fetchJobPageFromSupabase(
   let query = sitemapSupabase
     .from('public_jobs')
     .select('id, slug, updated_at')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', request.nowIso)
@@ -462,6 +385,7 @@ async function fetchLatestJobUpdatedAt(signal?: AbortSignal): Promise<string | n
   const query = sitemapSupabase
     .from('public_jobs')
     .select('updated_at')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -477,9 +401,32 @@ async function fetchLatestJobUpdatedAt(signal?: AbortSignal): Promise<string | n
 }
 
 async function fetchSitemapEmployers(signal?: AbortSignal): Promise<SitemapEmployerRow[]> {
+  const jobQuery = sitemapSupabase
+    .from('public_jobs')
+    .select('employer_id')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', hourIso())
+    .not('employer_id', 'is', null)
+  const { data: jobData, error: jobError } = await (
+    signal ? jobQuery.abortSignal(signal) : jobQuery
+  )
+  if (jobError) throw new Error(`pages sitemap employer-job query failed: ${jobError.message}`)
+
+  const employerIds = Array.from(
+    new Set(
+      ((jobData ?? []) as Array<{ employer_id: string | null }>)
+        .map((row) => row.employer_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  )
+  if (employerIds.length === 0) return []
+
   const query = sitemapSupabase
     .from('public_employers_directory')
     .select('slug, verified_via, company_name, verified_at')
+    .in('id', employerIds)
     .not('verified_at', 'is', null)
   const { data, error } = await (signal ? query.abortSignal(signal) : query)
 
@@ -490,9 +437,6 @@ async function fetchSitemapEmployers(signal?: AbortSignal): Promise<SitemapEmplo
 export type PagesSitemapDependencies = {
   loadLatestJobUpdatedAt: (requestSignal?: AbortSignal) => Promise<string | null>
   loadEmployers: (requestSignal?: AbortSignal) => Promise<SitemapEmployerRow[]>
-  loadFederalMatrixCells: (requestSignal?: AbortSignal) => Promise<FederalMatrixCell[]>
-  loadMatrixCells: (requestSignal?: AbortSignal) => Promise<MatrixCell[]>
-  loadCityMatrixCells: (requestSignal?: AbortSignal) => Promise<CityMatrixCell[]>
   loadHubCounts: (requestSignal?: AbortSignal) => Promise<Map<string, number>>
 }
 
@@ -511,27 +455,6 @@ const defaultPagesSitemapDependencies: PagesSitemapDependencies = {
       SITEMAP_DATA_TIMEOUT_MS,
       requestSignal,
     ),
-  loadFederalMatrixCells: (requestSignal) =>
-    runSitemapLoaderWithDeadline(
-      'pages sitemap federal matrix',
-      (signal) => getViableFederalCellsCached(sitemapSupabase, { signal }),
-      SITEMAP_DATA_TIMEOUT_MS,
-      requestSignal,
-    ),
-  loadMatrixCells: (requestSignal) =>
-    runSitemapLoaderWithDeadline(
-      'pages sitemap specialty-state matrix',
-      (signal) => computeViableCellsViaSql(sitemapSupabase, { signal }),
-      SITEMAP_DATA_TIMEOUT_MS,
-      requestSignal,
-    ),
-  loadCityMatrixCells: (requestSignal) =>
-    runSitemapLoaderWithDeadline(
-      'pages sitemap city-specialty matrix',
-      (signal) => getViableCityCellsCached(sitemapSupabase, { signal }),
-      SITEMAP_DATA_TIMEOUT_MS,
-      requestSignal,
-    ),
   loadHubCounts: (requestSignal) =>
     runSitemapLoaderWithDeadline(
       'pages sitemap hub counts',
@@ -545,19 +468,9 @@ function sitemapDatasetOrFallback<T>(
   result: PromiseSettledResult<T>,
   label: string,
   fallback: T,
-  options: { allowRuntimeFallback?: boolean; requireNonEmpty?: boolean } = {},
+  options: { allowRuntimeFallback?: boolean } = {},
 ): T {
-  if (result.status === 'fulfilled') {
-    if (
-      options.requireNonEmpty &&
-      !isBuildPhase() &&
-      Array.isArray(result.value) &&
-      result.value.length === 0
-    ) {
-      throw new Error(`[sitemap-pages] ${label} returned 0 rows, retaining last-good ISR`)
-    }
-    return result.value
-  }
+  if (result.status === 'fulfilled') return result.value
   if (!isBuildPhase() && !options.allowRuntimeFallback) {
     throw result.reason
   }
@@ -573,17 +486,10 @@ function sitemapDatasetOrFallback<T>(
  * One job chunk: every active, indexable /jobs/<slug> whose immutable job UUID
  * falls inside `chunk`'s fixed key range.
  *
- * FAIL SOFT, carefully. An EMPTY <urlset> is both schema-invalid (the sitemaps
- * 0.9 schema requires at least one <url>) and the worst thing to cache — it
- * tells Google a whole slice of the site vanished. We always have thousands of
- * active jobs, so 0 fetched means DB failure, never a real empty inventory.
- *   - At RUNTIME we throw, which makes ISR keep serving the last good child
- *     instead of overwriting it with emptiness.
- *   - At BUILD time a throw would abort the whole deploy with no cache to fall
- *     back to (the 2026-05-28 lesson from app/sitemap.ts), so we emit the single
- *     /jobs URL instead: valid, non-empty, already present in pages.xml, and
- *     harmless — the sitemaps protocol explicitly permits the same <loc> in more
- *     than one sitemap. It self-heals on the next healthy revalidate.
+ * Zero direct-employer jobs is a valid early-stage state. A successful empty
+ * query returns the /jobs browse URL so the child stays valid and old aggregate
+ * URLs are evicted. Query errors still throw at runtime to retain the last-good
+ * ISR response; builds use the same safe /jobs fallback.
  */
 export async function buildJobChunkSitemap(
   chunk: number,
@@ -602,12 +508,6 @@ export async function buildJobChunkSitemap(
   }
 
   if (jobs.length === 0) {
-    if (!isBuildPhase()) {
-      throw new Error(
-        `sitemaps/jobs-${chunk}.xml: 0 jobs fetched — refusing to cache an empty ` +
-        `sitemap. Serving last-good ISR cache instead.`,
-      )
-    }
     return renderUrlset([
       { url: `${SITEMAP_BASE}/jobs`, changeFrequency: 'hourly', priority: 0.9 },
     ])
@@ -627,12 +527,6 @@ export async function buildJobChunkSitemap(
   }
 
   if (entries.length === 0) {
-    if (!isBuildPhase()) {
-      throw new Error(
-        `sitemaps/jobs-${chunk}.xml: 0 valid job URLs after slug filtering. ` +
-        `Refusing to cache an empty sitemap. Serving last-good ISR cache instead.`,
-      )
-    }
     return renderUrlset([
       { url: `${SITEMAP_BASE}/jobs`, changeFrequency: 'hourly', priority: 0.9 },
     ])
@@ -641,14 +535,12 @@ export async function buildJobChunkSitemap(
 }
 
 /**
- * Everything that is not a /jobs/<slug> detail page: static routes, the
- * specialty/state/city hubs, career-path guides, federal agency pages, all three
- * viable-cell matrices, the /p/<n> hub continuations, and the verified employer
- * directory. ~1,400 URLs — still comfortably the cheapest child in the family
- * (the jobs-*.xml chunks are ~355KB / ~1.59ms and this stays well under them).
+ * Everything that is not a /jobs/<slug> detail page: static routes, inventory
+ * hubs, career-path guides, hub continuations, and the verified employer
+ * directory.
  *
  * Kept whole rather than folded into the job chunks because it changes for
- * entirely different reasons (hub config + matrix thresholds, not job ingest),
+ * entirely different reasons (hub config and employer verification, not job ingest),
  * and because the hub roots are the DB-independent core we fall back to.
  */
 export async function buildPagesSitemap(
@@ -659,16 +551,10 @@ export async function buildPagesSitemap(
   const [
     latestJobUpdatedAtResult,
     employersResult,
-    federalMatrixCellsResult,
-    matrixCellsResult,
-    cityMatrixCellsResult,
     hubCountsResult,
   ] = await Promise.allSettled([
     deps.loadLatestJobUpdatedAt(requestSignal),
     deps.loadEmployers(requestSignal),
-    deps.loadFederalMatrixCells(requestSignal),
-    deps.loadMatrixCells(requestSignal),
-    deps.loadCityMatrixCells(requestSignal),
     deps.loadHubCounts(requestSignal),
   ])
   const latestJobUpdatedAt = sitemapDatasetOrFallback(
@@ -677,24 +563,6 @@ export async function buildPagesSitemap(
     null,
   )
   const employers = sitemapDatasetOrFallback(employersResult, 'employer directory', [])
-  const federalMatrixCells = sitemapDatasetOrFallback(
-    federalMatrixCellsResult,
-    'federal matrix',
-    [],
-    { requireNonEmpty: true },
-  )
-  const matrixCells = sitemapDatasetOrFallback(
-    matrixCellsResult,
-    'specialty-state matrix',
-    [],
-    { requireNonEmpty: true },
-  )
-  const cityMatrixCells = sitemapDatasetOrFallback(
-    cityMatrixCellsResult,
-    'city-specialty matrix',
-    [],
-    { requireNonEmpty: true },
-  )
   // Continuation pages remain discoverable through their on-page pagination
   // links. Omitting only these URLs for one failed count cycle is intentional.
   const hubCounts = sitemapDatasetOrFallback(
@@ -704,9 +572,9 @@ export async function buildPagesSitemap(
     { allowRuntimeFallback: true },
   )
 
-  // Aggregator routes all render slices of the job inventory, so they share the
-  // freshest job timestamp. Truly static routes (terms/privacy/post-job/pricing/
-  // how-it-works/for-employers) omit lastModified entirely — their content
+  // Inventory routes all render slices of direct employer posts, so they share
+  // the freshest job timestamp. Static routes (terms/privacy/post-job/
+  // how-it-works) omit lastModified entirely — their content
   // rarely changes and emitting a moving timestamp is the lie pattern we avoid.
   const maxJobUpdate = latestJobUpdatedAt ?? undefined
 
@@ -716,17 +584,13 @@ export async function buildPagesSitemap(
   const staticRoutes: SitemapUrl[] = [
     { url: `${base}/`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 1.0 },
     { url: `${base}/jobs`, lastModified: maxJobUpdate, changeFrequency: 'hourly', priority: 0.9 },
-    { url: `${base}/jobs/federal`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/specialty`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/state`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/city`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.85 },
     { url: `${base}/become`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${base}/employers`, lastModified: maxJobUpdate, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${base}/post-job`, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${base}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${base}/how-it-works`, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${base}/for-employers`, changeFrequency: 'monthly', priority: 0.65 },
-    { url: `${base}/changelog`, changeFrequency: 'weekly', priority: 0.4 },
     { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
     // Federal-compliance disclosure page. Low priority (regulatory, not
@@ -734,61 +598,45 @@ export async function buildPagesSitemap(
     { url: `${base}/e-verify`, changeFrequency: 'yearly', priority: 0.3 },
   ]
 
-  // Specialty hub pages — one per common healthcare specialty so each ranks for
-  // "[specialty] jobs" queries. lastmod tied to job-data freshness.
-  const specialtyRoutes: SitemapUrl[] = SPECIALTY_HUBS.map((s) => ({
-    url: `${base}/specialty/${s.slug}`,
-    lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.8,
-  }))
+  // Do not submit empty inventory hubs. When a count is unavailable, retain the
+  // route for that cycle instead of treating an infrastructure failure as a
+  // confirmed zero.
+  const hasInventoryOrUnknown = (kind: HubKind, slug: string): boolean => {
+    const count = hubCounts.get(hubCountKey(kind, slug))
+    return count === undefined || count > 0
+  }
+
+  const specialtyRoutes: SitemapUrl[] = SPECIALTY_HUBS
+    .filter((specialty) => hasInventoryOrUnknown('specialty', specialty.slug))
+    .map((specialty) => ({
+      url: `${base}/specialty/${specialty.slug}`,
+      lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.8,
+    }))
 
   // NOTE (2026-06 audit, F65): the per-specialty + per-state RSS feed URLs were
   // REMOVED from the sitemap. XML feeds are not indexable web pages — 83 of them
   // in the sitemap just diluted crawl budget. Aggregators get the feed URLs
   // directly (/feeds page + partner outreach), not via sitemap.
 
-  // State hub pages — one per top US state for healthcare-job density.
-  const stateRoutes: SitemapUrl[] = STATE_HUBS.map((s) => ({
-    url: `${base}/state/${s.slug}`,
-    lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.8,
-  }))
+  const stateRoutes: SitemapUrl[] = STATE_HUBS
+    .filter((state) => hasInventoryOrUnknown('state', state.slug))
+    .map((state) => ({
+      url: `${base}/state/${state.slug}`,
+      lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.8,
+    }))
 
-  // City hub pages — one per curated US healthcare metro. Closes the gap between
-  // state hubs (broad) and per-job pages (narrow).
-  const cityRoutes: SitemapUrl[] = CITY_HUBS.map((c) => ({
-    url: `${base}/city/${c.slug}`,
-    lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.8,
-  }))
+  const cityRoutes: SitemapUrl[] = CITY_HUBS
+    .filter((city) => hasInventoryOrUnknown('city', city.slug))
+    .map((city) => ({
+      url: `${base}/city/${city.slug}`,
+      lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.8,
+    }))
 
   // Career-path guides — long-form factual content targeting the upstream
   // "how to become a <role>" query family.
   const careerPathRoutes: SitemapUrl[] = CAREER_PATHS.map((p) => ({
     url: `${base}/become/${p.slug}`,
     changeFrequency: 'monthly', priority: 0.7,
-  }))
-
-  // Federal-agency landing pages — one per FEDERAL_AGENCIES entry. The
-  // /jobs/federal index is in staticRoutes above; this adds the per-agency leaves.
-  const federalRoutes: SitemapUrl[] = FEDERAL_AGENCIES.map((a) => ({
-    url: `${base}/jobs/federal/${a.slug}`,
-    lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.8,
-  }))
-
-  // The three viable-cell matrices. Each only emits cells with >= 5 active
-  // matching jobs — the same threshold the routes' generateStaticParams
-  // enforce, so the sitemap and the actually-renderable URLs stay in lockstep.
-  const federalMatrixRoutes: SitemapUrl[] = federalMatrixCells.map((c) => ({
-    url: `${base}/jobs/federal/${c.agency.slug}/${c.state.slug}`,
-    lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.75,
-  }))
-  const matrixRoutes: SitemapUrl[] = matrixCells.map((c) => ({
-    url: `${base}/specialty/${c.specialty.slug}/${c.state.slug}`,
-    lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.75,
-  }))
-  // City x Specialty carries higher candidate intent than state x specialty
-  // (city queries carry more explicit "where I want to work" signal).
-  const cityMatrixRoutes: SitemapUrl[] = cityMatrixCells.map((c) => ({
-    url: `${base}/city/${c.city.slug}/${c.specialty.slug}`,
-    lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.75,
   }))
 
   // ─── Paginated hub continuations (/p/2 …) ──────────────────────────────────
@@ -837,32 +685,6 @@ export async function buildPagesSitemap(
   for (const c of CITY_HUBS) {
     addPaginated('city', c.slug, `/city/${c.slug}`, HUB_JOB_LIMITS.city)
   }
-  for (const a of FEDERAL_AGENCIES) {
-    addPaginated('federalAgency', a.slug, `/jobs/federal/${a.slug}`, HUB_JOB_LIMITS.federalAgency)
-  }
-
-  // The two matrix families get their counts for free from the viable-cell
-  // scans already awaited above — no extra queries.
-  for (const c of matrixCells) {
-    for (const url of hubPaginationUrls(
-      `/specialty/${c.specialty.slug}/${c.state.slug}`,
-      Math.min(c.count, HUB_JOB_LIMITS.specialtyState),
-    )) {
-      paginatedRoutes.push({
-        url: `${base}${url}`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.5,
-      })
-    }
-  }
-  for (const c of federalMatrixCells) {
-    for (const url of hubPaginationUrls(
-      `/jobs/federal/${c.agency.slug}/${c.state.slug}`,
-      Math.min(c.count, HUB_JOB_LIMITS.federalAgencyState),
-    )) {
-      paginatedRoutes.push({
-        url: `${base}${url}`, lastModified: maxJobUpdate, changeFrequency: 'daily', priority: 0.5,
-      })
-    }
-  }
   // /city/[slug]/[specialty] is deliberately absent: its `.limit(100)` already
   // equals HUB_PAGE_SIZE, so it has exactly one page and no continuations exist.
 
@@ -885,10 +707,6 @@ export async function buildPagesSitemap(
     ...stateRoutes,
     ...cityRoutes,
     ...careerPathRoutes,
-    ...federalRoutes,
-    ...federalMatrixRoutes,
-    ...matrixRoutes,
-    ...cityMatrixRoutes,
     ...paginatedRoutes,
     ...employerRoutes,
   ])

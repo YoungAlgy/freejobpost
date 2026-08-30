@@ -1,8 +1,6 @@
 // job-alert-digest — staggered weekly job-alert emails for freejobpost.co
-// subscribers (public_job_alert_subscribers, captured by the JobAlertCapture
-// widget). This is the FULFILLMENT side of the board→CRM lead capture: each
-// subscriber gets new matching jobs (by specialty / state / city) on a rolling
-// 7-day cadence.
+// subscribers in public_job_alert_subscribers. Each subscriber gets new matching
+// jobs (by specialty / state / city) on a rolling 7-day cadence.
 //
 // WHY AN EDGE FUNCTION (not a Vercel route): the digester needs service-role DB
 // access to read the RLS-locked subscriber table. Keeping that key INSIDE
@@ -44,6 +42,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { readFreeJobPostEmailConfig } from "../_shared/freejobpost-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -53,10 +52,9 @@ const corsHeaders = {
 };
 
 const FROM_NAME = "Free Job Post";
-const FROM_EMAIL = "jobs@avahealth.co"; // product address (2026-06 audit F95: was alex@ personal)
-const FEEDBACK_EMAIL = "alex@avahealth.co"; // replies + feedback still reach a human
 const SITE = "https://freejobpost.co";
 const ADDRESS = "Ava Health Partners · 4532 W Kennedy Blvd Suite 125, Tampa FL 33609";
+const PUBLIC_EMPLOYER_JOB_SOURCE = "public_employer_post";
 
 const DAILY_CAP = parseInt(Deno.env.get("JOB_ALERT_DAILY_CAP") || "80", 10);
 const MAX_JOBS_PER_EMAIL = 8;
@@ -74,7 +72,7 @@ async function alertOpsViaWebhook(subject: string, body: string): Promise<void> 
   try {
     const url = Deno.env.get("OPS_ALERT_WEBHOOK_URL");
     if (!url) return;
-    const message = `**[ava ops alert]** ${subject}\n\n${body}`;
+    const message = `**[freejobpost ops alert]** ${subject}\n\n${body}`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
@@ -132,7 +130,7 @@ function whatLine(sub: Subscriber, count?: number): string {
   return `${spec} ${noun}${loc}`;
 }
 
-function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: string; text: string; unsubUrl: string } {
+function renderEmail(sub: Subscriber, jobs: Job[], replyToEmail: string): { subject: string; html: string; text: string; unsubUrl: string } {
   const whatN = whatLine(sub, jobs.length); // count-aware ("1 … job" / "8 … jobs")
   const whatGeneric = whatLine(sub);        // always plural — subscription/footer label
   const subject = `${jobs.length} new ${whatN}`;
@@ -163,8 +161,8 @@ function renderEmail(sub: Subscriber, jobs: Job[]): { subject: string; html: str
       <p style="margin:0 0 8px;color:#555;font-size:14px">Fresh matches since your last alert. Free to apply, no account needed.</p>
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${rows}</table>
       <p style="margin:24px 0 0"><a href="${SITE}/jobs" style="display:inline-block;background:#111;color:#fff;font-weight:700;text-decoration:none;padding:12px 22px">Browse all jobs →</a></p>
-      <!-- Feedback CTA — routes replies to the monitored alex@avahealth.co inbox; this is the "feedback drives updates" loop. -->
-      <p style="margin:18px 0 0;color:#555;font-size:13px;line-height:1.6">Not seeing the right roles? <a href="mailto:${FEEDBACK_EMAIL}?subject=Job%20alert%20feedback" style="color:#15803d;font-weight:700;text-decoration:none">Reply and tell us what you're after</a>. A real person reads every one.</p>
+      <!-- Feedback CTA routes replies to the required monitored FreeJobPost inbox. -->
+      <p style="margin:18px 0 0;color:#555;font-size:13px;line-height:1.6">Not seeing the right roles? <a href="mailto:${replyToEmail}?subject=Job%20alert%20feedback" style="color:#15803d;font-weight:700;text-decoration:none">Reply and tell us what you're after</a>. A real person reads every one.</p>
     </td></tr>
     <tr><td style="padding:24px 28px;border-top:1px solid #e5e5e5">
       <p style="margin:0;color:#999;font-size:12px;line-height:1.6">You're getting this because you subscribed to ${esc(whatGeneric)} alerts on freejobpost.co. <a href="${unsubUrl}" style="color:#666">Unsubscribe</a>.<br/>${esc(ADDRESS)}</p>
@@ -187,6 +185,8 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Forbidden" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    const { fromEmail, replyToEmail } = readFreeJobPostEmailConfig((name) => Deno.env.get(name));
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -240,6 +240,7 @@ serve(async (req: Request) => {
       try {
         let q = sb.from("public_jobs")
           .select("slug, title, city, state, salary_min, salary_max")
+          .eq("source", PUBLIC_EMPLOYER_JOB_SOURCE)
           .eq("status", "active")
           .is("deleted_at", null)
           .gt("expires_at", nowIso)
@@ -258,15 +259,15 @@ serve(async (req: Request) => {
 
         const list = (jobs ?? []) as Job[];
         if (list.length > 0) {
-          const { subject, html, text, unsubUrl } = renderEmail(sub, list);
+          const { subject, html, text, unsubUrl } = renderEmail(sub, list, replyToEmail);
           const resp = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              from: `${FROM_NAME} <${FROM_EMAIL}>`,
+              from: `${FROM_NAME} <${fromEmail}>`,
               to: [sub.email],
               subject, html, text,
-              reply_to: FEEDBACK_EMAIL,
+              reply_to: replyToEmail,
               // RFC 2369 List-Unsubscribe header — Gmail/Yahoo bulk-sender best
               // practice; materially improves inbox placement for recurring alert
               // mail. Targets the /unsubscribe confirm page (GET). One-click (RFC
@@ -289,7 +290,7 @@ serve(async (req: Request) => {
             // fire-and-forget, not a tracked campaign; see the table's own
             // migration comment for the reasoning.
             const ins = await sb.from("job_alert_sends").insert({
-              to_email: sub.email, from_email: FROM_EMAIL, from_name: FROM_NAME,
+              to_email: sub.email, from_email: fromEmail, from_name: FROM_NAME,
               subject, body_preview: "[job_alert] " + text.slice(0, 160),
               resend_id: rdata.id, status: "sent", sent_at: new Date().toISOString(),
             });

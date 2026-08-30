@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 import { SYNDICATION_TARGETS } from '@/lib/syndication-targets'
 import { PARTNER_CONTACTS } from '@/lib/partner-contacts'
 
@@ -16,16 +16,19 @@ export default function FeedsPage() {
   return (
     <main className="min-h-screen bg-white text-black">
       <div className="max-w-4xl mx-auto px-6 py-12">
-        <p className="text-xs font-bold tracking-widest text-[#003D5C] uppercase mb-3">For distribution partners</p>
-        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#003D5C]">Job feeds.</h1>
+        <p className="text-xs font-bold tracking-widest text-[#17324D] uppercase mb-3">For distribution partners</p>
+        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#17324D]">Job feeds.</h1>
         <p className="text-gray-700 mb-3 max-w-2xl">
-          Public XML / RSS feeds you can pull to syndicate our healthcare jobs. All feeds are
+          Public XML / RSS feeds for direct nursing and allied-health employer posts. All feeds are
           open, no auth required, refreshed every 6 hours.
         </p>
         <p className="text-gray-700 mb-10 max-w-2xl">
-          Each posted job has per-network opt-in checkboxes. You only see jobs the recruiter
-          chose to share with your network. If you need a different format or fields, contact{' '}
-          <a href="mailto:info@avahealth.co" className="underline">info@avahealth.co</a>.
+          Verified direct-employer jobs are added to active default feeds automatically. Gated
+          networks stay off until their ingestion channel is active. If you need a different
+          format or fields, contact{' '}
+          <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline">
+            {FREEJOBPOST_SUPPORT_EMAIL}
+          </a>.
         </p>
 
         <div className="space-y-5">
@@ -57,10 +60,10 @@ export default function FeedsPage() {
                       {statusLabel[status]}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono bg-[#003D5C] text-white px-2 py-1 tracking-wider">{t.spec}</span>
+                  <span className="text-[10px] font-mono bg-[#17324D] text-white px-2 py-1 tracking-wider">{t.spec}</span>
                 </div>
                 <p className={`text-sm mb-2 ${isDead ? 'text-gray-500' : 'text-gray-700'}`}>{t.blurb} <span className="text-gray-500">· {t.reach}</span></p>
-                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-500' : 'text-[#003D5C]'}`}>{t.feedUrl}</a>
+                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-500' : 'text-[#17324D]'}`}>{t.feedUrl}</a>
                 <p className="text-sm text-gray-700 mt-3">
                   <span className="font-bold">Submit to:</span>{' '}
                   {contact?.instructions ?? 'Contact partner team for onboarding instructions.'}
@@ -86,10 +89,10 @@ export default function FeedsPage() {
           <div className="rounded-xl border border-gray-200 shadow-sm p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
               <h2 className="text-xl font-black">Sitemap (crawl discovery)</h2>
-              <span className="text-[10px] font-mono bg-[#003D5C] text-white px-2 py-1 tracking-wider">sitemaps.org 0.9</span>
+              <span className="text-[10px] font-mono bg-[#17324D] text-white px-2 py-1 tracking-wider">sitemaps.org 0.9</span>
             </div>
             <p className="text-sm text-gray-700 mb-2">For Google, Bing, DuckDuckGo, and any general-purpose web crawler.</p>
-            <a href="https://freejobpost.co/sitemap.xml" className="text-sm font-mono text-[#003D5C] underline break-all">https://freejobpost.co/sitemap.xml</a>
+            <a href="https://freejobpost.co/sitemap.xml" className="text-sm font-mono text-[#17324D] underline break-all">https://freejobpost.co/sitemap.xml</a>
             <p className="text-sm text-gray-700 mt-3">
               <span className="font-bold">Submit to:</span> {PARTNER_CONTACTS.sitemap.instructions}
             </p>
@@ -105,7 +108,7 @@ export default function FeedsPage() {
             <li>All listings link back to <code>freejobpost.co/jobs/[slug]</code> with full job description and apply form.</li>
             <li>Salary fields are present where the employer chose to disclose them.</li>
             <li>Expired/removed jobs are dropped from the feed within 6 hours (next cache cycle).</li>
-            <li>Each feed only lists jobs whose recruiter opted into that specific network. Empty feed is normal if no recruiter has opted in to your network yet.</li>
+            <li>Each feed only lists current verified jobs assigned to that distribution target. An empty feed is normal when no current job is eligible.</li>
             <li>No duplicates across feeds. Each job appears once per network with a stable <code>slug</code> reference.</li>
           </ul>
         </div>

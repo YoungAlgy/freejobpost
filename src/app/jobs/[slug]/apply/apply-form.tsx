@@ -4,7 +4,6 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { submitApplication, type ApplyInput, type ApplyResult } from './actions'
 import TurnstileWidget from '@/components/TurnstileWidget'
-import AffiliateOffer from '@/components/AffiliateOffer'
 
 type Props = {
   jobId: string
@@ -58,7 +57,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
     return (
       <div role="status" aria-live="polite" className="rounded-xl border border-gray-200 shadow-sm p-8 bg-green-50">
         <div className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1 text-xs font-bold tracking-wider mb-4">
-          <span className="w-2 h-2 bg-[#7FBC00]" />
+          <span className="w-2 h-2 bg-[#276749]" />
           APPLIED
         </div>
         <h2 className="text-2xl md:text-3xl font-black leading-tight mb-3">
@@ -78,25 +77,13 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
           Most healthcare employers respond within a few days. Keep applying to
           other roles in the meantime.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div>
           <Link
             href="/jobs"
-            className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
+            className="inline-flex items-center justify-center bg-[#276749] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#1F563B] transition-colors"
           >
             Browse more jobs →
           </Link>
-          <a
-            href="https://www.freeresumepost.co/upload"
-            className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-3 font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
-          >
-            Upload your resume
-          </a>
-        </div>
-
-        {/* Peak intent: they just applied, the interview is the next worry.
-            Renders nothing unless the program link is configured. */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <AffiliateOffer program="finalround" />
         </div>
       </div>
     )
@@ -165,18 +152,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
           placeholder="https://..."
           className={fieldStyle}
         />
-        <p className="text-xs text-gray-500 mt-1">
-          Or{' '}
-          <a
-            href="https://www.freeresumepost.co/upload"
-            className="underline hover:text-[#003D5C]"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            upload to freeresumepost.co
-          </a>{' '}
-          for a public profile URL.
-        </p>
+        <p className="text-xs text-gray-500 mt-1">Paste a secure link the employer can open.</p>
       </Field>
 
       <Field label="Short note to the employer" hint="Optional · why you are a fit">
@@ -209,14 +185,14 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
       <div className="flex items-center justify-between pt-4 border-t border-gray-200">
         <Link
           href={`/jobs/${jobSlug}`}
-          className="text-sm font-bold underline hover:text-[#003D5C]"
+          className="text-sm font-bold underline hover:text-[#17324D]"
         >
           ← Back to {jobTitle.length > 30 ? 'job' : jobTitle}
         </Link>
         <button
           type="submit"
           disabled={pending || !canSubmit()}
-          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center bg-[#276749] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#1F563B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? 'Submitting…' : 'Apply →'}
         </button>
@@ -226,7 +202,7 @@ export default function ApplyForm({ jobId, jobSlug, jobTitle }: Props) {
 }
 
 const fieldStyle =
-  'w-full px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#7FBC00]'
+  'w-full px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]'
 
 function Field({
   label,

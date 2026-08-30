@@ -7,17 +7,15 @@
 // never got verify/login/applicant emails. Resend already powers every other
 // email path in this project (drip, bulk, digests) and works.
 //
-// Sender domain: the Resend workspace whose RESEND_API_KEY lives in this
-// project has ONLY avahealth.co verified. So all from-addresses here must be
-// @avahealth.co until freejobpost.co / freeresumepost.co are added to that
-// workspace (DNS records at the registrar). Callers keep their product
-// display names ("Free Job Post <jobs@avahealth.co>").
+// Sender domain ownership is enforced by each product before this generic
+// transport is called. FreeJobPost callers require a verified freejobpost.co
+// sender through their own environment bindings.
 //
 // Same params/result shape as _shared/ses.ts so callers swap on the import
 // line only. Never throws.
 
 export type SendEmailParams = {
-  /** "Display Name <user@domain.com>" — must be an avahealth.co address */
+  /** "Display Name <user@domain.com>" from the caller's verified product domain */
   from: string
   /** Recipient address */
   to: string
@@ -68,7 +66,10 @@ export async function sendTransactionalEmail(params: SendEmailParams): Promise<S
     if (!res.ok) {
       return { ok: false, status: res.status, error: (body.message || JSON.stringify(body)).slice(0, 500) }
     }
-    return { ok: true, messageId: body.id || 'unknown' }
+    if (typeof body.id !== 'string' || !body.id.trim()) {
+      return { ok: false, status: res.status, error: 'Resend response missing message id' }
+    }
+    return { ok: true, messageId: body.id.trim() }
   } catch (e) {
     return { ok: false, status: 0, error: e instanceof Error ? e.message : 'send threw' }
   }

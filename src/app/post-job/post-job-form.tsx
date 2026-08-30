@@ -3,7 +3,6 @@
 import { useState, useTransition, useEffect, isValidElement, cloneElement, type ReactElement } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
-import { SYNDICATION_TARGETS, DEFAULT_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
 import {
   requiresSalaryDisclosure,
   payTransparencyCitation,
@@ -12,6 +11,7 @@ import {
 } from '@/lib/pay-transparency'
 import { validateSpecialtyScope } from '@/lib/specialty-scope'
 import TurnstileWidget from '@/components/TurnstileWidget'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 // US state list for the state dropdown. Mirrors the 2-letter format enforced by
 // submit_public_job_rpc.
@@ -40,7 +40,6 @@ const INITIAL: PostJobInput = {
   salary_max: null,
   experience_required: '',
   apply_url: '',
-  syndication_targets: DEFAULT_TARGET_IDS,
 }
 
 export default function PostJobForm() {
@@ -92,14 +91,6 @@ export default function PostJobForm() {
   const update = <K extends keyof PostJobInput>(key: K, v: PostJobInput[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))
 
-  const toggleTarget = (id: SyndicationTargetId) =>
-    setValues((prev) => ({
-      ...prev,
-      syndication_targets: prev.syndication_targets.includes(id)
-        ? prev.syndication_targets.filter((t) => t !== id)
-        : [...prev.syndication_targets, id],
-    }))
-
   // Pay-transparency rule — when the posting is in CA/CO/NY/WA/etc. (and not
   // remote), salary_min + salary_max must both be set. Civil penalties up to
   // $10K/violation make this a hard gate, not a soft warning. Remote postings
@@ -140,7 +131,7 @@ export default function PostJobForm() {
     return (
       <div className="border border-gray-200 rounded-xl p-8 md:p-10 bg-green-50">
         <div className="inline-flex items-center gap-2 border border-gray-200 rounded-lg bg-white px-3 py-1 text-xs font-bold tracking-wider mb-6">
-          <span className="w-2 h-2 bg-[#7FBC00]" />
+          <span className="w-2 h-2 bg-[#276749]" />
           SUBMITTED
         </div>
         <h2 className="text-3xl md:text-4xl font-black leading-tight mb-4">
@@ -153,8 +144,8 @@ export default function PostJobForm() {
             Your job is saved, but the verification email to{' '}
             <strong className="font-bold">{values.contact_email}</strong> did not go
             out. Email{' '}
-            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-[#003D5C]">
-              info@avahealth.co
+            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="underline hover:text-[#17324D]">
+              {FREEJOBPOST_SUPPORT_EMAIL}
             </a>{' '}
             and we will verify your listing by hand.
           </p>
@@ -173,16 +164,16 @@ export default function PostJobForm() {
           <p className="text-sm text-gray-600 mb-6">
             Link expires in 48 hours. Check your spam folder if you don&apos;t see it in a few minutes.
             Still nothing? Email{' '}
-            <a href="mailto:info@avahealth.co?subject=Job+verification+email+not+received" className="underline hover:text-[#003D5C]">
-              info@avahealth.co
+            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="underline hover:text-[#17324D]">
+              {FREEJOBPOST_SUPPORT_EMAIL}
             </a>{' '}
-            with the subject line "Job verification email not received" and we&apos;ll activate your listing manually.
+            with the subject line &quot;Job verification email not received&quot; and we&apos;ll activate your listing manually.
           </p>
         )}
         <div className="flex flex-wrap gap-3">
           <Link
             href="/jobs"
-            className="inline-flex items-center border border-[#003D5C] rounded-lg px-6 py-3 font-bold text-[#003D5C] hover:bg-[#003D5C] hover:text-white transition-colors"
+            className="inline-flex items-center border border-[#17324D] rounded-lg px-6 py-3 font-bold text-[#17324D] hover:bg-[#17324D] hover:text-white transition-colors"
           >
             Browse live jobs
           </Link>
@@ -197,7 +188,7 @@ export default function PostJobForm() {
               const cn = params.get('cn') ?? ''
               setValues({ ...INITIAL, company_name: co, contact_name: cn })
             }}
-            className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
+            className="inline-flex items-center bg-[#276749] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#1F563B] transition-colors"
           >
             Post another →
           </button>
@@ -239,15 +230,15 @@ export default function PostJobForm() {
           <div
             key={s}
             className={`flex items-center gap-2 ${
-              s === step ? 'text-[#003D5C]' : s < step ? 'text-[#003D5C]' : 'text-gray-600'
+              s === step ? 'text-[#17324D]' : s < step ? 'text-[#17324D]' : 'text-gray-600'
             }`}
           >
             <span
               className={`w-7 h-7 border-2 flex items-center justify-center ${
                 s === step
-                  ? 'border-[#003D5C] bg-[#003D5C] text-white'
+                  ? 'border-[#17324D] bg-[#17324D] text-white'
                   : s < step
-                  ? 'border-[#7FBC00] bg-[#7FBC00] text-white'
+                  ? 'border-[#276749] bg-[#276749] text-white'
                   : 'border-gray-400'
               }`}
             >
@@ -491,67 +482,10 @@ export default function PostJobForm() {
               className={fieldStyle}
             />
           </Field>
-          {/* Distribution targets — checkboxes per network */}
-          <div className="border border-gray-200 rounded-lg p-4 mt-2">
-            <div className="flex items-baseline justify-between mb-3 gap-3">
-              <div>
-                <p className="text-xs font-bold tracking-wider uppercase">Where should we syndicate this job?</p>
-                <p className="text-xs text-gray-500 mt-0.5">Active channels on by default. Uncheck anywhere you don&apos;t want it pushed.</p>
-              </div>
-              <div className="flex gap-3 text-xs font-bold whitespace-nowrap">
-                <button
-                  type="button"
-                  onClick={() => update('syndication_targets', SYNDICATION_TARGETS.map((t) => t.id))}
-                  className="underline hover:text-[#003D5C]"
-                >
-                  All on
-                </button>
-                <button
-                  type="button"
-                  onClick={() => update('syndication_targets', [])}
-                  className="underline hover:text-red-600"
-                >
-                  All off
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {SYNDICATION_TARGETS.map((t) => {
-                const on = values.syndication_targets.includes(t.id)
-                return (
-                  <label
-                    key={t.id}
-                    className={`flex items-start gap-2.5 p-2.5 border rounded-lg cursor-pointer transition-colors ${
-                      on ? 'border-[#7FBC00] bg-[#7FBC00]/5' : 'border-gray-300 hover:border-[#003D5C]'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={on}
-                      onChange={() => toggleTarget(t.id)}
-                      className="mt-0.5 w-4 h-4 accent-[#7FBC00]"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-sm font-bold">{t.label}</span>
-                        <span className="text-[10px] text-gray-500 font-mono">{t.reach}</span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-snug mt-0.5">{t.blurb}</p>
-                    </div>
-                  </label>
-                )
-              })}
-            </div>
-            {values.syndication_targets.length === 0 && (
-              <p className="text-xs text-amber-700 font-bold mt-3">
-                ⚠ No networks selected. This job will only be visible on freejobpost.co directly.
-              </p>
-            )}
-          </div>
-
           <p className="text-xs text-gray-500">
-            By submitting, you agree your job posting can appear on freejobpost.co
-            and any networks you selected above. We&apos;ll never sell your contact info.
+            By submitting, you agree to our <Link href="/terms" className="underline">Terms</Link>{' '}
+            and <Link href="/privacy" className="underline">Privacy Policy</Link>. We may share the
+            posting with job-search partners to help candidates find it.
           </p>
 
           {/* Cloudflare Turnstile bot challenge — only renders if a sitekey is
@@ -580,7 +514,7 @@ export default function PostJobForm() {
                 setStep((step - 1) as 1 | 2 | 3)
                 setStepError(null)
               }}
-              className="text-sm font-bold underline hover:text-[#003D5C]"
+              className="text-sm font-bold underline hover:text-[#17324D]"
             >
               ← Back
             </button>
@@ -589,7 +523,7 @@ export default function PostJobForm() {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center bg-[#276749] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#1F563B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending
             ? 'Submitting…'
@@ -603,7 +537,7 @@ export default function PostJobForm() {
 }
 
 const fieldStyle =
-  'w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7FBC00]'
+  'w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]'
 
 function Field({
   label,

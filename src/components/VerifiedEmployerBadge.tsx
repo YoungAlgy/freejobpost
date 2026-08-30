@@ -1,10 +1,8 @@
 // Green-check badge rendered next to a verified employer's name. An employer
 // is considered "verified" when public_employers.verified_at is non-null,
 // which is set by the verification flow (one-click confirmation from an
-// email at the company domain). This is the differentiator vs. seeded
-// inventory placed by Ava Health Partners — verified employers carry the
-// signal that there's a real, traceable third-party hiring entity behind
-// the listing.
+// email at the company domain). The badge signals that a real, traceable
+// hiring organization is behind the listing.
 //
 // Visual: small inline pill — gray border, green check, "Verified" text.
 // Stays subtle so it doesn't dominate the listing UI; the value is just
@@ -34,7 +32,7 @@ export default function VerifiedEmployerBadge({
         width="14"
         height="14"
         aria-hidden="true"
-        className="text-[#00B5D4] shrink-0"
+        className="text-[#247A8A] shrink-0"
       >
         {/* Filled check inside a circle — recognizable trust signal */}
         <circle cx="8" cy="8" r="7" fill="currentColor" />
@@ -48,7 +46,7 @@ export default function VerifiedEmployerBadge({
         />
       </svg>
       {!iconOnly && (
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#00B5D4]">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[#247A8A]">
           Verified
         </span>
       )}

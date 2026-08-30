@@ -13,9 +13,10 @@ This release includes:
 - Ava-family vanity redirects removed from the Free Job Post Worker.
 - Production builds blocked from calling `set_matrix_cache`.
 - `20260828_scope_employer_applications_to_direct_posts.sql` applied to the
-  shared Supabase project.
-- `apply-notify` and `job-alert-digest` Edge Functions deployed with their
-  direct-employer source checks.
+  shared Supabase project. It scopes employer application reads and public
+  application writes to direct-employer jobs.
+- The five active application, verification, login, and alert Edge Functions
+  deployed with direct-employer checks and FreeJobPost-owned email bindings.
 
 Legacy ATS importers, federal inventory, candidate matching, and old backfill
 jobs are outside this release. Do not redeploy or restart them as part of this
@@ -35,6 +36,11 @@ Stop the release if any item below is false:
 - Changed-file lint and the scoped diff check pass.
 - The previous Cloudflare Worker version ID is recorded.
 - The migration and Edge Function source in the release match the frontend.
+- `NEXT_PUBLIC_FREEJOBPOST_SUPPORT_EMAIL` is set on the Worker to a monitored
+  address whose domain is exactly `freejobpost.co`.
+- `FREEJOBPOST_FROM_EMAIL` and `FREEJOBPOST_REPLY_TO_EMAIL` are set for each
+  listed Edge Function. Both domains are exactly `freejobpost.co`, and the
+  sender is verified in Resend.
 
 The protected root migration helper is outside this release. Do not include it
 in inspection, staging, build helpers, or deployment commands.
@@ -69,6 +75,8 @@ Use the approved read-only connection to record:
 - Current deployed migration ledger.
 - Current function definition for
   `public.get_employer_applications_rpc(uuid, text)`.
+- Current function definition and privileges for
+  `public.apply_to_job_rpc(uuid, text, text, text, text, text, text)`.
 - Counts in `public_jobs` grouped by `source` and `status`.
 - Count of applications joined to jobs outside `public_employer_post`.
 - Existing schedule and deployed version for `job-alert-digest`.
@@ -77,29 +85,40 @@ Review the migration file directly:
 
 `supabase/migrations/20260828_scope_employer_applications_to_direct_posts.sql`
 
-It replaces one RPC and does not delete or rewrite jobs, candidates, or
-applications. Its public response shape stays compatible and adds
-`scope: "public_employer_post"`.
+It replaces two RPCs and does not delete or rewrite jobs, candidates, or
+applications. The dashboard response shape stays compatible and adds
+`scope: "public_employer_post"`. The public apply signature and response shape
+stay compatible while imported, federal, and seeded job IDs return 404 before
+any candidate or application write.
 
 Run the existing migration dry-run workflow. Apply only this reviewed pending
 migration when its plan matches the file. Read the function definition again
-afterward and confirm both job joins require:
+afterward and confirm the dashboard joins and apply job lookup require the
+equivalent source gates:
 
 ```sql
 pj.source = 'public_employer_post'
+source = 'public_employer_post'
 ```
+
+Confirm the apply RPC has no grant for `PUBLIC` or `authenticated`, and only
+`anon` has execute access for the public server action.
 
 ## 3. Edge Functions
 
-Deploy both functions without JWT verification. Their own request checks stay
-in place:
+Confirm the sender and reply bindings in the Supabase dashboard without
+printing their values. Deploy the five reviewed functions without JWT
+verification. Their own request checks stay in place:
 
 ```powershell
 supabase functions deploy apply-notify --no-verify-jwt
+supabase functions deploy employer-login-send --no-verify-jwt
 supabase functions deploy job-alert-digest --no-verify-jwt
+supabase functions deploy post-job-send-verify --no-verify-jwt
+supabase functions deploy post-job-verify --no-verify-jwt
 ```
 
-Do not trigger either function during deployment. Verify the deployed source
+Do not trigger these functions during deployment. Verify the deployed source
 or function metadata, then leave the existing digest schedule unchanged.
 
 ## 4. Safe production builds
@@ -188,9 +207,8 @@ Smoke-test the previous version after traffic changes.
 
 ### Edge Function rollback
 
-Redeploy the prior reviewed source for `apply-notify` or `job-alert-digest` if
-the new function fails. Do not change the digest schedule during a code
-rollback.
+Redeploy the prior reviewed source for the affected Edge Function if the new
+function fails. Do not change the digest schedule during a code rollback.
 
 ### Database rollback
 

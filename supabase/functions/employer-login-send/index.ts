@@ -12,6 +12,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { readFreeJobPostEmailConfig } from "../_shared/freejobpost-email.ts";
 import { sendTransactionalEmail } from "../_shared/resend-send.ts";
 
 const corsHeaders = {
@@ -21,9 +22,6 @@ const corsHeaders = {
 };
 
 const FROM_NAME = "Free Job Post";
-// Resend sender — only avahealth.co is verified in this workspace.
-const FROM_EMAIL = "jobs@avahealth.co";
-const REPLY_TO = "alex@avahealth.co";
 const APP_URL = "https://freejobpost.co";
 
 // Mask an email for ops alerts — enough to recognize the domain
@@ -44,7 +42,7 @@ async function alertOpsViaWebhook(subject: string, body: string): Promise<void> 
   try {
     const url = Deno.env.get("OPS_ALERT_WEBHOOK_URL");
     if (!url) return;
-    const message = `**[ava ops alert]** ${subject}\n\n${body}`;
+    const message = `**[freejobpost ops alert]** ${subject}\n\n${body}`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
@@ -77,6 +75,7 @@ serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
 
   try {
+    const { fromEmail, replyToEmail } = readFreeJobPostEmailConfig((name) => Deno.env.get(name));
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     // SECURITY 2026-05-30: service-role, not anon. request_employer_login_rpc mints +
     // RETURNS a login nonce; anon EXECUTE is revoked so the nonce can't be harvested via a
@@ -129,7 +128,7 @@ serve(async (req) => {
       // Return a user-friendly message so the employer knows what to do.
       return new Response(JSON.stringify({
         success: false,
-        error: "Sign-in emails are temporarily unavailable. Email alex@avahealth.co with subject \"Dashboard login help\" and we'll get you in."
+        error: `Sign-in emails are temporarily unavailable. Email ${replyToEmail} with subject "Dashboard login help" and we'll get you in.`
       }), {
         status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -227,9 +226,9 @@ This link stays active for 30 days. Didn't request this? Ignore it. Your account
 freejobpost.co is operated by Ava Health Partners LLC`;
 
     const sendResult = await sendTransactionalEmail({
-      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      from: `${FROM_NAME} <${fromEmail}>`,
       to: r.employer_email,
-      replyTo: REPLY_TO,
+      replyTo: replyToEmail,
       subject,
       html,
       text,

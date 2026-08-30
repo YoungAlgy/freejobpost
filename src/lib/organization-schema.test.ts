@@ -3,113 +3,100 @@ import { ORG_PROFILE, buildOrganizationGraph } from './organization-schema'
 
 const FREEJOBPOST_INPUT = {
   websiteUrl: 'https://freejobpost.co',
-  websiteName: 'Free Job Post',
-  websiteDescription: 'Free healthcare job board.',
-  organizationDescription: 'Ava Health Partners operates freejobpost.co.',
+  websiteName: 'FreeJobPost',
+  websiteDescription: 'Free nursing and allied-health job board.',
+  organizationDescription:
+    'FreeJobPost is an independent nursing and allied-health job board.',
+  supportEmail: 'support@freejobpost.co',
   searchActionTarget: 'https://freejobpost.co/jobs?q={search_term_string}',
 } as const
 
-describe('ORG_PROFILE (canonical)', () => {
-  it('legalName matches Ava Health Partners LLC (entity legitimacy signal)', () => {
-    // The strategic-plan disclosure norm depends on the legalName in the
-    // schema graph — aggregator vetting reads this. Don't tweak without
-    // reason.
-    expect(ORG_PROFILE.legalName).toBe('Ava Health Partners LLC')
+describe('ORG_PROFILE', () => {
+  it('uses FreeJobPost as the canonical public identity', () => {
+    expect(ORG_PROFILE['@id']).toBe('https://freejobpost.co#organization')
+    expect(ORG_PROFILE.name).toBe('FreeJobPost')
+    expect(ORG_PROFILE.url).toBe('https://freejobpost.co')
+    expect(ORG_PROFILE.logo).toBe('https://freejobpost.co/icon-512')
   })
 
-  it('uses the canonical providers.avahealth.co identity (not freejobpost or freeresumepost)', () => {
-    expect(ORG_PROFILE['@id']).toBe('https://providers.avahealth.co#organization')
-    expect(ORG_PROFILE.url).toBe('https://providers.avahealth.co')
+  it('discloses the legal owner without replacing the product identity', () => {
+    expect(ORG_PROFILE.parentOrganization).toMatchObject({
+      '@type': 'Organization',
+      legalName: 'Ava Health Partners LLC',
+    })
   })
 
-  it('phone is in international E.164 format (Google requirement)', () => {
+  it('keeps complete operator contact details', () => {
     expect(ORG_PROFILE.telephone).toMatch(/^\+1-\d{3}-\d{3}-\d{4}$/)
-  })
-
-  it('postal address has all required fields (Google Maps + LocalBusiness reqs)', () => {
     expect(ORG_PROFILE.address.streetAddress).toBeTruthy()
     expect(ORG_PROFILE.address.addressLocality).toBeTruthy()
     expect(ORG_PROFILE.address.addressRegion).toBeTruthy()
     expect(ORG_PROFILE.address.postalCode).toMatch(/^\d{5}/)
     expect(ORG_PROFILE.address.addressCountry).toBe('US')
   })
+
+  it('keeps contact email out of the static profile', () => {
+    expect(ORG_PROFILE).not.toHaveProperty('email')
+    expect(ORG_PROFILE).not.toHaveProperty('contactPoint')
+  })
 })
 
 describe('buildOrganizationGraph', () => {
-  it('returns a schema.org @graph with exactly two entities (Organization + WebSite)', () => {
+  it('returns an Organization and WebSite graph', () => {
     const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
     expect(graph['@context']).toBe('https://schema.org')
     expect(graph['@graph']).toHaveLength(2)
-    const types = graph['@graph'].map((e) => e['@type'])
-    expect(types).toContain('Organization')
-    expect(types).toContain('WebSite')
+    expect(graph['@graph'].map((entry) => entry['@type'])).toEqual([
+      'Organization',
+      'WebSite',
+    ])
   })
 
-  it('Organization entry preserves canonical @id across all sites', () => {
-    const a = buildOrganizationGraph(FREEJOBPOST_INPUT)
-    const b = buildOrganizationGraph({
-      websiteUrl: 'https://www.freeresumepost.co',
-      websiteName: 'Free Resume Post',
-      websiteDescription: 'Free resume hosting.',
-      organizationDescription: 'Operates freeresumepost.co.',
-      searchActionTarget: 'https://www.freeresumepost.co/?q={search_term_string}',
-    })
-    const orgA = a['@graph'][0]
-    const orgB = b['@graph'][0]
-    // Both sites must point to the same Organization @id; that's what makes
-    // Google merge them into one Knowledge Graph entity. Different sites,
-    // same parent.
-    expect(orgA['@id']).toBe(orgB['@id'])
-    expect(orgA['@id']).toBe('https://providers.avahealth.co#organization')
-  })
-
-  it('WebSite block uses per-site @id and url', () => {
+  it('links the FreeJobPost WebSite to the FreeJobPost Organization', () => {
     const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
-    const website = graph['@graph'].find((e) => e['@type'] === 'WebSite')!
+    const website = graph['@graph'][1]
     expect(website['@id']).toBe('https://freejobpost.co#website')
-    expect((website as { url: string }).url).toBe('https://freejobpost.co')
-  })
-
-  it('WebSite publisher links back to the Organization @id', () => {
-    const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
-    const website = graph['@graph'].find((e) => e['@type'] === 'WebSite') as {
-      publisher: { '@id': string }
-    }
-    expect(website.publisher['@id']).toBe('https://providers.avahealth.co#organization')
-  })
-
-  it('SearchAction target carries the per-site search URL template', () => {
-    const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
-    const website = graph['@graph'].find((e) => e['@type'] === 'WebSite') as {
-      potentialAction: { target: string; 'query-input': string }
-    }
-    expect(website.potentialAction.target).toBe(FREEJOBPOST_INPUT.searchActionTarget)
-    expect(website.potentialAction['query-input']).toBe('required name=search_term_string')
-  })
-
-  it('organizationDescription override flows through to the Organization entry', () => {
-    const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
-    const org = graph['@graph'][0] as { description: string }
-    expect(org.description).toBe(FREEJOBPOST_INPUT.organizationDescription)
-  })
-
-  it('sameAs includes both freejobpost and freeresumepost (cross-site authority transfer)', () => {
-    const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
-    const org = graph['@graph'][0] as { sameAs: string[] }
-    expect(org.sameAs).toContain('https://freejobpost.co')
-    expect(org.sameAs).toContain('https://www.freeresumepost.co')
-    expect(org.sameAs).toContain('https://providers.avahealth.co')
-  })
-
-  it('additionalSameAs entries are appended to the base list, not replacing it', () => {
-    const graph = buildOrganizationGraph({
-      ...FREEJOBPOST_INPUT,
-      additionalSameAs: ['https://twitter.com/freejobpost'],
+    expect(website.url).toBe('https://freejobpost.co')
+    expect(website.publisher).toEqual({
+      '@id': 'https://freejobpost.co#organization',
     })
-    const org = graph['@graph'][0] as { sameAs: string[] }
-    expect(org.sameAs).toContain('https://twitter.com/freejobpost')
-    // Base entries still present
-    expect(org.sameAs).toContain('https://providers.avahealth.co')
-    expect(org.sameAs).toContain('https://freejobpost.co')
+  })
+
+  it('does not claim unverified social or product identities', () => {
+    const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
+    const organization = graph['@graph'][0] as { sameAs?: string[] }
+    expect(organization.sameAs).toBeUndefined()
+  })
+
+  it('keeps the provided product description and search target', () => {
+    const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
+    expect(graph['@graph'][0].description).toBe(
+      FREEJOBPOST_INPUT.organizationDescription,
+    )
+    expect(graph['@graph'][1].potentialAction).toMatchObject({
+      target: FREEJOBPOST_INPUT.searchActionTarget,
+      'query-input': 'required name=search_term_string',
+    })
+  })
+
+  it('uses the required FreeJobPost-owned support address', () => {
+    const graph = buildOrganizationGraph(FREEJOBPOST_INPUT)
+    const organization = graph['@graph'][0] as {
+      email: string
+      contactPoint: Array<{ email: string }>
+    }
+    expect(organization.email).toBe(FREEJOBPOST_INPUT.supportEmail)
+    expect(organization.contactPoint[0].email).toBe(
+      FREEJOBPOST_INPUT.supportEmail,
+    )
+  })
+
+  it('fails closed on a cross-brand support address', () => {
+    expect(() =>
+      buildOrganizationGraph({
+        ...FREEJOBPOST_INPUT,
+        supportEmail: 'info@avahealth.co',
+      }),
+    ).toThrow('NEXT_PUBLIC_FREEJOBPOST_SUPPORT_EMAIL')
   })
 })

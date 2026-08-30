@@ -32,6 +32,7 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { SITEMAP_CHILDREN } from '@/lib/sitemap-chunks'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -80,6 +81,7 @@ async function handle(req: Request): Promise<NextResponse> {
     sb
       .from('public_jobs')
       .select('slug')
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
       .in('status', ['expired', 'filled'])
       .is('deleted_at', null)
       .gt('updated_at', sinceIso)
@@ -87,6 +89,7 @@ async function handle(req: Request): Promise<NextResponse> {
     sb
       .from('public_jobs')
       .select('slug')
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
       .eq('status', 'active')
       .is('deleted_at', null)
       .gt('expires_at', sinceIso)
@@ -117,12 +120,12 @@ async function handle(req: Request): Promise<NextResponse> {
   // The sitemap's hourly self-revalidation silently froze for days (F60) —
   // this is the independent backstop that forces a fresh copy each cron pass.
   //
-  // 2026-08-19: the sitemap is now an index + 21 children (see
+  // The sitemap is an index plus a fixed child list (see
   // src/lib/sitemap-chunks.ts). Revalidating only /sitemap.xml would refresh the
   // index while leaving every actual URL list frozen — the exact F60 failure this
   // backstop exists to prevent, except silent, because the index would keep
   // looking healthy. Every child is refreshed explicitly. They all read the same
-  // unstable_cache'd fetch, so this is one DB scan, not 21.
+  // same direct-employer inventory.
   revalidatePath('/sitemap.xml')
   for (const child of SITEMAP_CHILDREN) revalidatePath(`/sitemaps/${child}`)
 

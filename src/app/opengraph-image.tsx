@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'Free Healthcare Jobs. Post and Apply Free | Ava Health'
+export const alt = 'Post nursing and allied health jobs free | FreeJobPost'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 // 2026-08-13 audit: this route had no revalidate at all, unlike every
@@ -13,8 +13,7 @@ export const contentType = 'image/png'
 // gap, not a deliberate choice.
 export const revalidate = 604800
 
-// Mirrors freeresumepost OG structure exactly so we know Satori
-// will render this. Keep nesting flat, every container display:flex,
+// Keep nesting flat, every container display:flex,
 // avoid bare text nodes inside flex parents that have `gap`.
 export default async function OG() {
   return new ImageResponse(
@@ -41,7 +40,7 @@ export default async function OG() {
           }}
         >
           <div style={{ display: 'flex' }}>
-            <span style={{ color: '#003D5C' }}>Ava Health</span>
+            <span style={{ color: '#17324D' }}>FreeJobPost</span>
           </div>
         </div>
 
@@ -60,12 +59,12 @@ export default async function OG() {
               fontSize: 14,
               fontWeight: 700,
               letterSpacing: 3,
-              color: '#003D5C',
+              color: '#17324D',
               textTransform: 'uppercase',
               marginBottom: 22,
             }}
           >
-            Free healthcare job board
+            Nursing and allied health
           </div>
           <div
             style={{
@@ -74,11 +73,11 @@ export default async function OG() {
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -2.5,
-              color: '#003D5C',
+              color: '#17324D',
               marginBottom: 12,
             }}
           >
-            Free healthcare
+            Post healthcare
           </div>
           <div
             style={{
@@ -87,11 +86,11 @@ export default async function OG() {
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -2.5,
-              color: '#003D5C',
+              color: '#17324D',
               marginBottom: 36,
             }}
           >
-            job posts.
+            jobs free.
           </div>
           <div
             style={{
@@ -100,10 +99,10 @@ export default async function OG() {
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -1.5,
-              color: '#7FBC00',
+              color: '#276749',
             }}
           >
-            No auction fees.
+            Simple from start to finish.
           </div>
         </div>
 
@@ -119,8 +118,8 @@ export default async function OG() {
             paddingTop: 22,
           }}
         >
-          <span>Post jobs free · Apply free · No auction</span>
-          <span style={{ color: '#003D5C', fontWeight: 800 }}>freejobpost.co</span>
+          <span>Post · Verify · Receive applications</span>
+          <span style={{ color: '#17324D', fontWeight: 800 }}>freejobpost.co</span>
         </div>
       </div>
     ),

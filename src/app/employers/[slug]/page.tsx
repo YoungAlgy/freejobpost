@@ -17,6 +17,7 @@ import { notFound } from 'next/navigation'
 import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_LIST_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
   type PublicJob,
   formatSalary,
   locationLabel,
@@ -25,8 +26,6 @@ import {
 } from '@/lib/public-jobs'
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { safeJsonLd } from '@/lib/safe-jsonld'
-import JobAlertCapture from '@/components/JobAlertCapture'
-import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 86400
@@ -49,14 +48,13 @@ type EmployerRow = {
   verified_at: string | null
   verified_via: string | null
   slug: string
-  tier: string | null
 }
 
 async function getEmployer(slug: string): Promise<EmployerRow | null> {
   if (!SLUG_RE.test(slug)) return null
   const { data, error } = await supabase
     .from('public_employers_directory')
-    .select('id, company_name, company_url, vertical, verified_at, verified_via, slug, tier')
+    .select('id, company_name, company_url, vertical, verified_at, verified_via, slug')
     .eq('slug', slug)
     .maybeSingle()
   // FAIL CLOSED (mirrors getJob() in src/app/jobs/[slug]/page.tsx): a query
@@ -88,6 +86,7 @@ async function getEmployerJobs(employerId: string): Promise<PublicJob[]> {
   const { data, error } = await supabase
     .from('public_jobs')
     .select(JOB_LIST_FIELDS)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('employer_id', employerId)
     .eq('status', 'active')
     .is('deleted_at', null)
@@ -304,7 +303,7 @@ export default async function EmployerPage({ params }: Props) {
                         {emp || ''}
                       </div>
                       {/* Salary — full width on mobile (matches /jobs list pattern) */}
-                      <div className="col-span-12 md:col-span-1 font-bold text-right text-sm self-center text-[#003D5C]">
+                      <div className="col-span-12 md:col-span-1 font-bold text-right text-sm self-center text-[#17324D]">
                         {sal || ''}
                       </div>
                     </Link>
@@ -314,46 +313,28 @@ export default async function EmployerPage({ params }: Props) {
             </ul>
           </section>
 
-          {/* Candidate job-alert capture — the job-list reader here is
-              candidate-side (job seekers browse employer pages to find roles).
-              Convert them into a re-contactable CRM lead before the
-              employer-facing CTA below. Defaults to the single dominant state
-              when this employer's roles are concentrated there; otherwise a
-              generic healthcare alert. source='employer_page' (free-text
-              subscribers.source column, no CHECK — confirmed). */}
-          <div className="mt-12">
-            <div className="mb-8">
-              <ResumeMatchCTA />
-            </div>
-            <JobAlertCapture
-              defaultState={states.length === 1 ? (states[0] ?? undefined) : undefined}
-              source="employer_page"
-            />
-          </div>
-
           {/* Post-job CTA */}
           <div className="mt-16 rounded-xl border border-gray-200 shadow-sm p-8">
             <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-2">
               For employers
             </p>
-            <h2 className="text-2xl font-black mb-4 text-[#003D5C]">
+            <h2 className="text-2xl font-black mb-4 text-[#17324D]">
               Post your open roles free. No auction, no per-applicant fee.
             </h2>
             <p className="text-gray-700 mb-6 leading-relaxed max-w-xl">
-              freejobpost.co is a free healthcare job board. Listings go into public XML feeds
-              picked up by aggregators, plus a candidate-side matching engine at freeresumepost.co.
-              No credit card required.
+              FreeJobPost is a nursing and allied-health job board for direct employer posts.
+              Posting is free and no credit card is required.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/post-job"
-                className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-3 rounded-md hover:bg-[#6DA300] transition-colors"
+                className="inline-block bg-[#276749] text-white font-bold px-6 py-3 rounded-md hover:bg-[#1F563B] transition-colors"
               >
                 Post a job →
               </Link>
               <Link
-                href="/for-employers"
-                className="inline-block rounded-md border border-gray-200 font-bold px-6 py-3 hover:bg-[#003D5C] hover:text-white transition-colors"
+                href="/how-it-works"
+                className="inline-block rounded-md border border-gray-200 font-bold px-6 py-3 hover:bg-[#17324D] hover:text-white transition-colors"
               >
                 How it works
               </Link>

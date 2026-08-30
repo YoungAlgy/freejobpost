@@ -38,7 +38,7 @@ type Params = { slug: string; page: string }
 export async function generateStaticParams(): Promise<Params[]> {
   // Only the pages that actually exist. Deriving the range from the family cap
   // instead produced 435 prerendered 404s across the site (39MB of R2 objects
-  // that exist only to say "no") on an account already over the free tier.
+  // that exist only to say "no") in the deployment cache.
   // These are the same counts src/lib/sitemap-chunks.ts uses, so what gets
   // prerendered and what pages.xml advertises cannot drift apart.
   //
@@ -60,16 +60,17 @@ export async function generateMetadata(
   const { slug, page: rawPage } = await params
   const hub = getCityHub(slug)
   const page = parseHubPageParam(rawPage)
-  if (!hub || page === null) return { title: 'Healthcare jobs by city' }
+  if (!hub || page === null) return { title: 'Nursing and allied health jobs by city' }
 
   const cityName = hub.name.split(',')[0]
-  const title = `${cityName} healthcare jobs, page ${page}`
+  const title = `Nursing and allied health jobs in ${cityName}, page ${page}`
   const canonical = `https://freejobpost.co/city/${hub.slug}/p/${page}`
+  const description =
+    `Page ${page} of nursing and allied health roles in ${hub.name}, ` +
+    `posted directly by employers.`
   return {
     title,
-    description:
-      `Page ${page} of open healthcare roles in ${hub.name}. ` +
-      `${HUB_PAGE_SIZE} listings per page, posted direct by employers, no recruiter spam.`,
+    description,
     // SELF-canonical, not a pointer back at page 1. Canonicalising a
     // continuation to page 1 is the classic way to make Google drop every job
     // that is not on page 1 — it tells the crawler this URL is a duplicate and
@@ -77,7 +78,7 @@ export async function generateMetadata(
     alternates: { canonical },
     openGraph: {
       title: `${title} | freejobpost.co`,
-      description: hub.metaDescription,
+      description,
       url: canonical,
       type: 'website',
       images: ['/opengraph-image'],
@@ -113,25 +114,25 @@ export default async function CityHubPaginatedPage(
     <main className="min-h-screen bg-white text-black">
       <div className="max-w-6xl mx-auto px-6 py-12">
         <nav className="text-xs text-gray-500 mb-6" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+          <Link href="/" className="hover:text-[#17324D]">Home</Link>
           {' / '}
-          <Link href="/city" className="hover:text-[#003D5C]">Cities</Link>
+          <Link href="/city" className="hover:text-[#17324D]">Cities</Link>
           {' / '}
-          <Link href={basePath} className="hover:text-[#003D5C]">{hub.name}</Link>
+          <Link href={basePath} className="hover:text-[#17324D]">{hub.name}</Link>
           {' / '}
-          <span className="text-[#003D5C] font-medium">Page {page}</span>
+          <span className="text-[#17324D] font-medium">Page {page}</span>
         </nav>
 
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#003D5C]">
-          {cityName} healthcare jobs
-          <span className="text-[#7FBC00]">, page {page}</span>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#17324D]">
+          Nursing and allied health jobs in {cityName}
+          <span className="text-[#276749]">, page {page}</span>
         </h1>
         <p className="text-sm text-gray-600 mb-8">
           Showing roles {((page - 1) * HUB_PAGE_SIZE + 1).toLocaleString()}
           {' to '}
           {((page - 1) * HUB_PAGE_SIZE + pageJobs.length).toLocaleString()} of{' '}
           {jobs.length.toLocaleString()}.{' '}
-          <Link href={basePath} className="underline hover:text-[#003D5C]">
+          <Link href={basePath} className="underline hover:text-[#17324D]">
             Back to the {cityName} hub
           </Link>
           .

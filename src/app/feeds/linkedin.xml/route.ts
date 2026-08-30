@@ -23,6 +23,7 @@
 import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
   type PublicJob,
   locationLabel,
   usableSalary,
@@ -92,26 +93,18 @@ function iso8601Date(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
-// PostgREST anon-role default db_max_rows=1000 silently clamps a single
-// .limit(N>1000). Same 12-batch pattern as the other partner feeds and
-// /jobs.xml — see src/lib/feed-builders.ts. Pre-fix 2026-05-21 audit:
-// /feeds/linkedin.xml was returning 1,000 of ~9,600 active jobs.
-// 2026-05-28 audit: 12→30. The 12K ceiling silently dropped ~2.6K jobs at 14.6K
-// active inventory. Bump (or switch to count-based paging) before 30K.
+// PostgREST caps each range at 1,000 rows. The shared count helper controls
+// pagination for the direct-employer inventory.
 const BATCH_SIZE = 1000
 
 export async function GET(): Promise<Response> {
-  // STRICT PARTNER: LinkedIn requires EXPLICIT opt-in. Empty arrays are NOT
-  // auto-included — see feed-builders.ts STRICT_PARTNERS for the canonical
-  // list (indeed/linkedin/ziprecruiter). We never republish ATS-aggregated
-  // jobs to LinkedIn without a recruiter's deliberate choice; LinkedIn's
-  // Job Wrapping quality scoring penalizes feeds heavy on republished
-  // content. Pre-2026-05-20 audit confirmed 425 explicitly-opted-in jobs
-  // is the correct number for this surface.
+  // LinkedIn remains disabled by default and requires an explicit target on
+  // the direct post.
   const nowIso = hourIso()
   const baseFiltered = () => supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')
+    .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
@@ -120,35 +113,14 @@ export async function GET(): Promise<Response> {
 
   const numBatches = await activeJobBatchCount(supabase)
 
-  // 2026-08-12 — this route's fallback path could fire numBatches TWICE
-  // (filtered then unfiltered) = up to 120 concurrent range queries in one
-  // request, on top of already being force-dynamic/uncached and polled by
-  // LinkedIn's own crawler on a schedule Algy doesn't control. Both batch
-  // sets now route through the shared runBatchesConcurrencyCapped helper —
-  // see active-batch-count.ts's note.
   const filteredBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
     baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
 
-  // Pre-migration fallback: if column doesn't exist, fetch unfiltered. Use
-  // the first batch's error status as the signal (the others would error
-  // identically).
-  let data: unknown[] | null
-  if (filteredBatches[0]?.error) {
-    const baseFallback = () => supabase
-      .from('public_jobs')
-      .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso)
-      .order('updated_at', { ascending: false }).order('id', { ascending: false })
-    const fallbackBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-      baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-    )
-    data = fallbackBatches.flatMap((b) => (b.data ?? []) as unknown[])
-  } else {
-    data = filteredBatches.flatMap((b) => (b.data ?? []) as unknown[])
+  if (filteredBatches.some((batch) => batch.error)) {
+    throw new Error('linkedin.xml: direct-employer query failed, refusing to cache a partial feed.')
   }
+  const data = filteredBatches.flatMap((b) => (b.data ?? []) as unknown[])
 
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   // Filter thin descriptions before publishing to LinkedIn. LinkedIn Job
@@ -163,7 +135,7 @@ export async function GET(): Promise<Response> {
 
   // 2026-08-20: this read public_employers_directory_all, a relation that does
   // not exist. The error was swallowed, so the map stayed empty and every job
-  // without its own company_name published under the "Ava Health Partners"
+  // without its own company_name published under the wrong site-level
   // fallback. public_employers_directory covers all the employers involved.
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   type EmpRow = { id: string; company_name: string }
@@ -191,7 +163,7 @@ export async function GET(): Promise<Response> {
     const validThrough = job.expires_at
       ? iso8601Date(new Date(job.expires_at))
       : iso8601Date(new Date(Date.now() + 60 * 86400_000))
-    const employerName = employerNameMap.get(job.employer_id) || 'Ava Health Partners'
+    const employerName = job.company_name || employerNameMap.get(job.employer_id) || 'Employer'
     const row = `  <job>
     <partnerJobId>${cdata(job.slug)}</partnerJobId>
     <company>${cdata(employerName)}</company>
@@ -225,7 +197,7 @@ export async function GET(): Promise<Response> {
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>Free healthcare job feed, LinkedIn Job Wrapping spec. Operated by Ava Health Partners LLC. ${included} open positions.</description>
+  <description>FreeJobPost nursing and allied-health job feed, LinkedIn Job Wrapping spec. Owned and operated by Ava Health Partners LLC. ${included} open positions.</description>
 ${jobsXml}
 </source>`
 

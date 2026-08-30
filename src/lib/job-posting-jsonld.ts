@@ -22,7 +22,6 @@ import { stripSalarySuffix } from './clean-labels'
 
 export interface EmployerSummary {
   name: string
-  isSeeded: boolean
   slug: string | null
 }
 
@@ -35,8 +34,8 @@ export interface BuildJobPostingArgs {
  * Build the JobPosting JSON-LD object Google reads to populate Google for
  * Jobs listings. Returns a plain Record so the caller can JSON.stringify +
  * safeJsonLd-escape it without further work. Never returns null — callers
- * are expected to gate emission on hasUsableDescription() and the
- * google-syndication-opt-in check (see /jobs/[slug]/page.tsx).
+ * are expected to gate emission on hasUsableDescription() and Google target
+ * eligibility (see /jobs/[slug]/page.tsx).
  */
 export function buildJobPostingJsonLd(args: BuildJobPostingArgs): Record<string, unknown> {
   const { job, employer } = args
@@ -84,16 +83,10 @@ export function buildJobPostingJsonLd(args: BuildJobPostingArgs): Record<string,
     },
     hiringOrganization: {
       '@type': 'Organization',
-      // Prefer the real per-job company (e.g. Adzuna's company.display_name) over
-      // the joined meta-employer ("Adzuna (aggregator)"). When company_name
-      // overrides, omit sameAs/logo — they describe the joined employer entity,
-      // not the real hiring company, so linking them would be a content mismatch.
+      // Direct employer posts may carry the company name on the job row. The
+      // employer directory slug, when present, is that same organization's page.
       name: job.company_name || employer.name,
-      ...(job.company_name
-        ? {}
-        : employer.isSeeded
-        ? { sameAs: 'https://providers.avahealth.co' }
-        : employer.slug
+      ...(employer.slug
         ? { sameAs: `https://freejobpost.co/employers/${employer.slug}` }
         : {}),
     },

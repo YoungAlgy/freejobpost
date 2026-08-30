@@ -8,6 +8,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { supabase, hourIso } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 86400
@@ -84,6 +85,7 @@ export default async function EmployersPage() {
     const { data: jobData, error: jobError } = await supabase
       .from('public_jobs')
       .select('employer_id')
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
       .in('employer_id', ids)
       .eq('status', 'active')
       .is('deleted_at', null)
@@ -153,14 +155,14 @@ export default async function EmployersPage() {
               <p className="text-gray-600 mb-6 max-w-lg mx-auto">
                 We&apos;re onboarding direct healthcare employer postings now. In the
                 meantime,{' '}
-                <Link href="/jobs" className="underline hover:text-[#003D5C]">
+                <Link href="/jobs" className="underline hover:text-[#17324D]">
                   browse all active openings
                 </Link>{' '}
                 where every listing has a real apply link.
               </p>
               <Link
                 href="/post-job"
-                className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-3 rounded-md hover:bg-[#6DA300] transition-colors"
+                className="inline-block bg-[#276749] text-white font-bold px-6 py-3 rounded-md hover:bg-[#1F563B] transition-colors"
               >
                 Post your roles free →
               </Link>
@@ -187,7 +189,7 @@ export default async function EmployersPage() {
                             </span>
                           )}
                         </div>
-                        <span className="text-sm font-bold text-[#003D5C] shrink-0">
+                        <span className="text-sm font-bold text-[#17324D] shrink-0">
                           {jobCount} open {jobCount === 1 ? 'role' : 'roles'} →
                         </span>
                       </Link>
@@ -202,14 +204,14 @@ export default async function EmployersPage() {
           <div className="mt-16 border-t border-gray-200 pt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
               Healthcare employer?{' '}
-              <Link href="/post-job" className="font-bold underline hover:text-[#003D5C]">
+              <Link href="/post-job" className="font-bold underline hover:text-[#17324D]">
                 Post your open roles free
               </Link>{' '}
               with no credit card, no auction, no paywall to see applicants.
             </p>
             <Link
               href="/how-it-works"
-              className="text-sm font-bold underline underline-offset-2 hover:text-[#003D5C] shrink-0"
+              className="text-sm font-bold underline underline-offset-2 hover:text-[#17324D] shrink-0"
             >
               How it works →
             </Link>

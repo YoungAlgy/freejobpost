@@ -10,8 +10,7 @@
 // Florida has 300 jobs and 3 pages; Vermont has 94 and exactly 1, and listing a
 // /state/vermont/p/2 that 404s is worse than listing nothing.
 //
-// COST: one head-count per hub across the four top-level families
-// (50 states + 33 specialties + 32 cities + 5 federal agencies = ~120 queries).
+// COST: one head-count per state, specialty, and city hub.
 // They run through runCountTasksSettled so this is 8-at-a-time, never a
 // 120-wide burst at the shared Nano Postgres — the failure mode
 // active-batch-count.ts was written to prevent. The whole set is then cached in
@@ -19,10 +18,6 @@
 // Next's Data Cache was found not to persist on this OpenNext/Cloudflare deploy
 // (2026-08-13). So the real cost is ~120 counted queries per 6h globally.
 //
-// The two matrix families (specialty×state, federal agency×state) are NOT here:
-// their per-cell counts already come free from the viable-cell helpers the
-// sitemap calls anyway.
-
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { hourIso } from '@/lib/supabase'
 import { getOrComputeCached } from '@/lib/db-cache'
@@ -32,17 +27,14 @@ import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
 import { CITY_HUBS } from '@/lib/city-slugs'
-import { FEDERAL_AGENCIES, agencyOrFilter } from '@/lib/federal-agencies'
 import { cityOrFilter } from '@/lib/hub-job-queries'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 
-export type HubKind = 'state' | 'specialty' | 'city' | 'federalAgency'
+export type HubKind = 'state' | 'specialty' | 'city'
 
-/** One hub's active-job count. A flat array, not a nested object, on purpose —
- *  getOrComputeCached refuses to persist an empty ARRAY, so a total DB failure
- *  degrades to "no paginated URLs in the sitemap this cycle" instead of poisoning
- *  the cache with all-zero counts for 6h. (That exact class of bug — caching a
- *  5-byte `[]` and serving it as truth — is what bit the matrix cache on
- *  2026-08-19.) */
+/** One hub's active direct-employer job count. Zero is a real value and must be
+ * retained so sitemap code can distinguish an empty hub from an unavailable
+ * count scan. */
 export type HubCount = { kind: HubKind; slug: string; count: number }
 
 type CountTask = { kind: HubKind; slug: string; run: () => PromiseLike<{ count: number | null }> }
@@ -94,27 +86,27 @@ function buildTasks(db: SupabaseClient, signal?: AbortSignal): CountTask[] {
   // Each of these must match its family's fetch in hub-job-queries.ts exactly,
   // or the page count derived here disagrees with the pages the route serves.
   for (const s of STATE_HUBS) {
-    tasks.push({ kind: 'state', slug: s.slug, run: () => base().eq('state', s.abbr) })
+    tasks.push({
+      kind: 'state',
+      slug: s.slug,
+      run: () => base().eq('source', PUBLIC_EMPLOYER_JOB_SOURCE).eq('state', s.abbr),
+    })
   }
   for (const s of SPECIALTY_HUBS) {
     tasks.push({
       kind: 'specialty',
       slug: s.slug,
-      run: () => base().or(buildSpecialtyOrFilter(s.matchPatterns)),
+      run: () => base().eq('source', PUBLIC_EMPLOYER_JOB_SOURCE).or(buildSpecialtyOrFilter(s.matchPatterns)),
     })
   }
   for (const c of CITY_HUBS) {
     tasks.push({
       kind: 'city',
       slug: c.slug,
-      run: () => base().eq('state', c.state).or(cityOrFilter(c.cityMatchPatterns)),
-    })
-  }
-  for (const a of FEDERAL_AGENCIES) {
-    tasks.push({
-      kind: 'federalAgency',
-      slug: a.slug,
-      run: () => base().eq('source', 'usajobs:federal').or(agencyOrFilter(a)),
+      run: () => base()
+        .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+        .eq('state', c.state)
+        .or(cityOrFilter(c.cityMatchPatterns)),
     })
   }
   return tasks
@@ -127,11 +119,9 @@ async function computeHubCounts(db: SupabaseClient, signal?: AbortSignal): Promi
   const out: HubCount[] = []
   for (let i = 0; i < tasks.length; i++) {
     const n = results[i]?.count
-    // Skip rather than record 0 on a failed count. A recorded 0 would mean "this
-    // hub has exactly one page", silently dropping its real continuation URLs
-    // from the sitemap for the full 6h TTL. Skipping means the same thing for
-    // this cycle but does not pretend to know.
-    if (typeof n === 'number' && Number.isFinite(n) && n > 0) {
+    // PostgREST returns a numeric zero for a successful empty count and null
+    // when the count is unavailable. Keep zero, skip only unknown values.
+    if (typeof n === 'number' && Number.isFinite(n) && n >= 0) {
       out.push({ kind: tasks[i].kind, slug: tasks[i].slug, count: n })
     }
   }
@@ -154,7 +144,9 @@ export async function getHubPageCountsCached(
   try {
     rows = await getOrComputeCached(
       db,
-      'hub-page-counts-v1',
+      // Versioned for the direct-employer corpus. Reusing the aggregate-era
+      // key would serve stale continuation counts for up to six hours.
+      'hub-page-counts-direct-v2',
       21600,
       (signal) => computeHubCounts(db, signal),
       options,

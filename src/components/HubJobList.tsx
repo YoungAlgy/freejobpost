@@ -38,7 +38,7 @@ export default function HubJobList({
             <li key={j.id}>
               <Link
                 href={`/jobs/${j.slug}`}
-                className="block py-4 hover:bg-[#7FBC00]/10 transition-colors"
+                className="block py-4 hover:bg-[#276749]/10 transition-colors"
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -72,7 +72,7 @@ export default function HubJobList({
           <Link href={`/jobs/${j.slug}`} className="group block">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-black tracking-tight group-hover:text-[#003D5C] mb-1">
+                <h2 className="text-lg font-black tracking-tight group-hover:text-[#17324D] mb-1">
                   {stripSalarySuffix(j.title) || j.title}
                 </h2>
                 <p className="text-sm text-gray-700">

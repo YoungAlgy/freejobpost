@@ -19,6 +19,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { readFreeJobPostEmailConfig } from "../_shared/freejobpost-email.ts";
 import { sendTransactionalEmail } from "../_shared/resend-send.ts";
 
 const corsHeaders = {
@@ -28,11 +29,6 @@ const corsHeaders = {
 };
 
 const FROM_NAME = "Free Job Post";
-// Sends via Resend (see _shared/resend-send.ts) — only avahealth.co is a
-// verified sending domain in this workspace, so the address lives there.
-// Replies route to the monitored inbox via REPLY_TO.
-const FROM_EMAIL = "jobs@avahealth.co";
-const REPLY_TO = "alex@avahealth.co";
 const APP_URL = "https://freejobpost.co";
 const TOKEN_TTL_SECONDS = 48 * 3600;
 
@@ -46,7 +42,7 @@ async function alertOpsViaWebhook(subject: string, body: string): Promise<void> 
   try {
     const url = Deno.env.get("OPS_ALERT_WEBHOOK_URL");
     if (!url) return;
-    const message = `**[ava ops alert]** ${subject}\n\n${body}`;
+    const message = `**[freejobpost ops alert]** ${subject}\n\n${body}`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
@@ -110,6 +106,7 @@ serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
 
   try {
+    const { fromEmail, replyToEmail } = readFreeJobPostEmailConfig((name) => Deno.env.get(name));
     const SECRET = Deno.env.get("MARKETPLACE_VERIFY_SECRET");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -301,9 +298,9 @@ This link expires in 48 hours. Didn't post this job? Ignore this email.
 freejobpost.co is operated by Ava Health Partners LLC`;
 
     const sendResult = await sendTransactionalEmail({
-      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      from: `${FROM_NAME} <${fromEmail}>`,
       to: employer_email,
-      replyTo: REPLY_TO,
+      replyTo: replyToEmail,
       subject,
       html,
       text,

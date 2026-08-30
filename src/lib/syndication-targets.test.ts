@@ -32,7 +32,7 @@ describe('SYNDICATION_TARGETS', () => {
 
 // ── Default-on targets (S7 lock-in test) ─────────────────────────────────────
 //
-// defaultOn controls which checkboxes the POST JOB form pre-checks.
+// defaultOn controls which targets new posts receive automatically.
 // Channel-inactive targets (currently just linkedin) must stay OFF by default
 // so we never advertise distribution to networks that aren't actually live.
 // Any change to these should be intentional and reviewed.

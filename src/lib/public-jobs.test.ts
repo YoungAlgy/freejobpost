@@ -7,7 +7,18 @@ import {
   locationLabel,
   slugify,
   mapToSchemaEmploymentType,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  isPublicEmployerJob,
 } from './public-jobs'
+
+describe('public employer job visibility', () => {
+  it('accepts only the direct employer posting source', () => {
+    expect(isPublicEmployerJob({ source: PUBLIC_EMPLOYER_JOB_SOURCE })).toBe(true)
+    expect(isPublicEmployerJob({ source: 'greenhouse' })).toBe(false)
+    expect(isPublicEmployerJob({ source: 'usajobs' })).toBe(false)
+    expect(isPublicEmployerJob({ source: null })).toBe(false)
+  })
+})
 
 describe('formatSalary', () => {
   it('returns null when both bounds are missing', () => {

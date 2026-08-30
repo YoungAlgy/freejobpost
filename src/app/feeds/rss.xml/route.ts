@@ -8,6 +8,7 @@
 import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
   type PublicJob,
   formatSalary,
   locationLabel,
@@ -28,12 +29,10 @@ export const dynamic = 'force-dynamic'
 // RSS-spec feed routes — rss.xml, /feeds/state, /feeds/specialty).
 
 export async function GET(): Promise<Response> {
-  // Defensive: pre-migration fallback to unfiltered. Empty-array semantics
-  // matches the other partner feeds — empty == "no preference set" (ATS
-  // default), include in feed.
   const filtered = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -41,26 +40,12 @@ export async function GET(): Promise<Response> {
     .order('created_at', { ascending: false })
     .limit(500)
 
-  let data: unknown[] | null = filtered.data
-  if (filtered.error) {
-    const fallback = await supabase
-      .from('public_jobs')
-      .select(JOB_DETAIL_FIELDS + ', updated_at')
-      .eq('status', 'active')
-      .is('deleted_at', null)
-      .gt('expires_at', hourIso())
-      .order('created_at', { ascending: false })
-      .limit(500)
-    data = fallback.data
-  }
-
   type RssJob = PublicJob & { updated_at: string }
-  const allJobs = (data ?? []) as unknown as RssJob[]
-  // FAIL CLOSED, RUNTIME ONLY — see feed-builders.ts isBuildPhase. 0 fetched
-  // = DB failure (always thousands of active jobs). Throw at runtime so ISR
-  // serves the last-good cache; never throw at build (aborts the deploy).
-  if (allJobs.length === 0 && !isBuildPhase()) {
-    throw new Error('rss.xml: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).')
+  const allJobs = (filtered.data ?? []) as unknown as RssJob[]
+  // Empty is valid while direct-employer inventory is growing. Fail closed
+  // when the scoped query fails.
+  if (filtered.error && !isBuildPhase()) {
+    throw new Error(`rss.xml: direct-employer query failed, refusing to cache. ${filtered.error.message}`)
   }
   // Skip thin-description jobs — RSS readers (Feedly / Inoreader / Apple News)
   // de-prioritize feeds full of empty/thin <description>. Reader-facing coverage
@@ -109,10 +94,10 @@ export async function GET(): Promise<Response> {
      xmlns:atom="http://www.w3.org/2005/Atom"
      xmlns:job="https://freejobpost.co/schema/job/1.0">
   <channel>
-    <title>freejobpost.co | Healthcare jobs</title>
+    <title>freejobpost.co | Nursing and allied health jobs</title>
     <link>https://freejobpost.co</link>
     <atom:link href="https://freejobpost.co/feeds/rss.xml" rel="self" type="application/rss+xml" />
-    <description>Open healthcare roles posted on freejobpost.co: nurses, therapists, and allied health. Updated hourly.</description>
+    <description>Nursing and allied health roles posted directly by employers on freejobpost.co. Updated several times a day.</description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
     <ttl>360</ttl>

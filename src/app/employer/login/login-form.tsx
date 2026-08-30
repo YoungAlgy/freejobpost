@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { requestLoginLink } from './actions'
 import TurnstileWidget from '@/components/TurnstileWidget'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -37,7 +38,7 @@ export default function LoginForm() {
         <p className="text-xs text-gray-500 mt-4">
           Don&apos;t see it? Check your spam folder. Link stays active for 30 days.
           Still nothing after a few minutes?{' '}
-          <a href="mailto:info@avahealth.co?subject=Employer+dashboard+login+help" className="underline hover:text-[#003D5C]">
+          <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Employer+dashboard+login+help`} className="underline hover:text-[#17324D]">
             Email us
           </a>{' '}
           and we&apos;ll sort it out.
@@ -62,7 +63,7 @@ export default function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           maxLength={254}
           placeholder="you@yourhealthclinic.com"
-          className="w-full px-4 py-3 bg-white rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FBC00]"
+          className="w-full px-4 py-3 bg-white rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#276749]"
         />
       </label>
 
@@ -83,7 +84,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-[#7FBC00] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#6DA300] transition-colors disabled:opacity-50"
+        className="w-full bg-[#276749] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#1F563B] transition-colors disabled:opacity-50"
       >
         {pending ? 'Sending…' : 'Send sign-in link →'}
       </button>

@@ -4,12 +4,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CAREER_PATHS, getCareerPath } from '@/lib/career-paths'
-import { CITY_HUBS } from '@/lib/city-slugs'
-import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
-import { supabase } from '@/lib/supabase'
 import { safeJsonLd } from '@/lib/safe-jsonld'
-import JobAlertCapture from '@/components/JobAlertCapture'
-import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 export const revalidate = 86400 // content is static — recheck daily
 
@@ -49,39 +44,6 @@ export default async function CareerPathPage({ params }: Props) {
   const guide = getCareerPath(slug)
   if (!guide) notFound()
 
-  // Surface up to 4 city links for the same specialty — gives the reader a
-  // "jump to current openings in <metro>" shortcut at the end of the
-  // guide. Filter against the city×specialty viable-cells set so we only
-  // link to /city/<slug>/<specialty> URLs that actually render (≥5 jobs).
-  // Falls back to the parent /city/<slug> link when the cell doesn't
-  // exist for this specialty in the target metro.
-  //
-  // 8s timeout: getViableCityCellsCached fires a 12-batch fetch and was
-  // the root cause of /become/[slug] builds timing out at the 60s Vercel
-  // cap when public_jobs grew past ~50K rows. On timeout we render the
-  // city links without the cellExists badge — the page still ships,
-  // and the next ISR revalidate will retry the lookup with fresh cache.
-  const cityCellsPromise = getViableCityCellsCached(supabase).catch(() => [] as Awaited<ReturnType<typeof getViableCityCellsCached>>)
-  const timeoutPromise = new Promise<Awaited<ReturnType<typeof getViableCityCellsCached>>>((resolve) =>
-    setTimeout(() => resolve([]), 8000),
-  )
-  const cityCells = await Promise.race([cityCellsPromise, timeoutPromise])
-  const featuredCityCandidates = [
-    'houston-tx', 'new-york-ny', 'los-angeles-ca', 'tampa-fl',
-    'chicago-il', 'boston-ma', 'atlanta-ga', 'dallas-tx',
-  ]
-  const featuredCities = featuredCityCandidates
-    .map((slug) => {
-      const hub = CITY_HUBS.find((c) => c.slug === slug)
-      if (!hub) return null
-      const cellExists = cityCells.some(
-        (c) => c.city.slug === slug && c.specialty.slug === guide.specialtySlug,
-      )
-      return hub ? { hub, cellExists } : null
-    })
-    .filter((c): c is { hub: NonNullable<typeof CITY_HUBS[number]>; cellExists: boolean } => c !== null)
-    .slice(0, 4)
-
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -108,7 +70,7 @@ export default async function CareerPathPage({ params }: Props) {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Ava Health',
+      name: 'FreeJobPost',
       url: 'https://freejobpost.co',
     },
     inLanguage: 'en-US',
@@ -127,31 +89,29 @@ export default async function CareerPathPage({ params }: Props) {
       <main className="min-h-screen bg-white text-black">
         <article className="max-w-3xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-500 mb-6" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+            <Link href="/" className="hover:text-[#17324D]">Home</Link>
             {' / '}
-            <Link href="/become" className="hover:text-[#003D5C]">Career paths</Link>
+            <Link href="/become" className="hover:text-[#17324D]">Career paths</Link>
             {' / '}
-            <span className="text-[#003D5C] font-medium">{guide.abbreviation || guide.title}</span>
+            <span className="text-[#17324D] font-medium">{guide.abbreviation || guide.title}</span>
           </nav>
 
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4 leading-tight text-[#003D5C]">
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-4 leading-tight text-[#17324D]">
             {guide.title}
           </h1>
           <p className="text-lg text-gray-700 mb-8 leading-relaxed">{guide.lede}</p>
 
           {/* Mid-page CTA — primary value-add over competing how-to sites */}
-          <aside className="rounded-xl border border-gray-200 shadow-sm bg-[#7FBC00]/10 p-4 mb-10">
+          <aside className="rounded-xl border border-gray-200 shadow-sm bg-[#276749]/10 p-4 mb-10">
             <p className="text-xs font-bold tracking-widest text-gray-700 uppercase mb-1">
               Looking for current openings?
             </p>
             <p className="text-sm text-gray-800 mb-3">
-              We pull {guide.specialtyLabel.toLowerCase()} from hospital career
-              sites and major job feeds, plus roles employers post here directly.
-              Updated continuously.
+              Browse {guide.specialtyLabel.toLowerCase()} posted directly by employers.
             </p>
             <Link
               href={`/specialty/${guide.specialtySlug}`}
-              className="inline-flex items-center font-bold border-b-2 border-[#003D5C] text-[#003D5C] hover:border-[#002A40] pb-0.5"
+              className="inline-flex items-center font-bold border-b-2 border-[#17324D] text-[#17324D] hover:border-[#17324D] pb-0.5"
             >
               See current {guide.specialtyLabel.toLowerCase()} →
             </Link>
@@ -160,59 +120,10 @@ export default async function CareerPathPage({ params }: Props) {
           <div className="prose prose-lg max-w-none space-y-8">
             {guide.sections.map((section) => (
               <section key={section.heading}>
-                <h2 className="text-xl font-black tracking-tight mb-3 text-[#003D5C]">{section.heading}</h2>
+                <h2 className="text-xl font-black tracking-tight mb-3 text-[#17324D]">{section.heading}</h2>
                 <p className="text-gray-800 leading-relaxed">{section.body}</p>
               </section>
             ))}
-          </div>
-
-          <section className="mt-12 border-t border-gray-200 pt-8">
-            <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
-              Current {guide.specialtyLabel.toLowerCase()} by metro
-            </h2>
-            <ul className="flex flex-wrap gap-2">
-              {featuredCities.map(({ hub, cellExists }) => (
-                <li key={hub.slug}>
-                  <Link
-                    // When the city×specialty cell exists, link deep so
-                    // readers land on the filtered list. When it doesn't
-                    // (cell has <5 active matching jobs for this
-                    // specialty), fall back to the city hub — never link
-                    // to a known-404 URL.
-                    href={cellExists ? `/city/${hub.slug}/${guide.specialtySlug}` : `/city/${hub.slug}`}
-                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
-                  >
-                    {hub.name.split(',')[0]} →
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link
-                  href={`/specialty/${guide.specialtySlug}`}
-                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
-                >
-                  All US openings →
-                </Link>
-              </li>
-            </ul>
-          </section>
-
-          {/* Job-alert capture — converts high-intent guide readers (people
-              actively researching how to enter this role) into a re-contactable
-              CRM lead tagged to this career path. The guide previously offered
-              only outbound links (specialty hub + metros); this is the first
-              email-capture on the upstream-funnel surface. Parity with the
-              hub/matrix/job pages. source='career_guide' (free-text column, no
-              CHECK). Strip a trailing "jobs" so the widget's "<X> jobs" template
-              doesn't double it. */}
-          <div className="mt-12">
-            <div className="mb-8">
-              <ResumeMatchCTA specialtyLabel={guide.specialtyLabel.replace(/ jobs$/i, '')} />
-            </div>
-            <JobAlertCapture
-              defaultSpecialty={guide.specialtyLabel.replace(/ jobs$/i, '')}
-              source="career_guide"
-            />
           </div>
 
           <section className="mt-10 border-t border-gray-200 pt-8">
@@ -224,7 +135,7 @@ export default async function CareerPathPage({ params }: Props) {
                 <li key={other.slug}>
                   <Link
                     href={`/become/${other.slug}`}
-                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors"
                   >
                     {other.abbreviation || other.specialtyLabel.replace(/ jobs$/i, '')} →
                   </Link>

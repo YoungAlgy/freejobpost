@@ -2,11 +2,12 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
-import { ALL_TARGET_IDS, type SyndicationTargetId } from '@/lib/syndication-targets'
+import { DEFAULT_TARGET_IDS } from '@/lib/syndication-targets'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { validatePayTransparency, validateSalaryRangeSanity } from '@/lib/pay-transparency'
 import { validateSpecialtyScope } from '@/lib/specialty-scope'
 import { track } from '@/lib/track'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -28,7 +29,6 @@ export type PostJobInput = {
   salary_max: number | null
   experience_required: string
   apply_url: string
-  syndication_targets: SyndicationTargetId[]
 }
 
 export type PostJobResult =
@@ -100,10 +100,8 @@ export async function submitPostJob(
     auth: { persistSession: false },
   })
 
-  // Pre-flight quota check. The dashboard UI shows X/10 active and gates the
-  // "post a job" button client-side, but a scripted client could bypass it
-  // and exceed the 10-post cap on the free tier. This call enforces the
-  // same rule server-side via a small SECURITY DEFINER helper.
+  // Pre-flight operational cap. A scripted client can bypass the form, so the
+  // server still enforces the account's current posting limit.
   //
   // The helper is added by `docs/quota-enforcement-migration.sql`. If it's
   // not yet applied (or if the helper errors for any reason), we silently
@@ -124,7 +122,7 @@ export async function submitPostJob(
       // cases, so check the reason before reading the numbers:
       //  - error='rate_limited' means too many quota calls for this email in
       //    a minute. Block it, otherwise the rate limiter does nothing.
-      //  - pro/enterprise tier is uncapped, counts are null on purpose. Allow.
+      //  - Accounts with a custom operational limit return null counts. Allow.
       if (quota.error === 'rate_limited') {
         return {
           success: false,
@@ -134,7 +132,7 @@ export async function submitPostJob(
       if (quota.over_quota && quota.active_count != null && quota.quota != null) {
         return {
           success: false,
-          error: `You're at ${quota.active_count} of ${quota.quota} active posts on your plan. Archive one before posting another, or email info@avahealth.co and we'll uncap your account.`,
+          error: `You have ${quota.active_count} of ${quota.quota} active posts. Archive one before posting another, or email ${FREEJOBPOST_SUPPORT_EMAIL} for help.`,
         }
       }
     }
@@ -179,14 +177,9 @@ export async function submitPostJob(
     return { success: false, error: result.error || 'Submission rejected.' }
   }
 
-  // Set syndication targets on the freshly-created (pending_verify) job.
-  // Filter to known IDs server-side as defense-in-depth — RPC also filters.
-  // Empty array is allowed (= recruiter wants no syndication).
-  const cleanTargets = (input.syndication_targets ?? []).filter((t) =>
-    (ALL_TARGET_IDS as readonly string[]).includes(t)
-  ) as SyndicationTargetId[]
-  // Default-on if recruiter didn't explicitly set anything (e.g. older form caches)
-  const targetsToWrite = input.syndication_targets === undefined ? ALL_TARGET_IDS : cleanTargets
+  // Distribution is automatic. The form stays focused on the posting itself,
+  // while this server-owned list keeps disabled or unapproved channels off.
+  const targetsToWrite = DEFAULT_TARGET_IDS
   if (result.job_id) {
     const { error: targetErr } = await sb.rpc('set_pending_job_syndication_targets', {
       p_job_id: result.job_id,

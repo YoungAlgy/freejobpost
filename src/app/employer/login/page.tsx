@@ -31,7 +31,7 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
         <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
           Employer sign-in
         </p>
-        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#003D5C]">
+        <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4 text-[#17324D]">
           Manage your posts.
         </h1>
         <p className="text-gray-700 mb-8">
@@ -49,7 +49,7 @@ export default async function EmployerLoginPage({ searchParams }: Props) {
 
         <p className="mt-8 text-sm text-gray-500">
           First time here?{' '}
-          <Link href="/post-job" className="font-bold underline hover:text-[#003D5C]">
+          <Link href="/post-job" className="font-bold underline hover:text-[#17324D]">
             Post a job →
           </Link>
         </p>

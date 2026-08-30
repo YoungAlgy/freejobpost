@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import type { Metadata } from 'next'
 import Dashboard from './dashboard'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -32,16 +33,13 @@ type Job = {
   view_count: number
   created_at: string
   expires_at: string
+  source: string | null
 }
 
 type Employer = {
-  id: string
   company_name: string
   contact_name: string | null
-  contact_email: string
-  tier: string
   verified_healthcare_org: boolean
-  status: string
 }
 
 export type Application = {
@@ -95,9 +93,19 @@ async function loadSession(): Promise<{
   const r = data as { success: boolean; employer?: Employer; jobs?: Job[] }
   if (!r.success || !r.employer) return null
 
-  // Fetch applications + public slug in parallel — both are additive and
-  // fail-safe: errors produce graceful fallbacks, not a broken dashboard.
-  const [appsResult, slugResult] = await Promise.allSettled([
+  const sessionJobs = r.jobs ?? []
+  const sessionJobIds = sessionJobs.map((job) => job.id)
+  const directJobScope = sessionJobIds.length > 0
+    ? sb
+        .from('public_jobs')
+        .select('id')
+        .in('id', sessionJobIds)
+        .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    : Promise.resolve({ data: [] as Array<{ id: string }>, error: null })
+
+  // These additive lookups run together. Errors degrade to an empty scoped
+  // section while the authenticated dashboard itself remains available.
+  const [appsResult, slugResult, jobScopeResult] = await Promise.allSettled([
     sb.rpc('get_employer_applications_rpc', {
       p_employer_id: employer_id,
       p_nonce: nonce,
@@ -107,6 +115,7 @@ async function loadSession(): Promise<{
       .select('slug, verified_via')
       .eq('id', employer_id)
       .maybeSingle(),
+    directJobScope,
   ])
 
   const appsData =
@@ -115,14 +124,33 @@ async function loadSession(): Promise<{
           success: boolean
           applications?: Application[]
           total_count?: number
+          scope?: string
         })
       : null
 
-  const applications: Application[] = appsData?.applications ?? []
-  // get_employer_applications_rpc caps at the 50 most recent applications.
-  // total_count is the real total; older RPC deployments won't send it, so
-  // fall back to applications.length (i.e. assume the array is complete).
-  const totalApplications: number = appsData?.total_count ?? applications.length
+  // consume_employer_login_rpc predates the standalone product boundary and
+  // can return other jobs owned by the same account. Fail closed unless each
+  // row identifies itself as a direct FreeJobPost submission.
+  const scopedJobIds = new Set<string>()
+  if (jobScopeResult.status === 'fulfilled' && !jobScopeResult.value.error) {
+    for (const row of (jobScopeResult.value.data ?? []) as Array<{ id: string }>) {
+      scopedJobIds.add(row.id)
+    }
+  }
+  // Newer login-RPC rows include source. Keep that exact marker as a fallback
+  // for pending posts that a public read policy may intentionally hide.
+  for (const job of sessionJobs) {
+    if (job.source === PUBLIC_EMPLOYER_JOB_SOURCE) scopedJobIds.add(job.id)
+  }
+  const jobs = sessionJobs.filter((job) => scopedJobIds.has(job.id))
+  const directJobIds = new Set(jobs.map((job) => job.id))
+  const applications: Application[] = (appsData?.success ? appsData.applications ?? [] : [])
+    .filter((application) => directJobIds.has(application.job_id))
+  // The updated RPC declares its direct-post scope. Older broad deployments
+  // are post-filtered above, so their total_count cannot be trusted.
+  const totalApplications = appsData?.scope === PUBLIC_EMPLOYER_JOB_SOURCE
+    ? (appsData.total_count ?? applications.length)
+    : applications.length
 
   let publicSlug: string | null = null
   if (slugResult.status === 'fulfilled') {
@@ -135,7 +163,7 @@ async function loadSession(): Promise<{
     }
   }
 
-  return { employer: r.employer, jobs: r.jobs ?? [], applications, totalApplications, publicSlug }
+  return { employer: r.employer, jobs, applications, totalApplications, publicSlug }
 }
 
 export default async function EmployerDashboardPage() {

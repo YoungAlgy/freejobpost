@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Ava Health privacy policy. We never sell candidate contact data. Operated by Ava Health Partners LLC.',
+  description: 'FreeJobPost privacy policy. FreeJobPost is owned and operated by Ava Health Partners LLC.',
   alternates: { canonical: 'https://freejobpost.co/privacy' },
   robots: { index: true, follow: true },
 }
@@ -12,12 +13,13 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-white text-black">
       <article className="max-w-3xl mx-auto px-6 py-12">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#003D5C]">Privacy Policy</h1>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 text-[#17324D]">Privacy Policy</h1>
         <p className="text-sm text-gray-600 mb-10">Last updated April 27, 2026</p>
 
         <div className="space-y-6 text-gray-800 leading-relaxed">
           <p>
-            Ava Health Partners LLC (&quot;we&quot;) operates <strong>freejobpost.co</strong>. This policy
+            Ava Health Partners LLC owns and operates <strong>FreeJobPost</strong> at freejobpost.co.
+            This policy
             describes what data we collect, why, and what we do (and don&apos;t) do with it.
           </p>
 
@@ -59,7 +61,7 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-5 space-y-1.5">
             <li>We do not sell candidate emails or resumes to recruiters or third parties.</li>
             <li>We do not run remarketing or behavioral ad targeting.</li>
-            <li>We do not share data with sister sites except as the user explicitly initiates (e.g. applying for a job from freeresumepost.co/profile).</li>
+            <li>We do not share contact data with another product unless you explicitly direct us to do so.</li>
           </ul>
 
           <h2 className="text-xl font-black mt-8 mb-2">Cookies + analytics</h2>
@@ -72,14 +74,14 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-black mt-8 mb-2">Bot protection (Cloudflare Turnstile)</h2>
           <p>
             We use{' '}
-            <a href="https://www.cloudflare.com/products/turnstile/" className="underline hover:text-[#003D5C]" rel="noopener noreferrer">
+            <a href="https://www.cloudflare.com/products/turnstile/" className="underline hover:text-[#17324D]" rel="noopener noreferrer">
               Cloudflare Turnstile
             </a>{' '}
             on form submissions (post a job, apply for a job, employer login) to detect bots and
             prevent spam. Turnstile may use browser signals (cookies, local storage, browser
             characteristics) to assess whether a form submission is human. No data collected by
             Turnstile is used for advertising. See{' '}
-            <a href="https://www.cloudflare.com/privacypolicy/" className="underline hover:text-[#003D5C]" rel="noopener noreferrer">
+            <a href="https://www.cloudflare.com/privacypolicy/" className="underline hover:text-[#17324D]" rel="noopener noreferrer">
               Cloudflare&apos;s Privacy Policy
             </a>{' '}
             for details.
@@ -90,20 +92,20 @@ export default function PrivacyPage() {
             Transactional emails (post verification, applicant notifications) are sent via Resend.
             We honor unsubscribe requests immediately and add the email to a permanent suppression list.
             We do not run cold-email campaigns. If you receive unsolicited mail claiming to be from us,
-            forward it to <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>.
+            forward it to <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline hover:text-[#17324D]">{FREEJOBPOST_SUPPORT_EMAIL}</a>.
           </p>
 
           <h2 className="text-xl font-black mt-8 mb-2">Data retention + deletion</h2>
           <ul className="list-disc pl-5 space-y-1.5">
             <li>Job posts are retained for 90 days post-expiration, then soft-deleted.</li>
             <li>Applications are retained for 12 months for legal/audit reasons, then deleted.</li>
-            <li>You can request deletion of your data anytime by emailing <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>.</li>
+            <li>You can request deletion of your data anytime by emailing <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline hover:text-[#17324D]">{FREEJOBPOST_SUPPORT_EMAIL}</a>.</li>
           </ul>
 
           <h2 className="text-xl font-black mt-8 mb-2">Your rights (CCPA / GDPR)</h2>
           <p>
             California + EU residents: you have the right to access, correct, or delete your data.
-            Email <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a> with the subject &quot;Privacy request&quot;, and we&apos;ll respond within 30 days.
+            Email <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline hover:text-[#17324D]">{FREEJOBPOST_SUPPORT_EMAIL}</a> with the subject &quot;Privacy request&quot;, and we&apos;ll respond within 30 days.
           </p>
 
           <h2 className="text-xl font-black mt-8 mb-2">Security</h2>
@@ -117,11 +119,11 @@ export default function PrivacyPage() {
             <strong>Ava Health Partners LLC</strong><br />
             4532 W Kennedy Blvd, Suite 125<br />
             Tampa, FL 33609<br />
-            <a href="mailto:info@avahealth.co" className="underline hover:text-[#003D5C]">info@avahealth.co</a>
+            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline hover:text-[#17324D]">{FREEJOBPOST_SUPPORT_EMAIL}</a>
           </p>
 
           <p className="mt-10 text-sm text-gray-600">
-            See also: <Link href="/terms" className="underline hover:text-[#003D5C]">Terms of Use</Link>
+            See also: <Link href="/terms" className="underline hover:text-[#17324D]">Terms of Use</Link>
           </p>
         </div>
       </article>

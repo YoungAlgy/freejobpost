@@ -9,9 +9,14 @@
 
 import { ImageResponse } from 'next/og'
 import { supabase } from '@/lib/supabase'
-import { formatSalary, employmentLabel, locationLabel } from '@/lib/public-jobs'
+import {
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  formatSalary,
+  employmentLabel,
+  locationLabel,
+} from '@/lib/public-jobs'
 
-export const alt = 'Job posting on Ava Health'
+export const alt = 'Job posting on FreeJobPost'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 // 2026-05-28 cost audit: the route's header comment claimed slug-level CDN
@@ -25,8 +30,8 @@ export const revalidate = 604800
 // the select (JOB_DETAIL_FIELDS pulled it) shrinks the per-miss query.
 const OG_FIELDS = 'title, city, state, salary_min, salary_max, employment_type, specialty'
 
-const BRAND = '#003D5C'
-const ACCENT = '#7FBC00'
+const BRAND = '#17324D'
+const ACCENT = '#276749'
 // Allow uppercase chars in slugs — Workday + Greenhouse external IDs
 // (e.g. RQ4052378, JR192702) keep uppercase, and buildAtsSlug() carries
 // them through to the slug. The page route's SLUG_RE was loosened on
@@ -53,6 +58,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       .from('public_jobs')
       .select(OG_FIELDS)
       .eq('slug', slug)
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
       .eq('status', 'active')
       .is('deleted_at', null)
       .maybeSingle()
@@ -84,7 +90,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, paddingBottom: 20, borderBottom: `4px solid ${ACCENT}`, marginBottom: 48 }}>
-          <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>Ava Health</span>
+          <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>FreeJobPost</span>
         </div>
 
         <div style={{ display: 'flex', alignSelf: 'flex-start', background: ACCENT, color: BRAND, padding: '8px 18px', borderRadius: 999, fontSize: 20, fontWeight: 700, marginBottom: 32, letterSpacing: 1, maxWidth: 1040, overflow: 'hidden' }}>
@@ -109,7 +115,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
         <div style={{ position: 'absolute', bottom: 80, left: 80, right: 80, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 22, opacity: 0.85 }}>
           <span>freejobpost.co</span>
-          <span>Free healthcare job board</span>
+          <span>Nursing and allied health</span>
         </div>
       </div>
     ),

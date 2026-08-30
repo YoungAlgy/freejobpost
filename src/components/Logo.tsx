@@ -1,12 +1,5 @@
-// Ava Health logomark — navy medical cross + lime leaf.
-//
-// Flat-geometric merge of the existing illustrated cross+leaf mark with
-// scaleability-first construction. Keeps the brand metaphor (healthcare +
-// growth) but drops the glossy/3D/gradient treatment so the mark reads
-// cleanly from 16px favicon up to 240px hero lockup.
-//
-// Copied verbatim from avahealth-providers/src/components/Logo.tsx so the
-// whole family shows the SAME mark beside the wordmark (no shared package).
+// FreeJobPost logomark. The posting card and plus sign keep this product
+// visually separate from the Ava Health cross-and-leaf identity.
 
 type Variant = 'full' | 'mono'
 type Theme = 'light' | 'dark'
@@ -24,14 +17,11 @@ export function Logo({
   theme = 'light',
   className = '',
 }: LogoProps) {
-  const navy = '#003D5C'
-  const lime = '#7FBC00'
-  const limeDark = '#5C9900'
+  const navy = '#17324D'
+  const green = '#276749'
   const isMono = variant === 'mono'
   const baseColor = theme === 'dark' ? '#FFFFFF' : navy
-  const leafColor = isMono ? baseColor : lime
-  const veinColor = isMono ? baseColor : limeDark
-  const veinOpacity = isMono ? 0.4 : 0.55
+  const accentColor = isMono ? baseColor : green
 
   return (
     <svg
@@ -41,30 +31,15 @@ export function Logo({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="Ava Health"
+      aria-label="FreeJobPost"
       role="img"
     >
-      <g fill={baseColor}>
-        <rect x="21" y="6" width="10" height="36" rx="2.5" />
-        <rect x="7" y="20" width="38" height="10" rx="2.5" />
-      </g>
-      <g>
-        <path
-          d="M 34 22
-             C 50 22, 58 32, 58 45
-             C 58 56, 46 60, 34 57
-             C 27 51, 27 33, 34 22 Z"
-          fill={leafColor}
-        />
-        <path
-          d="M 36 27 Q 44 40, 47 55"
-          stroke={veinColor}
-          strokeWidth="2"
-          strokeLinecap="round"
-          fill="none"
-          opacity={veinOpacity}
-        />
-      </g>
+      <rect x="8" y="8" width="48" height="48" rx="12" fill={baseColor} />
+      <rect x="17" y="19" width="24" height="4" rx="2" fill="white" />
+      <rect x="17" y="29" width="18" height="4" rx="2" fill="white" opacity="0.9" />
+      <rect x="17" y="39" width="13" height="4" rx="2" fill="white" opacity="0.75" />
+      <circle cx="44" cy="43" r="10" fill={accentColor} stroke="white" strokeWidth="2" />
+      <path d="M44 38v10M39 43h10" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   )
 }

@@ -21,12 +21,11 @@ import {
   fmtUsdCompact,
 } from '@/lib/salary-aggregates'
 import { fetchCityHubJobCount, fetchCityHubJobs } from '@/lib/hub-job-queries'
+import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 import { HUB_PAGE_SIZE, hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import HubJobList from '@/components/HubJobList'
 import HubPagination from '@/components/HubPagination'
-import JobAlertCapture from '@/components/JobAlertCapture'
-import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 86400
@@ -48,14 +47,17 @@ export async function generateMetadata(
   const { slug } = await params
   const hub = getCityHub(slug)
   if (!hub) return {}
-  const title = `${hub.name.split(',')[0]} healthcare jobs`
+  const count = await fetchCityHubJobCount(hub.cityMatchPatterns, hub.state)
+  const title = `Nursing and allied health jobs in ${hub.name.split(',')[0]}`
+  const description = composeHubMetaDescription({ count, label: hub.name, kind: 'state' })
   return {
     title,
-    description: hub.metaDescription,
+    description,
+    robots: { index: count > 0, follow: true },
     alternates: { canonical: `https://freejobpost.co/city/${hub.slug}` },
     openGraph: {
       title: `${title} | freejobpost.co`,
-      description: hub.metaDescription,
+      description,
       url: `https://freejobpost.co/city/${hub.slug}`,
       type: 'website',
       // Fall back to root /opengraph-image — no dedicated per-city OG
@@ -66,7 +68,7 @@ export async function generateMetadata(
     twitter: {
       card: 'summary_large_image',
       title: `${title} | freejobpost.co`,
-      description: hub.metaDescription,
+      description,
       images: ['/opengraph-image'],
     },
   }
@@ -153,50 +155,26 @@ export default async function CityHubPage(
       <main className="min-h-screen bg-white text-black">
         <div className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-500 mb-6" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+            <Link href="/" className="hover:text-[#17324D]">Home</Link>
             {' / '}
-            <Link href="/city" className="hover:text-[#003D5C]">Cities</Link>
+            <Link href="/city" className="hover:text-[#17324D]">Cities</Link>
             {' / '}
-            <span className="text-[#003D5C] font-medium">{hub.name}</span>
+            <span className="text-[#17324D] font-medium">{hub.name}</span>
           </nav>
 
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#003D5C]">
-            {cityName} healthcare jobs
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#17324D]">
+            Nursing and allied health jobs in {cityName}
           </h1>
           <p className="text-base text-gray-600 mb-6">
-            <span className="tabular-nums font-bold text-[#003D5C]">
+            <span className="tabular-nums font-bold text-[#17324D]">
               {totalCount.toLocaleString()}
             </span>{' '}
             {totalCount === 1 ? 'open role' : 'open roles'} in {hub.name}
           </p>
 
           <p className="text-lg text-gray-700 mb-8 max-w-3xl leading-relaxed">
-            {hub.shortDescription}
+            Browse current roles in {hub.name} posted directly by healthcare employers.
           </p>
-
-          {hub.editorialNote && (
-            <aside className="border-l-4 border-[#7FBC00] bg-[#7FBC00]/10 pl-4 py-3 mb-8 text-gray-800 text-sm leading-relaxed max-w-3xl">
-              {hub.editorialNote}
-            </aside>
-          )}
-
-          {hub.topEmployers.length > 0 && (
-            <section className="mb-10">
-              <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-3">
-                Top employers
-              </h2>
-              <ul className="flex flex-wrap gap-2">
-                {hub.topEmployers.map((emp) => (
-                  <li
-                    key={emp}
-                    className="text-sm rounded-md border border-gray-200 shadow-sm px-2.5 py-1 font-medium"
-                  >
-                    {emp}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
 
           {/* Computed salary panel for this metro — unique, data-driven content
               built from the active inventory (zero extra query). Parity with the
@@ -248,13 +226,13 @@ export default async function CityHubPage(
                 Check back soon, or browse{' '}
                 {stateHub && (
                   <>
-                    <Link href={`/state/${stateHub.slug}`} className="underline hover:text-[#003D5C]">
+                    <Link href={`/state/${stateHub.slug}`} className="underline hover:text-[#17324D]">
                       all {stateHub.name} jobs
                     </Link>
                     {' or '}
                   </>
                 )}
-                <Link href="/jobs" className="underline hover:text-[#003D5C]">
+                <Link href="/jobs" className="underline hover:text-[#17324D]">
                   all active openings
                 </Link>.
               </p>
@@ -285,7 +263,7 @@ export default async function CityHubPage(
                   {totalPages > 1 &&
                     `, ${HUB_PAGE_SIZE} per page across ${totalPages} pages`}
                   . For the rest, use the main{' '}
-                  <Link href="/jobs" className="underline hover:text-[#003D5C]">
+                  <Link href="/jobs" className="underline hover:text-[#17324D]">
                     job search
                   </Link>
                   .
@@ -293,15 +271,6 @@ export default async function CityHubPage(
               )}
             </section>
           )}
-
-          {/* Job-alert capture — converts passive metro-hub traffic into a
-              re-contactable CRM lead tagged with this city's intent. */}
-          <div className="mt-12 max-w-3xl">
-            <div className="mb-8">
-              <ResumeMatchCTA locationLabel={cityName} />
-            </div>
-            <JobAlertCapture defaultCity={cityName} defaultState={hub.state} source="city_hub" />
-          </div>
 
           <section className="mt-12 border-t border-gray-200 pt-8">
             <h2 className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-4">
@@ -312,7 +281,7 @@ export default async function CityHubPage(
                 <li>
                   <Link
                     href={`/state/${stateHub.slug}`}
-                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors"
                   >
                     All {stateHub.name} jobs →
                   </Link>
@@ -321,7 +290,7 @@ export default async function CityHubPage(
               <li>
                 <Link
                   href="/city"
-                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors"
                 >
                   All city hubs →
                 </Link>
@@ -329,7 +298,7 @@ export default async function CityHubPage(
               <li>
                 <Link
                   href="/specialty"
-                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                  className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors"
                 >
                   Browse by specialty →
                 </Link>

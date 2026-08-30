@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
   type PublicJob,
   locationLabel,
 } from '@/lib/public-jobs'
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .from('public_jobs')
     .select('title')
     .eq('slug', slug)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -45,6 +47,7 @@ async function getJob(slug: string): Promise<PublicJob | null> {
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS)
     .eq('slug', slug)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -77,26 +80,26 @@ export default async function ApplyPage({ params }: Props) {
     <main className="min-h-screen bg-white text-gray-900">
       <div className="max-w-2xl mx-auto px-6 py-10 md:py-14">
         <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
-          <Link href="/" className="hover:text-[#003D5C]">
+          <Link href="/" className="hover:text-[#17324D]">
             Home
           </Link>
           <span className="mx-2">/</span>
-          <Link href="/jobs" className="hover:text-[#003D5C]">
+          <Link href="/jobs" className="hover:text-[#17324D]">
             Jobs
           </Link>
           <span className="mx-2">/</span>
-          <Link href={`/jobs/${slug}`} className="hover:text-[#003D5C]">
+          <Link href={`/jobs/${slug}`} className="hover:text-[#17324D]">
             {job.title}
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-[#003D5C] font-medium">Apply</span>
+          <span className="text-[#17324D] font-medium">Apply</span>
         </nav>
 
         <div className="rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
           <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-2">
             Applying to
           </p>
-          <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight mb-2 text-[#003D5C]">
+          <h1 className="text-2xl md:text-3xl font-black leading-tight tracking-tight mb-2 text-[#17324D]">
             {job.title}
           </h1>
           {loc && <p className="text-gray-600">{loc}</p>}
@@ -107,7 +110,7 @@ export default async function ApplyPage({ params }: Props) {
         <p className="mt-8 text-xs text-gray-500">
           By applying you are sharing your contact info with the employer.
           They will reach you by email. We never sell your data. See{' '}
-          <Link href="/privacy" className="underline hover:text-[#003D5C]">
+          <Link href="/privacy" className="underline hover:text-[#17324D]">
             privacy
           </Link>
           .

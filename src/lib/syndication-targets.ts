@@ -1,7 +1,6 @@
 // Single source of truth for which job-board networks freejobpost.co can
 // syndicate to. Used by:
-//   - the post-job form (checkbox UI)
-//   - the post-job server action (validation)
+//   - the post-job server action (automatic default assignment + validation)
 //   - every feed route under /jobs.xml + /feeds/*.xml (filter)
 //   - the /feeds page (docs + submission instructions)
 //
@@ -23,16 +22,15 @@ export type SyndicationTargetId =
 
 export type SyndicationTarget = {
   id: SyndicationTargetId
-  // Network name shown next to the checkbox
+  // Network name shown on the partner feed page
   label: string
-  // One-line value prop the recruiter sees
+  // One-line partner-facing description
   blurb: string
   // Where this network reads from
   feedUrl: string
   // Spec format (just for partner-page docs)
   spec: string
-  // Default-on for new posts. We default everything on so the recruiter has
-  // to actively opt out of distribution rather than opt in.
+  // Automatically assigned to new posts when true.
   defaultOn: boolean
   // Reach descriptor, informal, used in UI tooltips
   reach: string

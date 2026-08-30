@@ -22,7 +22,7 @@ const baseJob: PublicJob = {
   salary_max: 500000,
   experience_required: '3 years',
   apply_url: 'https://example.com/apply',
-  source: 'seeded',
+  source: 'public_employer_post',
   created_at: '2026-05-20T12:00:00.000Z',
   expires_at: '2026-07-19T12:00:00.000Z',
   employer_id: 'emp-1',
@@ -30,7 +30,6 @@ const baseJob: PublicJob = {
 
 const baseEmployer: EmployerSummary = {
   name: 'Tampa General Hospital',
-  isSeeded: false,
   slug: 'tampa-general-hospital',
 }
 
@@ -113,18 +112,18 @@ describe('buildJobPostingJsonLd — remote role', () => {
   })
 })
 
-describe('buildJobPostingJsonLd — seeded Ava role', () => {
+describe('buildJobPostingJsonLd — direct employer without a directory page', () => {
   const out = buildJobPostingJsonLd({
     job: baseJob,
-    employer: { name: 'Ava Health Partners', isSeeded: true, slug: null },
+    employer: { name: 'Sunshine Medical Group', slug: null },
   })
 
-  it('uses providers.avahealth.co sameAs for seeded employers (not a per-employer page)', () => {
+  it('omits sameAs when the employer has no verified public page', () => {
     expect(out.hiringOrganization).toMatchObject({
       '@type': 'Organization',
-      name: 'Ava Health Partners',
-      sameAs: 'https://providers.avahealth.co',
+      name: 'Sunshine Medical Group',
     })
+    expect((out.hiringOrganization as Record<string, unknown>).sameAs).toBeUndefined()
   })
 
   it('passes validateJobPostingJsonLd with zero errors', () => {
@@ -132,10 +131,10 @@ describe('buildJobPostingJsonLd — seeded Ava role', () => {
   })
 })
 
-describe('buildJobPostingJsonLd — ATS-imported (no employer slug)', () => {
+describe('buildJobPostingJsonLd — employer fallback without a slug', () => {
   const out = buildJobPostingJsonLd({
     job: baseJob,
-    employer: { name: 'Cleveland Clinic', isSeeded: false, slug: null },
+    employer: { name: 'Cleveland Clinic', slug: null },
   })
 
   it('omits sameAs when employer has no public landing page', () => {

@@ -18,15 +18,26 @@ export type PublicJob = {
   created_at: string
   expires_at: string
   employer_id: string | null
-  // Real per-job hiring company (e.g. Adzuna's company.display_name). NULL/absent
-  // => fall back to the joined employer's name. Optional so existing PublicJob
+  // Company name copied onto the direct post. NULL/absent falls back to the
+  // joined employer's name. Optional so existing PublicJob
   // fixtures/literals don't all need updating; always present at runtime when
   // selected via JOB_LIST_FIELDS / JOB_DETAIL_FIELDS.
   company_name?: string | null
 }
 
+// Public browsing is intentionally limited to jobs submitted through the
+// employer posting tool. Imported and seeded rows stay in the database for
+// historical and internal use, but they are outside the public product.
+export const PUBLIC_EMPLOYER_JOB_SOURCE = 'public_employer_post' as const
+
+export function isPublicEmployerJob(
+  job: Pick<PublicJob, 'source'>,
+): boolean {
+  return job.source === PUBLIC_EMPLOYER_JOB_SOURCE
+}
+
 export const JOB_LIST_FIELDS =
-  'id, slug, title, role, specialty, city, state, remote_hybrid, employment_type, salary_min, salary_max, created_at, employer_id, company_name' as const
+  'id, slug, title, role, specialty, city, state, remote_hybrid, employment_type, salary_min, salary_max, source, created_at, employer_id, company_name' as const
 
 export const JOB_DETAIL_FIELDS =
   'id, slug, title, description, role, specialty, vertical, city, state, remote_hybrid, employment_type, salary_min, salary_max, experience_required, apply_url, source, created_at, expires_at, employer_id, company_name' as const

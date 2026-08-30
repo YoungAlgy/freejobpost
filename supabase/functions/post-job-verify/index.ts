@@ -29,6 +29,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { readFreeJobPostEmailConfig } from "../_shared/freejobpost-email.ts";
 import { sendTransactionalEmail } from "../_shared/resend-send.ts";
 
 const corsHeaders = {
@@ -67,7 +68,7 @@ async function alertOpsViaWebhook(subject: string, body: string): Promise<void> 
   try {
     const url = Deno.env.get("OPS_ALERT_WEBHOOK_URL");
     if (!url) return;
-    const message = `**[ava ops alert]** ${subject}\n\n${body}`;
+    const message = `**[freejobpost ops alert]** ${subject}\n\n${body}`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
@@ -114,14 +115,13 @@ async function hmacVerify(secret: string, body: string, sig: string): Promise<bo
 }
 
 function jobLiveEmailHtml(params: {
-  employerName: string;
   jobTitle: string;
   jobSlug: string;
   dashboardLoginUrl: string;
+  replyToEmail: string;
 }): string {
-  const { employerName, jobTitle, jobSlug, dashboardLoginUrl } = params;
+  const { jobTitle, jobSlug, dashboardLoginUrl, replyToEmail } = params;
   const jobUrl = `https://freejobpost.co/jobs/${jobSlug}`;
-  const safeOrgName = employerName.replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const safeTitle = jobTitle.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   return `<!DOCTYPE html>
@@ -226,7 +226,7 @@ function jobLiveEmailHtml(params: {
     <td style="padding:16px 32px;border-top:2px solid #000000;background:#f9fafb;">
       <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
         freejobpost.co is operated by Ava Health Partners LLC · 4532 W Kennedy Blvd Ste 125, Tampa FL 33609<br/>
-        Questions? Reply to this email or contact <a href="mailto:alex@avahealth.co" style="color:#374151;">alex@avahealth.co</a>
+        Questions? Reply to this email or contact <a href="mailto:${replyToEmail}" style="color:#374151;">${replyToEmail}</a>
       </p>
     </td>
   </tr>
@@ -239,12 +239,12 @@ function jobLiveEmailHtml(params: {
 }
 
 function jobLiveEmailText(params: {
-  employerName: string;
   jobTitle: string;
   jobSlug: string;
   dashboardLoginUrl: string;
+  replyToEmail: string;
 }): string {
-  const { jobTitle, jobSlug, dashboardLoginUrl } = params;
+  const { jobTitle, jobSlug, dashboardLoginUrl, replyToEmail } = params;
   const jobUrl = `https://freejobpost.co/jobs/${jobSlug}`;
   return `Your job is live on freejobpost.co
 
@@ -259,7 +259,7 @@ What happens next:
 - Duration: live for 90 days. Log in to renew, edit, or close it anytime.
 
 freejobpost.co is operated by Ava Health Partners LLC
-Questions? alex@avahealth.co
+Questions? ${replyToEmail}
 `;
 }
 
@@ -268,6 +268,7 @@ serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
 
   try {
+    const { fromEmail, replyToEmail } = readFreeJobPostEmailConfig((name) => Deno.env.get(name));
     const SECRET = Deno.env.get("MARKETPLACE_VERIFY_SECRET");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -394,20 +395,25 @@ serve(async (req) => {
         }
 
         const emailParams = {
-          employerName: result.employer_name ?? 'there',
           jobTitle: result.job_title ?? 'Your role',
           jobSlug: result.job_slug,
           dashboardLoginUrl,
+          replyToEmail,
         };
         try {
-          await sendTransactionalEmail({
-            from: "Free Job Post <jobs@avahealth.co>",
+          const sendResult = await sendTransactionalEmail({
+            from: `Free Job Post <${fromEmail}>`,
             to: result.employer_contact_email,
-            replyTo: "alex@avahealth.co",
+            replyTo: replyToEmail,
             subject: `Your job is live: ${result.job_title ?? 'Healthcare role'}`,
             html: jobLiveEmailHtml(emailParams),
             text: jobLiveEmailText(emailParams),
           });
+          if (!sendResult.ok) {
+            throw new Error(
+              `Resend failed (${sendResult.status}): ${sendResult.error.slice(0, 200)}`,
+            );
+          }
           // Don't log the recipient address — same no-PII-in-logs rule the other
           // notify functions follow. The employer name is enough to trace this.
           console.log(`post-job-verify: welcome email sent (employer: ${result.employer_name ?? "(no name)"})`);

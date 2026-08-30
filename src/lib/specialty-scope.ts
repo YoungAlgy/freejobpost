@@ -91,5 +91,5 @@ export function validateSpecialtyScope(
     PHYSICIAN_OR_PA_PATTERNS.some((re) => re.test(hay)) ||
     MD_DO_CREDENTIAL_PATTERNS.some((re) => re.test(credentialHay))
   if (!isPhysicianOrPa) return null
-  return 'Ava Health posts nurse and allied-health roles only. Physician and PA roles are outside what we accept here.'
+  return 'FreeJobPost accepts nursing and allied-health roles only. Physician and PA roles are outside what we accept here.'
 }

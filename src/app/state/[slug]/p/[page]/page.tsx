@@ -8,7 +8,7 @@
 //
 // WHY THIS PAGE IS DELIBERATELY LEAN: the licensing + market aside, the metro
 // and employer blocks, the city linkbar, the specialty distribution, the
-// matrix deep-links, the FAQ, the salary table, JobAlertCapture and the
+// FAQ, the salary table and the
 // BreadcrumbList/ItemList JSON-LD all live on page 1 only. Two reasons, and
 // both matter. (1) Cost: that chrome is ~350KB of the state family's fixed
 // per-entry weight, and re-serializing it into every continuation would put
@@ -42,7 +42,7 @@ type Params = { slug: string; page: string }
 export async function generateStaticParams(): Promise<Params[]> {
   // Only the pages that actually exist. Deriving the range from the family cap
   // instead produced 435 prerendered 404s across the site (39MB of R2 objects
-  // that exist only to say "no") on an account already over the free tier.
+  // that exist only to say "no") in the deployment cache.
   // These are the same counts src/lib/sitemap-chunks.ts uses, so what gets
   // prerendered and what pages.xml advertises cannot drift apart.
   //
@@ -64,14 +64,13 @@ export async function generateMetadata(
   const { slug, page: rawPage } = await params
   const hub = getStateHub(slug)
   const page = parseHubPageParam(rawPage)
-  if (!hub || page === null) return { title: 'Healthcare jobs by state' }
+  if (!hub || page === null) return { title: 'Nursing and allied health jobs by state' }
 
   const canonical = `https://freejobpost.co/state/${hub.slug}/p/${page}`
-  const title = `${hub.name} healthcare jobs, page ${page}`
+  const title = `Nursing and allied health jobs in ${hub.name}, page ${page}`
   const description =
-    `Page ${page} of open ${hub.name} healthcare jobs on freejobpost.co. ` +
-    `NP, CRNA, RN, and allied health roles with real apply links. ` +
-    `Free to browse, free to apply, no recruiter spam.`
+    `Page ${page} of nursing and allied health roles in ${hub.name}, ` +
+    `posted directly by employers.`
   return {
     title,
     description,
@@ -116,25 +115,25 @@ export default async function StateHubPaginatedPage(
     <main className="min-h-screen bg-white text-black">
       <article className="max-w-6xl mx-auto px-6 py-12">
         <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-          <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+          <Link href="/" className="hover:text-[#17324D]">Home</Link>
           {' / '}
-          <Link href="/state" className="hover:text-[#003D5C]">States</Link>
+          <Link href="/state" className="hover:text-[#17324D]">States</Link>
           {' / '}
-          <Link href={basePath} className="hover:text-[#003D5C]">{hub.name}</Link>
+          <Link href={basePath} className="hover:text-[#17324D]">{hub.name}</Link>
           {' / '}
           <span className="text-black font-medium">Page {page}</span>
         </nav>
 
         <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">
-          {hub.name} healthcare jobs
-          <span className="text-[#7FBC00]">, page {page}</span>
+          Nursing and allied health jobs in {hub.name}
+          <span className="text-[#276749]">, page {page}</span>
         </h1>
         <p className="text-sm text-gray-600 mb-8">
           Showing roles {((page - 1) * HUB_PAGE_SIZE + 1).toLocaleString()}
           {' to '}
           {((page - 1) * HUB_PAGE_SIZE + pageJobs.length).toLocaleString()} of{' '}
           {jobs.length.toLocaleString()}.{' '}
-          <Link href={basePath} className="underline hover:text-[#003D5C]">
+          <Link href={basePath} className="underline hover:text-[#17324D]">
             Back to the {hub.name} hub
           </Link>
           .

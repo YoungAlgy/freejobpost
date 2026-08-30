@@ -1,62 +1,28 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { hourIso } from './supabase'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from './public-jobs'
 
-// Number of 1,000-row `.range()` batches used to cover the full active-job
-// inventory in the syndication feeds and the XML sitemap.
-//
-// ⚠️ 2026-05-30 — COUNT-BASED PAGING WAS REVERTED TO A FIXED VALUE ONCE.
-// Wiring in naive count-based paging (commit e63c2e0: numBatches =
-// ceil(activeCount/1000)) caused jobs.xml + EVERY partner feed to FLAP in prod
-// within minutes of deploy — sampled 7368 ↔ 2314 ↔ 627 ↔ 0 jobs. Root cause:
-// the head-count query (`select('id', { count:'exact', head:true })`) returned
-// wildly inconsistent values (0, ~3.5K, ~16.8K) through the `supabaseFresh` /
-// Next-fetch-cache path under heavy crawler concurrency, collapsing numBatches
-// (a transient 0 → numBatches 1) and silently truncating the feeds.
-//
-// 2026-06-21 audit: bumped the fixed value 40 → 60 (a ~60K active-job ceiling).
-//
-// ✅ 2026-08-19 — COUNT-BASED PAGING RE-ENABLED, SAFELY THIS TIME.
-// The fixed 60 was ~6K away from binding again (active corpus 49,324 and
-// growing), and past the ceiling the batches silently drop the OLDEST active
-// jobs (every caller orders updated_at DESC) — jobs vanish from the sitemap and
-// the partner feeds with no error anywhere.
-//
-// The 2026-05-30 failure mode was NOT "counting is wrong", it was "a bad count
-// SHRANK coverage". So the count now only ever ADDS batches: the result is
-// clamped to a MIN_BATCHES floor equal to the old proven-safe fixed value, so
-// every garbage value from that incident (0, 3.5K, 16.8K → 5, 9, 22 batches)
-// clamps straight back to 60 and behaves exactly like today. Truncation by
-// bad count is impossible by construction, which is what makes it safe to read
-// the count through the caller's ordinary cached client. MAX_BATCHES bounds the
-// other direction so a runaway/garbage-high count can't spin up an unbounded
-// number of concurrent range queries.
-//
-// Net effect today: still 60 batches (the floor). Once the real corpus passes
-// ~55K it grows on its own instead of silently truncating and waiting for
-// someone to notice and bump a constant.
+// Number of 1,000-row range batches used by outbound partner feeds. The former
+// aggregate product kept a 60-batch floor, which meant 60 database queries even
+// when the standalone direct-employer inventory fit in one batch.
 const BATCH_SIZE = 1000
-// Floor = the previous fixed value. Coverage can never regress below what this
-// module already guaranteed, no matter what the count query returns.
-const MIN_BATCHES = 60
-// Ceiling on a runaway count (200 batches = 200K active jobs, ~4x current).
-const MAX_BATCHES = 200
-// Slack over the counted requirement: rows are inserted between the count and
-// the reads, and offset pagination over a table still being written to can
-// shift rows across batch windows.
-const BATCH_HEADROOM = 5
+const MIN_BATCHES = 1
+const FALLBACK_BATCHES = 5
+const MAX_BATCHES = 100
+// One extra batch protects posts added between the count and range queries.
+const BATCH_HEADROOM = 1
 
 /**
  * Number of 1,000-row `.range()` batches needed to cover the active-job
- * inventory, derived from a real COUNT of the active corpus and clamped to
- * [MIN_BATCHES, MAX_BATCHES]. See the note above for why the clamp (not the
- * count) is the part that makes this safe.
+ * inventory, derived from a real count of the direct-employer corpus and
+ * clamped to [MIN_BATCHES, MAX_BATCHES].
  *
- * Counts the BROADEST predicate any caller uses (status=active, not deleted,
- * not expired). Callers that additionally filter (e.g. a description-length
- * floor) match a subset, so this over-provisions for them — extra batches
- * past the end of a result set come back empty and contribute nothing.
+ * Counts the direct-employer corpus (source=public_employer_post, active, not
+ * deleted, not expired). Callers that additionally filter match a subset, so
+ * extra batches past the end of a result set come back empty.
  *
- * Never throws: any failure falls back to MIN_BATCHES.
+ * Never throws. A failed count still covers 5,000 rows so a transient count
+ * problem cannot collapse a populated feed to one batch.
  */
 export async function activeJobBatchCount(supabase: SupabaseClient): Promise<number> {
   let activeCount: number | null = null
@@ -64,6 +30,7 @@ export async function activeJobBatchCount(supabase: SupabaseClient): Promise<num
     const { count, error } = await supabase
       .from('public_jobs')
       .select('id', { count: 'exact', head: true })
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
       .eq('status', 'active')
       .is('deleted_at', null)
       // hourIso, not a raw new Date(): a per-render timestamp changes the
@@ -77,27 +44,14 @@ export async function activeJobBatchCount(supabase: SupabaseClient): Promise<num
   }
 
   if (typeof activeCount !== 'number' || !Number.isFinite(activeCount) || activeCount < 0) {
-    return MIN_BATCHES
+    return FALLBACK_BATCHES
   }
 
   const needed = Math.ceil(activeCount / BATCH_SIZE) + BATCH_HEADROOM
   return Math.min(Math.max(needed, MIN_BATCHES), MAX_BATCHES)
 }
 
-// 2026-08-12 — every caller of activeJobBatchCount() was firing its batches
-// via a single Promise.all, i.e. up to FIXED_BATCHES (60) simultaneous
-// 1000-row range queries against the shared Nano Postgres instance. One
-// caller (specialty-state-matrix.ts) was capped to 8-at-a-time on 2026-08-07
-// after pg_stat_statements confirmed it as the dominant disk-block-read
-// consumer during that outage — but city-specialty-matrix.ts, sitemap.ts,
-// feed-builders.ts (7 partner-feed routes), and linkedin.xml/route.ts all
-// still fired the full uncapped burst, and (unlike the matrix helpers) the
-// feed routes are force-dynamic with no unstable_cache layer at all, so
-// they re-fire on every uncached crawler hit (Indeed/LinkedIn/Adzuna/etc,
-// on schedules Algy doesn't control) — which is why the outage persisted
-// across DB restarts that don't touch an external crawler's poll schedule.
-// Centralizing the concurrency cap here so every caller gets it instead of
-// each one hand-rolling (and potentially forgetting) the same loop.
+// Keep a shared ceiling if the direct inventory grows beyond one request.
 const BATCH_CONCURRENCY = 8
 
 export { BATCH_CONCURRENCY }

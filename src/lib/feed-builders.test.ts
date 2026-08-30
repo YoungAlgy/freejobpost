@@ -10,8 +10,40 @@ import {
   hasUsableDescription,
   MIN_DESCRIPTION_CHARS,
   MIN_ORIGINATED_DESCRIPTION_CHARS,
+  freeJobPostCategoryHashtag,
 } from './feed-builders'
 import type { PublicJob } from './public-jobs'
+
+describe('freeJobPostCategoryHashtag', () => {
+  const job = (title: string): PublicJob => ({
+    id: 'job',
+    slug: 'job',
+    title,
+    description: 'description',
+    role: null,
+    specialty: null,
+    vertical: 'healthcare',
+    city: null,
+    state: null,
+    remote_hybrid: null,
+    employment_type: null,
+    salary_min: null,
+    salary_max: null,
+    experience_required: null,
+    apply_url: null,
+    source: 'public_employer_post',
+    created_at: '',
+    expires_at: '',
+    employer_id: null,
+  })
+
+  it('uses FreeJobPost category codes for nursing and allied-health roles', () => {
+    expect(freeJobPostCategoryHashtag(job('Registered Nurse'))).toBe('#FJP101')
+    expect(freeJobPostCategoryHashtag(job('Nurse Practitioner'))).toBe('#FJP102')
+    expect(freeJobPostCategoryHashtag(job('Dental Hygienist'))).toBe('#FJP103')
+    expect(freeJobPostCategoryHashtag(job('Respiratory Therapist'))).toBe('#FJP104')
+  })
+})
 
 describe('cdata', () => {
   it('wraps content in CDATA brackets', () => {

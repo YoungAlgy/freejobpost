@@ -6,9 +6,9 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 import { STATE_HUBS, getStateHub } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
-import { getViableCellsCached } from '@/lib/specialty-state-matrix'
 import { composeHubMetaDescription } from '@/lib/hub-meta-description'
 import {
   aggregateSalariesByGroup,
@@ -22,8 +22,6 @@ import { hubTotalPages, sliceHubPage } from '@/lib/hub-pagination'
 import { safeJsonLd } from '@/lib/safe-jsonld'
 import HubJobList from '@/components/HubJobList'
 import HubPagination from '@/components/HubPagination'
-import JobAlertCapture from '@/components/JobAlertCapture'
-import ResumeMatchCTA from '@/components/ResumeMatchCTA'
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 86400
 
@@ -35,6 +33,7 @@ async function fetchJobCountForState(abbr: string): Promise<number> {
   const result = await supabase
     .from('public_jobs')
     .select('id', { count: 'exact', head: true })
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .eq('state', abbr)
     .is('deleted_at', null)
@@ -49,17 +48,17 @@ export async function generateMetadata(
   const { slug } = await params
   const hub = getStateHub(slug)
   if (!hub) return {}
-  const title = `${hub.name} healthcare jobs`
+  const title = `Nursing and allied health jobs in ${hub.name}`
   const count = await fetchJobCountForState(hub.abbr)
   const description = composeHubMetaDescription({
     count,
-    staticDescription: hub.metaDescription,
     label: hub.name,
     kind: 'state',
   })
   return {
     title,
     description,
+    robots: { index: count > 0, follow: true },
     alternates: {
       canonical: `https://freejobpost.co/state/${hub.slug}`,
       // RSS alternate so feed-reader browser extensions auto-discover
@@ -102,15 +101,6 @@ export default async function StateHubPage(
   const totalPages = hubTotalPages(jobs.length)
   const pageJobs = sliceHubPage(jobs, 1)
 
-  // Viable matrix cells for THIS state — top specialty deep-links into the
-  // /specialty/[slug]/[state] surface. This is the internal-linking-mesh
-  // layer (Layer 2.4): each state hub passes authority down to the matrix
-  // pages it parents. Top 6 cells by job count.
-  const allCells = await getViableCellsCached(supabase)
-  const matrixCellsForState = allCells
-    .filter((c) => c.state.slug === hub.slug)
-    .slice(0, 6)
-
   // Cities represented in the result set
   const cities = Array.from(
     new Set(jobs.map((j) => j.city?.trim()).filter((c): c is string => !!c))
@@ -135,6 +125,11 @@ export default async function StateHubPage(
   const topSpecialties = Array.from(specialtyCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 12)
+  const hiringEmployers = Array.from(
+    new Set(jobs.map((job) => job.company_name?.trim()).filter((name): name is string => !!name)),
+  )
+    .sort()
+    .slice(0, 5)
 
   // Salary aggregates — computed from the same `jobs` array we already
   // have in hand. No extra Supabase query. Targets AI Overview citability
@@ -197,18 +192,19 @@ export default async function StateHubPage(
       <main className="min-h-screen bg-white text-black">
         <article className="max-w-6xl mx-auto px-6 py-12">
           <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-            <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+            <Link href="/" className="hover:text-[#17324D]">Home</Link>
             {' / '}
-            <Link href="/state" className="hover:text-[#003D5C]">States</Link>
+            <Link href="/state" className="hover:text-[#17324D]">States</Link>
             {' / '}
             <span className="text-black font-medium">{hub.name}</span>
           </nav>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-            {hub.name} healthcare jobs <span className="text-[#7FBC00]">({jobs.length})</span>
+            Nursing and allied health jobs in {hub.name}{' '}
+            <span className="text-[#276749]">({jobs.length})</span>
           </h1>
           <p className="text-lg text-gray-700 leading-relaxed mb-8 max-w-3xl">
-            {hub.shortDescription} Free to browse, free to apply, no recruiter spam. Roles come from hospital career sites and major job feeds, with some placed by Ava Health Partners&apos; recruiter book. Every listing has a real apply link.
+            {hub.shortDescription} Browse current nursing and allied-health roles posted directly by healthcare employers. Every listing has a real apply link.
           </p>
 
           {/* Licensing + market notes — per-state factual content. Renders only when
@@ -218,7 +214,7 @@ export default async function StateHubPage(
               FAQPage / Occupation schema — those rich results are deprecated. */}
           {(hub.nursingBoardName || hub.nlcCompactStatus || hub.editorialNote) && (
             <aside
-              className="mb-10 border-l-4 border-[#003D5C] bg-green-50/60 px-5 py-4 max-w-3xl"
+              className="mb-10 border-l-4 border-[#17324D] bg-green-50/60 px-5 py-4 max-w-3xl"
               aria-label={`Licensing and market notes for ${hub.name}`}
             >
               <h2 className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
@@ -231,7 +227,7 @@ export default async function StateHubPage(
                     {hub.nursingBoardUrl ? (
                       <a
                         href={hub.nursingBoardUrl}
-                        className="underline hover:text-[#003D5C]"
+                        className="underline hover:text-[#17324D]"
                         target="_blank"
                         rel="noopener nofollow"
                       >
@@ -298,7 +294,7 @@ export default async function StateHubPage(
                 <Link
                   key={c}
                   href={`/jobs?state=${encodeURIComponent(hub.abbr)}&q=${encodeURIComponent(c)}`}
-                  className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#003D5C] hover:text-white"
+                  className="text-xs border border-gray-200 px-2 py-1 hover:bg-[#17324D] hover:text-white"
                 >
                   {c} ({cityCounts.get(c) ?? 0})
                 </Link>
@@ -313,33 +309,6 @@ export default async function StateHubPage(
               <div className="flex flex-wrap gap-2">
                 {topSpecialties.map(([s, n]) => (
                   <span key={s} className="text-xs bg-gray-100 px-2 py-1">{s} ({n})</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Matrix deep-links — Layer 2.4 internal linking mesh.
-              For every viable (specialty × this-state) cell, link straight to
-              the dedicated /specialty/[slug]/[state] page. These cells are
-              guaranteed renderable (≥5 active matching jobs) and shared a
-              source-of-truth with sitemap.ts + generateStaticParams. */}
-          {matrixCellsForState.length > 0 && (
-            <div className="mb-10">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
-                {hub.name} jobs by specialty: direct links
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                {matrixCellsForState.map((c) => (
-                  <Link
-                    key={`${c.specialty.slug}-${c.state.slug}`}
-                    href={`/specialty/${c.specialty.slug}/${c.state.slug}`}
-                    className="flex items-baseline justify-between gap-3 text-sm border border-gray-200 rounded-lg px-3 py-2 hover:bg-[#003D5C] hover:text-white"
-                  >
-                    <span className="font-medium truncate">
-                      {c.specialty.title.replace(/ Jobs$/, '')} in {hub.name}
-                    </span>
-                    <span className="text-xs tabular-nums opacity-70 shrink-0">{c.count}</span>
-                  </Link>
                 ))}
               </div>
             </div>
@@ -367,7 +336,7 @@ export default async function StateHubPage(
                     The{' '}
                     <a
                       href={hub.nursingBoardUrl}
-                      className="underline hover:text-[#003D5C]"
+                      className="underline hover:text-[#17324D]"
                       target="_blank"
                       rel="noopener nofollow"
                     >
@@ -380,18 +349,14 @@ export default async function StateHubPage(
                   </p>
                 </div>
               )}
-              {hub.topEmployers.length > 0 && (
+              {hiringEmployers.length > 0 && (
                 <div>
                   <h3 className="font-bold text-base mb-1">
-                    Which {hub.name} healthcare systems hire on freejobpost.co?
+                    Which {hub.name} employers are posting here now?
                   </h3>
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    The major {hub.name} systems are{' '}
-                    {hub.topEmployers.slice(0, 5).join(', ')}. Listings on the
-                    board come from hospital career sites and major job feeds,
-                    with some placed by Ava Health Partners&apos; recruiter book,
-                    so which systems appear shifts with live inventory. Every
-                    posting has a real apply link. No sponsored middleman.
+                    Current direct posts include {hiringEmployers.join(', ')}. The list changes
+                    as employers add and close roles.
                   </p>
                 </div>
               )}
@@ -417,8 +382,8 @@ export default async function StateHubPage(
                 </h3>
                 <p className="text-sm text-gray-700 leading-relaxed">
                   Yes. {jobs.length === 0
-                    ? `No active ${hub.name} roles on the board today, but when listings open they're free to browse and apply directly. Apply links go to the hiring employer's site or the partner ATS.`
-                    : `${jobs.length} ${hub.name} role${jobs.length === 1 ? '' : 's'} ${jobs.length === 1 ? 'is' : 'are'} open right now, all free to browse and apply directly. Apply links go to the hiring employer's site or the partner ATS. No "unlock applicants" fee, no paid-sponsor tier, no LinkedIn Premium gate.`}
+                    ? `No active ${hub.name} roles are posted today. When listings open, browsing and applying are free.`
+                    : `${jobs.length} ${hub.name} role${jobs.length === 1 ? '' : 's'} ${jobs.length === 1 ? 'is' : 'are'} open right now. Each listing accepts an application here or links to the employer's own application page.`}
                 </p>
               </div>
             </div>
@@ -472,11 +437,8 @@ export default async function StateHubPage(
           {jobs.length === 0 ? (
             <div className="border border-gray-200 rounded-lg p-8 text-center">
               <p className="text-lg font-bold mb-2">No active {hub.name} healthcare jobs right now.</p>
-              <p className="text-gray-700 mb-4">{hub.name} inventory is still ramping up on freejobpost.co. Browse our active national board in the meantime, or set up a candidate match alert.</p>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <Link href="/jobs" className="inline-block bg-[#7FBC00] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#6DA300]">Browse all jobs →</Link>
-                <a href="https://www.freeresumepost.co/upload?utm_source=freejobpost&utm_medium=referral&utm_campaign=resume_match" className="inline-block border border-gray-200 rounded-lg font-bold px-6 py-2 hover:bg-[#003D5C] hover:text-white">Get matched →</a>
-              </div>
+              <p className="text-gray-700 mb-4">There are no direct employer posts in {hub.name} right now. Check the national board for current nursing and allied-health openings.</p>
+              <Link href="/jobs" className="inline-block bg-[#276749] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1F563B]">Browse all jobs</Link>
             </div>
           ) : (
             <>
@@ -485,7 +447,7 @@ export default async function StateHubPage(
                   <p className="text-sm text-gray-800">
                     <span className="font-bold">Limited inventory in {hub.name} right now.</span>{' '}
                     Showing {jobs.length} active role{jobs.length === 1 ? '' : 's'}. Most of our open positions are concentrated in higher-density states.{' '}
-                    <Link href="/jobs" className="underline font-medium hover:text-[#003D5C]">See all healthcare jobs</Link>.
+                    <Link href="/jobs" className="underline font-medium hover:text-[#17324D]">See all healthcare jobs</Link>.
                   </p>
                 </div>
               )}
@@ -499,15 +461,6 @@ export default async function StateHubPage(
             </>
           )}
 
-          {/* Job-alert capture — turns passive state-hub traffic into a
-              re-contactable CRM lead tagged with this state's intent. */}
-          <div className="mt-12 max-w-3xl">
-            <div className="mb-8">
-              <ResumeMatchCTA locationLabel={hub.name} />
-            </div>
-            <JobAlertCapture defaultState={hub.abbr} source="state_hub" />
-          </div>
-
           {/* Other states — internal linking */}
           <h2 className="text-2xl font-black tracking-tight mt-16 mb-4">Healthcare jobs in other states</h2>
           <div className="flex flex-wrap gap-2 mb-8">
@@ -515,7 +468,7 @@ export default async function StateHubPage(
               <Link
                 key={s.slug}
                 href={`/state/${s.slug}`}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-[#003D5C] hover:text-white font-medium"
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-[#17324D] hover:text-white font-medium"
               >
                 {s.name}
               </Link>
@@ -529,7 +482,7 @@ export default async function StateHubPage(
               <Link
                 key={s.slug}
                 href={`/specialty/${s.slug}`}
-                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-[#003D5C] hover:text-white"
+                className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-[#17324D] hover:text-white"
               >
                 {s.title.replace(/ Jobs$/, '')}
               </Link>

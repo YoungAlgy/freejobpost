@@ -3,8 +3,7 @@
 //
 // See src/lib/hub-pagination.ts for why these routes exist (the 2026-08-19
 // Workers-free-plan CPU incident) and why continuations are deliberately LEAN:
-// the lede, the ResumeMatchCTA, the by-state linkbar, the matrix cell grid, the
-// salary-by-state table, the alert-capture form, the other-specialties and
+// the lede, the by-state linkbar, the salary-by-state table, the other-specialties and
 // by-state linkbars and both JSON-LD blocks all live on page 1 only. Repeating
 // them on every continuation would re-serialize ~236KB of identical chrome into
 // each extra cache entry — the exact cost this change exists to remove — and
@@ -39,7 +38,7 @@ type Params = { slug: string; page: string }
 export async function generateStaticParams(): Promise<Params[]> {
   // Only the pages that actually exist. Deriving the range from the family cap
   // instead produced 435 prerendered 404s across the site (39MB of R2 objects
-  // that exist only to say "no") on an account already over the free tier.
+  // that exist only to say "no") in the deployment cache.
   // These are the same counts src/lib/sitemap-chunks.ts uses, so what gets
   // prerendered and what pages.xml advertises cannot drift apart.
   //
@@ -68,8 +67,7 @@ export async function generateMetadata(
   return {
     title: `${hub.title}, page ${page}`,
     description:
-      `Page ${page} of open ${label} roles on freejobpost.co. Free to browse, ` +
-      `free to apply, no account required. Every listing has a real apply link.`,
+      `Page ${page} of ${label} roles posted directly by employers on freejobpost.co.`,
     // SELF-canonical, not a pointer back at page 1. Canonicalising a
     // continuation to page 1 is the classic way to make Google drop every job
     // that is not on page 1 — it tells the crawler this URL is a duplicate and
@@ -77,7 +75,7 @@ export async function generateMetadata(
     alternates: { canonical },
     openGraph: {
       title: `${hub.title}, page ${page}`,
-      description: hub.shortDescription,
+      description: `Direct employer posts for ${label} roles, page ${page}.`,
       url: canonical,
       type: 'website',
     },
@@ -111,24 +109,24 @@ export default async function SpecialtyHubPaginatedPage(
     <main className="min-h-screen bg-white text-black">
       <article className="max-w-6xl mx-auto px-6 py-12">
         <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-          <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+          <Link href="/" className="hover:text-[#17324D]">Home</Link>
           {' / '}
-          <Link href="/specialty" className="hover:text-[#003D5C]">Specialties</Link>
+          <Link href="/specialty" className="hover:text-[#17324D]">Specialties</Link>
           {' / '}
-          <Link href={basePath} className="hover:text-[#003D5C]">{hub.title}</Link>
+          <Link href={basePath} className="hover:text-[#17324D]">{hub.title}</Link>
           {' / '}
           <span className="text-black font-medium">Page {page}</span>
         </nav>
 
         <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3">
-          {hub.title} <span className="text-[#7FBC00]">page {page}</span>
+          {hub.title} <span className="text-[#276749]">page {page}</span>
         </h1>
         <p className="text-sm text-gray-600 mb-8">
           Showing roles {((page - 1) * HUB_PAGE_SIZE + 1).toLocaleString()}
           {' to '}
           {((page - 1) * HUB_PAGE_SIZE + pageJobs.length).toLocaleString()} of{' '}
           {jobs.length.toLocaleString()}.{' '}
-          <Link href={basePath} className="underline hover:text-[#003D5C]">
+          <Link href={basePath} className="underline hover:text-[#17324D]">
             Back to the {hub.title.replace(/ Jobs$/, '').toLowerCase()} hub
           </Link>
           .

@@ -5,6 +5,7 @@
 import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
   type PublicJob,
   formatSalary,
   locationLabel,
@@ -39,6 +40,7 @@ export async function GET(
   const { data, error } = await supabase
     .from('public_jobs')
     .select(JOB_DETAIL_FIELDS + ', updated_at')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .eq('state', hub.abbr)
     .is('deleted_at', null)

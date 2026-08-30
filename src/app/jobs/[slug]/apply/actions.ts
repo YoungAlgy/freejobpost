@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { sanitizeResumeUrl } from '@/lib/sanitize-resume-url'
 import { track } from '@/lib/track'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -52,6 +53,22 @@ export async function submitApplication(
   }
   if (!lastName) {
     return { success: false, error: 'Last name is required.' }
+  }
+
+  // The public product only accepts applications to jobs submitted directly
+  // by employers. Enforce the same visibility rule server-side so a crafted
+  // request cannot apply to an imported or seeded record by ID.
+  const { data: visibleJob, error: visibleJobError } = await sb
+    .from('public_jobs')
+    .select('id')
+    .eq('id', input.job_id)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+    .eq('status', 'active')
+    .is('deleted_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle()
+  if (visibleJobError || !visibleJob) {
+    return { success: false, error: 'This job is no longer accepting applications.' }
   }
 
   const { data, error } = await sb.rpc('apply_to_job_rpc', {

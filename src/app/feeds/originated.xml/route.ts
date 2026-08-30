@@ -1,7 +1,7 @@
 // /feeds/originated.xml — strict-partner publisher feed.
 //
 // Includes only jobs that ORIGINATED on freejobpost (is_ats_import = false):
-// the Ava Health seeded set + any future employer-posted via /post-job.
+// jobs submitted directly through /post-job.
 // Excludes ATS-imported jobs (Workday tenants, Greenhouse, Lever, Ashby,
 // USAJobs) because strict partners — Indeed, LinkedIn Limited Listings,
 // ZipRecruiter Publisher Program — quality-score republished content

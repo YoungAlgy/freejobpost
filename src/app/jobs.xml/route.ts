@@ -34,6 +34,7 @@ import { supabaseFresh as supabase, hourIso } from '@/lib/supabase'
 import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
 import {
   JOB_DETAIL_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
   type PublicJob,
   formatSalary,
   locationLabel,
@@ -95,11 +96,9 @@ export async function GET(req: NextRequest): Promise<Response> {
   const partner = normalizePartner(req.nextUrl.searchParams.get('ref'))
   const partnerSuffix = partner === 'internal' ? '' : `?ref=${encodeURIComponent(partner)}`
 
-  // /jobs.xml is the "everything" publisher feed. Submitted to Indeed /
-  // ZipRecruiter / Talent.com / Adzuna partner intake. Each partner ingests
-  // and respects employer-level rules at the row level (per-network opt-in
-  // lives in syndication_targets — surfaced via /feeds/<network>.xml in
-  // the future when partners want filtered streams).
+  // /jobs.xml is the full direct-employer publisher feed submitted to partner
+  // intake. Network-specific routes use the targets FreeJobPost assigns when a
+  // job is posted. This route intentionally carries all eligible direct posts.
   //
   // The PostgREST anon-role default `db_max_rows=1000` silently clamps a
   // single `.limit(N>1000)`. The previous version had `.limit(5000)` and
@@ -120,7 +119,8 @@ export async function GET(req: NextRequest): Promise<Response> {
   const nowIso = hourIso()
   const baseQuery = () => supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
+    .select(JOB_DETAIL_FIELDS + ', updated_at')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
@@ -147,29 +147,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   const allJobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 
-  // FAIL CLOSED (2026-05-28): if the DB query failed/timed out, every batch
-  // returns { data: null, error } and allJobs is []. Without this guard the
-  // route would build a valid-looking but EMPTY <source> feed and ISR would
-  // cache it for 900s — shipping "0 open positions" to Indeed / Google for
-  // Jobs / Jooble, who then de-list us. We have thousands of active jobs at
-  // all times, so 0 fetched ALWAYS means infrastructure failure, never a
-  // real empty inventory.
-  //
-  // Throwing here makes Next.js ISR keep serving the LAST GOOD cached feed
-  // (stale-while-revalidate) instead of overwriting it with emptiness; on a
-  // cold cache it 500s, which is still correct (a partner retries a 500;
-  // a partner trusts a 200-with-0-jobs and drops us). Root cause this date:
-  // providers.avahealth.co directory RPCs (directory_providers, ~14-22s each)
-  // saturating the shared Postgres → freejobpost feed queries time out.
-  // RUNTIME-ONLY fail-closed (see feed-builders.ts isBuildPhase). At build,
-  // a throw aborts the deploy with no stale cache to fall back to; at runtime
-  // it correctly makes Next serve the last-good cached feed. So only throw
-  // when NOT building.
+  // A direct-employer feed can legitimately be empty. Fail closed only when
+  // the underlying query failed, so zero inventory still produces valid XML.
   const anyBatchErrored = batches.some((b) => b.error)
-  if (allJobs.length === 0 && !isBuildPhase()) {
+  if (anyBatchErrored && !isBuildPhase()) {
     throw new Error(
-      `jobs.xml: 0 jobs fetched (anyBatchErrored=${anyBatchErrored}) — ` +
-      `refusing to cache an empty feed. Serving last-good ISR cache instead.`,
+      'jobs.xml: direct-employer query failed, refusing to cache a partial feed.',
     )
   }
 
@@ -196,9 +179,8 @@ export async function GET(req: NextRequest): Promise<Response> {
   //
   // 2026-08-20: this pointed at public_employers_directory_all, which does not
   // exist in the database. The error was swallowed, the map came back empty,
-  // and every job without its own company_name fell through to the
-  // "Ava Health Partners" default below — roughly half the live feed going out
-  // to Indeed / Google for Jobs / ZipRecruiter under the wrong company. Every
+  // and every job without its own company_name fell through to a site-level
+  // default, publishing the wrong hiring company. Every
   // employer those jobs point at is status='active' and
   // verified_healthcare_org=true, so the existing directory view covers them.
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
@@ -229,7 +211,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     const validThrough = job.expires_at
       ? iso8601Date(new Date(job.expires_at))
       : iso8601Date(new Date(Date.now() + 60 * 86400_000))
-    const employerName = job.company_name || employerNameMap.get(job.employer_id) || 'Ava Health Partners'
+    const employerName = job.company_name || employerNameMap.get(job.employer_id) || 'Employer'
     const row = `  <job>
     <title>${cdata(title)}</title>
     <date>${cdata(posted)}</date>
@@ -272,7 +254,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>Free healthcare job feed. Operated by Ava Health Partners LLC. ${included} open positions.</description>
+  <description>FreeJobPost nursing and allied-health job feed. Owned and operated by Ava Health Partners LLC. ${included} open positions.</description>
 ${jobsXml}
 </source>`
 

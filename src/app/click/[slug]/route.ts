@@ -21,6 +21,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { looksLikeBot } from '@/lib/bot-filter'
 import { supabase, hourIso } from '@/lib/supabase'
+import { PUBLIC_EMPLOYER_JOB_SOURCE } from '@/lib/public-jobs'
 
 export const dynamic = 'force-dynamic'
 // Don't statically generate this; every hit must run the handler.
@@ -86,12 +87,17 @@ export async function GET(
     .from('public_jobs')
     .select('apply_url')
     .eq('slug', slug)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
     .maybeSingle()
 
-  const applyUrl = safeApplyUrl(job?.apply_url)
+  if (!job) {
+    return NextResponse.redirect(new URL('/jobs', req.url), { status: 302 })
+  }
+
+  const applyUrl = safeApplyUrl(job.apply_url)
 
   // Best-effort log: if the RPC fails, still redirect — attribution is
   // a nice-to-have, but breaking the user's apply flow because of a DB

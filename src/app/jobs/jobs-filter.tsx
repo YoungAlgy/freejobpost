@@ -40,7 +40,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
   const searchParams = useSearchParams()
   const verifiedSet = useMemo(() => new Set(verifiedEmployerIds), [verifiedEmployerIds])
 
-  // Initial state pulled from URL — supports deep links like /jobs?q=Physician
+  // Initial state pulled from URL — supports deep links like /jobs?q=Registered+Nurse
   // or /jobs?role=RN&state=FL. Whitelist values that come from the URL so a
   // hostile link can't seed the state with garbage that breaks the UI.
   const [q, setQ] = useState(() => searchParams.get('q') ?? '')
@@ -187,6 +187,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
 
   const activeFilterCount =
     [role, state, remote, empType].filter(Boolean).length + (verifiedOnly ? 1 : 0)
+  const hasActiveQuery = Boolean(q.trim() || activeFilterCount > 0)
   const hasMore = results.length < total
 
   return (
@@ -204,13 +205,13 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
             aria-label="Search jobs"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="md:col-span-2 px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#7FBC00]"
+            className="md:col-span-2 px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#276749]"
           />
           <select
             aria-label="Filter by role"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#7FBC00]"
+            className="px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#276749]"
           >
             <option value="">All roles</option>
             {roles.map((r) => (
@@ -223,7 +224,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
             aria-label="Filter by state"
             value={state}
             onChange={(e) => setState(e.target.value)}
-            className="px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#7FBC00]"
+            className="px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#276749]"
           >
             <option value="">All states</option>
             {states.map((s) => (
@@ -236,7 +237,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
             aria-label="Filter by employment type"
             value={empType}
             onChange={(e) => setEmpType(e.target.value)}
-            className="px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#7FBC00]"
+            className="px-4 py-3 bg-white rounded-xl border border-gray-200 shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#276749]"
           >
             <option value="">Any type</option>
             <option value="full_time">Full-time</option>
@@ -257,7 +258,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
               aria-pressed={remote === r}
               className={`px-3 py-1 rounded-md border transition-colors ${
                 remote === r
-                  ? 'bg-[#003D5C] text-white border-[#003D5C]'
+                  ? 'bg-[#17324D] text-white border-[#17324D]'
                   : 'bg-white border-gray-200 hover:bg-green-50'
               }`}
             >
@@ -270,7 +271,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
               onClick={() => setVerifiedOnly((v) => !v)}
               className={`px-3 py-1 rounded-md border transition-colors flex items-center gap-1.5 ${
                 verifiedOnly
-                  ? 'bg-[#7FBC00] text-white border-[#7FBC00]'
+                  ? 'bg-[#276749] text-white border-[#276749]'
                   : 'bg-white border-gray-200 hover:bg-green-50'
               }`}
               aria-pressed={verifiedOnly}
@@ -294,7 +295,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
                 setVerifiedOnly(false)
                 setQ('')
               }}
-              className="ml-auto underline hover:text-[#003D5C]"
+              className="ml-auto underline hover:text-[#17324D]"
             >
               Clear {activeFilterCount + (q ? 1 : 0)} filter
               {activeFilterCount + (q ? 1 : 0) > 1 ? 's' : ''}
@@ -336,7 +337,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
                           width="14"
                           height="14"
                           aria-label="Verified employer"
-                          className="text-[#00B5D4] shrink-0"
+                          className="text-[#247A8A] shrink-0"
                         >
                           <circle cx="8" cy="8" r="7" fill="currentColor" />
                           <path
@@ -354,7 +355,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
                     <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-2">
                       {emp && <span>{emp}</span>}
                       {rem && rem !== 'Onsite' && (
-                        <span className="text-[#003D5C] font-bold">{rem}</span>
+                        <span className="text-[#17324D] font-bold">{rem}</span>
                       )}
                     </div>
                   </div>
@@ -383,7 +384,7 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
             type="button"
             onClick={showMore}
             disabled={loading}
-            className="rounded-xl border border-gray-200 shadow-sm px-6 py-3 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-xl border border-gray-200 shadow-sm px-6 py-3 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               'Loading…'
@@ -409,8 +410,22 @@ export default function JobsFilter({ initialJobs, totalActive, roles, states, ve
 
       {total === 0 && !loading && (
         <div className="py-12 text-center rounded-xl border border-gray-200 shadow-sm bg-gray-50">
-          <p className="font-bold mb-2">No matches.</p>
-          <p className="text-gray-600 text-sm">Try widening your filters.</p>
+          <p className="font-bold mb-2">
+            {hasActiveQuery ? 'No jobs match that search.' : 'No open jobs yet.'}
+          </p>
+          <p className="text-gray-600 text-sm">
+            {hasActiveQuery
+              ? 'Clear a filter or try a broader search.'
+              : 'Direct employer jobs will appear here after verification.'}
+          </p>
+          {!hasActiveQuery && (
+            <Link
+              href="/post-job"
+              className="mt-5 inline-flex items-center rounded-lg bg-[#276749] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1F563B]"
+            >
+              Post a job →
+            </Link>
+          )}
         </div>
       )}
     </>

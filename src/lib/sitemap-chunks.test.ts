@@ -20,10 +20,8 @@ import {
   type SitemapJobPageFetcher,
   type SitemapJobRow,
 } from '@/lib/sitemap-chunks'
-import { FEDERAL_AGENCIES } from '@/lib/federal-agencies'
 import { STATE_HUBS } from '@/lib/state-slugs'
 import { SPECIALTY_HUBS } from '@/lib/specialty-slugs'
-import { CITY_HUBS } from '@/lib/city-slugs'
 
 // Next rejects an imported identifier in a route's segment config ("Invalid
 // segment configuration export detected" — it fails the whole build), so
@@ -168,7 +166,7 @@ describe('SITEMAP_CHILDREN', () => {
 
   it('rejects anything not in the list', () => {
     for (const bad of [
-      'jobs-20.xml',                  // one past the end
+      'jobs-1.xml',                   // one past the end
       'jobs--1.xml',
       'jobs-1',                       // missing extension
       'jobs-01.xml',                  // leading zero is a different string
@@ -244,16 +242,16 @@ describe('fetchSitemapJobChunkRows', () => {
     }
 
     await expect(
-      fetchSitemapJobChunkRows(1, fetchPage, controller.signal),
+      fetchSitemapJobChunkRows(0, fetchPage, controller.signal),
     ).resolves.toEqual(rows)
     expect(requests).toHaveLength(2)
     expect(requests[0]).toMatchObject({
-      ...sitemapJobIdRange(1),
+      ...sitemapJobIdRange(0),
       afterId: null,
       limit: 1000,
     })
     expect(requests[1]).toMatchObject({
-      ...sitemapJobIdRange(1),
+      ...sitemapJobIdRange(0),
       afterId: rows[999].id,
       limit: 1000,
     })
@@ -325,8 +323,8 @@ describe('fetchSitemapJobChunkRows', () => {
 
 describe('buildJobChunkSitemap', () => {
   it('renders only the injected child rows and de-duplicates slugs', async () => {
-    const xml = await buildJobChunkSitemap(4, async (chunk) => {
-      expect(chunk).toBe(4)
+    const xml = await buildJobChunkSitemap(0, async (chunk) => {
+      expect(chunk).toBe(0)
       return [
         sitemapJobRow(1, 'registered-nurse-tampa'),
         sitemapJobRow(2, 'registered-nurse-tampa'),
@@ -342,24 +340,24 @@ describe('buildJobChunkSitemap', () => {
 
   it('throws on a runtime loader failure so ISR can retain the last good child', async () => {
     await expect(
-      buildJobChunkSitemap(4, async () => {
+      buildJobChunkSitemap(0, async () => {
         throw new Error('query failed')
       }),
     ).rejects.toThrow('query failed')
   })
 
-  it('throws on an empty runtime child so ISR retains the last good XML', async () => {
-    await expect(buildJobChunkSitemap(4, async () => [])).rejects.toThrow(
-      '0 jobs fetched',
-    )
+  it('uses a valid browse-page fallback when direct inventory is empty', async () => {
+    const xml = await buildJobChunkSitemap(0, async () => [])
+    expect(xml.match(/<url>/g)).toHaveLength(1)
+    expect(xml).toContain('<loc>https://freejobpost.co/jobs</loc>')
   })
 
   it('passes request cancellation into the job-child loader', async () => {
     const requestController = new AbortController()
     const xml = await buildJobChunkSitemap(
-      4,
+      0,
       async (chunk, requestSignal) => {
-        expect(chunk).toBe(4)
+        expect(chunk).toBe(0)
         expect(requestSignal).toBe(requestController.signal)
         return [sitemapJobRow(1, 'registered-nurse-tampa')]
       },
@@ -369,10 +367,10 @@ describe('buildJobChunkSitemap', () => {
     expect(xml).toContain('/jobs/registered-nurse-tampa')
   })
 
-  it('throws when nonempty rows produce no valid job URLs', async () => {
-    await expect(
-      buildJobChunkSitemap(4, async () => [sitemapJobRow(1, '')]),
-    ).rejects.toThrow('0 valid job URLs after slug filtering')
+  it('uses the browse-page fallback when rows have no valid slug', async () => {
+    const xml = await buildJobChunkSitemap(0, async () => [sitemapJobRow(1, '')])
+    expect(xml.match(/<url>/g)).toHaveLength(1)
+    expect(xml).toContain('<loc>https://freejobpost.co/jobs</loc>')
   })
 
   it('uses the valid one-URL fallback at build time after slug filtering', async () => {
@@ -380,7 +378,7 @@ describe('buildJobChunkSitemap', () => {
     process.env.NEXT_PHASE = 'phase-production-build'
 
     try {
-      const xml = await buildJobChunkSitemap(4, async () => [sitemapJobRow(1, '')])
+      const xml = await buildJobChunkSitemap(0, async () => [sitemapJobRow(1, '')])
       expect(xml.match(/<url>/g)).toHaveLength(1)
       expect(xml).toContain('<loc>https://freejobpost.co/jobs</loc>')
     } finally {
@@ -396,15 +394,6 @@ function pagesDependencies(
   return {
     loadLatestJobUpdatedAt: async () => null,
     loadEmployers: async () => [],
-    loadFederalMatrixCells: async () => [
-      { agency: FEDERAL_AGENCIES[0], state: STATE_HUBS[0], count: 25 },
-    ],
-    loadMatrixCells: async () => [
-      { specialty: SPECIALTY_HUBS[0], state: STATE_HUBS[0], count: 25 },
-    ],
-    loadCityMatrixCells: async () => [
-      { city: CITY_HUBS[0], specialty: SPECIALTY_HUBS[0], count: 25 },
-    ],
     loadHubCounts: async () => new Map(),
     ...overrides,
   }
@@ -443,21 +432,12 @@ describe('buildPagesSitemap', () => {
       pagesDependencies({
         loadLatestJobUpdatedAt: track(null),
         loadEmployers: track([]),
-        loadFederalMatrixCells: track([
-          { agency: FEDERAL_AGENCIES[0], state: STATE_HUBS[0], count: 25 },
-        ]),
-        loadMatrixCells: track([
-          { specialty: SPECIALTY_HUBS[0], state: STATE_HUBS[0], count: 25 },
-        ]),
-        loadCityMatrixCells: track([
-          { city: CITY_HUBS[0], specialty: SPECIALTY_HUBS[0], count: 25 },
-        ]),
         loadHubCounts: track(new Map<string, number>()),
       }),
       requestController.signal,
     )
 
-    expect(seenSignals).toHaveLength(6)
+    expect(seenSignals).toHaveLength(3)
     expect(seenSignals.every((signal) => signal === requestController.signal)).toBe(true)
   })
 
@@ -482,14 +462,28 @@ describe('buildPagesSitemap', () => {
     expect(hubLoaderSettled).toBe(true)
   })
 
-  it('throws on an empty required matrix so ISR retains the last good pages sitemap', async () => {
-    await expect(
-      buildPagesSitemap(
-        pagesDependencies({
-          loadFederalMatrixCells: async () => [],
-        }),
-      ),
-    ).rejects.toThrow('federal matrix returned 0 rows')
+  it('omits retired pricing, federal, and matrix surfaces', async () => {
+    const xml = await buildPagesSitemap(pagesDependencies())
+    expect(xml).not.toContain('/pricing')
+    expect(xml).not.toContain('/for-employers')
+    expect(xml).not.toContain('/jobs/federal')
+    expect(xml).not.toContain(`/specialty/${SPECIALTY_HUBS[0].slug}/${STATE_HUBS[0].slug}`)
+  })
+
+  it('omits hubs with a confirmed zero direct-employer jobs', async () => {
+    const specialty = SPECIALTY_HUBS[0]
+    const state = STATE_HUBS[0]
+    const xml = await buildPagesSitemap(
+      pagesDependencies({
+        loadHubCounts: async () => new Map([
+          [`specialty:${specialty.slug}`, 0],
+          [`state:${state.slug}`, 0],
+        ]),
+      }),
+    )
+
+    expect(xml).not.toContain(`<loc>https://freejobpost.co/specialty/${specialty.slug}</loc>`)
+    expect(xml).not.toContain(`<loc>https://freejobpost.co/state/${state.slug}</loc>`)
   })
 
   it('keeps hub pagination counts optional at runtime', async () => {
@@ -525,9 +519,6 @@ describe('buildPagesSitemap', () => {
         pagesDependencies({
           loadLatestJobUpdatedAt: fail,
           loadEmployers: fail,
-          loadFederalMatrixCells: fail,
-          loadMatrixCells: fail,
-          loadCityMatrixCells: fail,
           loadHubCounts: fail,
         }),
       )
@@ -536,7 +527,7 @@ describe('buildPagesSitemap', () => {
       expect(xml).toContain('<loc>https://freejobpost.co/jobs</loc>')
       expect(xml).toContain('<loc>https://freejobpost.co/terms</loc>')
       expect(xml).not.toContain('<lastmod>')
-      expect(errorSpy).toHaveBeenCalledTimes(6)
+      expect(errorSpy).toHaveBeenCalledTimes(3)
     } finally {
       if (previousPhase === undefined) delete process.env.NEXT_PHASE
       else process.env.NEXT_PHASE = previousPhase
@@ -544,39 +535,6 @@ describe('buildPagesSitemap', () => {
     }
   })
 
-  it('does not retain a build-only matrix fallback for a later runtime load', async () => {
-    const previousPhase = process.env.NEXT_PHASE
-    let attempts = 0
-    const dependencies = pagesDependencies({
-      loadMatrixCells: async () => {
-        attempts++
-        if (process.env.NEXT_PHASE === 'phase-production-build') {
-          return []
-        }
-        return [{ specialty: SPECIALTY_HUBS[0], state: STATE_HUBS[0], count: 25 }]
-      },
-    })
-
-    try {
-      process.env.NEXT_PHASE = 'phase-production-build'
-      const buildXml = await buildPagesSitemap(dependencies)
-      expect(buildXml).not.toContain(
-        `/specialty/${SPECIALTY_HUBS[0].slug}/${STATE_HUBS[0].slug}`,
-      )
-
-      if (previousPhase === undefined) delete process.env.NEXT_PHASE
-      else process.env.NEXT_PHASE = previousPhase
-
-      const runtimeXml = await buildPagesSitemap(dependencies)
-      expect(runtimeXml).toContain(
-        `/specialty/${SPECIALTY_HUBS[0].slug}/${STATE_HUBS[0].slug}`,
-      )
-      expect(attempts).toBe(2)
-    } finally {
-      if (previousPhase === undefined) delete process.env.NEXT_PHASE
-      else process.env.NEXT_PHASE = previousPhase
-    }
-  })
 })
 
 describe('renderUrlset', () => {

@@ -7,20 +7,20 @@ import { STATE_HUBS } from '@/lib/state-slugs'
 
 import { safeJsonLd } from '@/lib/safe-jsonld'
 export const metadata: Metadata = {
-  title: 'Healthcare jobs by state',
-  description: 'Healthcare jobs by state: Florida, Texas, California, New York, Illinois, Pennsylvania, Ohio, and 43 more. Free to browse + apply, no account.',
+  title: 'Nursing and allied health jobs by state',
+  description: 'Browse nursing and allied health roles posted directly by employers in every US state.',
   alternates: { canonical: 'https://freejobpost.co/state' },
   openGraph: {
-    title: 'Healthcare jobs by state | freejobpost.co',
-    description: 'Browse open healthcare roles by state.',
+    title: 'Nursing and allied health jobs by state | freejobpost.co',
+    description: 'Browse direct employer posts by state.',
     url: 'https://freejobpost.co/state',
     type: 'website',
     images: ['/opengraph-image'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Healthcare jobs by state | freejobpost.co',
-    description: 'Browse open healthcare roles by state.',
+    title: 'Nursing and allied health jobs by state | freejobpost.co',
+    description: 'Browse direct employer posts by state.',
     images: ['/opengraph-image'],
   },
 }
@@ -30,16 +30,16 @@ export default function StateIndexPage() {
     <main className="min-h-screen bg-white text-black">
       <article className="max-w-6xl mx-auto px-6 py-12">
         <nav className="text-xs text-gray-600 mb-3" aria-label="breadcrumb">
-          <Link href="/" className="hover:text-[#003D5C]">Home</Link>
+          <Link href="/" className="hover:text-[#17324D]">Home</Link>
           {' / '}
-          <span className="text-[#003D5C] font-medium">States</span>
+          <span className="text-[#17324D] font-medium">States</span>
         </nav>
 
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#003D5C]">
-          Healthcare jobs by state
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-[#17324D]">
+          Nursing and allied health jobs by state
         </h1>
         <p className="text-lg text-gray-700 leading-relaxed mb-10 max-w-3xl">
-          Pick a state to see every active opening in that market. Each hub aggregates nursing and allied-health postings across every role type.
+          Pick a state to see current nursing and allied health roles posted directly by employers.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -47,7 +47,7 @@ export default function StateIndexPage() {
             <Link
               key={s.slug}
               href={`/state/${s.slug}`}
-              className="group block rounded-xl border border-gray-200 shadow-sm p-4 hover:bg-[#003D5C] hover:text-white transition-colors"
+              className="group block rounded-xl border border-gray-200 shadow-sm p-4 hover:bg-[#17324D] hover:text-white transition-colors"
             >
               <h2 className="font-black text-lg tracking-tight mb-1">{s.name} <span className="text-xs font-medium text-gray-500 group-hover:text-white">{s.abbr}</span></h2>
               <p className="text-sm">{s.shortDescription}</p>

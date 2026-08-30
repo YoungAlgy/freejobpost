@@ -10,6 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { readFreeJobPostEmailConfig } from "../_shared/freejobpost-email.ts";
 import { sendTransactionalEmail, type SendEmailParams, type SendEmailResult } from "../_shared/resend-send.ts";
 
 const corsHeaders = {
@@ -19,8 +20,7 @@ const corsHeaders = {
 };
 
 const FROM_NAME = "Free Job Post";
-// Resend sender — only avahealth.co is verified in this workspace.
-const FROM_EMAIL = "jobs@avahealth.co";
+const PUBLIC_EMPLOYER_JOB_SOURCE = "public_employer_post";
 
 // 2026-07-15: invoked via fetch() from freejobpost's apply server action,
 // never via pg_cron, so a Resend outage here is invisible to
@@ -31,7 +31,7 @@ async function alertOpsViaWebhook(subject: string, body: string): Promise<void> 
   try {
     const url = Deno.env.get("OPS_ALERT_WEBHOOK_URL");
     if (!url) return;
-    const message = `**[ava ops alert]** ${subject}\n\n${body}`;
+    const message = `**[freejobpost ops alert]** ${subject}\n\n${body}`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
@@ -76,10 +76,9 @@ function buildEmployerHtml(params: {
   phone: string | null;
   specialty: string | null;
   coverNote: string | null;
-  publicProfileUrl: string | null;
   firstName: string;
 }): string {
-  const { jobTitle, loc, candidateName, credential, email, phone, specialty, coverNote, publicProfileUrl, firstName } = params;
+  const { jobTitle, loc, candidateName, credential, email, phone, specialty, coverNote, firstName } = params;
   const titleLine = escHtml(jobTitle) + (loc ? ' &mdash; ' + escHtml(loc) : '');
   const credLine = credential ? ', ' + escHtml(credential) : '';
 
@@ -147,18 +146,6 @@ function buildEmployerHtml(params: {
     <td style="padding:0 32px 20px;">
       <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6b7280;">From the candidate</p>
       <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;white-space:pre-wrap;">${escHtml(coverNote)}</p>
-    </td>
-  </tr>
-  ` : ''}
-
-  ${publicProfileUrl ? `
-  <!-- Profile link -->
-  <tr>
-    <td style="padding:0 32px 20px;">
-      <a href="${escHtml(publicProfileUrl)}"
-         style="display:inline-block;border:2px solid #000;color:#000;padding:8px 16px;font-weight:700;font-size:13px;text-decoration:none;">
-        View public profile &rarr;
-      </a>
     </td>
   </tr>
   ` : ''}
@@ -288,6 +275,7 @@ serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
 
   try {
+    const { fromEmail, replyToEmail } = readFreeJobPostEmailConfig((name) => Deno.env.get(name));
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     // Service key (2026-06 audit): this fn used the ANON key, which forced
     // get_apply_notify_context_rpc + record_apply_notify_send to stay
@@ -338,11 +326,10 @@ serve(async (req) => {
       code: number;
       job?: { id: string; slug: string; title: string; city: string | null; state: string | null };
       candidate?: {
-        id: string; slug: string;
+        id: string;
         first_name: string; last_name: string;
         email: string; phone: string | null;
         credential: string | null; specialty: string | null;
-        is_public: boolean;
       };
       employer_email?: string | null;
       cover_note?: string | null;
@@ -355,6 +342,27 @@ serve(async (req) => {
     const job = ctx.job;
     const candidate = ctx.candidate;
     const employerEmail = ctx.employer_email ?? null;
+
+    // This function runs without JWT verification, so re-check the product
+    // boundary using the service client after deriving the application context.
+    // An application UUID for an imported or seeded job must never trigger mail.
+    const { data: directJob, error: directJobErr } = await sb
+      .from("public_jobs")
+      .select("id")
+      .eq("id", job.id)
+      .eq("source", PUBLIC_EMPLOYER_JOB_SOURCE)
+      .maybeSingle();
+    if (directJobErr) {
+      console.error("apply-notify source check failed:", directJobErr.message);
+      return new Response(JSON.stringify({ success: false, error: "Notification scope unavailable" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!directJob) {
+      return new Response(JSON.stringify({ success: false, error: "Application not found" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     // Caller may pass a fresher cover_note; fall back to the stored copy
     const effectiveCoverNote = cover_note ?? ctx.cover_note ?? null;
 
@@ -374,8 +382,8 @@ serve(async (req) => {
 
     if (!Deno.env.get("RESEND_API_KEY")) {
       console.error("apply-notify: RESEND_API_KEY not configured");
-      return new Response(JSON.stringify({ success: true, emails_sent: 0, note: "email_not_configured" }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ success: false, error: "Email delivery unavailable" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -383,10 +391,6 @@ serve(async (req) => {
 
     // === 1. Employer notification ==========================================
     if (employerEmail) {
-      const publicProfileUrl = candidate.is_public
-        ? `https://www.freeresumepost.co/profile/${candidate.slug}`
-        : null;
-
       const empSubject = `New applicant: ${candidateName} for ${job.title}`;
       const empHtml = buildEmployerHtml({
         jobTitle: job.title,
@@ -397,7 +401,6 @@ serve(async (req) => {
         phone: candidate.phone,
         specialty: candidate.specialty,
         coverNote: effectiveCoverNote,
-        publicProfileUrl,
         firstName: candidate.first_name,
       });
       const empText = `New applicant for ${job.title}${loc ? ' -- ' + loc : ''}
@@ -405,13 +408,12 @@ serve(async (req) => {
 ${candidateName}${candidate.credential ? ', ' + candidate.credential : ''}
 ${candidate.email}${candidate.phone ? ' / ' + candidate.phone : ''}${candidate.specialty ? '\nSpecialty: ' + candidate.specialty : ''}
 ${effectiveCoverNote ? '\nFrom the candidate:\n' + effectiveCoverNote + '\n' : ''}
-${publicProfileUrl ? '\nPublic profile: ' + publicProfileUrl + '\n' : ''}
 Reply to this email to contact ${candidate.first_name} directly.
 
 freejobpost.co -- operated by Ava Health Partners LLC`;
 
       const empSendResult = await safeSend({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
+        from: `${FROM_NAME} <${fromEmail}>`,
         to: employerEmail,
         replyTo: candidate.email,
         subject: empSubject,
@@ -440,7 +442,7 @@ freejobpost.co -- operated by Ava Health Partners LLC`;
         await sb.rpc("record_apply_notify_send", {
           p_application_id: application_id,
           p_to_email: employerEmail,
-          p_from_email: FROM_EMAIL,
+          p_from_email: fromEmail,
           p_from_name: FROM_NAME,
           p_subject: empSubject,
           p_status: empSendResult.ok ? "sent" : "failed",
@@ -480,15 +482,10 @@ What happens next:
 
 freejobpost.co -- operated by Ava Health Partners LLC`;
 
-    // Candidate confirmation keeps the freeresumepost display name since
-    // candidates uploaded their resume there; the address must live on
-    // avahealth.co (the only Resend-verified domain in this workspace).
-    const candFromName = "Free Resume Post";
-    const candFromEmail = "resumes@avahealth.co";
     const candSendResult = await safeSend({
-      from: `${candFromName} <${candFromEmail}>`,
+      from: `${FROM_NAME} <${fromEmail}>`,
       to: candidate.email,
-      replyTo: "alex@avahealth.co",
+      replyTo: replyToEmail,
       subject: candSubject,
       html: candHtml,
       text: candText,

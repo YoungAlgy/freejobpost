@@ -5,6 +5,7 @@ import { supabase, hourIso } from '@/lib/supabase'
 import {
   JOB_DETAIL_FIELDS,
   JOB_LIST_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
   type PublicJob,
   formatSalary,
   employmentLabel,
@@ -19,11 +20,7 @@ import { safeJsonLd } from '@/lib/safe-jsonld'
 // server component is what lets /jobs/[slug] render as static ISR rather than
 // dynamic-per-request — see ApplyExternalLink + the revalidate note below.
 import ApplyExternalLink from '@/components/ApplyExternalLink'
-import JobAlertCapture from '@/components/JobAlertCapture'
 import ShareButtons from '@/components/ShareButtons'
-import ResumeMatchCTA from '@/components/ResumeMatchCTA'
-import AffiliateOffer from '@/components/AffiliateOffer'
-import ApplyKitCTA from '@/components/ApplyKitCTA'
 // Hub-link helpers — drive the BROWSE MORE internal-linking section so
 // per-job pages route PageRank back to the matching specialty / state
 // hubs + employer page. Without these, /jobs/[slug] had zero links
@@ -42,8 +39,6 @@ import { buildJobPostingJsonLd } from '@/lib/job-posting-jsonld'
 // the 600 feed bar, and relying on it here is exactly what noindexed ~10.9K pages
 // on 2026-06-15.
 import { hasUsableDescription, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
-import { getViableCellsCached } from '@/lib/specialty-state-matrix'
-import { getViableCityCellsCached } from '@/lib/city-specialty-matrix'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -103,8 +98,9 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
   // fall back to the original select so the page still renders.
   const withTargets = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', employer_id, syndication_targets')
+    .select(JOB_DETAIL_FIELDS + ', syndication_targets')
     .eq('slug', slug)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -114,8 +110,9 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
   }
   const fallback = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', employer_id')
+    .select(JOB_DETAIL_FIELDS)
     .eq('slug', slug)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -181,18 +178,16 @@ async function getClosedJob(slug: string): Promise<JobWithTargets | null> {
   if (!SLUG_RE.test(slug)) return null
   const { data } = await supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', employer_id')
+    .select(JOB_DETAIL_FIELDS)
     .eq('slug', slug)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .is('deleted_at', null)
     .or(`status.eq.expired,status.eq.filled,and(status.eq.active,expires_at.lte.${hourIso()})`)
     .maybeSingle()
   return (data as JobWithTargets | null) ?? null
 }
 
-// Lookup the hiring employer's display name + verification status. When the
-// job has no employer_id (or the row is missing), fall back to the staffing-
-// firm parent — those are the seeded roles placed by Ava Health Partners
-// while we onboard direct employer postings.
+// Lookup the direct hiring employer's display name + verification status.
 //
 // We also try to fetch slug + verified_via so the employer name can link to
 // /employers/[slug] when available. The slug column is added via migration
@@ -200,12 +195,11 @@ async function getClosedJob(slug: string): Promise<JobWithTargets | null> {
 // back gracefully (same pattern used for syndication_targets in getJob).
 async function resolveEmployer(employerId: string | null | undefined): Promise<{
   name: string
-  isSeeded: boolean
   verifiedAt: string | null
   slug: string | null
 }> {
-  const SEEDED_NAME = 'Ava Health Partners'
-  if (!employerId) return { name: SEEDED_NAME, isSeeded: true, verifiedAt: null, slug: null }
+  const FALLBACK_NAME = 'Employer'
+  if (!employerId) return { name: FALLBACK_NAME, verifiedAt: null, slug: null }
 
   type EmployerFull = { company_name: string; verified_at: string | null; verified_via: string | null; slug: string | null }
   type EmployerBase = { company_name: string; verified_at: string | null }
@@ -229,23 +223,16 @@ async function resolveEmployer(employerId: string | null | undefined): Promise<{
     row = (fallback.data as EmployerBase | null)
   }
 
-  const name = row?.company_name?.trim() || SEEDED_NAME
-  // Match "Ava Health Partners", "Ava Health Partners LLC", "Ava Health Partners — Seeded Roles", etc.
-  const isSeeded = /^ava health partners\b/i.test(name)
+  const name = row?.company_name?.trim() || FALLBACK_NAME
   const full = row as EmployerFull | null
-  // Provide a slug link only for real verified non-seeded, non-ATS-import
-  // employers. ATS imports (verified_via='ats_import') don't have a public
-  // employer landing page; their job-detail page links straight to the
-  // employer's own apply URL.
-  const slug = (!isSeeded && full?.slug && full?.verified_via !== 'seeded' && full?.verified_via !== 'ats_import') ? full.slug : null
-  // Suppress the verified-employer green check badge for seeded inventory and
-  // ATS imports. The /jobs index already gates the "VERIFIED ONLY" filter pill
-  // on the same logic; this brings the per-job detail page in line so e.g.
-  // 'U.S. Federal Government' (USAJobs ats_import) doesn't carry a verified
-  // checkmark — we never confirmed that employer via domain email (S3/S7).
+  // Legacy directory rows can still exist, but public job pages only link to
+  // direct employers with a real directory page.
+  const slug = (full?.slug && full.verified_via !== 'seeded' && full.verified_via !== 'ats_import')
+    ? full.slug
+    : null
   const trustedVerify = full?.verified_via !== 'ats_import' && full?.verified_via !== 'seeded'
   const verifiedAt = (row?.verified_at && trustedVerify) ? row.verified_at : null
-  return { name, isSeeded, verifiedAt, slug }
+  return { name, verifiedAt, slug }
 }
 
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
@@ -256,6 +243,7 @@ async function getRelated(job: PublicJob): Promise<PublicJob[]> {
     // JOB_DETAIL_FIELDS so we don't pull 6 full job descriptions per detail
     // page. 2026-05-29 over-fetch audit.
     .select(JOB_LIST_FIELDS)
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', hourIso())
@@ -386,17 +374,9 @@ export default async function JobDetailPage({ params }: Props) {
     )
   }
 
-  const [related, employer, specialtyStateCells, citySpecialtyCells] = await Promise.all([
+  const [related, employer] = await Promise.all([
     getRelated(job),
     resolveEmployer(job.employer_id),
-    // Cell sets used to validate BROWSE MORE matrix-link destinations
-    // before rendering them — without this we'd link to /specialty/<x>/
-    // <state> and /city/<slug>/<specialty> URLs that 404 because the
-    // matrix-page route notFounds when the cell has <5 active matching
-    // jobs. Both helpers are process-cached so successive jobs in the
-    // same Next worker reuse the same fetch.
-    getViableCellsCached(supabase),
-    getViableCityCellsCached(supabase),
   ])
   const loc = locationLabel(job)
   const sal = formatSalary(job.salary_min, job.salary_max)
@@ -439,29 +419,21 @@ export default async function JobDetailPage({ params }: Props) {
   // syndication. Breadcrumb is always safe to emit (it's about the page, not
   // the listing).
   //
-  // Semantics: empty syndication_targets array means "no preference set"
-  // (e.g., ATS-imported jobs are inserted with `ARRAY[]::text[]` by the
-  // ats_import_upsert_jobs RPC), NOT "explicit opt-out from everything."
-  // Pre-2026-05-20 audit: this check rejected 655 active jobs (6.8% of
-  // inventory — every ATS row added since the 2026-05-20 backfill ran)
-  // because `[].includes('google') === false`. Treat empty as "all opt-in"
-  // to match the implied default; explicit opt-out requires a non-empty
-  // array that lacks 'google'.
+  // Legacy direct posts may have an empty target array. Treat that as the
+  // default distribution set. A non-empty array can still omit Google.
   const targets = job.syndication_targets
   const optedIntoGoogleByTargets =
     !targets || targets.length === 0 || targets.includes('google')
 
   // Google for Jobs rejects (and penalizes the whole feed for) JobPosting
-  // entries with empty/thin descriptions. Some ATS-imported rows arrive
-  // with no description body (provider returns only a title + apply URL).
+  // entries with empty or thin descriptions.
   //
   // 2026-05-28: use the shared hasUsableDescription() helper (HTML-stripped) at
   // the 250-char INDEXABLE floor — the same gate as the noindex check above and
   // the sitemap. These two PAGE gates agree: thin (<250) = noindex + no
   // JobPosting JSON-LD; usable (>=250) = indexable + full JSON-LD. Partner-feed
   // syndication is now a SEPARATE, higher bar (600), so a 250-599 char job is
-  // indexable + carries JSON-LD but is NOT in the aggregator feeds. Self-heals
-  // when the Workday backfill rehydrates the description (next 600s revalidate).
+  // indexable + carries JSON-LD but is excluded from outbound partner feeds.
   const descUsable = hasUsableDescription(job.description, MIN_INDEXABLE_DESCRIPTION_CHARS)
   const optedIntoGoogle = optedIntoGoogleByTargets && descUsable
 
@@ -481,11 +453,11 @@ export default async function JobDetailPage({ params }: Props) {
         <div className="max-w-4xl mx-auto px-6 py-10">
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
-            <Link href="/" className="hover:text-[#003D5C]">
+            <Link href="/" className="hover:text-[#17324D]">
               Home
             </Link>
             <span className="mx-2">/</span>
-            <Link href="/jobs" className="hover:text-[#003D5C]">
+            <Link href="/jobs" className="hover:text-[#17324D]">
               Jobs
             </Link>
             <span className="mx-2">/</span>
@@ -509,7 +481,7 @@ export default async function JobDetailPage({ params }: Props) {
                 <span
                   className={`text-xs font-bold tracking-wider rounded-md border px-2.5 py-1 ${
                     rem === 'Remote'
-                      ? 'bg-[#7FBC00] text-white border-[#7FBC00]'
+                      ? 'bg-[#276749] text-white border-[#276749]'
                       : 'border-gray-200'
                   }`}
                 >
@@ -517,7 +489,7 @@ export default async function JobDetailPage({ params }: Props) {
                 </span>
               )}
               {sal && (
-                <span className="text-xs font-bold tracking-wider bg-[#003D5C] text-white px-2.5 py-1">
+                <span className="text-xs font-bold tracking-wider bg-[#17324D] text-white px-2.5 py-1">
                   {sal}
                 </span>
               )}
@@ -536,31 +508,24 @@ export default async function JobDetailPage({ params }: Props) {
                 // to a usable destination.
                 <ApplyExternalLink
                   slug={job.slug}
-                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
+                  className="inline-flex items-center justify-center bg-[#276749] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#1F563B] transition-colors"
                 >
                   Apply on employer site →
                 </ApplyExternalLink>
               ) : (
                 <Link
                   href={`/jobs/${job.slug}/apply`}
-                  className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
+                  className="inline-flex items-center justify-center bg-[#276749] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#1F563B] transition-colors"
                 >
                   Apply for this role →
                 </Link>
               )}
               <Link
                 href="/jobs"
-                className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#17324D] hover:text-white transition-colors"
               >
                 Browse all jobs
               </Link>
-            </div>
-
-            {/* High-intent affiliate: sits right by the apply CTA, where the
-                reader is in "applying to a lot of jobs" mode. Renders nothing
-                until the program link is configured (see lib/affiliates). */}
-            <div className="mt-4">
-              <AffiliateOffer program="jobcopilot" />
             </div>
 
             {/* Share — cheap distribution; the page already ships OG/Twitter cards. */}
@@ -578,22 +543,6 @@ export default async function JobDetailPage({ params }: Props) {
               className="job-content"
               dangerouslySetInnerHTML={{ __html: renderDescription(job.description || '') }}
             />
-          </div>
-
-          {/* Cross-promo → ApplyKit (own product). Right after the reader
-              finishes the description — peak intent to apply well to THIS
-              specific role. See ApplyKitCTA. */}
-          <div className="mb-6">
-            <ApplyKitCTA jobTitle={cleanJobTitle} />
-          </div>
-
-          {/* Conversion bridge → freeresumepost.co. Placed right after the
-              reader consumes the role — peak intent to "get matched to more
-              like this" without re-applying. This is the candidate-supply
-              funnel: freejob has the (growing) search traffic, freeresume
-              needs the uploads. See ResumeMatchCTA. */}
-          <div className="mb-6">
-            <ResumeMatchCTA specialtyLabel={job.specialty || job.role} />
           </div>
 
           {/* Meta */}
@@ -638,7 +587,7 @@ export default async function JobDetailPage({ params }: Props) {
               ) : employer.slug ? (
                 <Link
                   href={`/employers/${employer.slug}`}
-                  className="text-black font-medium underline underline-offset-2 hover:text-[#003D5C]"
+                  className="text-black font-medium underline underline-offset-2 hover:text-[#17324D]"
                 >
                   {employer.name}
                 </Link>
@@ -652,41 +601,6 @@ export default async function JobDetailPage({ params }: Props) {
                 </>
               )}
             </span>
-          </div>
-
-          {/* Seeded-role disclosure — honest signal that this is one of the
-             roles placed by the staffing firm operating the site, while we
-             onboard direct employer postings. Stays until cold-start ends. */}
-          {employer.isSeeded && (
-            <aside
-              className="mb-10 border-2 border-dashed border-gray-400 p-4 text-xs leading-relaxed text-gray-700"
-              aria-label="Sourcing disclosure"
-            >
-              <p className="font-bold tracking-wider text-gray-500 mb-1">
-                ABOUT THIS LISTING
-              </p>
-              <p>
-                This role is placed by{' '}
-                <span className="font-medium">Ava Health Partners LLC</span>
-                , the healthcare staffing firm that operates freejobpost.co. We
-                seed real placements from our recruiter book while we onboard
-                direct employer postings. Every listing has a real apply link
-                and comes off the board once it is filled.
-              </p>
-            </aside>
-          )}
-
-          {/* Job-alert capture — last-chance conversion for the apply-leak:
-              a visitor who read this role but won't click through to the
-              employer ATS can still become a re-contactable CRM lead, tagged
-              with this role's specialty + location. */}
-          <div className="mb-10 max-w-3xl">
-            <JobAlertCapture
-              defaultSpecialty={stripSalarySuffix(job.specialty || '') || undefined}
-              defaultState={job.state || undefined}
-              defaultCity={job.city || undefined}
-              source="job_page"
-            />
           </div>
 
           {/* Browse more — internal links back to specialty / state hubs.
@@ -719,43 +633,6 @@ export default async function JobDetailPage({ params }: Props) {
                 label: `Healthcare jobs in ${stateHub.name}`,
               })
             }
-            // Matrix-cell links: only render when the cell actually
-            // exists in the viable-cell set. The matrix routes
-            // notFound() when zero jobs match (specialty-state/page.tsx
-            // line 106, city-specialty/page.tsx line ~108) so linking
-            // unconditionally produced live 404s — caught in the
-            // 2026-05-22 audit pass on a Tampa PA job that linked
-            // /specialty/physician-assistant/florida which doesn't
-            // meet the ≥5-jobs floor.
-            if (specialtyHub && stateHub) {
-              const cellExists = specialtyStateCells.some(
-                (c) => c.specialty.slug === specialtyHub.slug && c.state.slug === stateHub.slug
-              )
-              if (cellExists) {
-                links.push({
-                  href: `/specialty/${specialtyHub.slug}/${stateHub.slug}`,
-                  label: `${specialtyHub.title.replace(/ Jobs$/, '')} in ${stateHub.name}`,
-                })
-              }
-            }
-            if (specialtyHub && cityHub) {
-              const cellExists = citySpecialtyCells.some(
-                (c) => c.specialty.slug === specialtyHub.slug && c.city.slug === cityHub.slug
-              )
-              if (cellExists) {
-                links.push({
-                  href: `/city/${cityHub.slug}/${specialtyHub.slug}`,
-                  label: `${specialtyHub.title.replace(/ Jobs$/, '')} in ${cityHub.name.split(',')[0]}`,
-                })
-              }
-            }
-            // Federal source signal — usajobs:federal jobs link back to
-            // /jobs/federal/<agency>. We can't infer the agency without the
-            // raw source string parsed elsewhere, so just link to the
-            // /jobs/federal index for any federal source.
-            if (job.source?.startsWith('usajobs:')) {
-              links.push({ href: '/jobs/federal', label: 'Federal healthcare jobs' })
-            }
             if (links.length === 0) return null
             return (
               <section className="border-t border-gray-200 pt-10 mb-10">
@@ -767,7 +644,7 @@ export default async function JobDetailPage({ params }: Props) {
                     <li key={l.href}>
                       <Link
                         href={l.href}
-                        className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                        className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors"
                       >
                         {l.label} →
                       </Link>
@@ -835,17 +712,32 @@ function ClosedJobView({
   const cleanJobTitle = stripSalarySuffix(job.title) || job.title
   const specialtyHub = findSpecialtyHub(job.specialty, job.role, job.title)
   const stateHub = findStateHubByAbbr(job.state)
+  const relatedSpecialtyHub = specialtyHub && related.some((openJob) => {
+    const openHub = findSpecialtyHub(
+      openJob.specialty,
+      openJob.role,
+      openJob.title,
+    )
+    return openHub?.slug === specialtyHub.slug
+  })
+    ? specialtyHub
+    : null
+  const relatedStateHub = stateHub && related.some(
+    (openJob) => findStateHubByAbbr(openJob.state)?.slug === stateHub.slug,
+  )
+    ? stateHub
+    : null
 
   return (
     <main className="min-h-screen bg-white text-black">
       <div className="max-w-4xl mx-auto px-6 py-10">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
-          <Link href="/" className="hover:text-[#003D5C]">
+          <Link href="/" className="hover:text-[#17324D]">
             Home
           </Link>
           <span className="mx-2">/</span>
-          <Link href="/jobs" className="hover:text-[#003D5C]">
+          <Link href="/jobs" className="hover:text-[#17324D]">
             Jobs
           </Link>
           <span className="mx-2">/</span>
@@ -854,7 +746,7 @@ function ClosedJobView({
 
         {/* Closed banner */}
         <div className="rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 mb-8">
-          <span className="inline-block text-xs font-bold tracking-wider bg-[#003D5C] text-white px-2.5 py-1 mb-4">
+          <span className="inline-block text-xs font-bold tracking-wider bg-[#17324D] text-white px-2.5 py-1 mb-4">
             POSITION CLOSED
           </span>
           <h1 className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-3">
@@ -864,32 +756,27 @@ function ClosedJobView({
           {employerName && <p className="text-sm text-gray-500 mb-4">{employerName}</p>}
           <p className="text-gray-700 leading-relaxed mb-6 max-w-2xl">
             This role is no longer accepting applications. It&apos;s been filled or
-            its posting window has ended. There are similar open healthcare jobs
-            below, refreshed every few hours.
+            its posting window has ended.{' '}
+            {related.length > 0
+              ? 'Current open healthcare roles are listed below.'
+              : 'There are no similar open roles listed right now.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            {specialtyHub && (
+            {relatedSpecialtyHub && (
               <Link
-                href={`/specialty/${specialtyHub.slug}`}
-                className="inline-flex items-center justify-center bg-[#7FBC00] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#6DA300] transition-colors"
+                href={`/specialty/${relatedSpecialtyHub.slug}`}
+                className="inline-flex items-center justify-center bg-[#276749] text-white px-6 py-4 text-base font-bold rounded-lg hover:bg-[#1F563B] transition-colors"
               >
-                Browse {specialtyHub.title.replace(/ Jobs$/, '')} jobs →
+                Browse {relatedSpecialtyHub.title.replace(/ Jobs$/, '')} jobs →
               </Link>
             )}
             <Link
               href="/jobs"
-              className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+              className="inline-flex items-center justify-center rounded-xl border border-gray-200 shadow-sm px-6 py-4 text-base font-bold hover:bg-[#17324D] hover:text-white transition-colors"
             >
               Browse all jobs
             </Link>
           </div>
-        </div>
-
-        {/* Closed-job recovery bridge → freeresumepost.co — a dead listing is
-            peak intent to "upload once, get matched to live roles" instead of
-            chasing expired postings. */}
-        <div className="mb-8">
-          <ResumeMatchCTA specialtyLabel={job.specialty || job.role} />
         </div>
 
         {/* Similar open roles */}
@@ -924,29 +811,29 @@ function ClosedJobView({
         )}
 
         {/* Hub links — route the visitor (and any equity) into the live hub graph */}
-        {(specialtyHub || stateHub) && (
+        {(relatedSpecialtyHub || relatedStateHub) && (
           <section className="border-t border-gray-200 pt-10">
             <h2 className="text-sm font-bold tracking-widest text-gray-500 mb-4">
               BROWSE MORE
             </h2>
             <ul className="flex flex-wrap gap-3">
-              {specialtyHub && (
+              {relatedSpecialtyHub && (
                 <li>
                   <Link
-                    href={`/specialty/${specialtyHub.slug}`}
-                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                    href={`/specialty/${relatedSpecialtyHub.slug}`}
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors"
                   >
-                    More {specialtyHub.title.replace(/ Jobs$/, '')} jobs →
+                    More {relatedSpecialtyHub.title.replace(/ Jobs$/, '')} jobs →
                   </Link>
                 </li>
               )}
-              {stateHub && (
+              {relatedStateHub && (
                 <li>
                   <Link
-                    href={`/state/${stateHub.slug}`}
-                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#003D5C] hover:text-white transition-colors"
+                    href={`/state/${relatedStateHub.slug}`}
+                    className="inline-block rounded-md border border-gray-200 shadow-sm px-3 py-2 text-sm font-bold hover:bg-[#17324D] hover:text-white transition-colors"
                   >
-                    Healthcare jobs in {stateHub.name} →
+                    Healthcare jobs in {relatedStateHub.name} →
                   </Link>
                 </li>
               )}

@@ -7,7 +7,12 @@
 // jobtype) — see /feeds/linkedin.xml.
 
 import type { PublicJob } from './public-jobs'
-import { JOB_DETAIL_FIELDS, formatSalary, locationLabel } from './public-jobs'
+import {
+  JOB_DETAIL_FIELDS,
+  PUBLIC_EMPLOYER_JOB_SOURCE,
+  formatSalary,
+  locationLabel,
+} from './public-jobs'
 // Use the short-revalidate supabase client — see src/lib/supabase.ts for
 // why feed routes need a 30s fetch window vs the page-default 300s.
 import { supabaseFresh as supabase, hourIso } from './supabase'
@@ -145,8 +150,8 @@ export function descriptionHtml(job: PublicJob): string {
   return blocks.join('')
 }
 
-// avaCategoryHashtag — maps a job to Ava Health's Indeed category code, appended to
-// ORIGINATED job descriptions in the partner feed (see buildOriginatedFeed). The code
+// freeJobPostCategoryHashtag maps a job to FreeJobPost's Indeed category code,
+// appended to ORIGINATED job descriptions in the partner feed. The code
 // rides into Indeed (which indexes the description text), so you can search/filter
 // Indeed by category and group sponsored campaigns by bucket. Buckets: 101 Nurses ·
 // 102 Advanced Practice · 103 Dental/Specialty · 104 Allied Health. Physician/PA roles
@@ -154,47 +159,23 @@ export function descriptionHtml(job: PublicJob): string {
 // nurse and allied-health postings. Returns null when a role doesn't classify (we
 // don't mislabel). Keyword lists are intentionally simple — tune them with the
 // recruiting team.
-export function avaCategoryHashtag(job: PublicJob): string | null {
+export function freeJobPostCategoryHashtag(job: PublicJob): string | null {
   const hay = `${job.role ?? ''} ${job.specialty ?? ''} ${job.title ?? ''}`.toLowerCase()
   const has = (re: RegExp) => re.test(hay)
   // Advanced-practice nurses first (their titles contain "nurse" substrings).
-  if (has(/nurse practitioner|\bnp\b|\baprn\b/)) return '#AVA102'
-  if (has(/\bnurse\b|registered nurse|\brn\b|\blpn\b|\blvn\b|\bcna\b|crna/)) return '#AVA101'
-  if (has(/therap(ist|y)|pharmac(ist|y)|technolog(ist|y)|technician|sonograph|radiograph|imaging|x-ray|laborator|phlebotom|respiratory|dietit|nutrition|medical assistant|paramedic|\bemt\b|surgical tech/)) return '#AVA104'
-  if (has(/dentist|dental|orthodont|endodont|periodont/)) return '#AVA103'
+  if (has(/nurse practitioner|\bnp\b|\baprn\b/)) return '#FJP102'
+  if (has(/\bnurse\b|registered nurse|\brn\b|\blpn\b|\blvn\b|\bcna\b|crna/)) return '#FJP101'
+  if (has(/therap(ist|y)|pharmac(ist|y)|technolog(ist|y)|technician|sonograph|radiograph|imaging|x-ray|laborator|phlebotom|respiratory|dietit|nutrition|medical assistant|paramedic|\bemt\b|surgical tech/)) return '#FJP104'
+  if (has(/dentist|dental|orthodont|endodont|periodont/)) return '#FJP103'
   return null
 }
 
-// Fetch active jobs that opt-in to a particular network.
-//
-// Defensive: if the syndication_targets column doesn't exist yet (migration
-// not applied), fall back to returning every active job. This keeps every
-// feed route serving content even if Algy hasn't pasted the SQL yet — the
-// recruiter-opt-in story kicks in only after the column is live.
-//
-// NUM_BATCHES parallel .range() batches — PostgREST's anon-role default
-// db_max_rows=1000 silently clamps a single `.limit(N>1000)`. Pre-2026-05-19
-// this used `.limit(5000)` which was silently returning 1,000 of ~9,000
-// active jobs → 88% under-coverage on EVERY per-partner feed.
-//
-// Bumped from 9 to 12 on 2026-05-20 after the syndication_targets backfill
-// opted 8,536 ATS-imported jobs into the volume partners. /jobs.xml hit
-// the 9-batch ceiling exactly (9,000 returned vs 8,961 expected — last
-// batch was a full 1k) which means total inventory had already crossed
-// 9,000 and we were under-serving the tail. 12 batches gives 12,000-row
-// headroom for the next federal-pipeline + ATS-onboarding additions.
-// 2026-05-28 audit: 12→30. At 14.6K active inventory the 12K ceiling silently
-// dropped ~2.6K oldest jobs from every Indeed-format partner feed. Bump (or
-// switch to count-based paging — count active, fetch ceil(count/1000)) before 30K.
+// Fetch active direct-employer jobs assigned to a network. PostgREST caps each
+// range at 1,000 rows, so the shared count helper controls pagination.
 const BATCH_SIZE = 1000
 
-// Strict partners require an EXPLICIT opt-in in syndication_targets — no
-// auto-inclusion of empty-array rows. These are partners with strict quality
-// controls or paid-only ingestion where republishing ATS-aggregated jobs is
-// either disallowed (Indeed/LinkedIn) or risks feed-quality scoring
-// penalties (ZipRecruiter). Volume partners (glassdoor / talent / adzuna /
-// jooble / careerjet / rss / google) auto-include empty-array rows, which
-// is the "no preference set" default for ATS-imported jobs.
+// Strict partners require an explicit target. For older direct posts, an empty
+// array remains the legacy default for volume feeds only.
 const STRICT_PARTNERS: ReadonlySet<SyndicationTargetId> = new Set([
   'indeed',
   'linkedin',
@@ -203,17 +184,6 @@ const STRICT_PARTNERS: ReadonlySet<SyndicationTargetId> = new Set([
 
 async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
   const nowIso = hourIso()
-  // Volume partners: match jobs where syndication_targets either contains the
-  // partner OR is empty (empty array semantically means "no preference set" —
-  // usually ATS-imported rows that ats_import_upsert_jobs inserts with
-  // `ARRAY[]::text[]`. Pre-2026-05-20 audit found 655 such jobs being
-  // silently excluded from every per-partner feed). Explicit opt-out
-  // requires a non-empty array that lacks the partner key.
-  //
-  // Strict partners: require explicit opt-in. Empty arrays excluded so we
-  // never republish ATS-aggregated rows to Indeed/LinkedIn/ZipRecruiter
-  // without a recruiter's deliberate choice.
-  //
   // PostgREST `.or()` joins clauses with OR; `cs.{target}` is the array
   // `@>` operator, `eq.{}` matches an empty array literal.
   const isStrict = STRICT_PARTNERS.has(target)
@@ -222,7 +192,8 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     : `syndication_targets.cs.{${target}},syndication_targets.eq.{}`
   const baseFiltered = () => supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id, syndication_targets')
+    .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
@@ -237,44 +208,21 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
 
   const numBatches = await activeJobBatchCount(supabase)
 
-  // 2026-08-12 — this is the shared engine behind 7 partner-feed routes
-  // (indeed/adzuna/careerjet/glassdoor/jooble/talent/ziprecruiter), every one
-  // force-dynamic with no unstable_cache layer — only a CDN Cache-Control
-  // header, which is not a guaranteed origin-level dedup. Each was firing up
-  // to `numBatches` (60) concurrent range queries on ANY uncached hit,
-  // triggered by partner-crawler polling schedules Algy doesn't control —
-  // the same disk-IO-exhaustion shape already root-caused (via
-  // pg_stat_statements) in specialty-state-matrix.ts, just never capped
-  // here. Routed through the shared runBatchesConcurrencyCapped helper.
   const filteredBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
     baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
-  // If the first batch errored (column doesn't exist), fall back to
-  // unfiltered. Otherwise concat everything.
-  if (!filteredBatches[0]?.error) {
-    return filteredBatches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
+  if (filteredBatches.some((batch) => batch.error) && !isBuildPhase()) {
+    throw new Error(`feed[${target}]: direct-employer query failed, refusing to cache a partial feed.`)
   }
-
-  // Fallback: no syndication_targets column → unfiltered feed.
-  const baseFallback = () => supabase
-    .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', nowIso)
-    .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const fallbackBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-    baseFallback().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-  )
-  return fallbackBatches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
+  return filteredBatches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 }
 
 // Resolve company names for a batch of employer ids in one query.
 //
 // 2026-08-20: this read public_employers_directory_all, which does not exist in
 // the database. The error was swallowed, the map came back empty, and every job
-// without its own company_name fell through to the "Ava Health Partners"
-// default — 34k live jobs going out to Indeed / LinkedIn / Google under the
+// without its own company_name fell through to a site-level default, sending
+// live jobs to Indeed / LinkedIn / Google under the
 // wrong company. All 23 employers those jobs point at are status='active' and
 // verified_healthcare_org=true, so public_employers_directory covers them.
 async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string, string>> {
@@ -341,53 +289,17 @@ function wrapIndeedFormat(jobsXml: string, jobCount: number, networkLabel: strin
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>Free healthcare job feed (${networkLabel}). Operated by Ava Health Partners LLC. ${jobCount} open positions.</description>
+  <description>FreeJobPost nursing and allied-health job feed (${networkLabel}). Owned and operated by Ava Health Partners LLC. ${jobCount} open positions.</description>
 ${jobsXml}
 </source>`
 }
 
-// Minimum non-whitespace description length we'll publish to partner feeds.
-// Partners (Talent.com, Adzuna, Jooble, etc.) penalize feeds with high
-// percentages of thin-content listings — Talent.com explicitly down-ranks
-// "less than one paragraph" entries during their crawl scoring. Filtering
-// these out at the feed level (rather than emitting and getting penalized
-// across the whole feed) is the safer move.
-//
-// Pre-2026-05-21 audit: 2,300 / 9,664 jobs in talent.xml (24%) had
-// empty/<p></p>-only descriptions because the Workday ATS importer
-// doesn't fetch detail-endpoint descriptions on shallow refresh
-// (enrichAll defaults to false — see src/lib/ats-import/workday.ts:215).
-// Long-term fix is to default-enrich descriptions in the importer +
-// backfill existing rows. Until then we keep these jobs on /jobs (users
-// can still browse) but exclude them from partner feeds.
-//
-// 2026-05-22: threshold raised 50 → 250 after Jooble (ticket #1774316)
-// reviewed the feed and flagged jobs without "a clear list of
-// responsibilities and requirements." 50 chars passed one-line "stub"
-// descriptions; 250 chars is a reasonable floor for a description that
-// includes at least a short responsibilities + requirements section.
-//
-// 2026-06-15: raised 250 → 600 after Jooble re-flagged (same ticket) — the
-// 250 floor still passed one-paragraph stubs that lacked a real
-// requirements list, so they wouldn't take our organic feed live. The
-// active-inventory distribution has a hard cliff here: ~15,950 jobs clear
-// 250, but only ~5,015 clear 600 (almost the entire 400-600 band is thin
-// ATS one-liners). 600 is the floor that reliably carries responsibilities
-// + requirements, which is exactly what Jooble asked for. Tradeoff: the
-// partner feed shrinks to the ~5K genuinely-described roles. That's fine —
-// zero of our jobs are live on Jooble while we're blocked, so 5K rich
-// listings beats 16K mixed ones, and the on-site /jobs browse still shows
-// every job (only the partner XML is filtered). Jobs rejoin the feed as the
-// ATS-enrichment backfill fills their descriptions past 600.
+// Minimum non-whitespace description length published to partner feeds. Thin
+// posts remain browseable onsite but stay out of quality-sensitive feeds.
 export const MIN_DESCRIPTION_CHARS = 600
 
-// The originated feed (/feeds/originated.xml — directly-posted + Ava-seeded
-// roles, is_ats_import=false) keeps the OLD 250 floor, NOT the 600 volume-feed
-// bar. Reason: the 600 bar exists to strip thin one-paragraph ATS stubs out of
-// the huge aggregated feed. Originated inventory is small (~426) and already
-// direct-employer content, but most of it sits in the 250-600 band (Ava-seeded
-// roles run a solid paragraph, not a full page). Applying 600 here gutted the
-// feed to 4 jobs (measured 2026-06-15) — so this feed gets its own floor.
+// The originated feed is a lower-threshold direct-employer feed for partners
+// that accept shorter descriptions.
 export const MIN_ORIGINATED_DESCRIPTION_CHARS = 250
 
 // Floor for whether a /jobs/[slug] PAGE is indexable: drives the noindex robots
@@ -424,18 +336,8 @@ export async function buildIndeedFormatFeed(
   networkLabel: string,
 ): Promise<Response> {
   const allJobs = await fetchJobsForTarget(target)
-  // FAIL CLOSED — but RUNTIME ONLY. 0 fetched means DB failure (we always
-  // have thousands of active jobs). At RUNTIME (ISR revalidation) we throw so
-  // Next serves the last-good cached feed instead of caching emptiness. But
-  // these route handlers ALSO pre-render at BUILD time, and a throw there
-  // aborts the whole deploy (observed 2026-05-28: a transient build-time DB
-  // timeout on /feeds/talent.xml killed the build). At build there's no stale
-  // cache to fall back to, so throwing is pointless + harmful — let it emit a
-  // (possibly empty) feed that the first runtime revalidation replaces within
-  // `revalidate` seconds against a healthy DB.
-  if (allJobs.length === 0 && !isBuildPhase()) {
-    throw new Error(`feed[${target}]: 0 jobs fetched — refusing to cache empty feed (likely DB saturation).`)
-  }
+  // Empty is valid while direct-employer inventory is growing. Query errors
+  // are handled inside fetchJobsForTarget so failed reads still fail closed.
   const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
   const employerNames = await resolveEmployerNames(jobs)
   // HARD BYTE BUDGET (2026-06-10): /feeds/adzuna.xml's prerendered ISR
@@ -452,9 +354,8 @@ export async function buildIndeedFormatFeed(
   let feedBytes = 0
   let included = 0
   for (const job of jobs) {
-    // Prefer the real per-job company (Adzuna's company.display_name) over the
-    // joined meta-employer ("Adzuna (aggregator)") — partners ingest <company>.
-    const name = job.company_name || employerNames.get(job.employer_id) || 'Ava Health Partners'
+    // Prefer the company name stored on the direct post, then its employer row.
+    const name = job.company_name || employerNames.get(job.employer_id) || 'Employer'
     const row = indeedFormatJobElement(job, name, 'freejobpost.co', target)
     feedBytes += Buffer.byteLength(row, 'utf8')
     if (feedBytes > MAX_FEED_BYTES) {
@@ -481,38 +382,32 @@ export async function buildIndeedFormatFeed(
 }
 
 // Fetch active jobs that ORIGINATE on freejobpost — i.e. employer-posted
-// via /post-job + Ava Health seeded roles. Excludes ATS-imported jobs
-// (Workday / Greenhouse / Lever / Ashby / USAJobs) that strict publishers
-// like Indeed and LinkedIn classify as "republished" content.
+// via /post-job. The exact source filter excludes every imported or seeded row.
 //
-// Same 9-batch range pattern as fetchJobsForTarget; current inventory is
-// ~422 originated jobs but the pattern future-proofs us as employers
-// onboard via /post-job.
 async function fetchOriginatedJobs(): Promise<FeedJob[]> {
   const nowIso = hourIso()
   const baseQ = () => supabase
     .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at, employer_id')
+    .select(JOB_DETAIL_FIELDS + ', updated_at')
+    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
     .eq('status', 'active')
     .is('deleted_at', null)
     .gt('expires_at', nowIso)
     .gte('description_usable_chars', MIN_ORIGINATED_DESCRIPTION_CHARS) // mirrors hasUsableDescription (originated floor)
-    .eq('is_ats_import', false)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
   const numBatches = await activeJobBatchCount(supabase)
   const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
     baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
   )
+  if (batches.some((batch) => batch.error) && !isBuildPhase()) {
+    throw new Error('feed[originated]: direct-employer query failed, refusing to cache a partial feed.')
+  }
   return batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 }
 
-// Indeed-format feed restricted to originated (non-ATS-imported) jobs.
-// Designed for strict partners (Indeed, LinkedIn Limited Listings,
-// ZipRecruiter Publisher Program) whose quality scoring penalizes
-// republished content. Hand them
-// https://freejobpost.co/feeds/originated.xml.
+// Lower-threshold Indeed-format feed for direct employer posts.
 //
-// Doesn't use a SyndicationTargetId (those represent per-board opt-in
+// Doesn't use a SyndicationTargetId (those represent per-board assignment
 // gates; "originated" is a content-source dimension, not a publisher
 // target). The <url> field falls back to a clean canonical URL — strict
 // partners typically rewrite or append their own attribution params on
@@ -536,12 +431,12 @@ export async function buildOriginatedFeed(networkLabel: string): Promise<Respons
   const employerNames = await resolveEmployerNames(jobs)
   const jobsXml = jobs
     .map((job) => {
-      const name = employerNames.get(job.employer_id) || 'Ava Health Partners'
+      const name = job.company_name || employerNames.get(job.employer_id) || 'Employer'
       // Inline the indeedFormatJobElement body to bypass the
       // jobUrlWithUtm SyndicationTargetId constraint. URL is the bare
       // canonical /jobs/[slug] — no ?ref, no utm_* — since strict
       // partners append their own attribution.
-      const catTag = avaCategoryHashtag(job)
+      const catTag = freeJobPostCategoryHashtag(job)
       const loc = locationLabel(job)
       const sal = formatSalary(job.salary_min, job.salary_max)
       const title = job.title || job.role || 'Healthcare Role'
