@@ -197,7 +197,7 @@ export async function GET(): Promise<Response> {
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>FreeJobPost nursing and allied-health job feed, LinkedIn Job Wrapping spec. Owned and operated by Ava Health Partners LLC. ${included} open positions.</description>
+  <description>FreeJobPost direct nursing and allied-health employer feed, LinkedIn Job Wrapping spec. ${included} open positions.</description>
 ${jobsXml}
 </source>`
 

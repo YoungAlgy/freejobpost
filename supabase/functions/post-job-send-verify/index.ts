@@ -271,7 +271,7 @@ serve(async (req) => {
     <td style="padding:16px 32px;border-top:2px solid #000000;">
       <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
         This link expires in 48 hours. Didn't post this job? You can safely ignore this email.<br/>
-        freejobpost.co is operated by Ava Health Partners LLC · 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
+        FreeJobPost · 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
       </p>
     </td>
   </tr>
@@ -295,7 +295,7 @@ After verification:
 
 This link expires in 48 hours. Didn't post this job? Ignore this email.
 
-freejobpost.co is operated by Ava Health Partners LLC`;
+FreeJobPost -- 4532 W Kennedy Blvd Ste 125, Tampa FL 33609`;
 
     const sendResult = await sendTransactionalEmail({
       from: `${FROM_NAME} <${fromEmail}>`,

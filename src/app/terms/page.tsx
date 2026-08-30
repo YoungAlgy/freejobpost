@@ -31,7 +31,7 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-black mt-8 mb-2">2. Posting a job</h2>
           <ul className="list-disc pl-5 space-y-1.5">
-            <li>You must be authorized to recruit on behalf of the employer you list.</li>
+            <li>You must be authorized by the employer named in the post.</li>
             <li>Job posts must be for real, currently-open positions in healthcare.</li>
             <li>Posts may not include misleading compensation, fake credentials, or scrape-bait content.</li>
             <li>We reserve the right to remove posts that violate these rules without notice.</li>

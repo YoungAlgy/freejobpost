@@ -1,6 +1,6 @@
 // Per-job OG image. Each posting now gets a unique social card with the
 // title + city/state + salary range + employment type baked in. Way more
-// shareable than a generic "freejobpost.co" banner — recruiters posting
+// shareable than a generic "freejobpost.co" banner for employers posting
 // jobs to LinkedIn/Twitter get a card that actually advertises the role.
 //
 // Generated on-demand and ISR-cached at the slug level (7-day revalidate — see

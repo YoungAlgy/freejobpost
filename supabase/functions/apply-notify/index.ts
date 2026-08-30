@@ -163,7 +163,7 @@ function buildEmployerHtml(params: {
   <tr>
     <td style="padding:16px 32px;border-top:2px solid #000000;">
       <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
-        freejobpost.co is operated by Ava Health Partners LLC &middot; 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
+        FreeJobPost &middot; 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
       </p>
     </td>
   </tr>
@@ -258,7 +258,7 @@ function buildCandidateHtml(params: {
   <tr>
     <td style="padding:16px 32px;border-top:2px solid #000000;">
       <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
-        freejobpost.co is operated by Ava Health Partners LLC &middot; 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
+        FreeJobPost &middot; 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
       </p>
     </td>
   </tr>
@@ -410,7 +410,7 @@ ${candidate.email}${candidate.phone ? ' / ' + candidate.phone : ''}${candidate.s
 ${effectiveCoverNote ? '\nFrom the candidate:\n' + effectiveCoverNote + '\n' : ''}
 Reply to this email to contact ${candidate.first_name} directly.
 
-freejobpost.co -- operated by Ava Health Partners LLC`;
+FreeJobPost -- 4532 W Kennedy Blvd Ste 125, Tampa FL 33609`;
 
       const empSendResult = await safeSend({
         from: `${FROM_NAME} <${fromEmail}>`,
@@ -480,7 +480,7 @@ What happens next:
 - If you don't hear back within a week, you can safely apply to other roles.
 - Keep browsing at https://freejobpost.co/jobs
 
-freejobpost.co -- operated by Ava Health Partners LLC`;
+FreeJobPost -- 4532 W Kennedy Blvd Ste 125, Tampa FL 33609`;
 
     const candSendResult = await safeSend({
       from: `${FROM_NAME} <${fromEmail}>`,

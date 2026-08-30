@@ -289,7 +289,7 @@ function wrapIndeedFormat(jobsXml: string, jobCount: number, networkLabel: strin
   <publisher>freejobpost.co</publisher>
   <publisherurl>https://freejobpost.co</publisherurl>
   <lastBuildDate>${now}</lastBuildDate>
-  <description>FreeJobPost nursing and allied-health job feed (${networkLabel}). Owned and operated by Ava Health Partners LLC. ${jobCount} open positions.</description>
+  <description>FreeJobPost direct nursing and allied-health employer feed (${networkLabel}). ${jobCount} open positions.</description>
 ${jobsXml}
 </source>`
 }

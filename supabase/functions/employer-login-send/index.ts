@@ -204,7 +204,7 @@ serve(async (req) => {
     <td style="padding:16px 32px;border-top:2px solid #000000;">
       <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
         This link stays active for 30 days. Didn't request this? Ignore it. Your account is unchanged.<br/>
-        freejobpost.co is operated by Ava Health Partners LLC &middot; 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
+        FreeJobPost &middot; 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
       </p>
     </td>
   </tr>
@@ -223,7 +223,7 @@ ${magicUrl}
 
 This link stays active for 30 days. Didn't request this? Ignore it. Your account is unchanged.
 
-freejobpost.co is operated by Ava Health Partners LLC`;
+FreeJobPost -- 4532 W Kennedy Blvd Ste 125, Tampa FL 33609`;
 
     const sendResult = await sendTransactionalEmail({
       from: `${FROM_NAME} <${fromEmail}>`,

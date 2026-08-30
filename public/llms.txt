@@ -16,11 +16,9 @@ Employers can publish roles after email verification. A posting can send applica
 ## Editorial content
 
 - [Career paths](https://freejobpost.co/become): "How to become an X" guides for 20+ healthcare roles — sourced from BLS, NCSBN, NBRC, CAPTE, NCCPA, ARRT, NBCOT, ASHA, etc. Each guide covers education, licensing, exam path, timeline, settings, and compensation
-- [Changelog](https://freejobpost.co/changelog): Recent ship history (also at /changelog/feed.xml)
 
 ## Listing boundary
 
-- Contact: info@avahealth.co
 - Public queries require the source marker `public_employer_post`
 - No aggregated ATS or federal inventory is exposed
 - No candidate-profile search or automatic cross-product matching

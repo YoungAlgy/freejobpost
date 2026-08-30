@@ -53,7 +53,7 @@ const corsHeaders = {
 
 const FROM_NAME = "Free Job Post";
 const SITE = "https://freejobpost.co";
-const ADDRESS = "Ava Health Partners · 4532 W Kennedy Blvd Suite 125, Tampa FL 33609";
+const ADDRESS = "FreeJobPost · 4532 W Kennedy Blvd Suite 125, Tampa FL 33609";
 const PUBLIC_EMPLOYER_JOB_SOURCE = "public_employer_post";
 
 const DAILY_CAP = parseInt(Deno.env.get("JOB_ALERT_DAILY_CAP") || "80", 10);

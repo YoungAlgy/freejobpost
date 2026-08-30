@@ -113,8 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="mt-6 border-t border-gray-100 pt-6 text-xs leading-5 text-gray-500">
               <p>&copy; {new Date().getFullYear()} FreeJobPost.</p>
               <p className="mt-1">
-                FreeJobPost is owned and operated by Ava Health Partners LLC, 4532 W Kennedy Blvd,
-                Suite 125, Tampa, FL 33609. Contact:{' '}
+                4532 W Kennedy Blvd, Suite 125, Tampa, FL 33609. Contact:{' '}
                 <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}`} className="underline">
                   {FREEJOBPOST_SUPPORT_EMAIL}
                 </a>

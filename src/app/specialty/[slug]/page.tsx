@@ -144,7 +144,7 @@ export default async function SpecialtyHubPage(
   // Each individual /jobs/[slug] page already emits accurate per-job JSON-LD
   // with the correct hiringOrganization pulled from the DB. Emitting JobPosting
   // JSON-LD on hub/listing pages with a hardcoded org would misattribute
-  // real-employer jobs to Ava Health Partners and can trigger Google for Jobs
+  // real-employer jobs to FreeJobPost and can trigger Google for Jobs
   // rejection for schema inaccuracy.
 
   const breadcrumbJsonLd = {

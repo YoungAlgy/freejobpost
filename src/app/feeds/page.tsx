@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 import { SYNDICATION_TARGETS } from '@/lib/syndication-targets'
-import { PARTNER_CONTACTS } from '@/lib/partner-contacts'
 
 export const metadata: Metadata = {
   title: 'Job feeds for distribution partners',
@@ -32,58 +31,30 @@ export default function FeedsPage() {
         </p>
 
         <div className="space-y-5">
-          {SYNDICATION_TARGETS.map((t) => {
-            const contact = PARTNER_CONTACTS[t.id]
-            const status = contact?.status ?? 'auto_crawl'
-            const isDead = status === 'channel_dead'
-            const statusBadge: Record<string, string> = {
-              auto_crawl: 'bg-gray-100 text-gray-600',
-              email_active: 'bg-green-100 text-green-800',
-              gated_portal: 'bg-yellow-100 text-yellow-800',
-              channel_dead: 'bg-red-100 text-red-700',
-            }
-            const statusLabel: Record<string, string> = {
-              auto_crawl: 'auto-crawl',
-              email_active: 'email active',
-              gated_portal: 'gated portal',
-              channel_dead: 'no working channel',
-            }
-            return (
-              <div
-                key={t.id}
-                className={`rounded-xl shadow-sm p-5 ${isDead ? 'border border-red-300 bg-red-50/40' : 'border border-gray-200'}`}
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <h2 className={`text-xl font-black ${isDead ? 'text-gray-500' : ''}`}>{t.label}</h2>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded tracking-wider ${statusBadge[status]}`}>
-                      {statusLabel[status]}
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-mono bg-[#17324D] text-white px-2 py-1 tracking-wider">{t.spec}</span>
-                </div>
-                <p className={`text-sm mb-2 ${isDead ? 'text-gray-500' : 'text-gray-700'}`}>{t.blurb} <span className="text-gray-500">· {t.reach}</span></p>
-                <a href={t.feedUrl} className={`text-sm font-mono underline break-all ${isDead ? 'text-gray-500' : 'text-[#17324D]'}`}>{t.feedUrl}</a>
-                <p className="text-sm text-gray-700 mt-3">
-                  <span className="font-bold">Submit to:</span>{' '}
-                  {contact?.instructions ?? 'Contact partner team for onboarding instructions.'}
-                </p>
-                {contact?.note && (
-                  <p className="text-xs text-gray-500 mt-2 italic">
-                    Note: {contact.note}
-                  </p>
-                )}
-                {contact?.bouncedAddresses && contact.bouncedAddresses.length > 0 && (
-                  <p className="text-[10px] font-mono text-red-500 mt-1.5">
-                    Bounced: {contact.bouncedAddresses.join(', ')}
-                  </p>
-                )}
-                <p className="text-[10px] font-mono text-gray-500 mt-2">
-                  Channel verified {contact?.lastVerifiedAt ?? '—'}
-                </p>
+          {SYNDICATION_TARGETS.map((t) => (
+            <div key={t.id} className="rounded-xl border border-gray-200 p-5 shadow-sm">
+              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="text-xl font-black">{t.label}</h2>
+                <span className="bg-[#17324D] px-2 py-1 font-mono text-[10px] tracking-wider text-white">
+                  {t.spec}
+                </span>
               </div>
-            )
-          })}
+              <p className="mb-2 text-sm text-gray-700">
+                {t.blurb} <span className="text-gray-500">· {t.reach}</span>
+              </p>
+              <a
+                href={t.feedUrl}
+                className="break-all font-mono text-sm text-[#17324D] underline"
+              >
+                {t.feedUrl}
+              </a>
+              <p className="mt-3 text-sm text-gray-600">
+                {t.defaultOn
+                  ? 'Eligible direct employer posts are included automatically.'
+                  : 'The feed stays available for a distribution partner that activates this channel.'}
+              </p>
+            </div>
+          ))}
 
           {/* Sitemap is special — not a per-job-feed but the crawl-discovery signal */}
           <div className="rounded-xl border border-gray-200 shadow-sm p-5">
@@ -93,12 +64,6 @@ export default function FeedsPage() {
             </div>
             <p className="text-sm text-gray-700 mb-2">For Google, Bing, DuckDuckGo, and any general-purpose web crawler.</p>
             <a href="https://freejobpost.co/sitemap.xml" className="text-sm font-mono text-[#17324D] underline break-all">https://freejobpost.co/sitemap.xml</a>
-            <p className="text-sm text-gray-700 mt-3">
-              <span className="font-bold">Submit to:</span> {PARTNER_CONTACTS.sitemap.instructions}
-            </p>
-            <p className="text-[10px] font-mono text-gray-500 mt-2">
-              Channel verified {PARTNER_CONTACTS.sitemap.lastVerifiedAt}
-            </p>
           </div>
         </div>
 

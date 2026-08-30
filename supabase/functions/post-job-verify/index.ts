@@ -225,7 +225,7 @@ function jobLiveEmailHtml(params: {
   <tr>
     <td style="padding:16px 32px;border-top:2px solid #000000;background:#f9fafb;">
       <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.5;">
-        freejobpost.co is operated by Ava Health Partners LLC · 4532 W Kennedy Blvd Ste 125, Tampa FL 33609<br/>
+        FreeJobPost · 4532 W Kennedy Blvd Ste 125, Tampa FL 33609<br/>
         Questions? Reply to this email or contact <a href="mailto:${replyToEmail}" style="color:#374151;">${replyToEmail}</a>
       </p>
     </td>
@@ -258,7 +258,7 @@ What happens next:
 - Syndication: your role is in Google for Jobs and the Indeed organic index (4-24 hr indexing).
 - Duration: live for 90 days. Log in to renew, edit, or close it anytime.
 
-freejobpost.co is operated by Ava Health Partners LLC
+FreeJobPost -- 4532 W Kennedy Blvd Ste 125, Tampa FL 33609
 Questions? ${replyToEmail}
 `;
 }

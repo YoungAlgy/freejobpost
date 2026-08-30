@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { archiveJob, logout } from './actions'
-import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 import { formatSalary, locationLabel, employmentLabel, remoteLabel } from '@/lib/public-jobs'
 import type { Application } from './page'
 
@@ -257,7 +256,7 @@ function StatusBadge({ status }: { status: string }) {
   }
   const label: Record<string, string> = {
     active: 'LIVE',
-    pending_review: 'PENDING REVIEW',
+    pending_review: 'AWAITING VERIFICATION',
     filled: 'FILLED',
     expired: 'EXPIRED',
     spam: 'FLAGGED',
@@ -354,14 +353,8 @@ function ApplicationsSection({
       {hasHiddenOlderApplications && (
         <p className="mt-3 text-xs text-gray-400">
           Showing the {applications.length} most recent applications out of{' '}
-          {totalApplications}. Older applicants are not shown here. Email{' '}
-          <a
-            href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Older%20applications%20request`}
-            className="underline hover:text-[#17324D]"
-          >
-            {FREEJOBPOST_SUPPORT_EMAIL}
-          </a>{' '}
-          if you need the rest.
+          {totalApplications}. Keep the application notification emails for older responses that
+          are not shown here yet.
         </p>
       )}
     </section>

@@ -31,11 +31,6 @@ export const ORG_PROFILE = {
   ],
   areaServed: { '@type': 'Country', name: 'United States' },
   industry: 'Healthcare job board',
-  parentOrganization: {
-    '@type': 'Organization' as const,
-    name: 'Ava Health Partners LLC',
-    legalName: 'Ava Health Partners LLC',
-  },
 } as const
 
 export type SiteSchemaInput = {

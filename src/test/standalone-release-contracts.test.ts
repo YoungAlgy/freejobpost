@@ -27,6 +27,14 @@ describe('standalone FreeJobPost release contracts', () => {
     expect(feeds).not.toContain('employer opted into')
   })
 
+  it('keeps internal partner operations out of the public feed page', () => {
+    const feeds = read('src/app/feeds/page.tsx')
+    expect(feeds).not.toContain('PARTNER_CONTACTS')
+    expect(feeds).not.toContain('bouncedAddresses')
+    expect(feeds).not.toContain('lastVerifiedAt')
+    expect(feeds).not.toContain('Channel verified')
+  })
+
   it('renders exactly one inventory-aware empty state', () => {
     const filter = read('src/app/jobs/jobs-filter.tsx')
     const page = read('src/app/jobs/page.tsx')
@@ -117,6 +125,79 @@ describe('standalone FreeJobPost release contracts', () => {
     for (const path of activeMailPaths) {
       expect(read(path), path).not.toMatch(/@avahealth\.co/i)
     }
+  })
+
+  it('keeps product identity surfaces separate from the legal operator', () => {
+    const identityPaths = [
+      'public/llms.txt',
+      'src/app/layout.tsx',
+      'src/lib/organization-schema.ts',
+      'src/app/feeds/page.tsx',
+      'src/app/feeds/linkedin.xml/route.ts',
+      'src/app/jobs.xml/route.ts',
+      'src/lib/feed-builders.ts',
+      'supabase/functions/apply-notify/index.ts',
+      'supabase/functions/employer-login-send/index.ts',
+      'supabase/functions/job-alert-digest/index.ts',
+      'supabase/functions/post-job-send-verify/index.ts',
+      'supabase/functions/post-job-verify/index.ts',
+    ]
+    for (const path of identityPaths) {
+      const contents = read(path)
+      expect(contents, path).not.toMatch(/ava health/i)
+      expect(contents, path).not.toMatch(/providers\.avahealth\.co|app\.avahealth\.co/i)
+      expect(contents, path).not.toMatch(/freeresumepost\.co/i)
+    }
+  })
+
+  it('keeps the legal E-Verify record outside the indexed product surface', () => {
+    const page = read('src/app/e-verify/page.tsx')
+    const sitemap = read('src/lib/sitemap-chunks.ts')
+    const nextConfig = read('next.config.ts')
+    expect(page).toContain('robots: { index: false, follow: false }')
+    expect(sitemap).not.toContain('`${base}/e-verify`')
+    expect(nextConfig).toContain("source: '/e-verify'")
+    expect(nextConfig).toContain("value: 'noindex, nofollow'")
+  })
+
+  it('retires aggregate function deployment sources without database access', () => {
+    for (const [path, functionName] of [
+      ['supabase/functions/refresh-ats-imports/index.ts', 'refresh-ats-imports'],
+      ['supabase/functions/adzuna-ingest/index.ts', 'adzuna-ingest'],
+      [
+        'supabase/functions/backfill-workday-descriptions/index.ts',
+        'backfill-workday-descriptions',
+      ],
+    ]) {
+      const contents = read(path)
+      expect(contents, path).toContain(`retiredFunctionResponse("${functionName}")`)
+      expect(contents, path).not.toMatch(/createClient|\.from\(|\.rpc\(|fetch\(/)
+    }
+  })
+
+  it('holds a reversible database retirement source outside active migrations', () => {
+    const migration = read(
+      'supabase/migration-sources/held/20260829193000_retire_legacy_aggregation_and_ava_bridges.sql',
+    )
+    expect(migration).toContain('HELD SOURCE ONLY')
+    expect(migration).toContain('refresh-ats-imports-every-4h')
+    expect(migration).toContain('adzuna-ingest-every-4h')
+    expect(migration).toContain('backfill-workday-descriptions-every-4h')
+    expect(migration).toContain("'refresh_marketplace_matches'")
+    expect(migration).toContain("'cross_site_create_candidate_profile'")
+    expect(migration).toContain("'cross_site_revoke_candidate_profile'")
+    expect(migration).toContain('REVOKE ALL ON FUNCTION')
+    expect(migration).not.toMatch(/DELETE\s+FROM\s+public\.public_/i)
+    expect(migration).not.toMatch(/TRUNCATE\s+/i)
+  })
+
+  it('uses verification language instead of managed review language', () => {
+    expect(read('src/app/post-job/page.tsx')).toContain('Your verified job appears')
+    expect(read('src/app/how-it-works/page.tsx')).toContain('Your verified post then goes live')
+    const dashboard = read('src/app/employer/dashboard.tsx')
+    expect(dashboard).toContain("pending_review: 'AWAITING VERIFICATION'")
+    const form = read('src/app/post-job/post-job-form.tsx')
+    expect(form).not.toMatch(/verify your listing by hand|activate your listing manually/i)
   })
 
   it('source-gates the public apply RPC and reasserts its exact privileges', () => {

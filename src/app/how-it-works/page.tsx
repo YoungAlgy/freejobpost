@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const EMPLOYER_STEPS = [
   ['Add the job', 'Enter the role, location, pay, description, and application method.'],
-  ['Verify your work email', 'Open the private link we send. Your approved post then goes live.'],
+  ['Verify your work email', 'Open the private link we send. Your verified post then goes live.'],
   ['Manage the response', 'Review your jobs and applicants from the employer dashboard.'],
 ]
 

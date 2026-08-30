@@ -1,5 +1,5 @@
 // FreeJobPost logomark. The posting card and plus sign keep this product
-// visually separate from the Ava Health cross-and-leaf identity.
+// visually distinct from the rest of the job-board UI.
 
 type Variant = 'full' | 'mono'
 type Theme = 'light' | 'dark'

@@ -1,18 +1,13 @@
 // Resend transactional-send helper for Deno edge functions.
 //
-// Replaces _shared/ses.ts for the freejobpost.co / freeresumepost.co
-// transactional paths (2026-06-10). Why: the AWS SES account never left
-// sandbox — production access was reviewed and DENIED (case 177814045700922),
-// so SES rejected every send to a non-verified recipient. Real employers
-// never got verify/login/applicant emails. Resend already powers every other
-// email path in this project (drip, bulk, digests) and works.
+// FreeJobPost transactional transport. Resend is the current delivery
+// provider for employer verification, login, application, and alert mail.
 //
 // Sender domain ownership is enforced by each product before this generic
 // transport is called. FreeJobPost callers require a verified freejobpost.co
 // sender through their own environment bindings.
 //
-// Same params/result shape as _shared/ses.ts so callers swap on the import
-// line only. Never throws.
+// Never throws.
 
 export type SendEmailParams = {
   /** "Display Name <user@domain.com>" from the caller's verified product domain */

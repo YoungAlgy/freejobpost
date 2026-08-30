@@ -593,9 +593,6 @@ export async function buildPagesSitemap(
     { url: `${base}/how-it-works`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${base}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
-    // Federal-compliance disclosure page. Low priority (regulatory, not
-    // commercial) but must be crawler-discoverable for the E-Verify trust signal.
-    { url: `${base}/e-verify`, changeFrequency: 'yearly', priority: 0.3 },
   ]
 
   // Do not submit empty inventory hubs. When a count is unavailable, retain the

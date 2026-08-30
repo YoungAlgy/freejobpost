@@ -1,6 +1,6 @@
-// Ava Health narrowed to nurse + allied health only, 2026-08-20 (physician
-// and PA roles moved to MASC Medical — see specialty-slugs.ts, which no
-// longer has hubs for either). This gate keeps that scoping consistent at
+// FreeJobPost accepts nurse + allied health roles only. Physician and PA
+// listings are outside this product's scope; specialty-slugs.ts no longer has
+// hubs for either. This gate keeps that scoping consistent at
 // intake, not just on the browse pages: without it, an employer could still
 // post a physician/PA role here and it would surface on the general
 // /state/[slug] and /city/[slug] pages (location-filtered only, not

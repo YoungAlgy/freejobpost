@@ -29,9 +29,8 @@ export const SPECIALTY_HUBS: SpecialtyHub[] = [
   },
   {
     // 2026-05-13: slug renamed from 'rn' → 'registered-nurse' to match search
-    // intent (full word has higher monthly volume) and align with sister-site
-    // freeresumepost.co/specialty/registered-nurse. 301 from /specialty/rn is
-    // configured in next.config.ts.
+    // intent. The canonical role name is "registered-nurse". 301 from
+    // /specialty/rn is configured in next.config.ts.
     slug: 'registered-nurse',
     title: 'Registered Nurse Jobs',
     metaDescription: 'Free RN jobs, ICU, ER, OR, L&D, Cath Lab, telemetry, med-surg. Travel + permanent. Browse open roles, apply directly, no account required.',

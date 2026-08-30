@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
       {
         // 2026-05-13: /specialty/rn renamed to /specialty/registered-nurse.
         // Permanent 301 transfers any accrued authority on the old URL and
-        // matches the slug used by the sister site (freeresumepost.co).
+        // matches the canonical role name used throughout this product.
         source: '/specialty/rn',
         destination: '/specialty/registered-nurse',
         permanent: true,
@@ -143,10 +143,17 @@ const nextConfig: NextConfig = {
       // conflicting signals. Explicit noindex headers below stay.
       {
         // Apply pages are noindex via their page-level metadata. Mirror it
-        // at the header level so a recruiter or auditor reading curl -I
+        // at the header level so an employer or auditor reading curl -I
         // sees the same signal as Google's bot reads from the meta tag.
         source: '/jobs/:slug/apply',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, follow' }],
+      },
+      {
+        // E-Verify describes the legal operator's own hiring compliance. Keep
+        // it reachable for reference without making it part of this product's
+        // indexed search surface.
+        source: '/e-verify',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
       {
         source: '/employer/:path*',

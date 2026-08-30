@@ -415,7 +415,7 @@ export default async function JobDetailPage({ params }: Props) {
     ],
   }
 
-  // Only emit JobPosting JSON-LD if the recruiter opted into Google for Jobs
+  // Only emit JobPosting JSON-LD if the employer opted into Google for Jobs
   // syndication. Breadcrumb is always safe to emit (it's about the page, not
   // the listing).
   //

@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         // Don't index:
-        //   /employer/*               recruiter auth + dashboard (private)
+        //   /employer/*               employer auth + dashboard (private)
         //   /admin/*                  internal attribution dashboard (key-gated)
         //   /api/*                    defensive; no /api routes today but
         //                             reserves future route handlers from

@@ -41,7 +41,7 @@ export default function PostJobPage() {
           <h2 className="font-black text-[#17324D]">What happens next</h2>
           <ol className="mt-4 space-y-3 text-sm leading-6 text-gray-600">
             <li><strong className="text-gray-900">1.</strong> Open the verification link we email you.</li>
-            <li><strong className="text-gray-900">2.</strong> Your approved job appears in public search.</li>
+            <li><strong className="text-gray-900">2.</strong> Your verified job appears in public search.</li>
             <li><strong className="text-gray-900">3.</strong> Manage the post and applicants from your employer dashboard.</li>
           </ol>
         </section>

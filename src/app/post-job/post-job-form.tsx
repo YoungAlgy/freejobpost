@@ -147,7 +147,7 @@ export default function PostJobForm() {
             <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="underline hover:text-[#17324D]">
               {FREEJOBPOST_SUPPORT_EMAIL}
             </a>{' '}
-            and we will verify your listing by hand.
+            for delivery help.
           </p>
         ) : (
           <p className="text-lg text-gray-800 mb-6">
@@ -167,7 +167,7 @@ export default function PostJobForm() {
             <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="underline hover:text-[#17324D]">
               {FREEJOBPOST_SUPPORT_EMAIL}
             </a>{' '}
-            with the subject line &quot;Job verification email not received&quot; and we&apos;ll activate your listing manually.
+            with the subject line &quot;Job verification email not received&quot; for delivery help.
           </p>
         )}
         <div className="flex flex-wrap gap-3">

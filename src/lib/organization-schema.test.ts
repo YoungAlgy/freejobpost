@@ -19,11 +19,9 @@ describe('ORG_PROFILE', () => {
     expect(ORG_PROFILE.logo).toBe('https://freejobpost.co/icon-512')
   })
 
-  it('discloses the legal owner without replacing the product identity', () => {
-    expect(ORG_PROFILE.parentOrganization).toMatchObject({
-      '@type': 'Organization',
-      legalName: 'Ava Health Partners LLC',
-    })
+  it('does not connect the public product graph to another brand', () => {
+    expect(ORG_PROFILE).not.toHaveProperty('parentOrganization')
+    expect(JSON.stringify(ORG_PROFILE)).not.toMatch(/ava health/i)
   })
 
   it('keeps complete operator contact details', () => {

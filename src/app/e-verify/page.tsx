@@ -7,7 +7,9 @@ export const metadata: Metadata = {
   description:
     'Ava Health Partners LLC, operator of freejobpost.co, participates in the federal E-Verify employment eligibility verification system.',
   alternates: { canonical: 'https://freejobpost.co/e-verify' },
-  robots: { index: true, follow: true },
+  // This page documents the legal operator's own hiring compliance. It is not
+  // part of the FreeJobPost product or its search-acquisition surface.
+  robots: { index: false, follow: false },
 }
 
 export default function EVerifyPage() {
