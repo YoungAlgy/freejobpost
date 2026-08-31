@@ -25,6 +25,7 @@ import {
   PUBLIC_EMPLOYER_JOB_SOURCE,
   PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
 } from '@/lib/public-jobs'
+import { safeApplyUrl } from '@/lib/safe-apply-url'
 
 export const dynamic = 'force-dynamic'
 // Don't statically generate this; every hit must run the handler.
@@ -47,20 +48,6 @@ async function hashIp(ip: string | null | undefined): Promise<string | null> {
       .slice(0, 4)
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('')
-  } catch {
-    return null
-  }
-}
-
-function safeApplyUrl(raw: string | null | undefined): string | null {
-  if (!raw) return null
-  try {
-    const u = new URL(raw)
-    // Reject anything that's not http(s) — javascript:, data:, etc. would
-    // open-redirect through us. Belt-and-suspenders since apply_url is
-    // employer-controlled in some sources.
-    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
-    return u.toString()
   } catch {
     return null
   }

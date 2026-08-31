@@ -9,6 +9,7 @@ import {
   type PublicJob,
   locationLabel,
 } from '@/lib/public-jobs'
+import { safeApplyUrl } from '@/lib/safe-apply-url'
 import ApplyForm from './apply-form'
 
 // See src/app/jobs/[slug]/page.tsx for why uppercase is allowed in slugs.
@@ -64,17 +65,10 @@ export default async function ApplyPage({ params }: Props) {
   if (!job) notFound()
 
   if (job.apply_url) {
-    // Security: only redirect to safe https:// URLs. Reject javascript:,
-    // data:, relative, and http:// URLs — those should never appear in the
-    // DB but a compromised row or injection attempt could put them there.
-    let safe = false
-    try {
-      const parsed = new URL(job.apply_url)
-      safe = parsed.protocol === 'https:'
-    } catch {
-      safe = false
-    }
-    if (safe) redirect(job.apply_url)
+    // Security: only redirect to safe HTTPS URLs. The shared helper also
+    // rejects userinfo URLs, which can disguise the actual destination host.
+    const safe = safeApplyUrl(job.apply_url, { requireHttps: true })
+    if (safe) redirect(safe)
   }
 
   const loc = locationLabel(job)

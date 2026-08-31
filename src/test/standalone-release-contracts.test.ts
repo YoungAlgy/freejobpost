@@ -238,6 +238,17 @@ describe('standalone FreeJobPost release contracts', () => {
     expect(form).not.toMatch(/verify your listing by hand|activate your listing manually/i)
   })
 
+  it('uses the shared safe apply URL policy in both redirect flows', () => {
+    const nativeApply = read('src/app/jobs/[slug]/apply/page.tsx')
+    const trackedClick = read('src/app/click/[slug]/route.ts')
+    expect(nativeApply).toContain(
+      "safeApplyUrl(job.apply_url, { requireHttps: true })",
+    )
+    expect(trackedClick).toContain('safeApplyUrl(job.apply_url)')
+    expect(nativeApply).not.toContain('new URL(job.apply_url)')
+    expect(trackedClick).not.toContain('function safeApplyUrl')
+  })
+
   it('source-gates the public apply RPC and reasserts its exact privileges', () => {
     const migration = read(
       'supabase/migrations/20260828_scope_employer_applications_to_direct_posts.sql',
