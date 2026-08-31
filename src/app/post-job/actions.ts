@@ -191,6 +191,9 @@ export async function submitPostJob(
     // Helper RPC not yet deployed — fall back to UI-only enforcement.
   }
 
+  // The held database rollout adds this standalone RPC first while leaving the
+  // old Worker's two submission grants intact. Their retirement is a separate
+  // post-cutover step, so this call never races a breaking grant change.
   const { data, error } = await sb.rpc('submit_freejobpost_job_rpc', {
     p_contact_email: normalized.contact_email,
     p_contact_name: normalized.contact_name || null,

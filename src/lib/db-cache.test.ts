@@ -253,4 +253,21 @@ describe('getOrComputeCached', () => {
     })
     expect(rpc).not.toHaveBeenCalledWith('set_matrix_cache', expect.anything())
   })
+
+  it('never writes when the sanitized OpenNext release marker is set', async () => {
+    vi.stubEnv('FREEJOBPOST_RELEASE_BUILD', '1')
+    const { db, rpc } = fakeClient(async () => ({ data: null, error: null }))
+    const compute = vi.fn(async () => [{ slug: 'fresh' }])
+
+    await expect(getOrComputeCached(db, 'matrix', 3600, compute)).resolves.toEqual([
+      { slug: 'fresh' },
+    ])
+    expect(compute).toHaveBeenCalledTimes(1)
+    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(rpc).toHaveBeenCalledWith('get_matrix_cache', {
+      p_key: 'matrix',
+      p_max_age_seconds: 3600,
+    })
+    expect(rpc).not.toHaveBeenCalledWith('set_matrix_cache', expect.anything())
+  })
 })

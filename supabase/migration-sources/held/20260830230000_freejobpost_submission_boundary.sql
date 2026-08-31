@@ -3,13 +3,17 @@
 -- FreeJobPost is a standalone nursing and allied-health job product. The old
 -- public RPC still contains Ava-branded errors and accepts HTTP apply URLs.
 -- This wrapper gives the standalone app its own contract, validates external
--- URLs, assigns the reviewed partner list in the same transaction as the new
--- job, and removes direct public execution from the legacy RPC without
--- rewriting its already-applied historical definition.
+-- URLs, and assigns the reviewed partner list in the same transaction as the
+-- new job without rewriting the already-applied historical definition.
 --
--- Release gate: capture the live function definitions and grants first. Apply
--- this with the matching frontend change as one release. Do not deploy the
--- frontend first because the wrapper name does not exist live yet.
+-- ROLLING RELEASE, EXPAND STEP. Capture the live function definitions and
+-- grants first. Apply this source before deploying the matching frontend. This
+-- step deliberately leaves the legacy RPC and target setter grants unchanged
+-- so the currently live Worker keeps posting during the rollout. After the new
+-- Worker is at 100 percent, its posting flow is verified, old requests have
+-- drained, and the prior-Worker rollback window is explicitly closed, apply the
+-- separate held retirement source whose timestamp ends in 231500. Never
+-- combine the two held sources into one transaction or migration.
 
 BEGIN;
 
@@ -161,19 +165,10 @@ GRANT EXECUTE ON FUNCTION public.submit_freejobpost_job_rpc(
   text, text, text, text, integer, integer, text, text
 ) TO anon, authenticated, service_role;
 
-REVOKE ALL ON FUNCTION public.submit_public_job_rpc(
-  text, text, text, text, text, text, text, text,
-  text, text, text, text, integer, integer, text, text
-) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.submit_public_job_rpc(
-  text, text, text, text, text, text, text, text,
-  text, text, text, text, integer, integer, text, text
-) TO service_role;
-
-REVOKE ALL ON FUNCTION public.set_pending_job_syndication_targets(uuid, text[])
-  FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.set_pending_job_syndication_targets(uuid, text[])
-  TO service_role;
+-- Do not change privileges on submit_public_job_rpc or
+-- set_pending_job_syndication_targets in this expand step. The old Worker uses
+-- both functions. Their public grants are retired only after the new Worker is
+-- verified at 100 percent traffic.
 
 -- A table-level HTTPS constraint is deliberately deferred. PostgreSQL checks
 -- a NOT VALID constraint on later row updates, so older HTTP rows could become

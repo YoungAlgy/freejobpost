@@ -48,6 +48,7 @@ NIGHT_LOG.md
 # cloudflare / opennext
 .wrangler/
 .open-next/
+.freejobpost-candidate.json
 cloudflare-env.d.ts
 .temp/
 .secrets/

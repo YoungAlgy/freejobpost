@@ -8,7 +8,10 @@ export type DbCacheOptions = {
 }
 
 export function dbCacheWritesAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD
+  return (
+    env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD &&
+    env.FREEJOBPOST_RELEASE_BUILD !== '1'
+  )
 }
 
 // Postgres-backed replacement for unstable_cache() (2026-08-13). Next's Data
@@ -56,10 +59,11 @@ export async function getOrComputeCached<T>(
   // 5-byte [] — when the oversized-write bug was found on 2026-08-19.)
   if (Array.isArray(fresh) && fresh.length === 0) return fresh
 
-  // `next build` sets NEXT_PHASE before starting its static workers. Those
-  // workers may need current rows to prerender pages, but a build must remain
-  // read-only. Runtime requests do not use this phase and keep the normal
-  // Postgres-backed cache write below.
+  // `next build` sets NEXT_PHASE before starting its static workers. The
+  // sanitized OpenNext release wrapper also sets FREEJOBPOST_RELEASE_BUILD for
+  // every child process. Either signal makes the build read-only, including
+  // wrapper phases before and after Next's own build workers. Runtime requests
+  // use neither signal and keep the normal Postgres-backed cache write below.
   if (!dbCacheWritesAllowed()) return fresh
 
   // Workers can terminate an invocation as soon as its response resolves.

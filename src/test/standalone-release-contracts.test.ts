@@ -198,6 +198,13 @@ describe('standalone FreeJobPost release contracts', () => {
       'FreeResumePost',
     )
     expect(read('src/components/HealthcareToolsNav.tsx')).toContain('min-h-11')
+    const runbook = read('docs/DEPLOY_NOTES.md')
+    expect(runbook).toMatch(
+      /FreeResumePost appears\r?\n  only in the approved sister-site links/,
+    )
+    expect(runbook).not.toContain(
+      'No public navigation or metadata promotes Ava CRM or FreeResumePost.',
+    )
 
     for (const file of sourceFiles(resolve(repositoryRoot, 'src'))) {
       if (!readFileSync(file, 'utf8').includes('freeresumepost.co')) continue
@@ -385,6 +392,9 @@ describe('standalone FreeJobPost release contracts', () => {
     const migration = read(
       'supabase/migration-sources/held/20260830230000_freejobpost_submission_boundary.sql',
     )
+    const retirement = read(
+      'supabase/migration-sources/held/20260830231500_freejobpost_retire_legacy_submission_grants.sql',
+    )
 
     expect(migration).not.toContain('p_syndication_targets')
     expect(migration).toContain('reviewed_syndication_targets constant text[]')
@@ -393,15 +403,153 @@ describe('standalone FreeJobPost release contracts', () => {
     expect(migration).toContain("AND source = 'public_employer_post'")
     expect(migration).toContain("AND status = 'pending_review'")
     expect(migration).toContain('GET DIAGNOSTICS updated_jobs = ROW_COUNT')
-    expect(migration).toContain(
+    expect(migration).not.toContain(
+      'REVOKE ALL ON FUNCTION public.submit_public_job_rpc(',
+    )
+    expect(migration).not.toContain(
       'REVOKE ALL ON FUNCTION public.set_pending_job_syndication_targets(uuid, text[])',
     )
+    expect(migration).toContain('ROLLING RELEASE, EXPAND STEP')
+    expect(retirement).toContain('rolling release, RETIRE STEP')
+    expect(retirement).toContain(
+      'REVOKE ALL ON FUNCTION public.submit_public_job_rpc(',
+    )
+    expect(retirement).toContain(
+      'REVOKE ALL ON FUNCTION public.set_pending_job_syndication_targets(uuid, text[])',
+    )
+    expect(retirement).toContain('TO service_role;')
     expect(migration).toContain('length(normalized_apply_url) > 500')
     expect(migration).toContain(
       "apply_authority ~* '^(0x[0-9a-f]+|[0-9]+)(\\.(0x[0-9a-f]+|[0-9]+))*(:[0-9]{1,5})?$'",
     )
     expect(migration).not.toContain('ADD CONSTRAINT public_employer_apply_url_requires_https')
     expect(migration).toContain('A table-level HTTPS constraint is deliberately deferred')
+  })
+
+  it('builds Cloudflare releases from isolated tracked source and checks bindings', () => {
+    const packageJson = JSON.parse(read('package.json')) as {
+      scripts: Record<string, string>
+    }
+    const releaseScript = read('scripts/sanitized-cloudflare-release.mjs')
+    const deployNotes = read('docs/DEPLOY_NOTES.md')
+
+    expect(packageJson.scripts['cf:build']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs build',
+    )
+    expect(packageJson.scripts['cf:check']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs check',
+    )
+    expect(packageJson.scripts['cf:source-check']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs source-check',
+    )
+    expect(packageJson.scripts['cf:preview']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs preview',
+    )
+    expect(packageJson.scripts['cf:upload']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs upload',
+    )
+    expect(packageJson.scripts['cf:stage']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs stage',
+    )
+    expect(packageJson.scripts['cf:unstage']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs unstage',
+    )
+    expect(packageJson.scripts['cf:promote']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs promote',
+    )
+    expect(packageJson.scripts['cf:rollback']).toBe(
+      'node scripts/sanitized-cloudflare-release.mjs rollback',
+    )
+    expect(packageJson.scripts['release:bindings']).toBe(
+      'node scripts/check-cloudflare-bindings.mjs',
+    )
+    expect(packageJson.scripts['cf:deploy']).toBeUndefined()
+
+    expect(releaseScript).toContain("run('git', ['ls-files', '-z']")
+    expect(releaseScript).toContain('unsafeEnvironmentSources')
+    expect(releaseScript).toContain(
+      "PROTECTED_UNTRACKED_RELEASE_EXCLUSION = '_migrate_data.mjs'",
+    )
+    expect(releaseScript).toContain("'--untracked-files=no'")
+    expect(releaseScript).toContain("'--others'")
+    expect(releaseScript).toContain("`:(top,exclude,literal)${PROTECTED_UNTRACKED_RELEASE_EXCLUSION}`")
+    expect(releaseScript).toContain(
+      "['diff', '--cached', '--quiet', '--exit-code', 'HEAD', '--']",
+    )
+    expect(releaseScript).toContain(
+      "['checkout-index', '--all', `--prefix=${destinationPrefix}`]",
+    )
+    expect(releaseScript).not.toContain('await copyFile(source, target)')
+    expect(releaseScript).toContain('REQUIRED_PUBLIC_BUILD_BINDINGS')
+    expect(releaseScript).toContain("payload?.role === 'anon'")
+    expect(releaseScript).toContain(
+      'payload?.ref === EXPECTED_SUPABASE_PROJECT_REF',
+    )
+    expect(releaseScript).toContain(
+      'publicEnvironment.NEXT_PUBLIC_SUPABASE_URL !== EXPECTED_SUPABASE_URL',
+    )
+    expect(releaseScript).toContain("if (value.startsWith('sb_secret_'))")
+    expect(releaseScript).toContain(
+      'await verifySupabasePublicKeyProject(',
+    )
+    expect(releaseScript).toContain(
+      "headers: { apikey: value }",
+    )
+    expect(releaseScript).toContain("FREEJOBPOST_RELEASE_BUILD: '1'")
+    expect(releaseScript).toContain("RELEASE_PROVENANCE_FILE = '.freejobpost-release.json'")
+    expect(releaseScript).toContain("RELEASE_BUILD_POLICY = 'clean-commit-public-env-only-v2'")
+    expect(releaseScript).toContain('sourceHead: await gitRevision(\'HEAD\')')
+    expect(releaseScript).toContain("sourceTree: await gitRevision('HEAD^{tree}')")
+    expect(releaseScript).toContain("['show', 'HEAD:package-lock.json']")
+    expect(releaseScript).toContain(".update(packageLockContents, 'utf8')")
+    expect(releaseScript).not.toContain("readFile(packageLockPath, 'utf8')")
+    expect(releaseScript).toContain('validateInstalledVersionsAgainstLockfile')
+    expect(releaseScript).toContain("from 'es-module-lexer/js'")
+    expect(releaseScript).toContain('moduleExport.n === \'DOQueueHandler\'')
+    expect(releaseScript).toContain('validateWranglerConfigSource(')
+    expect(releaseScript).not.toContain('validateWranglerDryRunOutput')
+    expect(releaseScript).toContain('await validateReleaseProvenance(artifactRoot, releaseInputs)')
+    expect(releaseScript).toContain('async function withVerifiedReleaseWorkspace(')
+    expect(releaseScript).toContain('await assertReleaseInputsUnchanged(')
+    expect(releaseScript).toContain('await assertWorkspaceLockMatches(')
+    expect(releaseScript).toContain('cloudflareCommandEnvironment(childEnvironment)')
+    expect(releaseScript).toContain("RELEASE_CANDIDATE_FILE = '.freejobpost-candidate.json'")
+    expect(releaseScript).toContain('async function runCheckedTrafficCommand(releaseCommand)')
+    expect(releaseScript).toContain('validateDeploymentUnchanged(deploymentBefore, deploymentAfter)')
+    expect(releaseScript).toContain('EXPECTED_CLOUDFLARE_WORKER_NAME')
+    expect(releaseScript).not.toContain(
+      "resolve(repoRoot, 'scripts', 'check-cloudflare-bindings.mjs')",
+    )
+    expect(releaseScript).toContain('OpenNext artifact changed after its sanitized release build.')
+    expect(releaseScript).not.toContain('...process.env')
+    expect(releaseScript).not.toContain("readFile(resolve(repoRoot, '.env.local')")
+    expect(releaseScript).toContain("'--dry-run'")
+    for (const binding of [
+      'ASSETS',
+      'NEXT_INC_CACHE_R2_BUCKET',
+      'NEXT_TAG_CACHE_D1',
+      'NEXT_CACHE_DO_QUEUE',
+      'WORKER_SELF_REFERENCE',
+    ]) {
+      expect(releaseScript).toContain(`'${binding}'`)
+    }
+    expect(releaseScript).toContain('OpenNext worker does not export DOQueueHandler.')
+    expect(releaseScript).toContain('OpenNext worker contains a private-key literal.')
+    expect(deployNotes).toContain('npm run cf:stage -- --current')
+    expect(deployNotes).toContain('npm run cf:unstage -- --current')
+    expect(deployNotes).toContain('npm run cf:promote -- --current')
+    expect(deployNotes).toContain('npm run cf:rollback -- --current')
+    expect(deployNotes).not.toContain('npx wrangler versions deploy')
+    expect(deployNotes).toContain(
+      '`NEXT_PUBLIC_FREEJOBPOST_SUPPORT_EMAIL` is supplied as a monitored',
+    )
+    expect(deployNotes).toContain(
+      'It is deliberately absent from the exact runtime Worker-binding inventory.',
+    )
+    expect(deployNotes).not.toContain(
+      '`NEXT_PUBLIC_FREEJOBPOST_SUPPORT_EMAIL` is set on the Worker',
+    )
+    expect(deployNotes.match(/--project-ref tsruqbodyrmxqzhvxret/g)).toHaveLength(5)
   })
 
   it('keeps stored external URLs behind the shared HTTPS render guard', () => {
