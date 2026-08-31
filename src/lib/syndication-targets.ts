@@ -5,8 +5,7 @@
 //   - the /feeds page (docs + submission instructions)
 //
 // Keep the `id` strings in sync with the syndication_targets text[] column
-// on public_jobs and with the v_known whitelist inside
-// set_pending_job_syndication_targets() in scripts/add-syndication-targets.sql.
+// on public_jobs and the allowlist in the held standalone submission boundary.
 
 export type SyndicationTargetId =
   | 'indeed'

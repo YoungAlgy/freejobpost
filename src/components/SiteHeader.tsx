@@ -1,7 +1,7 @@
 'use client'
 
-// Shared FreeJobPost header. The wordmark, icon, and navigation are owned by
-// this product and do not cross-link the Ava product family.
+// FreeJobPost product header. The sibling-product switcher is rendered by the
+// root layout so this header can stay focused on jobs and employer actions.
 
 import Link from 'next/link'
 import { useState } from 'react'
@@ -18,9 +18,10 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
-      <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 md:px-6">
         <Link
           href="/"
+          aria-label="FreeJobPost home"
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           onClick={() => setMobileOpen(false)}
         >
@@ -29,7 +30,10 @@ export function SiteHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600">
+        <nav
+          aria-label="Main navigation"
+          className="hidden items-center gap-7 text-sm font-medium text-gray-600 md:flex"
+        >
           {NAV.map((item) => (
             <Link key={item.href} href={item.href} className="hover:text-[#17324D] transition-colors">
               {item.label}
@@ -72,7 +76,11 @@ export function SiteHeader() {
 
       {/* Mobile nav panel */}
       {mobileOpen && (
-        <nav id="mobile-nav" className="md:hidden border-t border-gray-200 bg-white px-4 py-2">
+        <nav
+          id="mobile-nav"
+          aria-label="Mobile navigation"
+          className="border-t border-gray-200 bg-white px-4 py-2 md:hidden"
+        >
           {NAV.map((item) => (
             <Link
               key={item.href}

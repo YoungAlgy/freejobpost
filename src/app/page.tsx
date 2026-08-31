@@ -4,12 +4,21 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: { absolute: 'Post Nursing and Allied Health Jobs Free | FreeJobPost' },
   description:
-    'Post nursing and allied health jobs for free. A quick form, email verification, and direct applications from job seekers.',
-  alternates: { canonical: 'https://freejobpost.co' },
+    'Post nursing and allied health jobs for free, or browse current roles posted directly by employers.',
+  alternates: {
+    canonical: 'https://freejobpost.co',
+    types: {
+      'application/rss+xml': [
+        { url: '/feeds/rss.xml', title: 'FreeJobPost nursing and allied health jobs' },
+      ],
+    },
+  },
   openGraph: {
+    siteName: 'FreeJobPost',
+    locale: 'en_US',
     title: 'Post Nursing and Allied Health Jobs Free | FreeJobPost',
     description:
-      'A simple, free job posting tool for nursing and allied health employers.',
+      'Post or browse direct-employer nursing and allied health jobs for free.',
     url: 'https://freejobpost.co',
     type: 'website',
   },
@@ -62,6 +71,29 @@ export default function Home() {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section aria-labelledby="resume-tool" className="border-t border-gray-200 bg-white">
+        <div className="mx-auto grid max-w-5xl gap-6 px-5 py-12 sm:px-6 sm:py-16 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#4338CA]">
+              For job seekers
+            </p>
+            <h2 id="resume-tool" className="mt-2 text-3xl font-black tracking-tight text-[#17324D]">
+              Keep one healthcare resume profile ready.
+            </h2>
+            <p className="mt-3 max-w-2xl leading-7 text-gray-600">
+              FreeResumePost lets nurses and allied health professionals upload, review, and
+              update a resume profile. It stays private unless you turn on a limited public link.
+            </p>
+          </div>
+          <a
+            href="https://www.freeresumepost.co"
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-[#4338CA] px-5 py-3 font-bold text-[#4338CA] transition-colors hover:bg-[#EEF2FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4338CA] md:w-auto"
+          >
+            Go to FreeResumePost
+          </a>
         </div>
       </section>
     </main>

@@ -26,6 +26,7 @@ import {
 } from '@/lib/public-jobs'
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import { safeApplyUrl } from '@/lib/safe-apply-url'
 
 // 2026-05-28: 600s → 21600s (6h). ISR cost audit — see jobs/[slug].
 export const revalidate = 86400
@@ -150,6 +151,7 @@ export default async function EmployerPage({ params }: Props) {
 
   const jobs = await getEmployerJobs(employer.id)
   if (jobs.length === 0) notFound()
+  const companyUrl = safeApplyUrl(employer.company_url, { requireHttps: true })
 
   // Derive display metadata from the job set
   const states = Array.from(new Set(jobs.map((j) => j.state).filter(Boolean))).sort()
@@ -231,14 +233,14 @@ export default async function EmployerPage({ params }: Props) {
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-2">
-              {employer.company_url && (
+              {companyUrl && (
                 <a
-                  href={employer.company_url}
+                  href={companyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-black underline underline-offset-2"
                 >
-                  {employer.company_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                  {companyUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                 </a>
               )}
               {employer.vertical && <span>{employer.vertical}</span>}

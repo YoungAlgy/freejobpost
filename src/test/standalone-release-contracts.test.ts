@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from 'node:fs'
-import { extname, join, resolve } from 'node:path'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { extname, join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { metadata as homeMetadata } from '../app/page'
 
 const repositoryRoot = resolve(process.cwd())
 
@@ -127,6 +128,35 @@ describe('standalone FreeJobPost release contracts', () => {
     }
   })
 
+  it('keeps verification and login mail on product-owned sender paths', () => {
+    const loginAction = read('src/app/employer/login/actions.ts')
+    const postAction = read('src/app/post-job/actions.ts')
+    const emailConfig = read('supabase/functions/_shared/freejobpost-email.ts')
+    const envExample = read('.env.example')
+
+    expect(loginAction).toContain('/functions/v1/employer-login-send')
+    expect(postAction).toContain('/functions/v1/post-job-send-verify')
+    expect(loginAction).not.toContain('signInWithOtp')
+    expect(postAction).not.toContain('signInWithOtp')
+    expect(emailConfig).toContain('FREEJOBPOST_FROM_EMAIL')
+    expect(emailConfig).toContain('FREEJOBPOST_REPLY_TO_EMAIL')
+    expect(emailConfig).toContain('domain === "freejobpost.co"')
+    expect(envExample).toContain('FREEJOBPOST_FROM_EMAIL')
+    expect(envExample).toContain('FREEJOBPOST_REPLY_TO_EMAIL')
+
+    for (const path of [
+      'supabase/functions/employer-login-send/index.ts',
+      'supabase/functions/post-job-send-verify/index.ts',
+      'supabase/functions/post-job-verify/index.ts',
+      'supabase/functions/apply-notify/index.ts',
+      'supabase/functions/job-alert-digest/index.ts',
+    ]) {
+      const contents = read(path)
+      expect(contents, path).toContain('readFreeJobPostEmailConfig')
+      expect(contents, path).not.toMatch(/@avahealth\.co|Ava Health/i)
+    }
+  })
+
   it('keeps product identity surfaces separate from the legal operator', () => {
     const identityPaths = [
       'public/llms.txt',
@@ -146,7 +176,91 @@ describe('standalone FreeJobPost release contracts', () => {
       const contents = read(path)
       expect(contents, path).not.toMatch(/ava health/i)
       expect(contents, path).not.toMatch(/providers\.avahealth\.co|app\.avahealth\.co/i)
-      expect(contents, path).not.toMatch(/freeresumepost\.co/i)
+    }
+  })
+
+  it('connects FreeResumePost through approved navigation surfaces only', () => {
+    const siblingUrl = 'https://www.freeresumepost.co'
+    const siblingSourcePaths = [
+      'src/app/layout.tsx',
+      'src/app/page.tsx',
+      'src/components/HealthcareToolsNav.tsx',
+    ]
+
+    for (const path of siblingSourcePaths) {
+      expect(read(path), path).toContain(siblingUrl)
+    }
+    expect(read('public/llms.txt')).toContain(siblingUrl)
+    expect(read('src/components/HealthcareToolsNav.tsx')).toContain(
+      'aria-label="Healthcare hiring tools"',
+    )
+    expect(read('src/components/HealthcareToolsNav.tsx')).toContain(
+      'FreeResumePost',
+    )
+    expect(read('src/components/HealthcareToolsNav.tsx')).toContain('min-h-11')
+
+    for (const file of sourceFiles(resolve(repositoryRoot, 'src'))) {
+      if (!readFileSync(file, 'utf8').includes('freeresumepost.co')) continue
+      const path = relative(repositoryRoot, file).replaceAll('\\', '/')
+      expect(siblingSourcePaths, path).toContain(path)
+    }
+  })
+
+  it('pins the standalone job product metadata and public positioning', () => {
+    const layout = read('src/app/layout.tsx')
+    const home = read('src/app/page.tsx')
+    const manifest = read('src/app/manifest.ts')
+
+    expect(layout).toContain("applicationName: 'FreeJobPost'")
+    expect(layout).toContain("metadataBase: new URL('https://freejobpost.co')")
+    expect(layout).toContain("siteName: 'FreeJobPost'")
+    expect(homeMetadata.alternates).toMatchObject({
+      canonical: 'https://freejobpost.co',
+      types: {
+        'application/rss+xml': [
+          {
+            url: '/feeds/rss.xml',
+            title: 'FreeJobPost nursing and allied health jobs',
+          },
+        ],
+      },
+    })
+    expect(homeMetadata.openGraph).toMatchObject({
+      siteName: 'FreeJobPost',
+      locale: 'en_US',
+      type: 'website',
+      url: 'https://freejobpost.co',
+    })
+    expect(home).toContain('roles posted directly by employers')
+    expect(manifest).toContain("name: 'FreeJobPost'")
+    expect(manifest).toContain("src: '/icon.svg'")
+    expect(manifest).toContain("src: '/apple-icon'")
+    expect(manifest).not.toContain("src: '/icon'")
+    expect(manifest).toContain("src: '/icon-512'")
+    expect(read('src/app/icon-512/route.tsx')).toContain("contentType = 'image/png'")
+    expect(read('src/app/apple-icon.tsx')).toContain("contentType = 'image/png'")
+    expect(existsSync(resolve(repositoryRoot, 'src/app/apple-icon.svg'))).toBe(false)
+    expect(read('next.config.ts')).toContain(
+      "has: [{ type: 'host', value: 'www.freejobpost.co' }]",
+    )
+    expect(read('next.config.ts')).toContain(
+      "destination: 'https://freejobpost.co/:path*'",
+    )
+    expect(read('next.config.ts')).toContain("destination: '/icon.svg'")
+
+    for (const path of [
+      'src/app/layout.tsx',
+      'src/app/page.tsx',
+      'src/app/how-it-works/page.tsx',
+      'src/app/post-job/page.tsx',
+      'src/components/SiteHeader.tsx',
+      'src/components/HealthcareToolsNav.tsx',
+      'src/app/manifest.ts',
+      'public/llms.txt',
+    ]) {
+      expect(read(path), path).not.toMatch(
+        /Ava Health|avahealth\.co|provider staffing|placement fee|matching engine|our recruiters|recruiter matching|\brecruiters?\b|48,696|aggregated jobs|syndicate everywhere/i,
+      )
     }
   })
 
@@ -244,9 +358,67 @@ describe('standalone FreeJobPost release contracts', () => {
     expect(nativeApply).toContain(
       "safeApplyUrl(job.apply_url, { requireHttps: true })",
     )
-    expect(trackedClick).toContain('safeApplyUrl(job.apply_url)')
+    expect(trackedClick).toContain(
+      "safeApplyUrl(job.apply_url, { requireHttps: true })",
+    )
     expect(nativeApply).not.toContain('new URL(job.apply_url)')
     expect(trackedClick).not.toContain('function safeApplyUrl')
+  })
+
+  it('requires HTTPS before a public employer job reaches the database RPC', () => {
+    const action = read('src/app/post-job/actions.ts')
+
+    expect(action).toContain(
+      'safeApplyUrl(normalized.apply_url, { requireHttps: true })',
+    )
+    expect(action).toContain("sb.rpc('submit_freejobpost_job_rpc'")
+    expect(action).not.toContain("sb.rpc('submit_public_job_rpc'")
+    expect(action).not.toContain('p_syndication_targets')
+    expect(action).not.toContain('DEFAULT_TARGET_IDS')
+    expect(action).not.toContain("sb.rpc('set_pending_job_syndication_targets'")
+    expect(action).toContain(
+      'safeApplyUrl(normalized.company_url, { requireHttps: true })',
+    )
+  })
+
+  it('assigns reviewed feed targets atomically in the held submission boundary', () => {
+    const migration = read(
+      'supabase/migration-sources/held/20260830230000_freejobpost_submission_boundary.sql',
+    )
+
+    expect(migration).not.toContain('p_syndication_targets')
+    expect(migration).toContain('reviewed_syndication_targets constant text[]')
+    expect(migration).toContain('SET syndication_targets = reviewed_syndication_targets')
+    expect(migration).not.toContain("'linkedin'")
+    expect(migration).toContain("AND source = 'public_employer_post'")
+    expect(migration).toContain("AND status = 'pending_review'")
+    expect(migration).toContain('GET DIAGNOSTICS updated_jobs = ROW_COUNT')
+    expect(migration).toContain(
+      'REVOKE ALL ON FUNCTION public.set_pending_job_syndication_targets(uuid, text[])',
+    )
+    expect(migration).toContain('length(normalized_apply_url) > 500')
+    expect(migration).toContain(
+      "apply_authority ~* '^(0x[0-9a-f]+|[0-9]+)(\\.(0x[0-9a-f]+|[0-9]+))*(:[0-9]{1,5})?$'",
+    )
+    expect(migration).not.toContain('ADD CONSTRAINT public_employer_apply_url_requires_https')
+    expect(migration).toContain('A table-level HTTPS constraint is deliberately deferred')
+  })
+
+  it('keeps stored external URLs behind the shared HTTPS render guard', () => {
+    const jobPage = read('src/app/jobs/[slug]/page.tsx')
+    const employerPage = read('src/app/employers/[slug]/page.tsx')
+    const clickRoute = read('src/app/click/[slug]/route.ts')
+
+    expect(jobPage).toContain(
+      'const externalApplyUrl = safeApplyUrl(job.apply_url, { requireHttps: true })',
+    )
+    expect(jobPage).toContain('{externalApplyUrl ? (')
+    expect(employerPage).toContain(
+      'const companyUrl = safeApplyUrl(employer.company_url, { requireHttps: true })',
+    )
+    expect(employerPage).toContain('href={companyUrl}')
+    expect(clickRoute).toContain("normalizePartner(req.nextUrl.searchParams.get('p'))")
+    expect(clickRoute).toContain('{0,120}')
   })
 
   it('source-gates the public apply RPC and reasserts its exact privileges', () => {

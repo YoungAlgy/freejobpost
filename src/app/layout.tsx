@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Inter } from 'next/font/google'
 
+import { HealthcareToolsNav } from '@/components/HealthcareToolsNav'
 import { SiteHeader } from '@/components/SiteHeader'
 import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 import { buildOrganizationGraph } from '@/lib/organization-schema'
@@ -18,12 +19,19 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  applicationName: 'FreeJobPost',
   title: {
     template: '%s | FreeJobPost',
     default: 'Nursing and Allied Health Jobs | FreeJobPost',
   },
   description:
-    'A free job posting and application tool for nursing and allied health employers and job seekers.',
+    'Post and find direct-employer nursing and allied health jobs for free.',
+  keywords: [
+    'nursing jobs',
+    'allied health jobs',
+    'post healthcare jobs free',
+    'direct employer healthcare jobs',
+  ],
   metadataBase: new URL('https://freejobpost.co'),
   alternates: {
     types: {
@@ -38,7 +46,8 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://freejobpost.co',
     title: 'Nursing and Allied Health Jobs | FreeJobPost',
-    description: 'Post nursing and allied health jobs free, then receive applications directly.',
+    description:
+      'Post and find direct-employer nursing and allied health jobs for free.',
   },
   twitter: {
     card: 'summary_large_image',
@@ -95,6 +104,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to main content
         </a>
+        <HealthcareToolsNav current="jobs" />
         <SiteHeader />
         <div id="main-content">{children}</div>
         <footer className="border-t border-gray-200 bg-white">
@@ -107,9 +117,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/post-job" className="hover:text-[#17324D]">Post a job</Link>
               <Link href="/employer" className="hover:text-[#17324D]">Employer login</Link>
               <Link href="/how-it-works" className="hover:text-[#17324D]">How it works</Link>
+              <a href="https://www.freeresumepost.co" className="hover:text-[#17324D]">
+                Post your resume
+              </a>
               <Link href="/terms" className="hover:text-[#17324D]">Terms</Link>
               <Link href="/privacy" className="hover:text-[#17324D]">Privacy</Link>
             </nav>
+            <p className="mt-5 max-w-2xl text-sm leading-6 text-gray-600">
+              Looking for work? Build a private-by-default healthcare resume profile with{' '}
+              <a
+                href="https://www.freeresumepost.co"
+                className="font-semibold text-[#17324D] underline decoration-gray-300 underline-offset-4 hover:decoration-[#17324D]"
+              >
+                FreeResumePost
+              </a>
+              .
+            </p>
             <div className="mt-6 border-t border-gray-100 pt-6 text-xs leading-5 text-gray-500">
               <p>&copy; {new Date().getFullYear()} FreeJobPost.</p>
               <p className="mt-1">

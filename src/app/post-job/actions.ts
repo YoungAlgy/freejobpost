@@ -2,12 +2,12 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
-import { DEFAULT_TARGET_IDS } from '@/lib/syndication-targets'
 import { verifyTurnstileToken } from '@/lib/turnstile'
 import { validatePayTransparency, validateSalaryRangeSanity } from '@/lib/pay-transparency'
 import { validateSpecialtyScope } from '@/lib/specialty-scope'
 import { track } from '@/lib/track'
 import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
+import { safeApplyUrl } from '@/lib/safe-apply-url'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -34,6 +34,35 @@ export type PostJobInput = {
 export type PostJobResult =
   | { success: true; job_slug: string; already_submitted?: boolean; verify_email_sent?: boolean }
   | { success: false; error: string }
+
+const SAFE_SUBMISSION_ERRORS = [
+  /^Invalid email$/,
+  /^Company name must be 1-200 chars$/,
+  /^Title must be 3-200 chars$/,
+  /^Description must be 30-10000 chars$/,
+  /^Invalid remote\/hybrid value$/,
+  /^Invalid employment type$/,
+  /^State must be a 2-letter code$/,
+  /^Salary out of range$/,
+  /^Contact name too long \(max 200\)$/,
+  /^Company URL too long \(max 500\)$/,
+  /^Role too long \(max 200\)$/,
+  /^Specialty too long \(max 200\)$/,
+  /^City too long \(max 200\)$/,
+  /^Experience field too long \(max 2000\)$/,
+  /^FreeJobPost accepts nursing and allied-health roles only\./,
+  /^[A-Z]{2} requires (?:a posted salary range|a real salary range) \(/,
+  /^Salary minimum can't be higher than the maximum\.$/,
+  /^That's a lot of posts in a short window\. Try again in a few hours\.$/,
+  /^You already have \d+ active job posts\./,
+  /^External apply links must be valid HTTPS URLs without embedded credentials\.$/,
+  /^Company websites must be valid HTTPS URLs without embedded credentials\.$/,
+]
+
+function safeSubmissionError(error: string | undefined): string {
+  if (error && SAFE_SUBMISSION_ERRORS.some((pattern) => pattern.test(error))) return error
+  return 'Unable to submit. Please check the form and try again.'
+}
 
 // Server action — receives the form data, submits via RPC, triggers verify email.
 // Exposed via a useActionState client hook in /post-job/page.tsx.
@@ -66,6 +95,28 @@ export async function submitPostJob(
     state: (input.state ?? '').trim().toUpperCase(),
     experience_required: (input.experience_required ?? '').trim(),
     apply_url: (input.apply_url ?? '').trim(),
+  }
+
+  if (normalized.apply_url) {
+    const applyUrl = safeApplyUrl(normalized.apply_url, { requireHttps: true })
+    if (!applyUrl) {
+      return {
+        success: false,
+        error: 'External apply links must be valid HTTPS URLs without embedded credentials.',
+      }
+    }
+    normalized.apply_url = applyUrl
+  }
+
+  if (normalized.company_url) {
+    const companyUrl = safeApplyUrl(normalized.company_url, { requireHttps: true })
+    if (!companyUrl) {
+      return {
+        success: false,
+        error: 'Company websites must be valid HTTPS URLs without embedded credentials.',
+      }
+    }
+    normalized.company_url = companyUrl
   }
 
   // Specialty-scope check — mirrors the client-side gate so a forged
@@ -140,7 +191,7 @@ export async function submitPostJob(
     // Helper RPC not yet deployed — fall back to UI-only enforcement.
   }
 
-  const { data, error } = await sb.rpc('submit_public_job_rpc', {
+  const { data, error } = await sb.rpc('submit_freejobpost_job_rpc', {
     p_contact_email: normalized.contact_email,
     p_contact_name: normalized.contact_name || null,
     p_company_name: normalized.company_name,
@@ -174,22 +225,12 @@ export async function submitPostJob(
   }
 
   if (!result.success) {
-    return { success: false, error: result.error || 'Submission rejected.' }
+    return { success: false, error: safeSubmissionError(result.error) }
   }
 
-  // Distribution is automatic. The form stays focused on the posting itself,
-  // while this server-owned list keeps disabled or unapproved channels off.
-  const targetsToWrite = DEFAULT_TARGET_IDS
-  if (result.job_id) {
-    const { error: targetErr } = await sb.rpc('set_pending_job_syndication_targets', {
-      p_job_id: result.job_id,
-      p_targets: targetsToWrite,
-    })
-    if (targetErr) {
-      // Non-fatal — job is still created with the column default (all on).
-      // Just log; we don't want a syndication-targets failure to nuke the verify flow.
-      console.error('set_pending_job_syndication_targets failed:', targetErr.message)
-    }
+  if (!result.employer_id || !result.job_id || !result.job_slug) {
+    console.error('submitPostJob RPC returned an incomplete success response')
+    return { success: false, error: 'Unable to submit. Please try again.' }
   }
 
   // Verify email send. 2026-06 audit (F97): the outcome is now threaded to
@@ -231,7 +272,6 @@ export async function submitPostJob(
       employment_type: normalized.employment_type,
       remote: normalized.remote_hybrid,
       has_external_apply: Boolean(normalized.apply_url),
-      syndication_targets: targetsToWrite.length,
     })
   } catch {
     /* analytics is best-effort */
@@ -239,7 +279,7 @@ export async function submitPostJob(
 
   return {
     success: true,
-    job_slug: result.job_slug!,
+    job_slug: result.job_slug,
     verify_email_sent: verifyEmailSent,
   }
 }

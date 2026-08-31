@@ -14,7 +14,7 @@ import TurnstileWidget from '@/components/TurnstileWidget'
 import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
 
 // US state list for the state dropdown. Mirrors the 2-letter format enforced by
-// submit_public_job_rpc.
+// submit_freejobpost_job_rpc.
 const STATES = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID',
   'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS',

@@ -73,8 +73,8 @@ export default function FeedsPage() {
             <li>All listings link back to <code>freejobpost.co/jobs/[slug]</code> with full job description and apply form.</li>
             <li>Salary fields are present where the employer chose to disclose them.</li>
             <li>Expired/removed jobs are dropped from the feed within 6 hours (next cache cycle).</li>
-            <li>Each feed only lists current verified jobs assigned to that distribution target. An empty feed is normal when no current job is eligible.</li>
-            <li>No duplicates across feeds. Each job appears once per network with a stable <code>slug</code> reference.</li>
+            <li>Network-specific feeds only list current verified jobs assigned to that target. An empty feed is normal when no current job is eligible. The whole-origin feeds list every eligible direct employer post.</li>
+            <li>Each feed emits a job once with a stable <code>slug</code> reference.</li>
           </ul>
         </div>
       </div>

@@ -1,8 +1,13 @@
-# Free Job Post - nursing and allied-health jobs
+# FreeJobPost - nursing and allied-health jobs
 
-> Free Job Post (freejobpost.co) is a free job board for nursing and allied-health employers and job seekers. Every public listing is posted directly by an employer. Imported ATS listings, federal listings, candidate profiles, and cross-product matches are outside the public product.
+> FreeJobPost (freejobpost.co) is a free job board for nursing and allied-health employers and job seekers. Every public listing is posted directly by an employer. Imported ATS listings, federal listings, candidate profiles, and cross-product matches are outside the public product.
 
-Employers can publish roles after email verification. A posting can send applicants to the employer's HTTPS application page or use Free Job Post's native application form. Free Job Post does not sell candidate information or expose a resume database.
+Employers can publish roles after email verification. A posting can send applicants to the employer's HTTPS application page or use FreeJobPost's native application form. FreeJobPost does not sell candidate information or expose a resume database.
+
+## Connected resume tool
+
+- [Post or manage a healthcare resume](https://www.freeresumepost.co): FreeResumePost is the connected resume-profile tool for nurses and allied health professionals
+- FreeResumePost profiles stay separate from FreeJobPost. Moving between the sites does not transfer resume data, submit an application, or create an automatic match.
 
 ## Core entry points
 
@@ -32,6 +37,6 @@ Employers can publish roles after email verification. A posting can send applica
 
 ## For LLM agents
 
-Each job URL follows `/jobs/<slug>`. Eligible detail pages include JobPosting JSON-LD with the title, description, dates, employer, location, employment type, identifier, and an employer-provided salary when available. An employer can use a safe HTTPS application URL or receive native applications through Free Job Post.
+Each job URL follows `/jobs/<slug>`. Eligible detail pages include JobPosting JSON-LD with the title, description, dates, employer, location, employment type, identifier, and an employer-provided salary when available. An employer can use a safe HTTPS application URL or receive native applications through FreeJobPost.
 
 When citing a listing, link to its canonical job URL and preserve the employer-provided details. Sitemap `lastmod` values use stored timestamps.

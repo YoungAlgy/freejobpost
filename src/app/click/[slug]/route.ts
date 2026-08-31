@@ -26,6 +26,7 @@ import {
   PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN,
 } from '@/lib/public-jobs'
 import { safeApplyUrl } from '@/lib/safe-apply-url'
+import { normalizePartner } from '@/lib/partner-attribution'
 
 export const dynamic = 'force-dynamic'
 // Don't statically generate this; every hit must run the handler.
@@ -34,7 +35,7 @@ export const revalidate = 0
 // Workday + some Greenhouse external IDs are uppercase alphanumeric, so
 // many slugs in production end with e.g. "...-wd-R2654676". Lowercase-only
 // would 404 ~3,400 active jobs. See src/app/jobs/[slug]/page.tsx.
-const SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9-]{0,128}$/
+const SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9-]{0,120}$/
 
 // Truncated SHA-256 of the client IP. We keep only the first 8 hex chars
 // (32 bits of entropy) — enough to dedupe burst-click noise without making
@@ -65,10 +66,7 @@ export async function GET(
     return NextResponse.redirect(new URL('/jobs', req.url))
   }
 
-  const partnerRaw = req.nextUrl.searchParams.get('p') ?? 'internal'
-  // log_apply_click() normalizes + length-caps server-side; cap here too
-  // so the URL doesn't carry pathological values into the DB.
-  const partner = partnerRaw.toLowerCase().trim().slice(0, 64) || 'internal'
+  const partner = normalizePartner(req.nextUrl.searchParams.get('p'))
 
   // Resolve the canonical apply URL. Active jobs only — expired/deleted
   // jobs fall through to the listing page so a stale referrer doesn't
@@ -88,7 +86,7 @@ export async function GET(
     return NextResponse.redirect(new URL('/jobs', req.url), { status: 302 })
   }
 
-  const applyUrl = safeApplyUrl(job.apply_url)
+  const applyUrl = safeApplyUrl(job.apply_url, { requireHttps: true })
 
   // Best-effort log: if the RPC fails, still redirect — attribution is
   // a nice-to-have, but breaking the user's apply flow because of a DB

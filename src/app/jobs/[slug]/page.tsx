@@ -16,6 +16,7 @@ import {
 import VerifiedEmployerBadge from '@/components/VerifiedEmployerBadge'
 import { stripSalarySuffix } from '@/lib/clean-labels'
 import { safeJsonLd } from '@/lib/safe-jsonld'
+import { safeApplyUrl } from '@/lib/safe-apply-url'
 // The "Apply on employer site" CTA is a client component so it can read the
 // ?ref=<partner> attribution param client-side. Keeping that read OUT of this
 // server component is what lets /jobs/[slug] render as static ISR rather than
@@ -379,6 +380,8 @@ export default async function JobDetailPage({ params }: Props) {
     )
   }
 
+  const externalApplyUrl = safeApplyUrl(job.apply_url, { requireHttps: true })
+
   const [related, employer] = await Promise.all([
     getRelated(job),
     resolveEmployer(job.employer_id),
@@ -506,7 +509,7 @@ export default async function JobDetailPage({ params }: Props) {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              {job.apply_url ? (
+              {externalApplyUrl ? (
                 // Route every outbound apply click through /click/[slug] so we
                 // can log per-partner attribution. The endpoint logs + 302s
                 // to the real apply_url; failure modes still bounce the user

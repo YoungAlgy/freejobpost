@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 // PWA web app manifest. Gives freejobpost.co an installable identity (name,
 // short_name, brand theme color) and points at the dynamically generated brand
-// icons (/icon, /apple-icon, /icon-512). Next.js serves this at
+// icons (/icon.svg, the generated /apple-icon PNG, and /icon-512). Next.js serves this at
 // /manifest.webmanifest and auto-injects the <link rel="manifest"> in <head>.
 //
 // theme_color matches the independent FreeJobPost posting-card mark.
@@ -15,13 +15,13 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'FreeJobPost',
     short_name: 'FreeJobPost',
     description:
-      'Post and find nursing and allied health jobs.',
+      'Post and find direct-employer nursing and allied health jobs for free.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
     theme_color: '#17324D',
     icons: [
-      { src: '/icon', sizes: '32x32', type: 'image/png' },
+      { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
       { src: '/apple-icon', sizes: '180x180', type: 'image/png' },
       { src: '/icon-512', sizes: '512x512', type: 'image/png', purpose: 'any' },
       { src: '/icon-512', sizes: '512x512', type: 'image/png', purpose: 'maskable' },

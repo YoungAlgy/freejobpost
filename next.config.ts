@@ -46,6 +46,14 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        // Keep every indexed URL on the apex host used by metadata, sitemaps,
+        // feeds, and structured data. Query parameters pass through.
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.freejobpost.co' }],
+        destination: 'https://freejobpost.co/:path*',
+        permanent: true,
+      },
+      {
         // 2026-05-13: /specialty/rn renamed to /specialty/registered-nurse.
         // Permanent 301 transfers any accrued authority on the old URL and
         // matches the canonical role name used throughout this product.
@@ -54,13 +62,10 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        // Modern icons live at /icon (src/app/icon.tsx) and /apple-icon
-        // (src/app/apple-icon.tsx) — Next.js auto-generates them with
-        // versioned query strings. But many crawlers + older browsers
-        // still hit /favicon.ico directly. Redirect to the canonical
-        // generated icon instead of returning 404.
+        // Next serves src/app/icon.svg at /icon.svg. Older browsers still hit
+        // /favicon.ico directly, so keep that request on the real SVG route.
         source: '/favicon.ico',
-        destination: '/icon',
+        destination: '/icon.svg',
         permanent: true,
       },
       {

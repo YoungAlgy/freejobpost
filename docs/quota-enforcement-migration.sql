@@ -1,9 +1,11 @@
--- 2026-05-13 — Server-side 10-post quota enforcement for freejobpost
+-- 2026-05-13 historical migration source: server-side 10-post quota enforcement.
+-- The current app submits through submit_freejobpost_job_rpc. This document
+-- records the earlier helper rollout and is not the current submission contract.
 --
 -- Why this migration exists:
 --   Today the 10-active-post cap on the free tier is enforced only in the
 --   employer dashboard UI (`employer/dashboard.tsx:FREE_QUOTA = 10`). The
---   post-job server action (`post-job/actions.ts`) calls `submit_public_job_rpc`
+--   post-job server action (`post-job/actions.ts`) called `submit_public_job_rpc`
 --   without any tier/count check, so a determined client could exceed the cap
 --   by scripting the endpoint. With no real paying employers today this is
 --   theoretical, but it must be fixed before any payment gate is shipped
@@ -12,7 +14,7 @@
 --
 -- What this migration does:
 --   Adds a pure-read helper function `check_employer_quota(text)` that the
---   TypeScript pre-flight check calls before submit_public_job_rpc. The RPC
+--   TypeScript pre-flight check called before submit_public_job_rpc. The RPC
 --   itself is unchanged here — the check happens client-side-of-DB but
 --   server-side-of-app, with a small TOCTOU window that's acceptable at
 --   current scale (one in-flight submission per employer email).
