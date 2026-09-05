@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = data?.title ?? slug
   return {
     title: `Apply: ${title}`,
-    description: `Submit your application for ${title}. No account required. Takes under 60 seconds.`,
+    description: `Submit your application for ${title}. No account required.`,
     robots: { index: false, follow: true },
     alternates: { canonical: `https://freejobpost.co/jobs/${slug}` },
   }
@@ -106,7 +106,7 @@ export default async function ApplyPage({ params }: Props) {
 
         <p className="mt-8 text-xs text-gray-500">
           By applying you are sharing your contact info with the employer.
-          They will reach you by email. We never sell your data. See{' '}
+          They may contact you by email or phone if you provide a number. We never sell your data. See{' '}
           <Link href="/privacy" className="underline hover:text-[#17324D]">
             privacy
           </Link>

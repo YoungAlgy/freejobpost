@@ -13,6 +13,7 @@ import {
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, hasUsableDescription, escapeXml, cdata, isBuildPhase, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 import { getStateHub } from '@/lib/state-slugs'
+import { runPublicReadWithDeadline } from '@/lib/public-read-deadline'
 
 // force-dynamic (2026-07-09): this per-state RSS feed used to prerender all 52
 // states at build (generateStaticParams), each running a full-column select
@@ -38,17 +39,25 @@ export async function GET(
     return new Response('Not found', { status: 404 })
   }
 
-  const { data, error } = await supabase
-    .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at')
-    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
-    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
-    .eq('status', 'active')
-    .eq('state', hub.abbr)
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .order('created_at', { ascending: false })
-    .limit(200)
+  const { data, error } = await runPublicReadWithDeadline(
+    `state feed ${slug} data load`,
+    (signal) => Promise.resolve(
+      supabase
+        .from('public_jobs')
+        .select(JOB_DETAIL_FIELDS + ', updated_at')
+        .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+        .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
+        .eq('status', 'active')
+        .eq('state', hub.abbr)
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .order('created_at', { ascending: false })
+        .limit(200)
+        .retry(false)
+        .abortSignal(signal),
+    ),
+    _req.signal,
+  )
 
   // FAIL CLOSED on a DB ERROR only (not on a legitimately-empty state). A real
   // empty state renders an empty feed, which is correct. A transient DB failure

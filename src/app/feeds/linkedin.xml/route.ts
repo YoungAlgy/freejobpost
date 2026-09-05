@@ -37,6 +37,7 @@ import {
   MIN_DESCRIPTION_CHARS,
 } from '@/lib/feed-builders'
 import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
+import { runPublicReadWithDeadline } from '@/lib/public-read-deadline'
 
 // HARD BYTE BUDGET (2026-08-20): every Indeed-format feed gets this via
 // buildIndeedFormatFeed()'s MAX_FEED_BYTES (feed-builders.ts) — linkedin.xml
@@ -98,7 +99,7 @@ function iso8601Date(d: Date): string {
 // pagination for the direct-employer inventory.
 const BATCH_SIZE = 1000
 
-export async function GET(): Promise<Response> {
+export async function GET(req: Request): Promise<Response> {
   // LinkedIn remains disabled by default and requires an explicit target on
   // the direct post.
   const nowIso = hourIso()
@@ -113,18 +114,40 @@ export async function GET(): Promise<Response> {
     .contains('syndication_targets', ['linkedin'])
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
-  const numBatches = await activeJobBatchCount(supabase)
-
-  const filteredBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-    baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+  type FeedJob = PublicJob & { updated_at: string; employer_id: string }
+  const { jobs, employerNameMap } = await runPublicReadWithDeadline(
+    'linkedin.xml data load',
+    async (signal) => {
+      const numBatches = await activeJobBatchCount(supabase, signal)
+      const filteredBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+        baseFiltered()
+          .range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+          .retry(false)
+          .abortSignal(signal)
+      )
+      if (filteredBatches.some((batch) => batch.error)) {
+        throw new Error('linkedin.xml: direct-employer query failed, refusing to cache a partial feed.')
+      }
+      const allJobs = filteredBatches.flatMap((b) => (b.data ?? []) as unknown[]) as FeedJob[]
+      const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
+      const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
+      type EmpRow = { id: string; company_name: string }
+      const employerNameMap = new Map<string, string>()
+      if (employerIds.length > 0) {
+        const { data: emps, error: empErr } = await supabase
+          .from('public_employers_directory')
+          .select('id, company_name')
+          .in('id', employerIds)
+          .retry(false)
+          .abortSignal(signal)
+        if (empErr) console.error('employer name lookup failed:', empErr.message)
+        for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
+      }
+      return { jobs, employerNameMap }
+    },
+    req.signal,
   )
 
-  if (filteredBatches.some((batch) => batch.error)) {
-    throw new Error('linkedin.xml: direct-employer query failed, refusing to cache a partial feed.')
-  }
-  const data = filteredBatches.flatMap((b) => (b.data ?? []) as unknown[])
-
-  type FeedJob = PublicJob & { updated_at: string; employer_id: string }
   // Filter thin descriptions before publishing to LinkedIn. LinkedIn Job
   // Wrapping quality-scores thin-content feeds HARD (strict partner), so this
   // feed uses the 600-char rich-content bar (MIN_DESCRIPTION_CHARS), the same
@@ -132,25 +155,6 @@ export async function GET(): Promise<Response> {
   // check, then the shared 250 default, then pinned explicit to 600 on
   // 2026-06-15 so the feed bar can't silently ride the shared default again.
   // Pre-2026-05-21 audit: ~24% of corpus had empty/<p></p>-only descriptions.
-  const allJobs = (data ?? []) as unknown as FeedJob[]
-  const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
-
-  // 2026-08-20: this read public_employers_directory_all, a relation that does
-  // not exist. The error was swallowed, so the map stayed empty and every job
-  // without its own company_name published under the wrong site-level
-  // fallback. public_employers_directory covers all the employers involved.
-  const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
-  type EmpRow = { id: string; company_name: string }
-  const employerNameMap = new Map<string, string>()
-  if (employerIds.length > 0) {
-    const { data: emps, error: empErr } = await supabase
-      .from('public_employers_directory')
-      .select('id, company_name')
-      .in('id', employerIds)
-    if (empErr) console.error('employer name lookup failed:', empErr.message)
-    for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
-  }
-
   const now = new Date().toUTCString()
 
   // Cap-and-break loop (see MAX_FEED_BYTES note above). jobs is already

@@ -10,7 +10,6 @@ import {
 // when the standalone direct-employer inventory fit in one batch.
 const BATCH_SIZE = 1000
 const MIN_BATCHES = 1
-const FALLBACK_BATCHES = 5
 const MAX_BATCHES = 100
 // One extra batch protects posts added between the count and range queries.
 const BATCH_HEADROOM = 1
@@ -24,11 +23,15 @@ const BATCH_HEADROOM = 1
  * deleted, not expired). Callers that additionally filter match a subset, so
  * extra batches past the end of a result set come back empty.
  *
- * Never throws. A failed count still covers 5,000 rows so a transient count
- * problem cannot collapse a populated feed to one batch.
+ * A failed or invalid count fails closed at runtime before any range-query
+ * fan-out. During a production build callers may opt into an empty fallback,
+ * preserving the existing build-time behavior without adding failed reads.
  */
-export async function activeJobBatchCount(supabase: SupabaseClient): Promise<number> {
-  let activeCount: number | null = null
+export async function activeJobBatchCount(
+  supabase: SupabaseClient,
+  signal?: AbortSignal,
+  allowBuildFallback = false,
+): Promise<number> {
   try {
     const { count, error } = await supabase
       .from('public_jobs')
@@ -39,20 +42,29 @@ export async function activeJobBatchCount(supabase: SupabaseClient): Promise<num
       .is('deleted_at', null)
       // hourIso, not a raw new Date(): a per-render timestamp changes the
       // PostgREST URL, which changes the Next Data Cache key, so the count
-      // would re-hit the DB on EVERY render (the F52 bug). Hour-stable means
-      // one count per hour globally instead of one per crawler hit.
+      // would defeat reuse wherever the deployed fetch cache is enabled.
+      // A stable URL does not by itself guarantee caching on dynamic routes.
       .gt('expires_at', hourIso())
-    if (!error) activeCount = count
-  } catch {
-    // Network/transport fault — fall through to the floor.
+      .retry(false)
+      .abortSignal(signal ?? new AbortController().signal)
+    if (
+      typeof count === 'number' &&
+      Number.isSafeInteger(count) &&
+      count >= 0 &&
+      !error
+    ) {
+      const needed = Math.ceil(count / BATCH_SIZE) + BATCH_HEADROOM
+      return Math.min(Math.max(needed, MIN_BATCHES), MAX_BATCHES)
+    }
+    throw new Error(
+      `active job count failed${error ? `: ${error.message}` : ' with an invalid result'}`,
+    )
+  } catch (error) {
+    // Builds previously tolerated a database error by emitting an empty feed.
+    // Retain that behavior, but avoid the old fallback's extra range-query load.
+    if (allowBuildFallback) return 0
+    throw error
   }
-
-  if (typeof activeCount !== 'number' || !Number.isFinite(activeCount) || activeCount < 0) {
-    return FALLBACK_BATCHES
-  }
-
-  const needed = Math.ceil(activeCount / BATCH_SIZE) + BATCH_HEADROOM
-  return Math.min(Math.max(needed, MIN_BATCHES), MAX_BATCHES)
 }
 
 // Keep a shared ceiling if the direct inventory grows beyond one request.
@@ -74,13 +86,34 @@ export async function runBatchesConcurrencyCapped<T>(
 ): Promise<T[]> {
   const results: T[] = []
   for (let start = 0; start < numBatches; start += BATCH_CONCURRENCY) {
-    const chunk = await Promise.all(
+    const settled = await Promise.allSettled(
       Array.from(
         { length: Math.min(BATCH_CONCURRENCY, numBatches - start) },
-        (_, j) => runBatch(start + j),
+        // Defer invocation so a synchronous throw from one callback cannot
+        // prevent Promise.allSettled from observing and settling work started
+        // by an earlier callback in this same wave.
+        (_, j) => Promise.resolve().then(() => runBatch(start + j)),
       ),
     )
+    // Await every started query before surfacing an unexpected rejection. This
+    // keeps no request-bound database I/O detached from the route lifecycle.
+    const rejected = settled.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    )
+    if (rejected) throw rejected.reason
+    const chunk = settled.map((result) => {
+      if (result.status !== 'fulfilled') throw new Error('unreachable batch settlement')
+      return result.value
+    })
     results.push(...chunk)
+    // Do not start another wave after a resolved PostgREST error. The callers
+    // still inspect the settled result and fail closed, but an outage cannot
+    // turn one failed wave into dozens of additional range reads.
+    if (
+      chunk.some((result) =>
+        Boolean((result as { error?: unknown } | null | undefined)?.error),
+      )
+    ) break
   }
   return results
 }

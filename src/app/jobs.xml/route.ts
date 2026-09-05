@@ -32,6 +32,7 @@ import { type NextRequest } from 'next/server'
 // backfill stuck this route at 425 jobs for 6+ hours).
 import { supabaseFresh as supabase, hourIso } from '@/lib/supabase'
 import { activeJobBatchCount, runBatchesConcurrencyCapped } from '@/lib/active-batch-count'
+import { runPublicReadWithDeadline } from '@/lib/public-read-deadline'
 import {
   JOB_DETAIL_FIELDS,
   PUBLIC_EMPLOYER_JOB_SOURCE,
@@ -115,7 +116,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   // 2026-08-19: the batch count is now derived from a real COUNT of the active
   // corpus (see active-batch-count.ts) instead of a hand-bumped constant, so
   // this feed tracks inventory growth on its own.
-  const numBatches = await activeJobBatchCount(supabase)
   const BATCH_SIZE = 1000
   const nowIso = hourIso()
   const baseQuery = () => supabase
@@ -142,21 +142,46 @@ export async function GET(req: NextRequest): Promise<Response> {
   // output, just BATCH_CONCURRENCY (8) in flight at a time instead of all of
   // them — which also keeps the route under Workers' subrequest ceiling as the
   // batch count scales with real inventory.
-  const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-    baseQuery().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
-  )
-
   type FeedJob = PublicJob & { updated_at: string; employer_id: string }
-  const allJobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
+  const { jobs, employerNameMap } = await runPublicReadWithDeadline(
+    'jobs.xml data load',
+    async (signal) => {
+      const numBatches = await activeJobBatchCount(supabase, signal, isBuildPhase())
+      const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
+        baseQuery()
+          .range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+          .retry(false)
+          .abortSignal(signal)
+      )
+      const allJobs = batches.flatMap((b) => (b.data ?? []) as unknown as FeedJob[])
 
-  // A direct-employer feed can legitimately be empty. Fail closed only when
-  // the underlying query failed, so zero inventory still produces valid XML.
-  const anyBatchErrored = batches.some((b) => b.error)
-  if (anyBatchErrored && !isBuildPhase()) {
-    throw new Error(
-      'jobs.xml: direct-employer query failed, refusing to cache a partial feed.',
-    )
-  }
+      // A direct-employer feed can legitimately be empty. Fail closed only when
+      // the underlying query failed, so zero inventory still produces valid XML.
+      const anyBatchErrored = batches.some((b) => b.error)
+      if (anyBatchErrored && !isBuildPhase()) {
+        throw new Error(
+          'jobs.xml: direct-employer query failed, refusing to cache a partial feed.',
+        )
+      }
+
+      const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
+      const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
+      type EmpRow = { id: string; company_name: string }
+      const employerNameMap = new Map<string, string>()
+      if (employerIds.length > 0) {
+        const { data: emps, error: empErr } = await supabase
+          .from('public_employers_directory')
+          .select('id, company_name')
+          .in('id', employerIds)
+          .retry(false)
+          .abortSignal(signal)
+        if (empErr) console.error('employer name lookup failed:', empErr.message)
+        for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
+      }
+      return { jobs, employerNameMap }
+    },
+    req.signal,
+  )
 
   // Thin-description filter. Indeed v2 / Google for Jobs / Talent.com /
   // Jooble / ZipRecruiter all penalize feeds with high percentages of
@@ -173,30 +198,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   // 250 chars is a floor for a description with responsibilities +
   // requirements. The on-site /jobs browse is unaffected (still shows
   // all active jobs); partner XML is the only thing filtered.
-  const jobs = allJobs.filter((j) => hasUsableDescription(j.description, MIN_DESCRIPTION_CHARS))
-
-  // Resolve company names per employer in one batched query.
-  // Reads public_employers_directory (anon-safe view) — the underlying
-  // public_employers table is internal-only because it carries contact PII.
-  //
-  // 2026-08-20: this pointed at public_employers_directory_all, which does not
-  // exist in the database. The error was swallowed, the map came back empty,
-  // and every job without its own company_name fell through to a site-level
-  // default, publishing the wrong hiring company. Every
-  // employer those jobs point at is status='active' and
-  // verified_healthcare_org=true, so the existing directory view covers them.
-  const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
-  type EmpRow = { id: string; company_name: string }
-  const employerNameMap = new Map<string, string>()
-  if (employerIds.length > 0) {
-    const { data: emps, error: empErr } = await supabase
-      .from('public_employers_directory')
-      .select('id, company_name')
-      .in('id', employerIds)
-    if (empErr) console.error('employer name lookup failed:', empErr.message)
-    for (const e of ((emps ?? []) as EmpRow[])) employerNameMap.set(e.id, e.company_name)
-  }
-
   const now = rfc822(new Date())
 
   // Cap-and-break loop (see MAX_FEED_BYTES note above), mirroring

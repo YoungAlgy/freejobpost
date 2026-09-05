@@ -20,6 +20,7 @@ import {
 import { jobUrlWithUtm, hasUsableDescription, escapeXml, cdata, isBuildPhase, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
 import { getSpecialtyHub } from '@/lib/specialty-slugs'
 import { buildSpecialtyOrFilter } from '@/lib/specialty-filter'
+import { runPublicReadWithDeadline } from '@/lib/public-read-deadline'
 
 // force-dynamic (2026-07-09): this per-specialty RSS feed used to prerender all
 // 35 specialties at build (generateStaticParams), each running a full-column
@@ -50,17 +51,25 @@ export async function GET(
     return new Response('Not found', { status: 404 })
   }
 
-  const { data, error } = await supabase
-    .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at')
-    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
-    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .or(buildSpecialtyOrFilter(hub.matchPatterns))
-    .order('created_at', { ascending: false })
-    .limit(200)
+  const { data, error } = await runPublicReadWithDeadline(
+    `specialty feed ${slug} data load`,
+    (signal) => Promise.resolve(
+      supabase
+        .from('public_jobs')
+        .select(JOB_DETAIL_FIELDS + ', updated_at')
+        .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+        .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .or(buildSpecialtyOrFilter(hub.matchPatterns))
+        .order('created_at', { ascending: false })
+        .limit(200)
+        .retry(false)
+        .abortSignal(signal),
+    ),
+    _req.signal,
+  )
 
   // FAIL CLOSED on a DB ERROR only (not on a legitimately-empty niche). A real
   // empty specialty renders an empty feed, which is correct. A transient DB

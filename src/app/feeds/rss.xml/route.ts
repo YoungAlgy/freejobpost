@@ -15,6 +15,7 @@ import {
   locationLabel,
 } from '@/lib/public-jobs'
 import { jobUrlWithUtm, isBuildPhase, hasUsableDescription, escapeXml, cdata, MIN_INDEXABLE_DESCRIPTION_CHARS } from '@/lib/feed-builders'
+import { runPublicReadWithDeadline } from '@/lib/public-read-deadline'
 
 // force-dynamic (2026-07-10): same shape as the partner feeds fixed
 // 2026-07-09 — a route with only `revalidate` set still prerenders once at
@@ -29,18 +30,26 @@ export const dynamic = 'force-dynamic'
 // escapeXml + cdata are imported from @/lib/feed-builders (shared across the
 // RSS-spec feed routes — rss.xml, /feeds/state, /feeds/specialty).
 
-export async function GET(): Promise<Response> {
-  const filtered = await supabase
-    .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
-    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
-    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .or('syndication_targets.cs.{rss},syndication_targets.eq.{}')
-    .order('created_at', { ascending: false })
-    .limit(500)
+export async function GET(req: Request): Promise<Response> {
+  const filtered = await runPublicReadWithDeadline(
+    'rss.xml data load',
+    (signal) => Promise.resolve(
+      supabase
+        .from('public_jobs')
+        .select(JOB_DETAIL_FIELDS + ', updated_at, syndication_targets')
+        .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+        .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
+        .eq('status', 'active')
+        .is('deleted_at', null)
+        .gt('expires_at', hourIso())
+        .or('syndication_targets.cs.{rss},syndication_targets.eq.{}')
+        .order('created_at', { ascending: false })
+        .limit(500)
+        .retry(false)
+        .abortSignal(signal),
+    ),
+    req.signal,
+  )
 
   type RssJob = PublicJob & { updated_at: string }
   const allJobs = (filtered.data ?? []) as unknown as RssJob[]

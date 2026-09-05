@@ -18,6 +18,11 @@
 // verification mirrors this fail-open behavior.
 
 import { useEffect, useRef } from 'react'
+import {
+  createTurnstileScriptLoader,
+  reportCurrentTurnstileLoadFailure,
+  TURNSTILE_SCRIPT_SRC,
+} from '@/lib/turnstile-script-loader'
 
 declare global {
   interface Window {
@@ -41,8 +46,6 @@ declare global {
   }
 }
 
-const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-
 /**
  * Resolves when window.turnstile is ready to render. We CANNOT call
  * window.turnstile.ready() here because Cloudflare explicitly forbids it
@@ -52,41 +55,22 @@ const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render
  * window.turnstile.render is callable — which is what ready() would wait
  * for under the hood.
  */
-function whenTurnstileReady(): Promise<void> {
-  if (typeof window === 'undefined') return Promise.resolve()
-  return new Promise((resolve, reject) => {
-    const start = Date.now()
-    const tryResolve = () => {
-      if (window.turnstile && typeof window.turnstile.render === 'function') {
-        resolve()
-        return true
-      }
-      return false
-    }
-    if (tryResolve()) return
-    const poll = () => {
-      if (tryResolve()) return
-      if (Date.now() - start > 8000) {
-        reject(new Error('Turnstile script load timed out'))
-        return
-      }
-      setTimeout(poll, 100)
-    }
-    const existing = document.querySelector(`script[src="${SCRIPT_SRC}"]`)
-    if (existing) {
-      existing.addEventListener('load', poll, { once: true })
-      existing.addEventListener('error', () => reject(new Error('Turnstile script failed to load')), { once: true })
-      poll()
-      return
-    }
-    const s = document.createElement('script')
-    s.src = SCRIPT_SRC
-    s.async = true
-    s.onload = poll
-    s.onerror = () => reject(new Error('Turnstile script failed to load'))
-    document.head.appendChild(s)
-  })
-}
+const whenTurnstileReady = createTurnstileScriptLoader({
+  isReady: () =>
+    typeof window !== 'undefined' &&
+    Boolean(window.turnstile && typeof window.turnstile.render === 'function'),
+  findExistingScript: () =>
+    document.querySelector<HTMLScriptElement>(
+      `script[src="${TURNSTILE_SCRIPT_SRC}"]`,
+    ),
+  createAndAppendScript: () => {
+    const script = document.createElement('script')
+    script.src = TURNSTILE_SCRIPT_SRC
+    script.async = true
+    document.head.appendChild(script)
+    return script
+  },
+})
 
 type Props = {
   /** Called when the user passes the challenge. Receives the verification token. */
@@ -147,9 +131,11 @@ export default function TurnstileWidget({
         })
       })
       .catch((err) => {
-        console.error('Turnstile load failed:', err.message)
-        // Fail open — script blocked by ad-blocker, network issue, etc.
-        onSuccess('')
+        reportCurrentTurnstileLoadFailure(cancelled, () => {
+          console.error('Turnstile load failed:', err.message)
+          // Fail open — script blocked by ad-blocker, network issue, etc.
+          onSuccess('')
+        })
       })
     return () => {
       cancelled = true

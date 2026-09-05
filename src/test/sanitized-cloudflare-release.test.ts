@@ -431,7 +431,9 @@ describe('sanitized Cloudflare release policy', () => {
   })
 
   it('runs preview and zero-traffic upload inside the verified isolated workspace', () => {
-    const script = readFileSync('scripts/sanitized-cloudflare-release.mjs', 'utf8')
+    // Git may check this file out with CRLF on Windows. The assertions concern
+    // release behavior, so compare a consistent newline representation.
+    const script = readFileSync('scripts/sanitized-cloudflare-release.mjs', 'utf8').replace(/\r\n/g, '\n')
     expect(script).toContain('async function withVerifiedReleaseWorkspace(')
     expect(script).toContain('await assertReleaseInputsUnchanged(')
     expect(script).toContain('await assertWorkspaceLockMatches(')

@@ -1,5 +1,15 @@
 # freejobpost.co — Employer outreach templates
 
+## Historical only, September 5, 2026
+
+These drafts describe the retired Ava-seeded, staffing-firm-led version of FreeJobPost. Their inventory numbers, growth targets, sender identity, cadence, and product claims are historical and unverified today. Do not copy or send them as current FreeJobPost messaging.
+
+The current product is a standalone nursing and allied-health job-posting tool connected to FreeResumePost. Public inventory uses eligible direct-employer posts. Product branding stays separate from Ava recruiting and Beacon, while the real legal operator remains accurately disclosed. See the current section of `BACKLOG.md` and the September 4 branding release package before preparing replacement drafts.
+
+Algy handles outreach. No historical instruction below grants permission to inspect social accounts, contact employers or partners, send email, or schedule a campaign. Any actual outreach needs his explicit approval for that action. The original drafts remain below for reference.
+
+---
+
 **Purpose:** Diversify the supply side. Currently 99.8% of jobs on the board are
 Ava-seeded. Phase 1 plan target: ~85% seeded / ~15% real third-party employers
 within 90 days, which means ~25 verified employer signups. These templates are

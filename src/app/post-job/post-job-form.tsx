@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect, isValidElement, cloneElement, type ReactElement } from 'react'
+import { useState, useTransition, useEffect, useRef, isValidElement, cloneElement, type ReactElement } from 'react'
 import Link from 'next/link'
 import { submitPostJob, type PostJobInput, type PostJobResult } from './actions'
 import {
@@ -12,6 +12,12 @@ import {
 import { validateSpecialtyScope } from '@/lib/specialty-scope'
 import TurnstileWidget from '@/components/TurnstileWidget'
 import { FREEJOBPOST_SUPPORT_EMAIL } from '@/lib/freejobpost-email'
+import {
+  isTurnstileReady,
+  turnstileResultStatus,
+  type TurnstileStatus,
+} from '@/lib/form-verification'
+import { settlePostJob } from '@/lib/post-job-result'
 
 // US state list for the state dropdown. Mirrors the 2-letter format enforced by
 // submit_freejobpost_job_rpc.
@@ -48,6 +54,7 @@ export default function PostJobForm() {
   const [result, setResult] = useState<PostJobResult | null>(null)
   const [stepError, setStepError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  const submittingRef = useRef(false)
 
   // Prefill company details when the employer navigates here from
   // /employer (dashboard passes ?co=<company_name>&cn=<contact_name>).
@@ -87,6 +94,10 @@ export default function PostJobForm() {
   // Incrementing key forces TurnstileWidget to remount after a failed submit
   // so the user gets a fresh challenge (Turnstile tokens are single-use).
   const [turnstileKey, setTurnstileKey] = useState(0)
+  const turnstileConfigured = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+  const [turnstileStatus, setTurnstileStatus] = useState<TurnstileStatus>(
+    turnstileConfigured ? 'pending' : 'ready',
+  )
 
   const update = <K extends keyof PostJobInput>(key: K, v: PostJobInput[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))
@@ -110,18 +121,34 @@ export default function PostJobForm() {
     values.description.trim().length >= 30 &&
     (values.remote_hybrid === 'remote' || values.state.length === 2) &&
     salaryValidationError === null
-  const canSubmit = values.company_name.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact_email)
+  const canSubmit =
+    values.company_name.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact_email) &&
+    isTurnstileReady(turnstileConfigured, turnstileToken)
+
+  const retryTurnstile = () => {
+    setTurnstileToken(null)
+    setTurnstileStatus(turnstileConfigured ? 'pending' : 'ready')
+    setTurnstileKey((key) => key + 1)
+  }
 
   const onSubmit = () => {
+    if (pending || submittingRef.current || !canSubmit) return
+    submittingRef.current = true
     setStepError(null)
     startTransition(async () => {
-      const r = await submitPostJob(null, values, turnstileToken ?? '')
-      setResult(r)
-      if (!r.success) {
-        // Token is single-use. Clear it and remount the widget so the user
-        // solves a fresh challenge before retrying.
-        setTurnstileToken(null)
-        setTurnstileKey((k) => k + 1)
+      try {
+        const r = await settlePostJob(
+          () => submitPostJob(null, values, turnstileToken ?? ''),
+        )
+        setResult(r)
+        if (!r.success) {
+          // Token is single-use. Clear it and remount the widget so the user
+          // solves a fresh challenge before retrying.
+          retryTurnstile()
+        }
+      } finally {
+        submittingRef.current = false
       }
     })
   }
@@ -135,36 +162,40 @@ export default function PostJobForm() {
           SUBMITTED
         </div>
         <h2 className="text-3xl md:text-4xl font-black leading-tight mb-4">
-          {result.verify_email_sent === false ? 'One more step.' : 'Check your email.'}
+          {result.verify_email_sent === true ? 'Check your email.' : 'One more step.'}
         </h2>
         {result.verify_email_sent === false ? (
           // 2026-06 audit (F97): the send failed and we know it — say so
           // instead of pointing the employer at an inbox that stays empty.
           <p className="text-lg text-gray-800 mb-6">
             Your job is saved, but the verification email to{' '}
-            <strong className="font-bold">{values.contact_email}</strong> did not go
+            <strong className="font-bold break-all">{values.contact_email}</strong> did not go
             out. Email{' '}
-            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="underline hover:text-[#17324D]">
+            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="break-all underline hover:text-[#17324D]">
               {FREEJOBPOST_SUPPORT_EMAIL}
             </a>{' '}
             for delivery help.
           </p>
-        ) : (
+        ) : result.verify_email_sent === true ? (
           <p className="text-lg text-gray-800 mb-6">
             We sent a one-click verification link to{' '}
-            <strong className="font-bold">{values.contact_email}</strong>. The moment you
+            <strong className="font-bold break-all">{values.contact_email}</strong>. The moment you
             click it, your job goes live at{' '}
-            <code className="bg-white px-1.5 py-0.5 text-sm font-mono">
+            <code className="break-all bg-white px-1.5 py-0.5 text-sm font-mono">
               /jobs/{result.job_slug}
             </code>
             .
           </p>
+        ) : (
+          <p className="text-lg text-gray-800 mb-6">
+            Your job is saved. We could not confirm the verification email. Check your inbox before posting again.
+          </p>
         )}
-        {result.verify_email_sent !== false && (
+        {result.verify_email_sent === true && (
           <p className="text-sm text-gray-600 mb-6">
             Link expires in 48 hours. Check your spam folder if you don&apos;t see it in a few minutes.
             Still nothing? Email{' '}
-            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="underline hover:text-[#17324D]">
+            <a href={`mailto:${FREEJOBPOST_SUPPORT_EMAIL}?subject=Job+verification+email+not+received`} className="break-all underline hover:text-[#17324D]">
               {FREEJOBPOST_SUPPORT_EMAIL}
             </a>{' '}
             with the subject line &quot;Job verification email not received&quot; for delivery help.
@@ -201,6 +232,7 @@ export default function PostJobForm() {
     <form
       onSubmit={(e) => {
         e.preventDefault()
+        if (pending || submittingRef.current) return
         if (step === 1) {
           if (canAdvanceStep1) setStep(2)
           else
@@ -440,6 +472,7 @@ export default function PostJobForm() {
             <input
               type="text"
               autoComplete="organization"
+              disabled={pending}
               value={values.company_name}
               onChange={(e) => update('company_name', e.target.value)}
               placeholder="Sunshine Medical Group"
@@ -451,6 +484,7 @@ export default function PostJobForm() {
             <input
               type="url"
               autoComplete="url"
+              disabled={pending}
               inputMode="url"
               value={values.company_url}
               onChange={(e) => update('company_url', e.target.value)}
@@ -463,6 +497,7 @@ export default function PostJobForm() {
             <input
               type="text"
               autoComplete="name"
+              disabled={pending}
               value={values.contact_name}
               onChange={(e) => update('contact_name', e.target.value)}
               placeholder="Dr. Maya Chen"
@@ -474,6 +509,7 @@ export default function PostJobForm() {
             <input
               type="email"
               autoComplete="email"
+              disabled={pending}
               inputMode="email"
               value={values.contact_email}
               onChange={(e) => update('contact_email', e.target.value)}
@@ -493,12 +529,43 @@ export default function PostJobForm() {
              instantly with empty token if Turnstile isn't provisioned). */}
           <TurnstileWidget
             key={turnstileKey}
-            onSuccess={setTurnstileToken}
-            onError={() => setTurnstileToken(null)}
-            onExpired={() => setTurnstileToken(null)}
+            onSuccess={(token) => {
+              const status = turnstileResultStatus(turnstileConfigured, token)
+              setTurnstileStatus(status)
+              setTurnstileToken(status === 'ready' ? token : null)
+            }}
+            onError={() => {
+              setTurnstileToken(null)
+              setTurnstileStatus('failed')
+            }}
+            onExpired={() => {
+              setTurnstileToken(null)
+              setTurnstileStatus('expired')
+            }}
             action="post-job"
             className="mt-4"
           />
+          {turnstileConfigured && turnstileStatus !== 'ready' && (
+            <div
+              role={turnstileStatus === 'pending' ? 'status' : 'alert'}
+              aria-live="polite"
+              className="mt-3 text-sm text-gray-700"
+            >
+              {turnstileStatus === 'pending' && 'Checking verification before you submit.'}
+              {turnstileStatus === 'failed' && 'Verification did not load. Try again before submitting.'}
+              {turnstileStatus === 'expired' && 'Verification expired. Try again before submitting.'}
+              {(turnstileStatus === 'failed' || turnstileStatus === 'expired') && (
+                <button
+                  type="button"
+                  onClick={retryTurnstile}
+                  disabled={pending}
+                  className="mt-2 inline-flex min-h-11 max-w-full items-center text-left font-bold underline disabled:cursor-not-allowed disabled:opacity-50 sm:ml-2 sm:mt-0"
+                >
+                  Retry verification
+                </button>
+              )}
+            </div>
+          )}
         </>
       )}
 
@@ -511,9 +578,11 @@ export default function PostJobForm() {
             <button
               type="button"
               onClick={() => {
+                if (step === 3) retryTurnstile()
                 setStep((step - 1) as 1 | 2 | 3)
                 setStepError(null)
               }}
+              disabled={pending}
               className="text-sm font-bold underline hover:text-[#17324D]"
             >
               ← Back
@@ -522,7 +591,7 @@ export default function PostJobForm() {
         </div>
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || (step === 3 && !canSubmit)}
           className="inline-flex items-center bg-[#276749] text-white px-6 py-3 font-bold rounded-lg hover:bg-[#1F563B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending

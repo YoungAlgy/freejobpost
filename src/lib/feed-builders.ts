@@ -19,6 +19,7 @@ import {
 import { supabaseFresh as supabase, hourIso } from './supabase'
 import type { SyndicationTargetId } from './syndication-targets'
 import { activeJobBatchCount, runBatchesConcurrencyCapped } from './active-batch-count'
+import { runPublicReadWithDeadline } from './public-read-deadline'
 
 export type FeedJob = PublicJob & {
   updated_at: string
@@ -183,7 +184,10 @@ const STRICT_PARTNERS: ReadonlySet<SyndicationTargetId> = new Set([
   'ziprecruiter',
 ])
 
-async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[]> {
+async function fetchJobsForTarget(
+  target: SyndicationTargetId,
+  signal: AbortSignal,
+): Promise<FeedJob[]> {
   const nowIso = hourIso()
   // PostgREST `.or()` joins clauses with OR; `cs.{target}` is the array
   // `@>` operator, `eq.{}` matches an empty array literal.
@@ -208,10 +212,12 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
     .or(filterClause)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
 
-  const numBatches = await activeJobBatchCount(supabase)
-
+  const numBatches = await activeJobBatchCount(supabase, signal, isBuildPhase())
   const filteredBatches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-    baseFiltered().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    baseFiltered()
+      .range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+      .retry(false)
+      .abortSignal(signal)
   )
   if (filteredBatches.some((batch) => batch.error) && !isBuildPhase()) {
     throw new Error(`feed[${target}]: direct-employer query failed, refusing to cache a partial feed.`)
@@ -227,7 +233,10 @@ async function fetchJobsForTarget(target: SyndicationTargetId): Promise<FeedJob[
 // live jobs to Indeed / LinkedIn / Google under the
 // wrong company. All 23 employers those jobs point at are status='active' and
 // verified_healthcare_org=true, so public_employers_directory covers them.
-async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string, string>> {
+async function resolveEmployerNames(
+  jobs: FeedJob[],
+  signal: AbortSignal,
+): Promise<Map<string, string>> {
   const employerIds = [...new Set(jobs.map((j) => j.employer_id).filter(Boolean))]
   const map = new Map<string, string>()
   if (employerIds.length === 0) return map
@@ -236,6 +245,8 @@ async function resolveEmployerNames(jobs: FeedJob[]): Promise<Map<string, string
     .from('public_employers_directory')
     .select('id, company_name')
     .in('id', employerIds)
+    .retry(false)
+    .abortSignal(signal)
   if (empErr) console.error('employer name lookup failed:', empErr.message)
   for (const e of ((emps ?? []) as EmpRow[])) map.set(e.id, e.company_name)
   return map
@@ -336,12 +347,19 @@ export function hasUsableDescription(
 export async function buildIndeedFormatFeed(
   target: SyndicationTargetId,
   networkLabel: string,
+  requestSignal?: AbortSignal,
 ): Promise<Response> {
-  const allJobs = await fetchJobsForTarget(target)
-  // Empty is valid while direct-employer inventory is growing. Query errors
-  // are handled inside fetchJobsForTarget so failed reads still fail closed.
-  const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
-  const employerNames = await resolveEmployerNames(jobs)
+  const { jobs, employerNames } = await runPublicReadWithDeadline(
+    `feed[${target}] employer load`,
+    async (signal) => {
+      const allJobs = await fetchJobsForTarget(target, signal)
+      // Empty is valid while direct-employer inventory is growing. Query errors
+      // are handled inside fetchJobsForTarget so failed reads still fail closed.
+      const jobs = allJobs.filter((j) => hasUsableDescription(j.description))
+      return { jobs, employerNames: await resolveEmployerNames(jobs, signal) }
+    },
+    requestSignal,
+  )
   // HARD BYTE BUDGET (2026-06-10): /feeds/adzuna.xml's prerendered ISR
   // fallback hit 23.19MB and FAILED the deploy at Vercel's 19.07MB
   // FALLBACK_BODY_TOO_LARGE guardrail — the exact re-arming the 1500-char
@@ -386,7 +404,7 @@ export async function buildIndeedFormatFeed(
 // Fetch active jobs that ORIGINATE on freejobpost — i.e. employer-posted
 // via /post-job. The exact source filter excludes every imported or seeded row.
 //
-async function fetchOriginatedJobs(): Promise<FeedJob[]> {
+async function fetchOriginatedJobs(signal: AbortSignal): Promise<FeedJob[]> {
   const nowIso = hourIso()
   const baseQ = () => supabase
     .from('public_jobs')
@@ -398,9 +416,12 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
     .gt('expires_at', nowIso)
     .gte('description_usable_chars', MIN_ORIGINATED_DESCRIPTION_CHARS) // mirrors hasUsableDescription (originated floor)
     .order('updated_at', { ascending: false }).order('id', { ascending: false })
-  const numBatches = await activeJobBatchCount(supabase)
+  const numBatches = await activeJobBatchCount(supabase, signal, isBuildPhase())
   const batches = await runBatchesConcurrencyCapped(numBatches, (i) =>
-    baseQ().range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+    baseQ()
+      .range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE - 1)
+      .retry(false)
+      .abortSignal(signal)
   )
   if (batches.some((batch) => batch.error) && !isBuildPhase()) {
     throw new Error('feed[originated]: direct-employer query failed, refusing to cache a partial feed.')
@@ -415,23 +436,32 @@ async function fetchOriginatedJobs(): Promise<FeedJob[]> {
 // target). The <url> field falls back to a clean canonical URL — strict
 // partners typically rewrite or append their own attribution params on
 // crawl anyway.
-export async function buildOriginatedFeed(networkLabel: string): Promise<Response> {
-  const allJobs = await fetchOriginatedJobs()
-  // NOTE: no fail-closed 0-guard here. Unlike the volume/strict feeds,
-  // "originated" (employer-posted, is_ats_import=false) inventory is
-  // legitimately small (~422 today) and CAN genuinely reach 0 if all
-  // employer posts expire — that's a real state, not necessarily DB
-  // failure, so throwing would risk masking the real empty case. The
-  // strict partners that consume this feed tolerate an occasional empty
-  // originated feed. (If this grows into a core partner surface, revisit.)
-  // Thin-description filter at the originated floor (250), NOT the 600
-  // volume-feed bar — these are direct-employer roles, mostly a solid
-  // paragraph (250-600 chars); 600 would gut the feed. See
-  // MIN_ORIGINATED_DESCRIPTION_CHARS for why.
-  const jobs = allJobs.filter((j) =>
-    hasUsableDescription(j.description, MIN_ORIGINATED_DESCRIPTION_CHARS),
+export async function buildOriginatedFeed(
+  networkLabel: string,
+  requestSignal?: AbortSignal,
+): Promise<Response> {
+  const { jobs, employerNames } = await runPublicReadWithDeadline(
+    'feed[originated] employer load',
+    async (signal) => {
+      const allJobs = await fetchOriginatedJobs(signal)
+      // NOTE: no fail-closed 0-guard here. Unlike the volume/strict feeds,
+      // "originated" (employer-posted, is_ats_import=false) inventory is
+      // legitimately small (~422 today) and CAN genuinely reach 0 if all
+      // employer posts expire — that's a real state, not necessarily DB
+      // failure, so throwing would risk masking the real empty case. The
+      // strict partners that consume this feed tolerate an occasional empty
+      // originated feed. (If this grows into a core partner surface, revisit.)
+      // Thin-description filter at the originated floor (250), NOT the 600
+      // volume-feed bar — these are direct-employer roles, mostly a solid
+      // paragraph (250-600 chars); 600 would gut the feed. See
+      // MIN_ORIGINATED_DESCRIPTION_CHARS for why.
+      const jobs = allJobs.filter((j) =>
+        hasUsableDescription(j.description, MIN_ORIGINATED_DESCRIPTION_CHARS),
+      )
+      return { jobs, employerNames: await resolveEmployerNames(jobs, signal) }
+    },
+    requestSignal,
   )
-  const employerNames = await resolveEmployerNames(jobs)
   const jobsXml = jobs
     .map((job) => {
       const name = job.company_name || employerNames.get(job.employer_id) || 'Employer'

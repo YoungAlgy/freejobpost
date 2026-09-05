@@ -1,4 +1,30 @@
-# freejobpost.co — Backlog
+# FreeJobPost backlog
+
+## Current direction, September 5, 2026
+
+FreeJobPost is a standalone nursing and allied-health job-posting product. FreeResumePost is its connected resume-side product. Each keeps its own name, domain, account boundary, and data. Links between them do not imply shared login, automatic data transfer, or recruiter access.
+
+Public inventory is limited to eligible direct-employer posts. Imported or aggregated job listings, Ava-seeded jobs, imported candidate inventory, and an Ava recruiting sales funnel are outside the current direction. The real legal operator must still be disclosed accurately. Beacon is a separate internal-only workspace with no paid membership. Providers supports Ava Health's SEO and AEO. The boss-managed Wix site is outside this product's change scope.
+
+## Active release work
+
+- Wait for Audit to confirm shared Supabase recovery and the required fresh backup, migration ledger, compatibility review, and rollback evidence. A support ticket or local passing tests do not clear that gate.
+- Choose the exact FreeJobPost release scope after recovery. The August 31 standalone-brand candidate and September 4 outage-containment patch are separate. Do not deploy the dirty working copy wholesale or infer the live source from local HEAD.
+- Verify the real product-owned support mailbox, sender, reply address, and runtime binding names before release. Do not invent addresses or send test mail without Algy's approval.
+- Use the checked-in sanitized build, zero-traffic upload, and reviewed traffic-change paths. No deployment is authorized by this backlog.
+- Validate the connected Jobs and Resumes navigation, direct-employer posting, empty/error states, and mobile forms against the exact selected candidate.
+- Review draft marketing material before reuse. Historical templates and partner plans do not authorize outreach, new integrations, social-account access, or payments.
+
+Current source and release records live under `C:\Users\Algy\Desktop\Files\Ava-Health-Platform-Migration`:
+
+- `ADR-003-CONNECTED-PRODUCT-BRAND-ARCHITECTURE.md`
+- `BRANDING-RELEASE-PACKAGE-2026-09-04.md`
+- `FREEJOBPOST-OUTAGE-CONTAINMENT-2026-09-04.md`
+- `LOCAL-APP-PROGRESS-2026-09-05.md`
+
+## Historical backlog, preserved from May 8, 2026
+
+Everything below is historical context, including its "Current phase" label, metrics, dates, unchecked boxes, outreach instructions, and proposed paid tiers. It is not the active roadmap. Reassess an item against the current direction before bringing it back. Old task counts and security findings are not current verification.
 
 Items captured here are NOT for the current sprint. They live here so they
 don't get lost. Pull into active work when the current phase completes.

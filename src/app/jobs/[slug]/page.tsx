@@ -1,7 +1,10 @@
 import Link from 'next/link'
+import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { supabase, hourIso } from '@/lib/supabase'
+import { supabase, hourIso, assertFreshOrThrow } from '@/lib/supabase'
+import { runPublicReadWithDeadline } from '@/lib/public-read-deadline'
+import { isMissingColumnError } from '@/lib/missing-column-error'
 import {
   JOB_DETAIL_FIELDS,
   JOB_LIST_FIELDS,
@@ -94,49 +97,51 @@ type JobWithTargets = PublicJob & {
   employer_id?: string | null
 }
 
-async function getJob(slug: string): Promise<JobWithTargets | null> {
+// Explicit React memoization keeps metadata and page reads shared even though
+// AbortSignal opts the underlying fetch out of React's fetch memoization.
+const getJob = cache(async (slug: string): Promise<JobWithTargets | null> => {
   if (!SLUG_RE.test(slug)) return null
-  // Defensive: if the syndication_targets column doesn't exist yet (pre-migration),
-  // fall back to the original select so the page still renders.
-  const withTargets = await supabase
-    .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS + ', syndication_targets')
-    .eq('slug', slug)
-    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
-    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .maybeSingle()
-  if (!withTargets.error) {
-    return (withTargets.data as JobWithTargets | null) ?? null
-  }
-  const fallback = await supabase
-    .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS)
-    .eq('slug', slug)
-    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
-    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .maybeSingle()
-  // FAIL CLOSED (2026-06-02): if BOTH the targeted + fallback selects errored,
-  // this is an infrastructure failure (bad grant / DB outage), NOT a missing row
-  // — e.g. the company_name anon-grant incident, where every anon job query
-  // 42501'd, getJob returned null → notFound() → a 404-storm across all ~16.8K
-  // job pages. Throw so Next serves the last-good ISR cache (or 500s on a cold
-  // cache, which a crawler retries) instead of 404'ing a real, live job. The
-  // benign withTargets error (syndication_targets column missing) is recovered
-  // by the fallback above; only a DOUBLE error reaches here. Build-phase guarded
-  // so a prerender DB hiccup degrades gracefully. Mirrors /jobs + jobs.xml.
-  if (fallback.error && process.env.NEXT_PHASE !== 'phase-production-build') {
-    throw new Error(
-      `getJob(${slug}): both selects failed (${fallback.error.message}) — refusing to 404 a real job`,
-    )
-  }
-  return (fallback.data as JobWithTargets | null) ?? null
-}
+  return runPublicReadWithDeadline('job detail', async (signal) => {
+    // Defensive: if the syndication_targets column doesn't exist yet (pre-migration),
+    // fall back to the original select so the page still renders.
+    const withTargets = await supabase
+      .from('public_jobs')
+      .select(JOB_DETAIL_FIELDS + ', syndication_targets')
+      .eq('slug', slug)
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', hourIso())
+      .abortSignal(signal)
+      .maybeSingle()
+      .retry(false)
+    if (!withTargets.error) {
+      return (withTargets.data as JobWithTargets | null) ?? null
+    }
+    if (!isMissingColumnError(withTargets.error, 'public_jobs', 'syndication_targets')) {
+      // Outages, permission failures, and other missing columns cannot be fixed
+      // by this legacy projection. Do not send another query to an unhealthy DB.
+      assertFreshOrThrow(withTargets, `getJob(${slug})`)
+      return null
+    }
+    signal.throwIfAborted()
+    const fallback = await supabase
+      .from('public_jobs')
+      .select(JOB_DETAIL_FIELDS)
+      .eq('slug', slug)
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', hourIso())
+      .abortSignal(signal)
+      .maybeSingle()
+      .retry(false)
+    assertFreshOrThrow(fallback, `getJob(${slug}) fallback`)
+    return (fallback.data as JobWithTargets | null) ?? null
+  })
+})
 
 // Fetch a retired-but-not-deleted job by slug. When a listing comes down, the
 // pipeline sets status='expired' and PRESERVES the row (deleted_at stays NULL;
@@ -178,19 +183,25 @@ async function getJob(slug: string): Promise<JobWithTargets | null> {
 // "position closed → see similar" recovery page would be misleading for
 // them (matches the deleted_at IS NULL reasoning above: only listings that
 // were actually once live get the recovery treatment).
-async function getClosedJob(slug: string): Promise<JobWithTargets | null> {
+const getClosedJob = cache(async (slug: string): Promise<JobWithTargets | null> => {
   if (!SLUG_RE.test(slug)) return null
-  const { data } = await supabase
-    .from('public_jobs')
-    .select(JOB_DETAIL_FIELDS)
-    .eq('slug', slug)
-    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
-    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
-    .is('deleted_at', null)
-    .or(`status.eq.expired,status.eq.filled,and(status.eq.active,expires_at.lte.${hourIso()})`)
-    .maybeSingle()
-  return (data as JobWithTargets | null) ?? null
-}
+  return runPublicReadWithDeadline('closed job detail', async (signal) => {
+    const result = await supabase
+      .from('public_jobs')
+      .select(JOB_DETAIL_FIELDS)
+      .eq('slug', slug)
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
+      .is('deleted_at', null)
+      .or(`status.eq.expired,status.eq.filled,and(status.eq.active,expires_at.lte.${hourIso()})`)
+      .abortSignal(signal)
+      .maybeSingle()
+      .retry(false)
+    // A failed closed-job read is not evidence that the slug does not exist.
+    assertFreshOrThrow(result, `getClosedJob(${slug})`)
+    return (result.data as JobWithTargets | null) ?? null
+  })
+})
 
 // Lookup the direct hiring employer's display name + verification status.
 //
@@ -205,73 +216,87 @@ async function resolveEmployer(employerId: string | null | undefined): Promise<{
 }> {
   const FALLBACK_NAME = 'Employer'
   if (!employerId) return { name: FALLBACK_NAME, verifiedAt: null, slug: null }
+  return runPublicReadWithDeadline('job employer', async (signal) => {
 
-  type EmployerFull = { company_name: string; verified_at: string | null; verified_via: string | null; slug: string | null }
-  type EmployerBase = { company_name: string; verified_at: string | null }
+    type EmployerFull = { company_name: string; verified_at: string | null; verified_via: string | null; slug: string | null }
+    type EmployerBase = { company_name: string; verified_at: string | null }
 
-  // Try with slug column (post-migration); fall back if column doesn't exist yet.
-  const withSlug = await supabase
-    .from('public_employers_directory')
-    .select('company_name, verified_at, verified_via, slug')
-    .eq('id', employerId)
-    .maybeSingle()
-
-  let row: EmployerFull | EmployerBase | null
-  if (!withSlug.error) {
-    row = (withSlug.data as EmployerFull | null)
-  } else {
-    const fallback = await supabase
+    // Try with slug column (post-migration); fall back if column doesn't exist yet.
+    const withSlug = await supabase
       .from('public_employers_directory')
-      .select('company_name, verified_at')
+      .select('company_name, verified_at, verified_via, slug')
       .eq('id', employerId)
+      .abortSignal(signal)
       .maybeSingle()
-    row = (fallback.data as EmployerBase | null)
-  }
+      .retry(false)
 
-  const name = row?.company_name?.trim() || FALLBACK_NAME
-  const full = row as EmployerFull | null
-  // Legacy directory rows can still exist, but public job pages only link to
-  // direct employers with a real directory page.
-  const slug = (full?.slug && full.verified_via !== 'seeded' && full.verified_via !== 'ats_import')
-    ? full.slug
-    : null
-  const trustedVerify = full?.verified_via !== 'ats_import' && full?.verified_via !== 'seeded'
-  const verifiedAt = (row?.verified_at && trustedVerify) ? row.verified_at : null
-  return { name, verifiedAt, slug }
+    let row: EmployerFull | EmployerBase | null
+    if (!withSlug.error) {
+      row = (withSlug.data as EmployerFull | null)
+    } else if (['slug', 'verified_via'].some((column) =>
+      isMissingColumnError(withSlug.error, 'public_employers_directory', column))) {
+      signal.throwIfAborted()
+      const fallback = await supabase
+        .from('public_employers_directory')
+        .select('company_name, verified_at')
+        .eq('id', employerId)
+        .abortSignal(signal)
+        .maybeSingle()
+        .retry(false)
+      row = (fallback.data as EmployerBase | null)
+    } else {
+      row = null
+    }
+
+    const name = row?.company_name?.trim() || FALLBACK_NAME
+    const full = row as EmployerFull | null
+    // Legacy directory rows can still exist, but public job pages only link to
+    // direct employers with a real directory page.
+    const slug = (full?.slug && full.verified_via !== 'seeded' && full.verified_via !== 'ats_import')
+      ? full.slug
+      : null
+    const trustedVerify = full?.verified_via !== 'ats_import' && full?.verified_via !== 'seeded'
+    const verifiedAt = (row?.verified_at && trustedVerify) ? row.verified_at : null
+    return { name, verifiedAt, slug }
+  })
 }
 
 async function getRelated(job: PublicJob): Promise<PublicJob[]> {
-  const { data } = await supabase
-    .from('public_jobs')
-    // The Related list only renders title / location / salary (see the render
-    // below) — never the body. Select the lighter JOB_LIST_FIELDS instead of
-    // JOB_DETAIL_FIELDS so we don't pull 6 full job descriptions per detail
-    // page. 2026-05-29 over-fetch audit.
-    .select(JOB_LIST_FIELDS)
-    .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
-    .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
-    .eq('status', 'active')
-    .is('deleted_at', null)
-    .gt('expires_at', hourIso())
-    .neq('id', job.id)
-    .or(
-      // Double-quote the values: role is free-text from /post-job, so a comma
-      // ("Nurse, RN") or paren would otherwise break PostgREST's .or() grammar
-      // — the comma is the term separator — silently erroring the query into an
-      // empty Related list. Quoting lets the value contain commas/parens; strip
-      // any embedded " or \ so the quoting itself stays intact. (Can't reuse
-      // sanitizeQ here — this is an exact .eq match, so stripping chars would
-      // stop it matching the stored row.) 2026-05-28 audit.
-      [
-        job.role ? `role.eq."${job.role.replace(/["\\]/g, '')}"` : null,
-        job.state ? `state.eq."${job.state.replace(/["\\]/g, '')}"` : null,
-      ]
-        .filter(Boolean)
-        .join(',') || 'id.neq.00000000-0000-0000-0000-000000000000'
-    )
-    .order('created_at', { ascending: false })
-    .limit(6)
-  return (data ?? []) as PublicJob[]
+  return runPublicReadWithDeadline('related jobs', async (signal) => {
+    const { data } = await supabase
+      .from('public_jobs')
+      // The Related list only renders title / location / salary (see the render
+      // below) — never the body. Select the lighter JOB_LIST_FIELDS instead of
+      // JOB_DETAIL_FIELDS so we don't pull 6 full job descriptions per detail
+      // page. 2026-05-29 over-fetch audit.
+      .select(JOB_LIST_FIELDS)
+      .eq('source', PUBLIC_EMPLOYER_JOB_SOURCE)
+      .not('company_name', 'ilike', PUBLIC_JOB_EXCLUDED_COMPANY_PATTERN)
+      .eq('status', 'active')
+      .is('deleted_at', null)
+      .gt('expires_at', hourIso())
+      .neq('id', job.id)
+      .or(
+        // Double-quote the values: role is free-text from /post-job, so a comma
+        // ("Nurse, RN") or paren would otherwise break PostgREST's .or() grammar
+        // — the comma is the term separator — silently erroring the query into an
+        // empty Related list. Quoting lets the value contain commas/parens; strip
+        // any embedded " or \ so the quoting itself stays intact. (Can't reuse
+        // sanitizeQ here — this is an exact .eq match, so stripping chars would
+        // stop it matching the stored row.) 2026-05-28 audit.
+        [
+          job.role ? `role.eq."${job.role.replace(/["\\]/g, '')}"` : null,
+          job.state ? `state.eq."${job.state.replace(/["\\]/g, '')}"` : null,
+        ]
+          .filter(Boolean)
+          .join(',') || 'id.neq.00000000-0000-0000-0000-000000000000'
+      )
+      .order('created_at', { ascending: false })
+      .limit(6)
+      .abortSignal(signal)
+      .retry(false)
+    return (data ?? []) as PublicJob[]
+  })
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -356,6 +381,18 @@ function renderDescription(md: string): string {
     .join('')
 }
 
+async function getJobExtras(job: PublicJob) {
+  // Both optional reads have their own cancellation deadline. Wait for both
+  // to settle before returning or throwing so neither outlives this render.
+  const [related, employer] = await Promise.allSettled([
+    getRelated(job),
+    resolveEmployer(job.employer_id),
+  ])
+  if (related.status === 'rejected') throw related.reason
+  if (employer.status === 'rejected') throw employer.reason
+  return { related: related.value, employer: employer.value }
+}
+
 export default async function JobDetailPage({ params }: Props) {
   const { slug } = await params
   const job = await getJob(slug)
@@ -367,10 +404,7 @@ export default async function JobDetailPage({ params }: Props) {
     // completely untouched; this only changes what used to be a notFound().
     const closed = await getClosedJob(slug)
     if (!closed) notFound()
-    const [closedRelated, closedEmployer] = await Promise.all([
-      getRelated(closed),
-      resolveEmployer(closed.employer_id),
-    ])
+    const { related: closedRelated, employer: closedEmployer } = await getJobExtras(closed)
     return (
       <ClosedJobView
         job={closed}
@@ -382,10 +416,7 @@ export default async function JobDetailPage({ params }: Props) {
 
   const externalApplyUrl = safeApplyUrl(job.apply_url, { requireHttps: true })
 
-  const [related, employer] = await Promise.all([
-    getRelated(job),
-    resolveEmployer(job.employer_id),
-  ])
+  const { related, employer } = await getJobExtras(job)
   const loc = locationLabel(job)
   const sal = formatSalary(job.salary_min, job.salary_max)
   const emp = employmentLabel(job.employment_type)

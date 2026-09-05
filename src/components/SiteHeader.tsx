@@ -18,15 +18,15 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 md:px-6">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4 md:px-6">
         <Link
           href="/"
           aria-label="FreeJobPost home"
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          className="flex min-w-0 items-center gap-2 hover:opacity-80 transition-opacity"
           onClick={() => setMobileOpen(false)}
         >
           <Logo size={32} className="shrink-0" />
-          <span className="text-lg font-black tracking-[-0.03em] text-[#17324D]">FreeJobPost</span>
+          <span className="text-base font-black tracking-[-0.03em] text-[#17324D] sm:text-lg">FreeJobPost</span>
         </Link>
 
         {/* Desktop nav */}
@@ -41,10 +41,10 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <Link
             href="/post-job"
-            className="inline-flex min-h-10 items-center rounded-lg bg-[#276749] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1F563B]"
+            className="inline-flex min-h-11 items-center rounded-lg bg-[#276749] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#1F563B]"
           >
             Post a job
           </Link>
@@ -53,7 +53,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
-            className="md:hidden inline-flex items-center justify-center p-2 -mr-1 rounded-lg text-[#17324D] hover:bg-gray-100 transition-colors"
+            className="md:hidden inline-flex min-h-11 min-w-11 items-center justify-center p-2 rounded-lg text-[#17324D] hover:bg-gray-100 transition-colors"
             aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"

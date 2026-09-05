@@ -29,6 +29,6 @@ import { buildOriginatedFeed } from '@/lib/feed-builders'
 // Cache-Control header (s-maxage=21600 = 6h) is the real caching lever.
 export const dynamic = 'force-dynamic'
 
-export async function GET(): Promise<Response> {
-  return buildOriginatedFeed('Originated')
+export async function GET(req: Request): Promise<Response> {
+  return buildOriginatedFeed('Originated', req.signal)
 }

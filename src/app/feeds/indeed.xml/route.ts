@@ -11,6 +11,6 @@ import { buildIndeedFormatFeed } from '@/lib/feed-builders'
 // as the builder already assumes. Partners re-crawl every 4-24h.
 export const dynamic = 'force-dynamic'
 
-export async function GET(): Promise<Response> {
-  return buildIndeedFormatFeed('indeed', 'Indeed')
+export async function GET(req: Request): Promise<Response> {
+  return buildIndeedFormatFeed('indeed', 'Indeed', req.signal)
 }
